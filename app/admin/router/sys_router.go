@@ -60,11 +60,11 @@ func sysSwaggerRouter(r *gin.RouterGroup) {
 }
 
 func sysCheckRoleRouterInit(r *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
-	wss := r.Group("").Use(authMiddleware.MiddlewareFunc())
-	{
-		wss.GET("/ws/:id/:channel", ws.WebsocketManager.WsClient)
-		wss.GET("/wslogout/:id/:channel", ws.WebsocketManager.UnWsClient)
-	}
+	//wss := r.Group("").Use(authMiddleware.MiddlewareFunc())
+	//{
+	//	wss.GET("/ws/:id/:channel", ws.WebsocketManager.WsClient)
+	//	wss.GET("/wslogout/:id/:channel", ws.WebsocketManager.UnWsClient)
+	//}
 
 	v1 := r.Group("/api/v1")
 	{

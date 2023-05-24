@@ -22,7 +22,7 @@ type RichGlobal struct {
 	ModelTime
 	Layer  int    `gorm:"size:1;index;comment:排序"` //排序
 	Enable bool   `gorm:"comment:开关"`
-	Desc   string `gorm:"size:25;comment:描述信息"` //描述
+	Desc   string `gorm:"size:35;comment:描述信息"` //描述
 }
 
 // todo: 大B下小B的公共函数

@@ -38,7 +38,7 @@ type ShopRechargeLog struct {
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
 	ShopId    int            `gorm:"index;comment:小BID"`
-	Uuid      string         `json:"uuid" gorm:"index;size:10;comment:订单号"` //订单号
+	Uuid      string         `json:"uuid" gorm:"index;size:20;comment:订单号"` //订单号
 	Source    string         `json:"source" gorm:"size:16;comment:充值方式"`
 	Money     float64        `gorm:"comment:支付金额"`
 	GiveMoney float64        `gorm:"comment:赠送金额"`
@@ -59,6 +59,7 @@ type ShopBalanceLog struct {
 	ShopId    int            `gorm:"index;comment:小BID"`
 	Money     float64        `gorm:"comment:变动金额"`
 	Scene     string         ` gorm:"size:30;comment:变动场景"`
+	Desc string   ` gorm:"size:50;comment:描述/说明"`
 }
 
 func (ShopBalanceLog) TableName() string {

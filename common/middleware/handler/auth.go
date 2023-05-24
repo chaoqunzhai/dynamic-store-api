@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"errors"
 	"go-admin/app/admin/models"
 	"go-admin/common"
 	"net/http"
@@ -18,6 +19,12 @@ import (
 	"go-admin/common/global"
 )
 
+var (
+
+	ErrMissingLoginValues = errors.New("请输入手机号或者密码")
+	ErrFailedAuthentication = errors.New("手机号或者密码错误")
+	ErrInvalidVerificationode = errors.New("验证码错误")
+)
 func PayloadFunc(data interface{}) jwt.MapClaims {
 	if v, ok := data.(map[string]interface{}); ok {
 		u, _ := v["user"].(SysUser)
@@ -31,6 +38,7 @@ func PayloadFunc(data interface{}) jwt.MapClaims {
 			jwt.RoleNameKey:  r.RoleName,
 		}
 	}
+
 	return jwt.MapClaims{}
 }
 
@@ -66,7 +74,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 	if err != nil {
 		log.Errorf("get db error, %s", err.Error())
 		response.Error(c, 500, err, "数据库连接获取失败")
-		return nil, jwt.ErrFailedAuthentication
+		return nil,ErrFailedAuthentication
 	}
 
 	var loginVals Login
@@ -82,7 +90,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 		msg = "数据解析失败"
 		status = "1"
 
-		return nil, jwt.ErrMissingLoginValues
+		return nil, ErrMissingLoginValues
 	}
 	if config.ApplicationConfig.Mode != "dev" {
 		if !captcha.Verify(loginVals.UUID, loginVals.Code, true) {
@@ -90,7 +98,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 			msg = "验证码错误"
 			status = "1"
 
-			return nil, jwt.ErrInvalidVerificationode
+			return nil, ErrInvalidVerificationode
 		}
 	}
 	user, role, e := loginVals.GetUser(db)
@@ -103,7 +111,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 		status = "1"
 		log.Warnf("%s login failed!", loginVals.Phone)
 	}
-	return nil, jwt.ErrFailedAuthentication
+	return nil, ErrFailedAuthentication
 }
 
 // LoginLogToDB Write log to database
