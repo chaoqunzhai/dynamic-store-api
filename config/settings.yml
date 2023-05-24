@@ -25,7 +25,8 @@ settings:
     # token 密钥，生产环境时及的修改
     secret: dy-admin
     # token 过期时间 单位：秒
-    timeout: 36000000
+    #默认过期时间 5个小时
+    timeout: 18000
   database:
     # 数据库类型 mysql, sqlite3, postgres, sqlserver
     # sqlserver: sqlserver://用户名:密码@地址?database=数据库名

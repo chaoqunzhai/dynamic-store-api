@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/casbin/casbin/v2/util"
 	"net/http"
 
@@ -56,6 +57,7 @@ func AuthCheckRole() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		fmt.Println("查看过期时间,exp:", v["exp"], "orig_iat", v["orig_iat"])
 
 	}
 }

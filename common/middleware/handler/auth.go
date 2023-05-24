@@ -78,7 +78,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 	}()
 
 	if err = c.ShouldBind(&loginVals); err != nil {
-		username = loginVals.Username
+		username = loginVals.Phone
 		msg = "数据解析失败"
 		status = "1"
 
@@ -86,7 +86,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 	}
 	if config.ApplicationConfig.Mode != "dev" {
 		if !captcha.Verify(loginVals.UUID, loginVals.Code, true) {
-			username = loginVals.Username
+			username = loginVals.Phone
 			msg = "验证码错误"
 			status = "1"
 
@@ -95,13 +95,13 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 	}
 	user, role, e := loginVals.GetUser(db)
 	if e == nil {
-		username = loginVals.Username
+		username = loginVals.Phone
 
 		return map[string]interface{}{"user": user, "role": role}, nil
 	} else {
 		msg = "登录失败"
 		status = "1"
-		log.Warnf("%s login failed!", loginVals.Username)
+		log.Warnf("%s login failed!", loginVals.Phone)
 	}
 	return nil, jwt.ErrFailedAuthentication
 }
