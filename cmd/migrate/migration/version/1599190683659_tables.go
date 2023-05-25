@@ -39,6 +39,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.SysConfig),
 			new(models.SysApi),
 
+			new(models.DyNamicMenu),
 			new(models.Line),
 			new(models.Driver),
 			new(models.GoodsSales),

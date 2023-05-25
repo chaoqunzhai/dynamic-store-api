@@ -472,12 +472,6 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 		return
 	}
 	p := actions.GetPermissionFromContext(c)
-	var roles = make([]string, 1)
-	roles[0] = user.GetRoleName(c)
-	var permissions = make([]string, 1)
-	permissions[0] = "*:*:*"
-	var buttons = make([]string, 1)
-	buttons[0] = "*:*:*"
 
 	var mp = make(map[string]interface{})
 	sysUser := models.SysUser{}
@@ -487,15 +481,13 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 		e.Error(http.StatusUnauthorized, err, "登录失败")
 		return
 	}
-	mp["code"] = 200
-
 	userInfo := map[string]interface{}{
 		"store_user_id": sysUser.UserId,
 		"user_name":     sysUser.Username,
 		"real_name":     sysUser.NickName,
 		"is_delete":     0,
-		"sort":          100,
-		"store_id":      10001,
+		"sort":          0,
+		"store_id":      0,
 		"create_time":   sysUser.CreatedAt.Format("2006-01-02 15:04:05"),
 		"update_time":   sysUser.UpdatedAt.Format("2006-01-02 15:04:05"),
 	}
@@ -504,20 +496,18 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 		userInfo["avatar"] = sysUser.Avatar
 	}
 	rolesMap := map[string]interface{}{
-		"permissions": permissions,
+		"permissionList":make([]string,0),
 	}
-	super := 0
+	super := false
 	if user.GetRoleName(c) == "admin" || user.GetRoleName(c) == "系统管理员" {
-		super = 1
-		rolesMap["permissions"] = make([]string, 1)
-		rolesMap["buttons"] = buttons
+		super = true
+		rolesMap["permissionList"] = make([]string, 0)
 	} else {
-		list, _ := r.GetById(user.GetRoleId(c))
-		rolesMap["permissions"] = list
-		rolesMap["buttons"] = list
+		//list, _ := r.GetById(user.GetRoleId(c))
+		rolesMap["permissionList"] = []string{"/index"}
 	}
-	userInfo["is_super"] = super
-	rolesMap["is_super"] = super
+	userInfo["isSuper"] = super
+	rolesMap["isSuper"] = super
 	mp["userInfo"] = userInfo
 	mp["roles"] = rolesMap
 	e.OK(mp, "")

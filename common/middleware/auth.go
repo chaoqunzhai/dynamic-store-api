@@ -15,7 +15,7 @@ func AuthInit() (*jwt.GinJWTMiddleware, error) {
 		timeout = time.Duration(config.JwtConfig.Timeout) * time.Second
 	}
 	return jwt.New(&jwt.GinJWTMiddleware{
-		Realm:           "test zone",
+		Realm:           "dynamic_api",
 		Key:             []byte(config.JwtConfig.Secret),
 		Timeout:         timeout,
 		MaxRefresh:      time.Hour,

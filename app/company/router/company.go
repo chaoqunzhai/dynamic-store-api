@@ -18,10 +18,10 @@ func init() {
 func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
 	api := apis.Company{}
 	r := v1.Group("/company").Use(authMiddleware.MiddlewareFunc()).
-		Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole()).Use(middleware.SentinelContext())
+		Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
 		r.GET("/info", api.Info)
-		r.GET("/home/data", api.MonitorData)
+		r.GET("/home", api.MonitorData)
 		r.GET("", api.GetPage)
 		r.GET("/:id", api.Get)
 		r.POST("", api.Insert)

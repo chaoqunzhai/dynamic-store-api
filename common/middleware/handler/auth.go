@@ -24,7 +24,7 @@ var (
 	ErrFailedAuthentication   = errors.New("手机号或者密码错误")
 	ErrInvalidVerificationode = errors.New("验证码错误")
 )
-
+//设置完权限后,需要重新登录,因为一些信息是从token中解析的
 func PayloadFunc(data interface{}) jwt.MapClaims {
 	if v, ok := data.(map[string]interface{}); ok {
 		u, _ := v["user"].(SysUser)

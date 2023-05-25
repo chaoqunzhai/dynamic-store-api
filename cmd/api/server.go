@@ -194,7 +194,7 @@ func initRouter() {
 	if config.SslConfig.Enable {
 		r.Use(handler.TlsHandler())
 	}
-
+//.Use(common.SentinelContext()) 需要测试
 	r.Use(common.Sentinel()).
 		Use(common.RequestId(pkg.TrafficKey)).
 		Use(api.SetRequestLogger).Use(Cors())
