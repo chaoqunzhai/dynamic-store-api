@@ -92,20 +92,18 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 
 		return nil, ErrMissingLoginValues
 	}
-	if config.ApplicationConfig.Mode != "dev" {
-		if !captcha.Verify(loginVals.UUID, loginVals.Code, true) {
-			username = loginVals.Phone
-			msg = "验证码错误"
-			status = "1"
+	if !captcha.Verify(loginVals.UUID, loginVals.Code, true) {
+		username = loginVals.Phone
+		msg = "验证码错误"
+		status = "1"
 
-			return nil, ErrInvalidVerificationode
-		}
+		return nil, ErrInvalidVerificationode
 	}
-	user, role, e := loginVals.GetUser(db)
+	userRow, role, e := loginVals.GetUser(db)
 	if e == nil {
 		username = loginVals.Phone
 
-		return map[string]interface{}{"user": user, "role": role}, nil
+		return map[string]interface{}{"user": userRow, "role": role}, nil
 	} else {
 		msg = "登录失败"
 		status = "1"

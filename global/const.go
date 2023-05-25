@@ -1,7 +1,7 @@
 package global
 
 const (
-	SysName     = "动创云订货配送管理"
+	SysName     = "动创云订货配送"
 	Describe    = "致力于解决订货渠道"
 	RoleSuper   = 80 //超管
 	RoleCompany = 81 //大B
