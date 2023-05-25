@@ -48,7 +48,7 @@ func SentinelContext() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		//使用排队算法
-		sentE, b := sentinel.Entry("limit", sentinel.WithTrafficType(base.Inbound))
+		sentE, b := sentinel.Entry("throttling", sentinel.WithTrafficType(base.Inbound))
 		if b != nil {
 			// 请求被流控，可以从 BlockError 中获取限流详情
 			fmt.Println("限流生效",b.Error(),b.BlockMsg())
