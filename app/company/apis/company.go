@@ -1,12 +1,14 @@
 package apis
 
 import (
-    "fmt"
+	"fmt"
+	"go-admin/global"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
+	"go-admin/common/jwt/user"
 
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
@@ -36,18 +38,18 @@ type Company struct {
 // @Router /api/v1/company [get]
 // @Security Bearer
 func (e Company) GetPage(c *gin.Context) {
-    req := dto.CompanyGetPageReq{}
-    s := service.Company{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-   	if err != nil {
-   		e.Logger.Error(err)
-   		e.Error(500, err, err.Error())
-   		return
-   	}
+	req := dto.CompanyGetPageReq{}
+	s := service.Company{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 
 	p := actions.GetPermissionFromContext(c)
 	list := make([]models.Company, 0)
@@ -56,10 +58,173 @@ func (e Company) GetPage(c *gin.Context) {
 	err = s.GetPage(&req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取Company失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
 
 	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+}
+
+func (e Company) MonitorData(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	//实时订单数据
+	overview := make(map[string]interface{}, 0)
+	overview = map[string]interface{}{
+		"orderTotalPrice": map[string]string{
+			"tday": "0",
+			"ytd":  "0.00",
+		},
+		"orderTotal": map[string]string{
+			"tday": "0",
+			"ytd":  "0.00",
+		},
+		"newUserTotal": map[string]string{
+			"tday": "0",
+			"ytd":  "0.00",
+		},
+		"consumeUserTotal": map[string]string{
+			"tday": "0",
+			"ytd":  "0.00",
+		},
+	}
+	//统计
+	statistics := make(map[string]interface{}, 0)
+	statistics = map[string]interface{}{
+		"goodsTotal":       "12",
+		"userTotal":        "1",
+		"orderTotal":       "0",
+		"consumeUserTotal": "0",
+	}
+	//待办
+	pending := make(map[string]interface{}, 0)
+	pending = map[string]interface{}{
+		"goodsTotal":       "12",
+		"userTotal":        "1",
+		"orderTotal":       "0",
+		"consumeUserTotal": "0",
+	}
+	//近七日交易走势
+	tradeTrend := make(map[string]interface{}, 0)
+	tradeTrend = map[string]interface{}{
+		"date": []string{
+			"2023-05-19",
+			"2023-05-20",
+			"2023-05-21",
+			"2023-05-22",
+			"2023-05-23",
+			"2023-05-24",
+			"2023-05-25",
+		},
+		"orderTotal": []string{
+			"0",
+			"0",
+			"0",
+			"0",
+			"0",
+			"0",
+			"0",
+		},
+		"orderTotalPrice": []string{
+			"0.00",
+			"0.00",
+			"0.00",
+			"0.00",
+			"0.00",
+			"0.00",
+			"0.00",
+		},
+	}
+	result := map[string]interface{}{
+		"overview":   overview,
+		"statistics": statistics,
+		"pending":    pending,
+		"tradeTrend": tradeTrend,
+	}
+	e.OK(result, "successful")
+	return
+}
+func (e Company) Info(c *gin.Context) {
+	req := dto.CompanyGetReq{}
+	s := service.Company{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	storeInfo := map[string]interface{}{
+		"store_id":      0,
+		"store_name":    "暂无信息",
+		"describe":      global.Describe,
+		"logo_image_id": 0,
+		"sort":          100,
+		"is_recycle":    0,
+		"is_delete":     0,
+		"create_time":   time.Now().Format("2006-01-02 15:04:05"),
+		"update_time":   time.Now().Format("2006-01-02 15:04:05"),
+		"logoImage":     "",
+	}
+	if userDto.RoleId == global.RoleSuper {
+		storeInfo = map[string]interface{}{
+			"store_id":      0,
+			"store_name":    global.SysName,
+			"describe":      global.Describe,
+			"logo_image_id": 0,
+			"sort":          100,
+			"is_recycle":    0,
+			"is_delete":     0,
+			"create_time":   time.Now().Format("2006-01-02 15:04:05"),
+			"update_time":   time.Now().Format("2006-01-02 15:04:05"),
+			"logoImage":     "",
+		}
+	} else {
+		if userDto.CId == 0 {
+
+			e.OK(storeInfo, "successful")
+			return
+		}
+		var object models.Company
+		e.Orm.Model(&models.Company{}).Where("enable = 1 and id = ?", userDto.CId).First(&object)
+
+		if object.Id == 0 {
+			storeInfo["store_name"] = "已经下线"
+			e.OK(storeInfo, "successful")
+			return
+		}
+		storeInfo = map[string]interface{}{
+			"store_id":      object.Id,
+			"store_name":    object.Name,
+			"describe":      object.Desc,
+			"logo_image_id": 0,
+			"sort":          object.Layer,
+			"is_recycle":    0,
+			"is_delete":     0,
+			"create_time":   object.CreatedAt.Format("2006-01-02 15:04:05"),
+			"update_time":   object.UpdatedAt.Format("2006-01-02 15:04:05"),
+			"logoImage":     "",
+		}
+	}
+	//如果超管,那就返回超管的一些自定义信息
+
+	//如果是大B,那就查询company
+
+	e.OK(storeInfo, "successful")
+	return
 }
 
 // Get 获取Company
@@ -73,7 +238,7 @@ func (e Company) GetPage(c *gin.Context) {
 func (e Company) Get(c *gin.Context) {
 	req := dto.CompanyGetReq{}
 	s := service.Company{}
-    err := e.MakeContext(c).
+	err := e.MakeContext(c).
 		MakeOrm().
 		Bind(&req).
 		MakeService(&s.Service).
@@ -89,10 +254,10 @@ func (e Company) Get(c *gin.Context) {
 	err = s.Get(&req, p, &object)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取Company失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
 
-	e.OK( object, "查询成功")
+	e.OK(object, "查询成功")
 }
 
 // Insert 创建Company
@@ -106,25 +271,25 @@ func (e Company) Get(c *gin.Context) {
 // @Router /api/v1/company [post]
 // @Security Bearer
 func (e Company) Insert(c *gin.Context) {
-    req := dto.CompanyInsertReq{}
-    s := service.Company{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+	req := dto.CompanyInsertReq{}
+	s := service.Company{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
 
 	err = s.Insert(&req)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("创建Company失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
 
 	e.OK(req.GetId(), "创建成功")
@@ -142,27 +307,27 @@ func (e Company) Insert(c *gin.Context) {
 // @Router /api/v1/company/{id} [put]
 // @Security Bearer
 func (e Company) Update(c *gin.Context) {
-    req := dto.CompanyUpdateReq{}
-    s := service.Company{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+	req := dto.CompanyUpdateReq{}
+	s := service.Company{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 	req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
 
 	err = s.Update(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("修改Company失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
-	e.OK( req.GetId(), "修改成功")
+	e.OK(req.GetId(), "修改成功")
 }
 
 // Delete 删除Company
@@ -174,18 +339,18 @@ func (e Company) Update(c *gin.Context) {
 // @Router /api/v1/company [delete]
 // @Security Bearer
 func (e Company) Delete(c *gin.Context) {
-    s := service.Company{}
-    req := dto.CompanyDeleteReq{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+	s := service.Company{}
+	req := dto.CompanyDeleteReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 
 	// req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
@@ -193,7 +358,7 @@ func (e Company) Delete(c *gin.Context) {
 	err = s.Remove(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除Company失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
-	e.OK( req.GetId(), "删除成功")
+	e.OK(req.GetId(), "删除成功")
 }

@@ -5,8 +5,8 @@ import (
 	jwt "github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth"
 
 	"go-admin/app/company/apis"
-	"go-admin/common/middleware"
 	"go-admin/common/actions"
+	"go-admin/common/middleware"
 )
 
 func init() {
@@ -14,14 +14,17 @@ func init() {
 }
 
 // registerCompanyRouter
+// 大B的信息,需要鉴定权限 必须是大B 和超管
 func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
 	api := apis.Company{}
-	r := v1.Group("/company").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole())
+	r := v1.Group("/company").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
-		r.GET("", actions.PermissionAction(), api.GetPage)
-		r.GET("/:id", actions.PermissionAction(), api.Get)
+		r.GET("/info", api.Info)
+		r.GET("/home/data", api.MonitorData)
+		r.GET("", api.GetPage)
+		r.GET("/:id", api.Get)
 		r.POST("", api.Insert)
-		r.PUT("/:id", actions.PermissionAction(), api.Update)
+		r.PUT("/:id", api.Update)
 		r.DELETE("", api.Delete)
 	}
 }

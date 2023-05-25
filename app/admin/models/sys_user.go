@@ -10,8 +10,10 @@ type SysUser struct {
 	UserId   int      `gorm:"primaryKey;autoIncrement;comment:编码"  json:"userId"`
 	Username string   `json:"username" gorm:"size:64;comment:用户名"`
 	Password string   `json:"-" gorm:"size:128;comment:密码"`
-	NickName string   `json:"nickName" gorm:"size:128;comment:昵称"`
+	NickName string   `json:"nickName" gorm:"size:66;comment:别名"`
 	Phone    string   `json:"phone" gorm:"size:11;comment:手机号"`
+	CId      int      `json:"c_id" gorm:"comment:关联大B"`
+	Enable   bool     `gorm:"comment:是否开启"`
 	RoleId   int      `json:"roleId" gorm:"size:20;comment:角色ID"`
 	Salt     string   `json:"-" gorm:"size:255;comment:加盐"`
 	Avatar   string   `json:"avatar" gorm:"size:255;comment:头像"`
@@ -42,7 +44,7 @@ func (e *SysUser) GetId() interface{} {
 	return e.UserId
 }
 
-//加密
+// 加密
 func (e *SysUser) Encrypt() (err error) {
 	if e.Password == "" {
 		return

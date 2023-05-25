@@ -20,11 +20,11 @@ import (
 )
 
 var (
-
-	ErrMissingLoginValues = errors.New("请输入手机号或者密码")
-	ErrFailedAuthentication = errors.New("手机号或者密码错误")
+	ErrMissingLoginValues     = errors.New("请输入手机号或者密码以及验证码")
+	ErrFailedAuthentication   = errors.New("手机号或者密码错误")
 	ErrInvalidVerificationode = errors.New("验证码错误")
 )
+
 func PayloadFunc(data interface{}) jwt.MapClaims {
 	if v, ok := data.(map[string]interface{}); ok {
 		u, _ := v["user"].(SysUser)
@@ -74,7 +74,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 	if err != nil {
 		log.Errorf("get db error, %s", err.Error())
 		response.Error(c, 500, err, "数据库连接获取失败")
-		return nil,ErrFailedAuthentication
+		return nil, ErrFailedAuthentication
 	}
 
 	var loginVals Login

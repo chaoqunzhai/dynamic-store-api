@@ -2,13 +2,13 @@ package actions
 
 import (
 	"errors"
-
 	"github.com/gin-gonic/gin"
 	log "github.com/go-admin-team/go-admin-core/logger"
 	"github.com/go-admin-team/go-admin-core/sdk/config"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/response"
+	"go-admin/global"
 	"gorm.io/gorm"
 )
 
@@ -17,8 +17,51 @@ type DataPermission struct {
 	UserId    int
 	DeptId    int
 	RoleId    int
+	Enable    bool
+	CId       int
 }
 
+func PermissionCompanyRole() gin.HandlerFunc {
+
+	return func(c *gin.Context) {
+		db, err := pkg.GetOrm(c)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
+		msgID := pkg.GenerateMsgIDFromContext(c)
+		var p = new(DataPermission)
+		if userId := user.GetUserIdStr(c); userId != "" {
+			p, err = newDataPermission(db, userId)
+			if err != nil {
+				log.Errorf("MsgID[%s] PermissionAction error: %s", msgID, err)
+				response.Error(c, 500, err, "权限范围鉴定错误")
+				c.Abort()
+				return
+			}
+		}
+
+		if !p.Enable {
+			response.Error(c, 401, errors.New("您账户已被停用！"), "您账户已被停用！")
+			c.Abort()
+			return
+		}
+		if p.RoleId == 0 {
+			response.Error(c, 401, errors.New("您没有权限访问"), "您没有权限访问")
+			c.Abort()
+			return
+		}
+		//城市管理员权限，只校验 城市管理员和超管是否
+		if p.RoleId > global.RoleShop {
+			response.Error(c, 401, errors.New("您没有权限访问"), "您没有权限访问")
+			c.Abort()
+			return
+		}
+		c.Set(PermissionKey, p)
+		c.Next()
+	}
+}
 func PermissionAction() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		db, err := pkg.GetOrm(c)
@@ -48,8 +91,8 @@ func newDataPermission(tx *gorm.DB, userId interface{}) (*DataPermission, error)
 	p := &DataPermission{}
 
 	err = tx.Table("sys_user").
-		Select("sys_user.user_id", "sys_role.role_id", "sys_user.dept_id", "sys_role.data_scope").
-		Joins("left join sys_role on sys_role.role_id = sys_user.role_id").
+		Select("sys_user.user_id", "sys_role.role_id", "sys_user.dept_id", "sys_user.enable", "sys_role.data_scope").
+		Joins("left join sys_role on sys_role.data_scope = sys_user.role_id").
 		Where("sys_user.user_id = ?", userId).
 		Scan(p).Error
 	if err != nil {

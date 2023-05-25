@@ -8,8 +8,11 @@ import (
 type SysUser struct {
 	UserId   int    `gorm:"primaryKey;autoIncrement;comment:编码"  json:"userId"`
 	Username string `json:"username" gorm:"type:varchar(20);comment:用户名"`
+	NickName string `json:"nickName" gorm:"size:20;comment:别名"`
 	Password string `json:"-" gorm:"type:varchar(66);comment:密码"`
 	Phone    string `json:"phone" gorm:"type:varchar(11);comment:手机号"`
+	CId      int    `json:"c_id" gorm:"comment:关联大B"`
+	Enable   bool   `gorm:"comment:是否开启"`
 	RoleId   int    `json:"roleId" gorm:"type:bigint;comment:角色ID"`
 	Avatar   string `json:"avatar" gorm:"type:varchar(60);comment:头像"`
 	Sex      string `json:"sex" gorm:"type:varchar(10);comment:性别"`

@@ -457,3 +457,68 @@ func (e SysUser) GetInfo(c *gin.Context) {
 	mp["code"] = 200
 	e.OK(mp, "")
 }
+func (e SysUser) GetUserInfo(c *gin.Context) {
+	req := dto.SysUserById{}
+	s := service.SysUser{}
+	r := service.SysRole{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		MakeService(&r.Service).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	p := actions.GetPermissionFromContext(c)
+	var roles = make([]string, 1)
+	roles[0] = user.GetRoleName(c)
+	var permissions = make([]string, 1)
+	permissions[0] = "*:*:*"
+	var buttons = make([]string, 1)
+	buttons[0] = "*:*:*"
+
+	var mp = make(map[string]interface{})
+	sysUser := models.SysUser{}
+	req.Id = user.GetUserId(c)
+	err = s.Get(&req, p, &sysUser)
+	if err != nil {
+		e.Error(http.StatusUnauthorized, err, "登录失败")
+		return
+	}
+	mp["code"] = 200
+
+	userInfo := map[string]interface{}{
+		"store_user_id": sysUser.UserId,
+		"user_name":     sysUser.Username,
+		"real_name":     sysUser.NickName,
+		"is_delete":     0,
+		"sort":          100,
+		"store_id":      10001,
+		"create_time":   sysUser.CreatedAt.Format("2006-01-02 15:04:05"),
+		"update_time":   sysUser.UpdatedAt.Format("2006-01-02 15:04:05"),
+	}
+	userInfo["avatar"] = "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif"
+	if sysUser.Avatar != "" {
+		userInfo["avatar"] = sysUser.Avatar
+	}
+	rolesMap := map[string]interface{}{
+		"permissions": permissions,
+	}
+	super := 0
+	if user.GetRoleName(c) == "admin" || user.GetRoleName(c) == "系统管理员" {
+		super = 1
+		rolesMap["permissions"] = make([]string, 1)
+		rolesMap["buttons"] = buttons
+	} else {
+		list, _ := r.GetById(user.GetRoleId(c))
+		rolesMap["permissions"] = list
+		rolesMap["buttons"] = list
+	}
+	userInfo["is_super"] = super
+	rolesMap["is_super"] = super
+	mp["userInfo"] = userInfo
+	mp["roles"] = rolesMap
+	e.OK(mp, "")
+}
