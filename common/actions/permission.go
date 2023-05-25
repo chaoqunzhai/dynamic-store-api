@@ -2,6 +2,7 @@ package actions
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/go-admin-team/go-admin-core/logger"
 	"github.com/go-admin-team/go-admin-core/sdk/config"
@@ -24,6 +25,7 @@ type DataPermission struct {
 func PermissionCompanyRole() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
+		fmt.Println("权限校验！！")
 		db, err := pkg.GetOrm(c)
 		if err != nil {
 			log.Error(err)

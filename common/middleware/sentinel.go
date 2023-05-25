@@ -13,7 +13,7 @@ func Sentinel() gin.HandlerFunc {
 	if _, err := system.LoadRules([]*system.Rule{
 		{
 			MetricType:   system.InboundQPS,
-			TriggerCount: 200,
+			TriggerCount: 5,
 			Strategy:     system.BBR,
 		},
 	}); err != nil {

@@ -194,7 +194,7 @@ func initRouter() {
 	if config.SslConfig.Enable {
 		r.Use(handler.TlsHandler())
 	}
-	//r.Use(middleware.Metrics())
+
 	r.Use(common.Sentinel()).
 		Use(common.RequestId(pkg.TrafficKey)).
 		Use(api.SetRequestLogger).Use(Cors())

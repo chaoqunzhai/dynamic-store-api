@@ -17,7 +17,8 @@ func init() {
 // 大B的信息,需要鉴定权限 必须是大B 和超管
 func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
 	api := apis.Company{}
-	r := v1.Group("/company").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
+	r := v1.Group("/company").Use(authMiddleware.MiddlewareFunc()).
+		Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole()).Use(middleware.SentinelContext())
 	{
 		r.GET("/info", api.Info)
 		r.GET("/home/data", api.MonitorData)
