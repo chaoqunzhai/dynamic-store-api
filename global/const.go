@@ -11,5 +11,7 @@ const (
 	Super   = "admin"
 	Company = "company"
 
-	MaxRole = 5 //大B最多可以设置5个角色
+	//大B资源限制
+	CompanyMaxRole = 5 //大B最多可以设置5个角色
+	CompanyMaxClass = 30 //大B最多可以设置20个分类
 )

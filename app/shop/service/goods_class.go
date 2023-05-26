@@ -58,13 +58,14 @@ func (e *GoodsClass) Get(d *dto.GoodsClassGetReq, p *actions.DataPermission, mod
 }
 
 // Insert 创建GoodsClass对象
-func (e *GoodsClass) Insert(c *dto.GoodsClassInsertReq) error {
+func (e *GoodsClass) Insert(cId int,c *dto.GoodsClassInsertReq) error {
     var err error
     var data models.GoodsClass
     c.Generate(&data)
+    data.CId = cId
 	err = e.Orm.Create(&data).Error
 	if err != nil {
-		e.Log.Errorf("GoodsClassService Insert error:%s \r\n", err)
+		e.Log.Errorf("分类创建失败,", err)
 		return err
 	}
 	return nil
@@ -81,7 +82,7 @@ func (e *GoodsClass) Update(c *dto.GoodsClassUpdateReq, p *actions.DataPermissio
 
     db := e.Orm.Save(&data)
     if err = db.Error; err != nil {
-        e.Log.Errorf("GoodsClassService Save error:%s \r\n", err)
+        e.Log.Errorf("分类更新失败,%s", err)
         return err
     }
     if db.RowsAffected == 0 {

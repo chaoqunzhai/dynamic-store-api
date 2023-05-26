@@ -39,10 +39,9 @@ func (m *GoodsClassGetPageReq) GetNeedSearch() interface{} {
 
 type GoodsClassInsertReq struct {
     Id int `json:"-" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"描述信息"`
-    CId string `json:"cId" comment:"大BID"`
     Name string `json:"name" comment:"商品分类名称"`
     common.ControlBy
 }
@@ -55,7 +54,6 @@ func (s *GoodsClassInsertReq) Generate(model *models.GoodsClass)  {
     model.Layer = s.Layer
     model.Enable = s.Enable
     model.Desc = s.Desc
-    model.CId = s.CId
     model.Name = s.Name
 }
 
@@ -65,10 +63,9 @@ func (s *GoodsClassInsertReq) GetId() interface{} {
 
 type GoodsClassUpdateReq struct {
     Id int `uri:"id" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"描述信息"`
-    CId string `json:"cId" comment:"大BID"`
     Name string `json:"name" comment:"商品分类名称"`
     common.ControlBy
 }
@@ -81,7 +78,6 @@ func (s *GoodsClassUpdateReq) Generate(model *models.GoodsClass)  {
     model.Layer = s.Layer
     model.Enable = s.Enable
     model.Desc = s.Desc
-    model.CId = s.CId
     model.Name = s.Name
 }
 

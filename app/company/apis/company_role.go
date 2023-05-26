@@ -124,21 +124,21 @@ func (e CompanyRole) Insert(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	var roleAll int64
-	e.Orm.Model(&models.CompanyRole{}).Where("c_id = ?", userDto.CId, req.Name).Count(&roleAll)
-	if roleAll > global.MaxRole {
-		e.Error(500, errors.New(fmt.Sprintf("角色最多只能创建%v个",global.MaxRole)), fmt.Sprintf("角色最多只能创建%v个",global.MaxRole))
+	var countAll int64
+	e.Orm.Model(&models.CompanyRole{}).Where("c_id = ?", userDto.CId).Count(&countAll)
+	if countAll > global.CompanyMaxRole {
+		e.Error(500, errors.New(fmt.Sprintf("角色最多只能创建%v个",global.CompanyMaxRole)), fmt.Sprintf("角色最多只能创建%v个",global.CompanyMaxRole))
 		return
 	}
 	var count int64
 	e.Orm.Model(&models.CompanyRole{}).Where("c_id = ? and name = ?", userDto.CId, req.Name).Count(&count)
 	if count > 0 {
-		e.Error(500, errors.New("角色已经存在"), "角色已经存在")
+		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return
 	}
 	err = s.Insert(userDto.CId, &req)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("创建CompanyRole失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("创建角色失败,%s", err.Error()))
 		return
 	}
 
