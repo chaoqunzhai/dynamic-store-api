@@ -3,6 +3,7 @@ package apis
 import (
 	"errors"
 	"fmt"
+	"go-admin/global"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -123,7 +124,12 @@ func (e CompanyRole) Insert(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-
+	var roleAll int64
+	e.Orm.Model(&models.CompanyRole{}).Where("c_id = ?", userDto.CId, req.Name).Count(&roleAll)
+	if roleAll > global.MaxRole {
+		e.Error(500, errors.New(fmt.Sprintf("角色最多只能创建%v个",global.MaxRole)), fmt.Sprintf("角色最多只能创建%v个",global.MaxRole))
+		return
+	}
 	var count int64
 	e.Orm.Model(&models.CompanyRole{}).Where("c_id = ? and name = ?", userDto.CId, req.Name).Count(&count)
 	if count > 0 {

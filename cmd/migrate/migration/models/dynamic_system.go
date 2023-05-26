@@ -44,6 +44,7 @@ type CompanyRole struct {
 	Remark  string        `json:"remark" gorm:"size:50;"` //备注
 	Admin   bool          `json:"admin" gorm:"size:4;"`
 	SysMenu []DyNamicMenu `json:"sysMenu" gorm:"many2many:company_role_menu;foreignKey:id;joinForeignKey:role_id;references:id;joinReferences:menu_id;"`
+	SysUser []SysUser `json:"sysUser" gorm:"many2many:company_role_user;foreignKey:id;joinForeignKey:role_id;references:user_id;joinReferences:user_id;"`
 	ControlBy
 	ModelTime
 }

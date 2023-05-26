@@ -257,10 +257,10 @@ func (e *SysUser) GetProfile(c *dto.SysUserById, user *models.SysUser, roles *[]
 	if err != nil {
 		return err
 	}
-	err = e.Orm.Find(posts, user.PostIds).Error
-	if err != nil {
-		return err
-	}
+	//err = e.Orm.Find(posts, user.PostIds).Error
+	//if err != nil {
+	//	return err
+	//}
 
 	return nil
 }

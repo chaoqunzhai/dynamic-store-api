@@ -171,7 +171,7 @@ func (e Company) Info(c *gin.Context) {
 	}
 	storeInfo := map[string]interface{}{
 		"store_id":      0,
-		"store_name":    "暂无系统,请申请",
+		"store_name":    "暂无管理系统,请耐心等待！",
 		"describe":      global.Describe,
 		"logo_image_id": 0,
 		"sort":          100,

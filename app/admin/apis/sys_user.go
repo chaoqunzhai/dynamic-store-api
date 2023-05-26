@@ -509,7 +509,7 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 	case global.Company:
 		super = true
 		//大B,这里的菜单最好还是跟超管的区分的
-		rolesMap["permissionList"] = []string{"/index"}
+		rolesMap["permissionList"] = r.GetCustomById(user.GetUserId(c))
 	default:
 		super = false
 

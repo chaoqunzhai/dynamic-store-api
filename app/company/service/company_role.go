@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"github.com/go-admin-team/go-admin-core/sdk/service"
+	sys "go-admin/app/admin/models"
 	"gorm.io/gorm"
 
 	"go-admin/app/company/models"
@@ -66,6 +67,18 @@ func (e *CompanyRole) getMenuModels(ids []int) (menuList []models.DyNamicMenu) {
 	}
 	return menuList
 }
+func (e *CompanyRole) getUserModels(ids []int) (list []sys.SysUser) {
+	for _, id := range ids {
+		var menu sys.SysUser
+		e.Orm.Model(&sys.SysUser{}).Where("user_id = ?", id).First(&menu)
+		if menu.UserId == 0 {
+			continue
+		}
+		list = append(list, menu)
+	}
+	return list
+}
+
 
 // Insert 创建CompanyRole对象
 func (e *CompanyRole) Insert(cId int, c *dto.CompanyRoleInsertReq) error {
@@ -75,6 +88,9 @@ func (e *CompanyRole) Insert(cId int, c *dto.CompanyRoleInsertReq) error {
 	data.CId = cId
 	if len(c.Menu) > 0 {
 		data.SysMenu = e.getMenuModels(c.Menu)
+	}
+	if len(c.User) > 0 {
+		data.SysUser = e.getUserModels(c.User)
 	}
 	err = e.Orm.Create(&data).Error
 	if err != nil {

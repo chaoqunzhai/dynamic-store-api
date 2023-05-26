@@ -10,4 +10,6 @@ const (
 
 	Super   = "admin"
 	Company = "company"
+
+	MaxRole = 5 //大B最多可以设置5个角色
 )

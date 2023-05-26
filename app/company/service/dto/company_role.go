@@ -42,6 +42,7 @@ type CompanyRoleInsertReq struct {
 	Remark string `json:"remark" comment:""`
 	Admin  bool   `json:"admin" comment:""`
 	Menu   []int  `json:"menu"`
+	User []int   `json:"user"`
 	common.ControlBy
 }
 
