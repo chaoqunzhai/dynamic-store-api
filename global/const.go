@@ -13,5 +13,8 @@ const (
 
 	//大B资源限制
 	CompanyMaxRole = 5 //大B最多可以设置5个角色
-	CompanyMaxClass = 30 //大B最多可以设置20个分类
+	CompanyMaxGoodsClass = 30 //大B最多可以设置分类个数
+	CompanyMaxGoodsTag = 30 //大B最多可以设置标签个数
+	CompanyUserTag = 30 //大B最多可以设置客户标签个数
+
 )

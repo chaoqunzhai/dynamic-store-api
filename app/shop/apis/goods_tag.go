@@ -1,7 +1,10 @@
 package apis
 
 import (
-    "fmt"
+	"errors"
+	"fmt"
+	customUser "go-admin/common/jwt/user"
+	"go-admin/global"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -117,7 +120,26 @@ func (e GoodsTag) Insert(c *gin.Context) {
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
 
-	err = s.Insert(&req)
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var countAll int64
+	e.Orm.Model(&models.GoodsTag{}).Where("c_id = ?", userDto.CId).Count(&countAll)
+
+
+	if countAll > global.CompanyMaxGoodsTag {
+		e.Error(500, errors.New(fmt.Sprintf("标签最多只可创建%v个",global.CompanyMaxGoodsTag)), fmt.Sprintf("标签最多只可创建%v个",global.CompanyMaxGoodsTag))
+		return
+	}
+	var count int64
+	e.Orm.Model(&models.GoodsTag{}).Where("c_id = ? and name = ?", userDto.CId, req.Name).Count(&count)
+	if count > 0 {
+		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
+		return
+	}
+	err = s.Insert(userDto.CId,&req)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("创建GoodsTag失败，\r\n失败信息 %s", err.Error()))
         return
@@ -152,10 +174,25 @@ func (e GoodsTag) Update(c *gin.Context) {
     }
 	req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var oldRow models.GoodsTag
+	e.Orm.Model(&models.GoodsTag{}).Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&oldRow)
 
+	if oldRow.Id == 0 {
+		e.Error(500, errors.New("数据不存在"), "数据不存在")
+		return
+	}
+	if oldRow.Id != req.Id {
+		e.Error(500, errors.New("名称不可重复"), "名称不可重复")
+		return
+	}
 	err = s.Update(&req, p)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("修改GoodsTag失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("修改标签失败,%s", err.Error()))
         return
 	}
 	e.OK( req.GetId(), "修改成功")

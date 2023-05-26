@@ -58,10 +58,11 @@ func (e *GoodsTag) Get(d *dto.GoodsTagGetReq, p *actions.DataPermission, model *
 }
 
 // Insert 创建GoodsTag对象
-func (e *GoodsTag) Insert(c *dto.GoodsTagInsertReq) error {
+func (e *GoodsTag) Insert(cId int,c *dto.GoodsTagInsertReq) error {
     var err error
     var data models.GoodsTag
     c.Generate(&data)
+	data.CId = cId
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("GoodsTagService Insert error:%s \r\n", err)
@@ -81,7 +82,7 @@ func (e *GoodsTag) Update(c *dto.GoodsTagUpdateReq, p *actions.DataPermission) e
 
     db := e.Orm.Save(&data)
     if err = db.Error; err != nil {
-        e.Log.Errorf("GoodsTagService Save error:%s \r\n", err)
+        e.Log.Errorf("修改标签失败,", err)
         return err
     }
     if db.RowsAffected == 0 {
