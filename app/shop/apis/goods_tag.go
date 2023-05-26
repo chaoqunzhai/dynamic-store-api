@@ -220,13 +220,26 @@ func (e GoodsTag) Delete(c *gin.Context) {
         return
     }
 
-	// req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
 
+	newIds :=make([]int,0)
+	for _,t:=range req.Ids{
+		var count int64
+		whereSql:=fmt.Sprintf("SELECT COUNT(*) as count from goods_mark_tag where tag_id = %v",t)
+		e.Orm.Raw(whereSql).Scan(&count)
+		if count == 0 {
+			newIds = append(newIds,t)
+		}
+	}
+	if len(newIds) == 0 {
+		e.Error(500, errors.New("存在关联不可删除！"), "存在关联不可删除！")
+		return
+	}
+	req.Ids = newIds
 	err = s.Remove(&req, p)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("删除GoodsTag失败，\r\n失败信息 %s", err.Error()))
-        return
+		e.Error(500, err, fmt.Sprintf("删除标签失败,%s", err.Error()))
+       return
 	}
 	e.OK( req.GetId(), "删除成功")
 }

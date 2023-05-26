@@ -221,10 +221,22 @@ func (e GoodsClass) Delete(c *gin.Context) {
     }
 
 	p := actions.GetPermissionFromContext(c)
-
+	newIds :=make([]int,0)
+	for _,t:=range req.Ids{
+		var count int64
+		whereSql:=fmt.Sprintf("SELECT COUNT(*) as count from goods_mark_class where class_id = %v",t)
+		e.Orm.Raw(whereSql).Scan(&count)
+		if count == 0 {
+			newIds = append(newIds,t)
+		}
+	}
+	if len(newIds) == 0 {
+		e.Error(500, errors.New("存在关联不可删除！"), "存在关联不可删除！")
+		return
+	}
 	err = s.Remove(&req, p)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("删除GoodsClass失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("删除分类失败,%s", err.Error()))
         return
 	}
 	e.OK( req.GetId(), "删除成功")
