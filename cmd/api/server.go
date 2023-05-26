@@ -96,7 +96,7 @@ func run() error {
 		jobs.Setup(sdk.Runtime.GetDb())
 
 	}()
-
+	Initialization()
 	if apiCheck {
 		var routers = sdk.Runtime.GetRouter()
 		q := sdk.Runtime.GetMemoryQueue("")
@@ -194,10 +194,10 @@ func initRouter() {
 	if config.SslConfig.Enable {
 		r.Use(handler.TlsHandler())
 	}
-//.Use(common.SentinelContext()) 需要测试
+	//.Use(common.SentinelContext()) 需要测试
 	r.Use(common.Sentinel()).
 		Use(common.RequestId(pkg.TrafficKey)).
-		Use(api.SetRequestLogger).Use(Cors()).Use(common.SentinelContext())
+		Use(api.SetRequestLogger).Use(Cors())
 	common.InitMiddleware(r)
 
 }

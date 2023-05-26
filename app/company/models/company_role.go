@@ -1,27 +1,27 @@
 package models
 
 import (
-     
-
-
 	"go-admin/common/models"
-
 )
 
 type CompanyRole struct {
-    models.Model
-    
-    Name string `json:"name" gorm:"type:varchar(30);comment:Name"` 
-    Enable string `json:"enable" gorm:"type:bigint(20);comment:Enable"` 
-    Sort string `json:"sort" gorm:"type:bigint(20);comment:Sort"` 
-    Remark string `json:"remark" gorm:"type:varchar(50);comment:Remark"` 
-    Admin string `json:"admin" gorm:"type:tinyint(1);comment:Admin"` 
-    models.ModelTime
-    models.ControlBy
+	models.Model
+
+	CId     int    `gorm:"index;comment:大BID"`
+	Id      int    `json:"id" gorm:"primaryKey;autoIncrement"` // 角色编码
+	Name    string `json:"roleName" gorm:"size:30;"`           // 角色名称
+	Enable  bool
+	Sort    int           //角色排序
+	Remark  string        `json:"remark" gorm:"size:50;"` //备注
+	Admin   bool          `json:"admin" gorm:"size:4;"`
+	SysMenu []DyNamicMenu `json:"sysMenu" gorm:"many2many:company_role_menu;foreignKey:id;joinForeignKey:role_id;references:id;joinReferences:menu_id;"`
+
+	models.ModelTime
+	models.ControlBy
 }
 
 func (CompanyRole) TableName() string {
-    return "company_role"
+	return "company_role"
 }
 
 func (e *CompanyRole) Generate() models.ActiveRecord {

@@ -12,8 +12,9 @@ import (
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 )
 
-// AuthCheckRole 权限检查中间件
-func AuthCheckRole() gin.HandlerFunc {
+// AuthCheckRole 权限检查中间件,
+// 后面细分,是针对请求的url进行权限校验的
+func AuthCheckRoleOld() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		log := api.GetRequestLogger(c)
 		data, _ := c.Get(jwtauth.JwtPayloadKey)
@@ -58,6 +59,13 @@ func AuthCheckRole() gin.HandlerFunc {
 			return
 		}
 		fmt.Println("查看过期时间,exp:", v["exp"], "orig_iat", v["orig_iat"])
+
+	}
+}
+func AuthCheckRole() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Next()
+		return
 
 	}
 }

@@ -8,7 +8,7 @@ type Company struct {
 	Name           string    `gorm:"index;size:30;comment:公司(大B)名称"`
 	Phone          string    `gorm:"size:11;comment:负责人联系手机号"`
 	UserName       string    `gorm:"size:20;comment:大B负责人名称"`
-	Shop           string    `gorm:"size:50;comment:自定义大B系统名称"`
+	ShopName       string    `gorm:"size:50;comment:自定义大B系统名称"`
 	Address        string    `gorm:"size:155;comment:大B地址位置"`
 	Longitude      float64   //经度
 	Latitude       float64   //纬度
@@ -19,6 +19,20 @@ type Company struct {
 
 func (Company) TableName() string {
 	return "company"
+}
+
+// todo:大B续费信息
+type CompanyRenewalTimeLog struct {
+	Model
+	ModelTime
+	CreateBy int     `json:"createBy" gorm:"index;comment:创建者"`
+	CId      int     `gorm:"index;comment:公司(大B)ID"`
+	Money    float64 `gorm:"comment:续费金额"`
+	Desc     string  `gorm:"size:50;comment:描述信息"`
+}
+
+func (CompanyRenewalTimeLog) TableName() string {
+	return "company_renewal_time_log"
 }
 
 // todo:大B的VIP等级

@@ -2,8 +2,7 @@ package service
 
 import (
 	"errors"
-
-    "github.com/go-admin-team/go-admin-core/sdk/service"
+	"github.com/go-admin-team/go-admin-core/sdk/service"
 	"gorm.io/gorm"
 
 	"go-admin/app/company/models"
@@ -56,15 +55,30 @@ func (e *CompanyRole) Get(d *dto.CompanyRoleGetReq, p *actions.DataPermission, m
 	}
 	return nil
 }
+func (e *CompanyRole) getMenuModels(ids []int) (menuList []models.DyNamicMenu) {
+	for _, id := range ids {
+		var menu models.DyNamicMenu
+		e.Orm.Model(&models.DyNamicMenu{}).Where("id = ?", id).First(&menu)
+		if menu.Id == 0 {
+			continue
+		}
+		menuList = append(menuList, menu)
+	}
+	return menuList
+}
 
 // Insert 创建CompanyRole对象
-func (e *CompanyRole) Insert(c *dto.CompanyRoleInsertReq) error {
-    var err error
-    var data models.CompanyRole
-    c.Generate(&data)
+func (e *CompanyRole) Insert(cId int, c *dto.CompanyRoleInsertReq) error {
+	var err error
+	var data models.CompanyRole
+	c.Generate(&data)
+	data.CId = cId
+	if len(c.Menu) > 0 {
+		data.SysMenu = e.getMenuModels(c.Menu)
+	}
 	err = e.Orm.Create(&data).Error
 	if err != nil {
-		e.Log.Errorf("CompanyRoleService Insert error:%s \r\n", err)
+		e.Log.Errorf("角色创建失败", err)
 		return err
 	}
 	return nil
@@ -72,22 +86,22 @@ func (e *CompanyRole) Insert(c *dto.CompanyRoleInsertReq) error {
 
 // Update 修改CompanyRole对象
 func (e *CompanyRole) Update(c *dto.CompanyRoleUpdateReq, p *actions.DataPermission) error {
-    var err error
-    var data = models.CompanyRole{}
-    e.Orm.Scopes(
-            actions.Permission(data.TableName(), p),
-        ).First(&data, c.GetId())
-    c.Generate(&data)
+	var err error
+	var data = models.CompanyRole{}
+	e.Orm.Scopes(
+		actions.Permission(data.TableName(), p),
+	).First(&data, c.GetId())
+	c.Generate(&data)
 
-    db := e.Orm.Save(&data)
-    if err = db.Error; err != nil {
-        e.Log.Errorf("CompanyRoleService Save error:%s \r\n", err)
-        return err
-    }
-    if db.RowsAffected == 0 {
-        return errors.New("无权更新该数据")
-    }
-    return nil
+	db := e.Orm.Save(&data)
+	if err = db.Error; err != nil {
+		e.Log.Errorf("CompanyRoleService Save error:%s \r\n", err)
+		return err
+	}
+	if db.RowsAffected == 0 {
+		return errors.New("无权更新该数据")
+	}
+	return nil
 }
 
 // Remove 删除CompanyRole
@@ -99,11 +113,11 @@ func (e *CompanyRole) Remove(d *dto.CompanyRoleDeleteReq, p *actions.DataPermiss
 			actions.Permission(data.TableName(), p),
 		).Delete(&data, d.GetId())
 	if err := db.Error; err != nil {
-        e.Log.Errorf("Service RemoveCompanyRole error:%s \r\n", err)
-        return err
-    }
-    if db.RowsAffected == 0 {
-        return errors.New("无权删除该数据")
-    }
+		e.Log.Errorf("Service RemoveCompanyRole error:%s \r\n", err)
+		return err
+	}
+	if db.RowsAffected == 0 {
+		return errors.New("无权删除该数据")
+	}
 	return nil
 }

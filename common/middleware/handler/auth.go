@@ -13,7 +13,6 @@ import (
 	"github.com/go-admin-team/go-admin-core/sdk/pkg"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/captcha"
 	jwt "github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 	"github.com/mssola/user_agent"
 	"go-admin/common/global"
@@ -24,7 +23,8 @@ var (
 	ErrFailedAuthentication   = errors.New("手机号或者密码错误")
 	ErrInvalidVerificationode = errors.New("验证码错误")
 )
-//设置完权限后,需要重新登录,因为一些信息是从token中解析的
+
+// 设置完权限后,需要重新登录,因为一些信息是从token中解析的
 func PayloadFunc(data interface{}) jwt.MapClaims {
 	if v, ok := data.(map[string]interface{}); ok {
 		u, _ := v["user"].(SysUser)
@@ -159,7 +159,6 @@ func LoginLogToDB(c *gin.Context, status string, msg string, username string) {
 // @Router /logout [post]
 // @Security Bearer
 func LogOut(c *gin.Context) {
-	LoginLogToDB(c, "2", "退出成功", user.GetUserName(c))
 	c.JSON(http.StatusOK, gin.H{
 		"code": 200,
 		"msg":  "退出成功",

@@ -7,4 +7,7 @@ const (
 	RoleCompany = 81 //大B
 	RoleShop    = 82 //小B
 	RoleUser    = 83 //用户
+
+	Super   = "admin"
+	Company = "company"
 )

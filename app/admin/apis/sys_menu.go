@@ -6,9 +6,9 @@ import (
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	"go-admin/app/admin/models"
-
 	"go-admin/app/admin/service"
 	"go-admin/app/admin/service/dto"
+	models2 "go-admin/cmd/migrate/migration/models"
 )
 
 type SysMenu struct {
@@ -173,32 +173,118 @@ func (e SysMenu) Delete(c *gin.Context) {
 	e.OK(control.GetId(), "删除成功")
 }
 
-// GetMenuRole 根据登录角色名称获取菜单列表数据（左菜单使用）
-// @Summary 根据登录角色名称获取菜单列表数据（左菜单使用）
-// @Description 获取JSON
-// @Tags 菜单
-// @Success 200 {object} response.Response "{"code": 200, "data": [...]}"
-// @Router /api/v1/menurole [get]
-// @Security Bearer
+type MenuRow struct {
+	Name      string    `json:"name"`
+	Path      string    `json:"path"`
+	Component string    `json:"component"`
+	ParentId  int       `json:"parent_id"`
+	Id        int       `json:"id"`
+	MetaTitle string    `json:"title"`
+	MetaIcon  string    `json:"icon"`
+	Hidden    bool      `json:"hidden"`
+	KeepAlive bool      `json:"keep_alive"`
+	Children  []MenuRow `json:"children"`
+}
+
+func menuCall(menuList []MenuRow, menu MenuRow) MenuRow {
+	list := menuList
+
+	min := make([]MenuRow, 0)
+	for j := 0; j < len(list); j++ {
+
+		if menu.Id != list[j].ParentId {
+			continue
+		}
+		mi := MenuRow{}
+
+		mi.Path = list[j].Path
+
+		mi.ParentId = list[j].ParentId
+
+		mi.Component = list[j].Component
+
+		mi.Children = []MenuRow{}
+
+		ms := menuCall(menuList, mi)
+		min = append(min, ms)
+	}
+	menu.Children = min
+	return menu
+}
+
+func getParentAll(parent int, rr MenuRow, data map[int]MenuRow) map[int]MenuRow {
+
+	newMap := make(map[int]MenuRow)
+	for _, row := range data {
+		if len(row.Children) == 0 {
+			newMap[row.Id] = row
+			continue
+		}
+
+		netList := row.Children
+
+		for k, c := range row.Children {
+			if c.Id == parent {
+				c.Children = append(c.Children, rr)
+
+			}
+			//重新赋值
+			row.Children[k] = c
+		}
+		row.Children = netList
+		newMap[row.Id] = row
+
+	}
+	return newMap
+}
 func (e SysMenu) GetMenuRole(c *gin.Context) {
-	s := new(service.SysMenu)
 	err := e.MakeContext(c).
 		MakeOrm().
-		MakeService(&s.Service).
 		Errors
 	if err != nil {
 		e.Logger.Error(err)
 		e.Error(500, err, err.Error())
 		return
 	}
+	var menu = make([]models2.DyNamicMenu, 0)
+	e.Orm.Model(&models2.DyNamicMenu{}).Find(&menu).Order("parent_id asc")
+	cacheMap := make(map[int]MenuRow, 0)
 
-	result, err := s.SetMenuRole(user.GetRoleName(c))
+	result := make([]MenuRow, 0)
+	for _, row := range menu {
+		r := MenuRow{
+			Id:        row.Id,
+			Name:      row.Name,
+			ParentId:  row.ParentId,
+			Path:      row.Path,
+			Hidden:    row.Hidden,
+			KeepAlive: row.KeepAlive,
+			MetaIcon:  row.MetaIcon,
+			MetaTitle: row.MetaTitle,
+			Component: row.Component,
+			Children:  make([]MenuRow, 0),
+		}
+		////统计下
+		if row.ParentId > 0 {
+			data, parentOk := cacheMap[row.ParentId]
+			if !parentOk {
+				//父标签的父标签还有数据,那就需要网上找
+				//可能是一个三级标签,那就进行一个嵌套
+				cacheMap = getParentAll(row.ParentId, r, cacheMap)
 
-	if err != nil {
-		e.Error(500, err, "查询失败")
-		return
+			} else {
+				data.Children = append(data.Children, r)
+				cacheMap[row.ParentId] = data
+			}
+		} else {
+			//父标签放到缓存中
+			cacheMap[row.Id] = r
+		}
 	}
 
+	for _, row := range cacheMap {
+		result = append(result, row)
+	}
 	e.OK(result, "")
 }
 
@@ -253,7 +339,7 @@ func (e SysMenu) GetMenuRole(c *gin.Context) {
 func (e SysMenu) GetMenuTreeSelect(c *gin.Context) {
 	m := service.SysMenu{}
 	r := service.SysRole{}
-	req :=dto.SelectRole{}
+	req := dto.SelectRole{}
 	err := e.MakeContext(c).
 		MakeOrm().
 		MakeService(&m.Service).

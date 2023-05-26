@@ -65,7 +65,9 @@ func (e Company) GetPage(c *gin.Context) {
 }
 
 func (e Company) MonitorData(c *gin.Context) {
+	s := service.Company{}
 	err := e.MakeContext(c).
+		MakeService(&s.Service).
 		MakeOrm().
 		Errors
 	if err != nil {
@@ -169,7 +171,7 @@ func (e Company) Info(c *gin.Context) {
 	}
 	storeInfo := map[string]interface{}{
 		"store_id":      0,
-		"store_name":    "暂无信息",
+		"store_name":    "暂无系统,请申请",
 		"describe":      global.Describe,
 		"logo_image_id": 0,
 		"sort":          100,

@@ -14,6 +14,7 @@ type ControlBy struct {
 // SetCreateBy 设置创建人id
 func (e *ControlBy) SetCreateBy(createBy int) {
 	e.CreateBy = createBy
+
 }
 
 // SetUpdateBy 设置修改人id

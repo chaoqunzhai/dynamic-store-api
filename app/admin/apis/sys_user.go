@@ -3,6 +3,7 @@ package apis
 import (
 	"github.com/gin-gonic/gin/binding"
 	"go-admin/app/admin/models"
+	"go-admin/global"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 
@@ -496,15 +497,22 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 		userInfo["avatar"] = sysUser.Avatar
 	}
 	rolesMap := map[string]interface{}{
-		"permissionList":make([]string,0),
+		"permissionList": make([]string, 0),
 	}
 	super := false
-	if user.GetRoleName(c) == "admin" || user.GetRoleName(c) == "系统管理员" {
+	//超管是获取所有的菜单的
+	switch user.GetRoleName(c) {
+	case global.Super:
+		//超管
 		super = true
 		rolesMap["permissionList"] = make([]string, 0)
-	} else {
-		//list, _ := r.GetById(user.GetRoleId(c))
+	case global.Company:
+		super = true
+		//大B,这里的菜单最好还是跟超管的区分的
 		rolesMap["permissionList"] = []string{"/index"}
+	default:
+		super = false
+
 	}
 	userInfo["isSuper"] = super
 	rolesMap["isSuper"] = super
