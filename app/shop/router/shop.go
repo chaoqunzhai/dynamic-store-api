@@ -23,5 +23,9 @@ func registerShopRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewar
 		r.POST("", api.Insert)
 		r.PUT("/:id", api.Update)
 		r.DELETE("", api.Delete)
+		//金额增加
+		r.POST("/integral",api.Integral)
+		//积分增加
+		r.POST("/amount",api.Amount)
 	}
 }

@@ -18,4 +18,5 @@ const (
 
 	CompanyUserTag = 30 //大B最多可以设置客户标签个数
 
+	OrderLayerKey = "layer desc"
 )

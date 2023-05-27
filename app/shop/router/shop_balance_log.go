@@ -16,12 +16,12 @@ func init() {
 // registerShopBalanceLogRouter
 func registerShopBalanceLogRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
 	api := apis.ShopBalanceLog{}
-	r := v1.Group("/shop-balance-log").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole())
+	r := v1.Group("/shop-balance-log").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
-		r.GET("", actions.PermissionAction(), api.GetPage)
-		r.GET("/:id", actions.PermissionAction(), api.Get)
+		r.GET("", api.GetPage)
+		r.GET("/:id", api.Get)
 		r.POST("", api.Insert)
-		r.PUT("/:id", actions.PermissionAction(), api.Update)
+		r.PUT("/:id", api.Update)
 		r.DELETE("", api.Delete)
 	}
 }

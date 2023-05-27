@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	sys "go-admin/app/admin/models"
+	"go-admin/global"
 
 	"github.com/go-admin-team/go-admin-core/sdk/service"
 	"gorm.io/gorm"
@@ -27,7 +28,7 @@ func (e *Driver) GetPage(c *dto.DriverGetPageReq, p *actions.DataPermission, lis
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
-		).
+		).Order(global.OrderLayerKey).
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {

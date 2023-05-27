@@ -1,7 +1,11 @@
 package apis
 
 import (
-    "fmt"
+	"errors"
+	"fmt"
+	sys "go-admin/app/admin/models"
+	models2 "go-admin/cmd/migrate/migration/models"
+	customUser "go-admin/common/jwt/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -55,11 +59,24 @@ func (e Shop) GetPage(c *gin.Context) {
 
 	err = s.GetPage(&req, p, &list, &count)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("获取Shop失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("获取用户信息失败,%s", err.Error()))
         return
 	}
+	result :=make([]interface{},0)
+	for _,row:=range list{
+		cache :=row
+		if row.LineId > 0 {
+			var lineRow models2.Line
+			e.Orm.Model(&models2.Line{}).Where("id = ? and enable = ?",row.LineId,true).Limit(1).Find(&lineRow)
+			if lineRow.Id > 0 {
+				cache.Line = lineRow.Name
+			}
+		}
+		result = append(result,cache)
 
-	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	}
+
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
 // Get 获取Shop
@@ -88,9 +105,28 @@ func (e Shop) Get(c *gin.Context) {
 	p := actions.GetPermissionFromContext(c)
 	err = s.Get(&req, p, &object)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("获取Shop失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("获取用户信息失败,%s", err.Error()))
         return
 	}
+
+	if object.LineId > 0 {
+		var lineRow models2.Line
+		e.Orm.Model(&models2.Line{}).Where("id = ? and enable = ?",object.LineId,true).Limit(1).Find(&lineRow)
+		if lineRow.Id > 0 {
+			object.Line = lineRow.Name
+		}
+	}
+	if object.CreateBy  > 0 {
+		var userRow sys.SysUser
+		e.Orm.Model(&sys.SysUser{}).Where("user_id = ? and enable = ?",object.CreateBy,true).Limit(1).Find(&userRow)
+		if userRow.UserId > 0 {
+			object.CreateUser = userRow.Username
+		}
+	}
+	//下单记录查询
+
+	//充值记录查询
+
 
 	e.OK( object, "查询成功")
 }
@@ -121,9 +157,21 @@ func (e Shop) Insert(c *gin.Context) {
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
 
-	err = s.Insert(&req)
+	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("创建Shop失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	var count int64
+	e.Orm.Model(&models.Shop{}).Where("c_id = ? and name = ?", userDto.CId, req.Name).Count(&count)
+	if count > 0 {
+		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
+		return
+	}
+	err = s.Insert(userDto.CId,&req)
+	if err != nil {
+		e.Error(500, err, fmt.Sprintf("用户创建失败,%s", err.Error()))
         return
 	}
 
@@ -156,10 +204,30 @@ func (e Shop) Update(c *gin.Context) {
     }
 	req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 
+	var count int64
+	e.Orm.Model(&models.Shop{}).Where("id = ?",req.Id).Count(&count)
+	if count == 0 {
+		e.Error(500, errors.New("数据不存在"), "数据不存在")
+		return
+	}
+	var oldRow models.Shop
+	e.Orm.Model(&models.Shop{}).Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&oldRow)
+
+	if oldRow.Id != 0 {
+		if oldRow.Id != req.Id {
+			e.Error(500, errors.New("名称不可重复"), "名称不可重复")
+			return
+		}
+	}
 	err = s.Update(&req, p)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("修改Shop失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("修改失败,%s", err.Error()))
         return
 	}
 	e.OK( req.GetId(), "修改成功")
@@ -196,4 +264,11 @@ func (e Shop) Delete(c *gin.Context) {
         return
 	}
 	e.OK( req.GetId(), "删除成功")
+}
+
+func (e Shop)Amount(c *gin.Context)  {
+
+}
+func (e Shop)Integral(c *gin.Context)  {
+
 }

@@ -14,7 +14,7 @@ type ShopTag struct {
     Layer int `json:"layer" gorm:"type:tinyint(4);comment:排序"`
     Enable bool `json:"enable" gorm:"type:tinyint(1);comment:开关"`
     Desc string `json:"desc" gorm:"type:varchar(25);comment:描述信息"` 
-    CId int `json:"cId" gorm:"type:bigint(20);comment:大BID"`
+    CId int `json:"-" gorm:"type:bigint(20);comment:大BID"`
     Name string `json:"name" gorm:"type:varchar(35);comment:客户标签名称"` 
     models.ModelTime
     models.ControlBy

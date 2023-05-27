@@ -141,7 +141,7 @@ func (e GoodsTag) Insert(c *gin.Context) {
 	}
 	err = s.Insert(userDto.CId,&req)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("创建GoodsTag失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("创建标签失败,%s", err.Error()))
         return
 	}
 

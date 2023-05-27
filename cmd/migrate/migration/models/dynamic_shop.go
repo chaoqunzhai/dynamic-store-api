@@ -21,6 +21,7 @@ type Shop struct {
 	Longitude float64 //经度
 	Latitude  float64 //纬度
 	Image     string  `gorm:"size:80;comment:图片"`
+	Salesman int `json:"salesman" gorm:"index;comment:推荐人"`
 	//给小B打标签
 	Tag      []ShopTag `json:"tag" gorm:"many2many:shop_mark_tag;foreignKey:id;joinForeignKey:shop_id;references:id;joinReferences:tag_id;"`
 	LineId   int       `gorm:"index;comment:归属配送路线"`

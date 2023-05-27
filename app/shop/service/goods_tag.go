@@ -2,8 +2,8 @@ package service
 
 import (
 	"errors"
-
-    "github.com/go-admin-team/go-admin-core/sdk/service"
+	"github.com/go-admin-team/go-admin-core/sdk/service"
+	"go-admin/global"
 	"gorm.io/gorm"
 
 	"go-admin/app/shop/models"
@@ -26,9 +26,8 @@ func (e *GoodsTag) GetPage(c *dto.GoodsTagGetPageReq, p *actions.DataPermission,
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
-		).
-		Find(list).Limit(-1).Offset(-1).
-		Count(count).Error
+		).Order(global.OrderLayerKey).
+		Find(list).Limit(-1).Offset(-1).Count(count).Error
 	if err != nil {
 		e.Log.Errorf("GoodsTagService GetPage error:%s \r\n", err)
 		return err

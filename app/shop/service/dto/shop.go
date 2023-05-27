@@ -60,7 +60,7 @@ type ShopInsertReq struct {
     Layer int `json:"layer" comment:"排序"`
     Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"描述信息"`
-    UserId int `json:"userId" comment:"管理员ID"`
+    UserId int `json:"user_id" comment:"管理员ID"`
     Name string `json:"name" comment:"小B名称"`
     Phone string `json:"phone" comment:"联系手机号"`
     UserName string `json:"userName" comment:"小B负责人名称"`
@@ -68,9 +68,11 @@ type ShopInsertReq struct {
     Longitude string `json:"longitude" comment:""`
     Latitude string `json:"latitude" comment:""`
     Image string `json:"image" comment:"图片"`
-    LineId int `json:"lineId" comment:"归属配送路线"`
-    Amount string `json:"amount" comment:"剩余金额"`
-    Integral string `json:"integral" comment:"可用积分"`
+    LineId int `json:"line_id" comment:"归属配送路线"`
+    Amount float64 `json:"amount" comment:"剩余金额"`
+    Integral float64 `json:"integral" comment:"可用积分"`
+    Salesman int `json:"salesman" comment:"推荐人"`
+    Tag []int `json:"tag" comment:"客户标签"`
     common.ControlBy
 }
 
@@ -93,6 +95,7 @@ func (s *ShopInsertReq) Generate(model *models.Shop)  {
     model.LineId = s.LineId
     model.Amount = s.Amount
     model.Integral = s.Integral
+    model.Salesman = s.Salesman
 }
 
 func (s *ShopInsertReq) GetId() interface{} {
@@ -112,9 +115,11 @@ type ShopUpdateReq struct {
     Longitude string `json:"longitude" comment:""`
     Latitude string `json:"latitude" comment:""`
     Image string `json:"image" comment:"图片"`
-    LineId int `json:"lineId" comment:"归属配送路线"`
-    Amount string `json:"amount" comment:"剩余金额"`
-    Integral string `json:"integral" comment:"可用积分"`
+    LineId int `json:"line_id" comment:"归属配送路线"`
+    Amount float64 `json:"amount" comment:"剩余金额"`
+    Integral float64 `json:"integral" comment:"可用积分"`
+    Salesman int `json:"salesman" comment:"推荐人"`
+    Tag []int `json:"tag" comment:"客户标签"`
     common.ControlBy
 }
 
@@ -137,6 +142,7 @@ func (s *ShopUpdateReq) Generate(model *models.Shop)  {
     model.LineId = s.LineId
     model.Amount = s.Amount
     model.Integral = s.Integral
+    model.Salesman = s.Salesman
 }
 
 func (s *ShopUpdateReq) GetId() interface{} {

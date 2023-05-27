@@ -2,8 +2,9 @@ package service
 
 import (
 	"errors"
+	"go-admin/global"
 
-    "github.com/go-admin-team/go-admin-core/sdk/service"
+	"github.com/go-admin-team/go-admin-core/sdk/service"
 	"gorm.io/gorm"
 
 	"go-admin/app/shop/models"
@@ -26,7 +27,7 @@ func (e *GoodsClass) GetPage(c *dto.GoodsClassGetPageReq, p *actions.DataPermiss
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
-		).
+		).Order(global.OrderLayerKey).
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {
