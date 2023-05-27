@@ -189,7 +189,7 @@ func (e Driver) Update(c *gin.Context) {
 		}
 	}
 
-	err = s.Update(&req, p)
+	err = s.Update(userDto.CId,&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("创建失败,%s", err.Error()))
         return

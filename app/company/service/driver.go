@@ -81,14 +81,20 @@ func (e *Driver) Insert(cid int,c *dto.DriverInsertReq) error {
 }
 
 // Update 修改Driver对象
-func (e *Driver) Update(c *dto.DriverUpdateReq, p *actions.DataPermission) error {
+func (e *Driver) Update(cid int,c *dto.DriverUpdateReq, p *actions.DataPermission) error {
     var err error
     var data = models.Driver{}
     e.Orm.Scopes(
             actions.Permission(data.TableName(), p),
         ).First(&data, c.GetId())
     c.Generate(&data)
-
+	if c.Phone != "" {
+		var sysUser sys.SysUser
+		e.Orm.Model(&sys.SysUser{}).Where("phone = ? and enable = ? and c_id = ?",c.Phone,true,cid).Limit(1).Find(&sysUser)
+		if sysUser.UserId > 0 {
+			data.UserId = sysUser.UserId
+		}
+	}
     db := e.Orm.Save(&data)
     if err = db.Error; err != nil {
         e.Log.Errorf("DriverService Save error:%s \r\n", err)
