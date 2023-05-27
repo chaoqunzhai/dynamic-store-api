@@ -34,8 +34,8 @@ func (m *ShopBalanceLogGetPageReq) GetNeedSearch() interface{} {
 
 type ShopBalanceLogInsertReq struct {
     Id int `json:"-" comment:"主键编码"` // 主键编码
-    ShopId string `json:"shopId" comment:"小BID"`
-    Money string `json:"money" comment:"变动金额"`
+    ShopId int `json:"shopId" comment:"小BID"`
+    Money float64 `json:"money" comment:"变动金额"`
     Scene string `json:"scene" comment:"变动场景"`
     Desc string `json:"desc" comment:"描述/说明"`
     common.ControlBy
@@ -58,8 +58,8 @@ func (s *ShopBalanceLogInsertReq) GetId() interface{} {
 
 type ShopBalanceLogUpdateReq struct {
     Id int `uri:"id" comment:"主键编码"` // 主键编码
-    ShopId string `json:"shopId" comment:"小BID"`
-    Money string `json:"money" comment:"变动金额"`
+    ShopId int `json:"shopId" comment:"小BID"`
+    Money float64 `json:"money" comment:"变动金额"`
     Scene string `json:"scene" comment:"变动场景"`
     Desc string `json:"desc" comment:"描述/说明"`
     common.ControlBy

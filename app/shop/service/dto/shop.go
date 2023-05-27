@@ -70,7 +70,7 @@ type ShopInsertReq struct {
     Image string `json:"image" comment:"图片"`
     LineId int `json:"line_id" comment:"归属配送路线"`
     Amount float64 `json:"amount" comment:"剩余金额"`
-    Integral float64 `json:"integral" comment:"可用积分"`
+    Integral int `json:"integral" comment:"可用积分"`
     Salesman int `json:"salesman" comment:"推荐人"`
     Tag []int `json:"tag" comment:"客户标签"`
     common.ControlBy
@@ -102,6 +102,18 @@ func (s *ShopInsertReq) GetId() interface{} {
 	return s.Id
 }
 
+type ShopIntegralReq struct {
+    ShopId int `json:"shop_id" `
+    Number int `json:"number" `
+    Desc string `json:"desc" `
+    Action string `json:"action"`
+}
+type ShopAmountReq struct {
+    ShopId int `json:"shop_id" `
+    Number float64 `json:"number" `
+    Desc string `json:"desc" `
+    Action string `json:"action"`
+}
 type ShopUpdateReq struct {
     Id int `uri:"id" comment:"主键编码"` // 主键编码
     Layer int `json:"layer" comment:"排序"`
@@ -117,7 +129,7 @@ type ShopUpdateReq struct {
     Image string `json:"image" comment:"图片"`
     LineId int `json:"line_id" comment:"归属配送路线"`
     Amount float64 `json:"amount" comment:"剩余金额"`
-    Integral float64 `json:"integral" comment:"可用积分"`
+    Integral int `json:"integral" comment:"可用积分"`
     Salesman int `json:"salesman" comment:"推荐人"`
     Tag []int `json:"tag" comment:"客户标签"`
     common.ControlBy

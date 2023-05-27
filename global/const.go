@@ -19,4 +19,10 @@ const (
 	CompanyUserTag = 30 //大B最多可以设置客户标签个数
 
 	OrderLayerKey = "layer desc"
+
+
+	UserNumberAdd = "add" //增加
+	UserNumberReduce = "reduce" //减少
+	UserNumberSet = "set" //设置
+
 )

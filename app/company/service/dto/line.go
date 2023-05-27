@@ -20,6 +20,10 @@ type LineGetPageReq struct {
     LineOrder
 }
 
+type BindLineUserReq struct {
+    LineId int `json:"line_id"`
+    ShopId []int `json:"shop_id"`
+}
 type LineOrder struct {
     Id string `form:"idOrder"  search:"type:order;column:id;table:line"`
     CreateBy string `form:"createByOrder"  search:"type:order;column:create_by;table:line"`

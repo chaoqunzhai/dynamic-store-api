@@ -236,7 +236,7 @@ func (e Driver) Delete(c *gin.Context) {
 	}
 	err = s.Remove(&req, p)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("删除Driver失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("司机信息删除失败,%s", err.Error()))
         return
 	}
 	e.OK( req.GetId(), "删除成功")

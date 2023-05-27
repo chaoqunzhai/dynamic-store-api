@@ -3,7 +3,9 @@ package apis
 import (
 	"errors"
 	"fmt"
+	models2 "go-admin/cmd/migrate/migration/models"
 	customUser "go-admin/common/jwt/user"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -20,6 +22,36 @@ type Line struct {
 	api.Api
 }
 
+
+
+func (e Line) BindShop(c *gin.Context) {
+	req := dto.BindLineUserReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	var object models.Line
+	e.Orm.Model(&models.Line{}).Where("id = ? and enable = ?",req.LineId,true).Limit(1).Find(&object)
+
+	if object.Id == 0 {
+		e.Error(500, errors.New("路线不存在"), "路线不存在")
+		return
+	}
+
+	e.Orm.Model(&models2.Shop{}).Where("id in ?",req.ShopId).Updates(map[string]interface{}{
+		"line_id":req.LineId,
+		"updated_at":time.Now(),
+		"update_by":user.GetUserId(c),
+	})
+
+	e.OK("","successful")
+	return
+}
 // GetPage 获取Line列表
 // @Summary 获取Line列表
 // @Description 获取Line列表

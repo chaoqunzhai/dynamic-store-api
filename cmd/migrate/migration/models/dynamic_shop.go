@@ -55,10 +55,12 @@ func (ShopRechargeLog) TableName() string {
 // todo:小B余额变动明细
 type ShopBalanceLog struct {
 	Model
+	CId  int            `gorm:"index;comment:大B"`
 	CreateBy  int            `json:"createBy" gorm:"index;comment:创建者"`
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
 	ShopId    int            `gorm:"index;comment:小BID"`
+	Action string `json:"action" gorm:"type:varchar(10);comment:操作"`
 	Money     float64        `gorm:"comment:变动金额"`
 	Scene     string         ` gorm:"size:30;comment:变动场景"`
 	Desc string   ` gorm:"size:50;comment:描述/说明"`
@@ -68,10 +70,30 @@ func (ShopBalanceLog) TableName() string {
 	return "shop_balance_log"
 }
 
+
+//todo:积分变动的明细
+type ShopIntegralLog struct {
+	Model
+	CId  int            `gorm:"index;comment:大B"`
+	CreateBy  int            `json:"createBy" gorm:"index;comment:创建者"`
+	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
+	Action string `json:"action" gorm:"type:varchar(10);comment:操作"`
+	ShopId    int            `gorm:"index;comment:小BID"`
+	Number     float64        `gorm:"comment:积分变动数值"`
+	Scene     string         ` gorm:"size:30;comment:变动场景"`
+	Desc string   ` gorm:"size:50;comment:描述/说明"`
+}
+
+func (ShopIntegralLog) TableName() string {
+	return "shop_integral_log"
+}
+
 // todo:客户每次订单的统计日志
 // 专门用来数据统计
 type ShopOrderRecord struct {
 	Model
+	CId  int            `gorm:"index;comment:大B"`
 	CreateBy  int            `json:"createBy" gorm:"index;comment:创建者"`
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
@@ -88,6 +110,7 @@ func (ShopOrderRecord) TableName() string {
 // todo:每次订单统计关联的具体订单
 type ShopOrderBindRecord struct {
 	Model
+	CId  int            `gorm:"index;comment:大B"`
 	CreateBy  int            `json:"createBy" gorm:"index;comment:创建者"`
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`

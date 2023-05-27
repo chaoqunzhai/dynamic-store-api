@@ -23,5 +23,7 @@ func registerLineRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewar
 		r.POST("", api.Insert)
 		r.PUT("/:id",  api.Update)
 		r.DELETE("", api.Delete)
+		//直接绑定客户
+		r.POST("/bind_shop",api.BindShop)
 	}
 }

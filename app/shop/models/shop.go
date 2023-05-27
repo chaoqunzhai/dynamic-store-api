@@ -14,7 +14,6 @@ import (
 
 type Shop struct {
     models.Model
-    
     Layer int `json:"layer" gorm:"type:tinyint(4);comment:排序"`
     Enable bool `json:"enable" gorm:"type:tinyint(1);comment:开关"`
     Desc string `json:"desc" gorm:"type:varchar(25);comment:描述信息"` 
@@ -32,7 +31,7 @@ type Shop struct {
     CreateUser string `json:"create_user" gorm:"-"`
     Line string `json:"line" gorm:"-"`
     Amount float64 `json:"amount" gorm:"type:double;comment:剩余金额"`
-    Integral float64 `json:"integral" gorm:"type:bigint(20);comment:可用积分"`
+    Integral int `json:"integral" gorm:"type:bigint(20);comment:可用积分"`
     Tag      []ShopTag `json:"tag" gorm:"many2many:shop_mark_tag;foreignKey:id;joinForeignKey:shop_id;references:id;joinReferences:tag_id;"`
     models.ModelTime
     models.ControlBy

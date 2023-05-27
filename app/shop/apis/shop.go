@@ -6,6 +6,7 @@ import (
 	sys "go-admin/app/admin/models"
 	models2 "go-admin/cmd/migrate/migration/models"
 	customUser "go-admin/common/jwt/user"
+	"go-admin/global"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -267,8 +268,115 @@ func (e Shop) Delete(c *gin.Context) {
 }
 
 func (e Shop)Amount(c *gin.Context)  {
+	req := dto.ShopAmountReq{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 
+
+	var count int64
+	var object models.Shop
+	e.Orm.Model(&models.Shop{}).Where("id = ?",req.ShopId).First(&object).Count(&count)
+	if count == 0 {
+		e.Error(500, errors.New("客户不存在"), "客户不存在")
+		return
+	}
+	Scene:=""
+	switch req.Action {
+	case global.UserNumberAdd:
+		object.Amount += req.Number
+		Scene = fmt.Sprintf("手动增加%v元",req.Number)
+	case global.UserNumberReduce:
+		if req.Number > object.Amount {
+			e.Error(500, errors.New("数值非法"), "数值非法")
+			return
+		}
+		object.Amount -=req.Number
+		Scene = fmt.Sprintf("手动减少%v元",req.Number)
+	case global.UserNumberSet:
+		object.Amount = req.Number
+		Scene = fmt.Sprintf("手动设置为%v元",req.Number)
+	}
+	object.UpdateBy = user.GetUserId(c)
+	e.Orm.Save(&object)
+	row:=models.ShopBalanceLog{
+		CId: userDto.CId,
+		ShopId: req.ShopId,
+		Desc: req.Desc,
+		Money: req.Number,
+		Scene:Scene,
+		Action: req.Action,
+	}
+	row.CreateBy = user.GetUserId(c)
+	e.Orm.Create(&row)
+	e.OK("","successful")
+	return
 }
 func (e Shop)Integral(c *gin.Context)  {
+	req := dto.ShopIntegralReq{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var count int64
+	var object models.Shop
+	e.Orm.Model(&models.Shop{}).Where("id = ?",req.ShopId).First(&object).Count(&count)
+	if count == 0 {
+		e.Error(500, errors.New("客户不存在"), "客户不存在")
+		return
+	}
+	Scene:=""
+	switch req.Action {
+	case global.UserNumberAdd:
+		object.Integral += req.Number
+		Scene = fmt.Sprintf("手动增加%v个积分",req.Number)
+	case global.UserNumberReduce:
+		if req.Number > object.Integral {
+			e.Error(500, errors.New("数值非法"), "数值非法")
+			return
+		}
+		object.Integral -=req.Number
+		Scene = fmt.Sprintf("手动减少%v个积分",req.Number)
+	case global.UserNumberSet:
+		object.Integral = req.Number
+		Scene = fmt.Sprintf("手动积分设置为%v",req.Number)
+
+	}
+	object.UpdateBy = user.GetUserId(c)
+	e.Orm.Save(&object)
+	row:=models.ShopIntegralLog{
+		CId: userDto.CId,
+		ShopId: req.ShopId,
+		Desc: req.Desc,
+		Number: req.Number,
+		Scene:Scene,
+		Action: req.Action,
+	}
+	row.CreateBy = user.GetUserId(c)
+	e.Orm.Create(&row)
+	e.OK("","successful")
+	return
 
 }
