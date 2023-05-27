@@ -95,10 +95,9 @@ func (e *Shop) Update(c *dto.ShopUpdateReq, p *actions.DataPermission) error {
             actions.Permission(data.TableName(), p),
         ).First(&data, c.GetId())
     c.Generate(&data)
-
+	//清除关联
+	e.Orm.Model(&data).Association("Tag").Clear()
     if len(c.Tag) > 0 {
-    	//清除关联
-		e.Orm.Model(&data).Association("Tag").Clear()
 		//增加关联
 		data.Tag = e.getShopTagModels(c.Tag)
 	}

@@ -40,7 +40,7 @@ type CompanyRole struct {
 	Id      int    `json:"id" gorm:"primaryKey;autoIncrement"` // 角色编码
 	Name    string `json:"roleName" gorm:"size:30;"`           // 角色名称
 	Enable  int
-	Sort    int           //角色排序
+	Layer    int           //角色排序
 	Remark  string        `json:"remark" gorm:"size:50;"` //备注
 	Admin   bool          `json:"admin" gorm:"size:4;"`
 	SysMenu []DyNamicMenu `json:"sysMenu" gorm:"many2many:company_role_menu;foreignKey:id;joinForeignKey:role_id;references:id;joinReferences:menu_id;"`

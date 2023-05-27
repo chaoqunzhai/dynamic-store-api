@@ -10,7 +10,7 @@ type CompanyRoleGetPageReq struct {
 	dto.Pagination `search:"-"`
 	Name           string `form:"name"  search:"type:contains;column:name;table:company_role" comment:""`
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:company_role" comment:""`
-	Sort           string `form:"sort"  search:"type:exact;column:sort;table:company_role" comment:""`
+	Layer           string `form:"layer"  search:"type:exact;column:layer;table:company_role" comment:""`
 	Remark         string `form:"remark"  search:"type:exact;column:remark;table:company_role" comment:""`
 	Admin          string `form:"admin"  search:"type:exact;column:admin;table:company_role" comment:""`
 	CompanyRoleOrder
@@ -38,7 +38,7 @@ type CompanyRoleInsertReq struct {
 	Id     int    `json:"-" comment:""` //
 	Name   string `json:"name" comment:""`
 	Enable bool   `json:"enable" comment:""`
-	Sort   int    `json:"sort" comment:""`
+	Layer   int    `json:"layer" comment:""`
 	Remark string `json:"remark" comment:""`
 	Admin  bool   `json:"admin" comment:""`
 	Menu   []int  `json:"menu"`
@@ -52,7 +52,7 @@ func (s *CompanyRoleInsertReq) Generate(model *models.CompanyRole) {
 	}
 	model.Name = s.Name
 	model.Enable = s.Enable
-	model.Sort = s.Sort
+	model.Layer = s.Layer
 	model.Remark = s.Remark
 	model.Admin = s.Admin
 	model.CreateBy = s.CreateBy // 添加这而，需要记录是被谁创建的
@@ -66,10 +66,11 @@ type CompanyRoleUpdateReq struct {
 	Id     int    `uri:"id" comment:""` //
 	Name   string `json:"name" comment:""`
 	Enable bool   `json:"enable" comment:""`
-	Sort   int    `json:"sort" comment:""`
+	Layer   int    `json:"layer" comment:""`
 	Remark string `json:"remark" comment:""`
 	Admin  bool   `json:"admin" comment:""`
 	Menu   []int  `json:"menu"`
+	User []int   `json:"user"`
 	common.ControlBy
 }
 
@@ -79,7 +80,7 @@ func (s *CompanyRoleUpdateReq) Generate(model *models.CompanyRole) {
 	}
 	model.Name = s.Name
 	model.Enable = s.Enable
-	model.Sort = s.Sort
+	model.Layer = s.Layer
 	model.Remark = s.Remark
 	model.Admin = s.Admin
 	model.UpdateBy = s.UpdateBy // 添加这而，需要记录是被谁更新的

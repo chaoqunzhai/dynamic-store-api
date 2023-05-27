@@ -109,7 +109,14 @@ func (e *CompanyRole) Update(c *dto.CompanyRoleUpdateReq, p *actions.DataPermiss
 		actions.Permission(data.TableName(), p),
 	).First(&data, c.GetId())
 	c.Generate(&data)
-
+	e.Orm.Model(&data).Association("SysMenu").Clear()
+	if len(c.Menu) > 0 {
+		data.SysMenu = e.getMenuModels(c.Menu)
+	}
+	e.Orm.Model(&data).Association("SysUser").Clear()
+	if len(c.User) > 0 {
+		data.SysUser = e.getUserModels(c.User)
+	}
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("CompanyRoleService Save error:%s \r\n", err)

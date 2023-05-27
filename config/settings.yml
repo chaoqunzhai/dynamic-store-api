@@ -26,7 +26,7 @@ settings:
     secret: dynamic
     # token 过期时间 单位：秒
     #默认过期时间 5个小时
-    timeout: 18000
+    timeout: 180000
   database:
     # 数据库类型 mysql, sqlite3, postgres, sqlserver
     # sqlserver: sqlserver://用户名:密码@地址?database=数据库名
