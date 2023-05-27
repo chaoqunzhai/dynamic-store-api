@@ -237,6 +237,28 @@ func getParentAll(parent int, rr MenuRow, data map[int]MenuRow) map[int]MenuRow 
 	}
 	return newMap
 }
+func (e SysMenu) GetAdminMenuRole(c *gin.Context) {
+	s := new(service.SysMenu)
+	err := e.MakeContext(c).
+		MakeOrm().
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	result, err := s.SetMenuRole(user.GetRoleName(c))
+
+	if err != nil {
+		e.Error(500, err, "查询失败")
+		return
+	}
+
+	e.OK(result, "")
+}
+
 func (e SysMenu) GetMenuRole(c *gin.Context) {
 	err := e.MakeContext(c).
 		MakeOrm().

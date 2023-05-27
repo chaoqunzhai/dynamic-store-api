@@ -42,12 +42,11 @@ func (m *LineGetPageReq) GetNeedSearch() interface{} {
 
 type LineInsertReq struct {
     Id int `json:"-" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"描述信息"`
-    CId string `json:"cId" comment:"大BID"`
     Name string `json:"name" comment:"路线名称"`
-    DriverId string `json:"driverId" comment:"关联司机"`
+    DriverId int `json:"driver_id" comment:"关联司机"`
     common.ControlBy
 }
 
@@ -59,7 +58,6 @@ func (s *LineInsertReq) Generate(model *models.Line)  {
     model.Layer = s.Layer
     model.Enable = s.Enable
     model.Desc = s.Desc
-    model.CId = s.CId
     model.Name = s.Name
     model.DriverId = s.DriverId
 }
@@ -70,12 +68,11 @@ func (s *LineInsertReq) GetId() interface{} {
 
 type LineUpdateReq struct {
     Id int `uri:"id" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"描述信息"`
-    CId string `json:"cId" comment:"大BID"`
     Name string `json:"name" comment:"路线名称"`
-    DriverId string `json:"driverId" comment:"关联司机"`
+    DriverId int `json:"driver_id" comment:"关联司机"`
     common.ControlBy
 }
 
@@ -87,7 +84,6 @@ func (s *LineUpdateReq) Generate(model *models.Line)  {
     model.Layer = s.Layer
     model.Enable = s.Enable
     model.Desc = s.Desc
-    model.CId = s.CId
     model.Name = s.Name
     model.DriverId = s.DriverId
 }

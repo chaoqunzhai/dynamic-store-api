@@ -58,10 +58,11 @@ func (e *Line) Get(d *dto.LineGetReq, p *actions.DataPermission, model *models.L
 }
 
 // Insert 创建Line对象
-func (e *Line) Insert(c *dto.LineInsertReq) error {
+func (e *Line) Insert(cid int,c *dto.LineInsertReq) error {
     var err error
     var data models.Line
     c.Generate(&data)
+    data.CId = cid
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("LineService Insert error:%s \r\n", err)

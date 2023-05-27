@@ -25,5 +25,10 @@ func registerSysMenuRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.PUT("/:id", api.Update)
 		r.DELETE("", api.Delete)
 	}
-
+	r1 := v1.Group("").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole())
+	{
+		//只有admin的权限的时候 就能获取admin-ui后所以得菜单
+		r1.GET("/menurole", api.GetAdminMenuRole)
+		//r1.GET("/menuids", api.GetMenuIDS)
+	}
 }

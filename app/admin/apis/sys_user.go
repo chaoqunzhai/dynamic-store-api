@@ -400,6 +400,7 @@ func (e SysUser) GetProfile(c *gin.Context) {
 	}, "查询成功")
 }
 
+
 // GetInfo
 // @Summary 获取个人信息
 // @Description 获取JSON
@@ -430,15 +431,19 @@ func (e SysUser) GetInfo(c *gin.Context) {
 	buttons[0] = "*:*:*"
 
 	var mp = make(map[string]interface{})
-	mp["roles"] = roles
-	if user.GetRoleName(c) == "admin" || user.GetRoleName(c) == "系统管理员" {
-		mp["permissions"] = permissions
-		mp["buttons"] = buttons
-	} else {
-		list, _ := r.GetById(user.GetRoleId(c))
-		mp["permissions"] = list
-		mp["buttons"] = list
+	mp["roles"] = []string{
+		"admin",
 	}
+	mp["buttons"] = buttons
+	mp["permissions"] = permissions
+	//if user.GetRoleName(c) == "admin" || user.GetRoleName(c) == "系统管理员" {
+	//	mp["permissions"] = permissions
+	//	mp["buttons"] = buttons
+	//} else {
+	//	list, _ := r.GetById(user.GetRoleId(c))
+	//	mp["permissions"] = list
+	//	mp["buttons"] = list
+	//}
 	sysUser := models.SysUser{}
 	req.Id = user.GetUserId(c)
 	err = s.Get(&req, p, &sysUser)

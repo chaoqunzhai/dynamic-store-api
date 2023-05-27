@@ -1,13 +1,15 @@
 package apis
 
 import (
-    "fmt"
+	"errors"
+	"fmt"
+	customUser "go-admin/common/jwt/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
-
+	shopModels "go-admin/app/shop/models"
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
 	"go-admin/app/company/service/dto"
@@ -115,12 +117,23 @@ func (e Line) Insert(c *gin.Context) {
         e.Error(500, err, err.Error())
         return
     }
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
+	var count int64
+	e.Orm.Model(&models.Line{}).Where("c_id = ? and name = ?", userDto.CId, req.Name).Count(&count)
+	if count > 0 {
+		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
+		return
+	}
 
-	err = s.Insert(&req)
+	err = s.Insert(userDto.CId,&req)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("创建Line失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("路线创建失败,%s", err.Error()))
         return
 	}
 
@@ -151,9 +164,44 @@ func (e Line) Update(c *gin.Context) {
         e.Error(500, err, err.Error())
         return
     }
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
 
+	var count int64
+	e.Orm.Model(&models.Line{}).Where("id = ?",req.Id).Count(&count)
+	if count == 0 {
+		e.Error(500, errors.New("数据不存在"), "数据不存在")
+		return
+	}
+	var oldRow models.Line
+	e.Orm.Model(&models.Line{}).Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&oldRow)
+
+	if oldRow.Id != 0 {
+		if oldRow.Id != req.Id {
+			e.Error(500, errors.New("名称不可重复"), "名称不可重复")
+			return
+		}
+	}
+	//如果选择了司机,判断司机是否已经被其他路线关联
+
+	if req.DriverId > 0 {
+
+		var validLine models.Line
+		e.Orm.Model(&models.Line{}).Where("driver_id = ? and c_id = ?",req.DriverId,userDto.CId).Limit(1).Find(&validLine)
+
+		if validLine.Id != 0 {
+			if validLine.Id != req.Id {
+				msg :=fmt.Sprintf("司机已被,[%v]路线关联",validLine.Name)
+				e.Error(500, errors.New(msg), msg)
+				return
+			}
+		}
+	}
 	err = s.Update(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("修改Line失败，\r\n失败信息 %s", err.Error()))
@@ -184,12 +232,28 @@ func (e Line) Delete(c *gin.Context) {
         return
     }
 
-	// req.SetUpdateBy(user.GetUserId(c))
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	p := actions.GetPermissionFromContext(c)
-
+	newIds :=make([]int,0)
+	for _,line:=range req.Ids{
+		var count int64
+		e.Orm.Model(&shopModels.Shop{}).Where("line_id = ? and c_id = ?",line,userDto.CId).Count(&count)
+		if count == 0 {
+			newIds = append(newIds,line)
+		}
+	}
+	if len(newIds) == 0 {
+		e.Error(500, errors.New("存在关联不可删除！"), "存在关联不可删除！")
+		return
+	}
+	req.Ids = newIds
 	err = s.Remove(&req, p)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("删除Line失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("路线删除失败,%s", err.Error()))
         return
 	}
 	e.OK( req.GetId(), "删除成功")

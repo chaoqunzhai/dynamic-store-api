@@ -9,7 +9,8 @@ import (
 // 1.字段名称Id 组合
 // 2.必须增加index索引
 
-// todo:小B商家信息
+
+// todo:小B商家信息,也就是客户
 type Shop struct {
 	BigBRichGlobal
 	UserId    int     `gorm:"index;comment:管理员ID"`
