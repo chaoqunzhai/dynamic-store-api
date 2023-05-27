@@ -179,16 +179,20 @@ func (e GoodsClass) Update(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	var oldRow models.GoodsClass
-	e.Orm.Model(&models.GoodsClass{}).Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&oldRow)
-
-	if oldRow.Id == 0 {
+	var count int64
+	e.Orm.Model(&models.GoodsClass{}).Where("id = ?",req.Id).Count(&count)
+	if count == 0 {
 		e.Error(500, errors.New("数据不存在"), "数据不存在")
 		return
 	}
-	if oldRow.Id != req.Id {
-		e.Error(500, errors.New("名称不可重复"), "名称不可重复")
-		return
+	var oldRow models.GoodsClass
+	e.Orm.Model(&models.GoodsClass{}).Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&oldRow)
+
+	if oldRow.Id != 0 {
+		if oldRow.Id != req.Id {
+			e.Error(500, errors.New("名称不可重复"), "名称不可重复")
+			return
+		}
 	}
 	err = s.Update(&req, p)
 	if err != nil {

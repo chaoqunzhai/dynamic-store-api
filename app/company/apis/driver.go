@@ -1,7 +1,9 @@
 package apis
 
 import (
-    "fmt"
+	"errors"
+	"fmt"
+	customUser "go-admin/common/jwt/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -116,12 +118,22 @@ func (e Driver) Insert(c *gin.Context) {
         e.Error(500, err, err.Error())
         return
     }
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
-
-	err = s.Insert(&req)
+	var count int64
+	e.Orm.Model(&models.Driver{}).Where("c_id = ? and name = ?", userDto.CId, req.Name).Count(&count)
+	if count > 0 {
+		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
+		return
+	}
+	err = s.Insert(userDto.CId,&req)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("创建Driver失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("创建失败,%s", err.Error()))
         return
 	}
 
@@ -155,9 +167,31 @@ func (e Driver) Update(c *gin.Context) {
 	req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
 
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	var count int64
+	e.Orm.Model(&models.Driver{}).Where("id = ?",req.Id).Count(&count)
+	if count == 0 {
+		e.Error(500, errors.New("数据不存在"), "数据不存在")
+		return
+	}
+	var oldRow models.Driver
+	e.Orm.Model(&models.Driver{}).Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&oldRow)
+
+	if oldRow.Id != 0 {
+		if oldRow.Id != req.Id {
+			e.Error(500, errors.New("名称不可重复"), "名称不可重复")
+			return
+		}
+	}
+
 	err = s.Update(&req, p)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("修改Driver失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("创建失败,%s", err.Error()))
         return
 	}
 	e.OK( req.GetId(), "修改成功")
@@ -185,9 +219,21 @@ func (e Driver) Delete(c *gin.Context) {
         return
     }
 
-	// req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
 
+	newIds :=make([]int,0)
+	for _,d:=range req.Ids{
+		var count int64
+		e.Orm.Model(&models.Line{}).Where("driver_id = ?",d).Count(&count)
+		//如果路线没有关联司机,那就是一个可删除的司机信息
+		if count == 0 {
+			newIds = append(newIds,d)
+		}
+	}
+	if len(newIds) == 0 {
+		e.Error(500, errors.New("存在关联路线不可删除！"), "存在关联路线不可删除！")
+		return
+	}
 	err = s.Remove(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除Driver失败，\r\n失败信息 %s", err.Error()))

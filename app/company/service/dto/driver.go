@@ -44,11 +44,10 @@ func (m *DriverGetPageReq) GetNeedSearch() interface{} {
 
 type DriverInsertReq struct {
     Id int `json:"-" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"备注信息"`
-    CId string `json:"cId" comment:"大BID"`
-    UserId string `json:"userId" comment:"关联的用户ID"`
+    CId int `json:"cId" comment:"大BID"`
     Name string `json:"name" comment:"司机名称"`
     Phone string `json:"phone" comment:"联系手机号"`
     common.ControlBy
@@ -63,7 +62,6 @@ func (s *DriverInsertReq) Generate(model *models.Driver)  {
     model.Enable = s.Enable
     model.Desc = s.Desc
     model.CId = s.CId
-    model.UserId = s.UserId
     model.Name = s.Name
     model.Phone = s.Phone
 }
@@ -74,11 +72,10 @@ func (s *DriverInsertReq) GetId() interface{} {
 
 type DriverUpdateReq struct {
     Id int `uri:"id" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"备注信息"`
-    CId string `json:"cId" comment:"大BID"`
-    UserId string `json:"userId" comment:"关联的用户ID"`
+    CId int `json:"cId" comment:"大BID"`
     Name string `json:"name" comment:"司机名称"`
     Phone string `json:"phone" comment:"联系手机号"`
     common.ControlBy
@@ -92,8 +89,6 @@ func (s *DriverUpdateReq) Generate(model *models.Driver)  {
     model.Layer = s.Layer
     model.Enable = s.Enable
     model.Desc = s.Desc
-    model.CId = s.CId
-    model.UserId = s.UserId
     model.Name = s.Name
     model.Phone = s.Phone
 }

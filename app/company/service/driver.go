@@ -2,8 +2,9 @@ package service
 
 import (
 	"errors"
+	sys "go-admin/app/admin/models"
 
-    "github.com/go-admin-team/go-admin-core/sdk/service"
+	"github.com/go-admin-team/go-admin-core/sdk/service"
 	"gorm.io/gorm"
 
 	"go-admin/app/company/models"
@@ -58,10 +59,19 @@ func (e *Driver) Get(d *dto.DriverGetReq, p *actions.DataPermission, model *mode
 }
 
 // Insert 创建Driver对象
-func (e *Driver) Insert(c *dto.DriverInsertReq) error {
+func (e *Driver) Insert(cid int,c *dto.DriverInsertReq) error {
     var err error
     var data models.Driver
     c.Generate(&data)
+    data.CId = cid
+
+    if c.Phone != "" {
+    	var sysUser sys.SysUser
+    	e.Orm.Model(&sys.SysUser{}).Where("phone = ? and enable = ? and c_id = ?",c.Phone,true,cid).Limit(1).Find(&sysUser)
+    	if sysUser.UserId > 0 {
+    		data.UserId = sysUser.UserId
+		}
+	}
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("DriverService Insert error:%s \r\n", err)
