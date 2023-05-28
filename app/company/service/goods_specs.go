@@ -2,42 +2,43 @@ package service
 
 import (
 	"errors"
-	"github.com/go-admin-team/go-admin-core/sdk/service"
-	"go-admin/global"
+
+    "github.com/go-admin-team/go-admin-core/sdk/service"
 	"gorm.io/gorm"
 
-	"go-admin/app/shop/models"
-	"go-admin/app/shop/service/dto"
+	"go-admin/app/company/models"
+	"go-admin/app/company/service/dto"
 	"go-admin/common/actions"
 	cDto "go-admin/common/dto"
 )
 
-type GoodsTag struct {
+type GoodsSpecs struct {
 	service.Service
 }
 
-// GetPage 获取GoodsTag列表
-func (e *GoodsTag) GetPage(c *dto.GoodsTagGetPageReq, p *actions.DataPermission, list *[]models.GoodsTag, count *int64) error {
+// GetPage 获取GoodsSpecs列表
+func (e *GoodsSpecs) GetPage(c *dto.GoodsSpecsGetPageReq, p *actions.DataPermission, list *[]models.GoodsSpecs, count *int64) error {
 	var err error
-	var data models.GoodsTag
+	var data models.GoodsSpecs
 
 	err = e.Orm.Model(&data).
 		Scopes(
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
-		).Order(global.OrderLayerKey).
-		Find(list).Limit(-1).Offset(-1).Count(count).Error
+		).
+		Find(list).Limit(-1).Offset(-1).
+		Count(count).Error
 	if err != nil {
-		e.Log.Errorf("GoodsTagService GetPage error:%s \r\n", err)
+		e.Log.Errorf("GoodsSpecsService GetPage error:%s \r\n", err)
 		return err
 	}
 	return nil
 }
 
-// Get 获取GoodsTag对象
-func (e *GoodsTag) Get(d *dto.GoodsTagGetReq, p *actions.DataPermission, model *models.GoodsTag) error {
-	var data models.GoodsTag
+// Get 获取GoodsSpecs对象
+func (e *GoodsSpecs) Get(d *dto.GoodsSpecsGetReq, p *actions.DataPermission, model *models.GoodsSpecs) error {
+	var data models.GoodsSpecs
 
 	err := e.Orm.Model(&data).
 		Scopes(
@@ -46,7 +47,7 @@ func (e *GoodsTag) Get(d *dto.GoodsTagGetReq, p *actions.DataPermission, model *
 		First(model, d.GetId()).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		err = errors.New("查看对象不存在或无权查看")
-		e.Log.Errorf("Service GetGoodsTag error:%s \r\n", err)
+		e.Log.Errorf("Service GetGoodsSpecs error:%s \r\n", err)
 		return err
 	}
 	if err != nil {
@@ -56,24 +57,23 @@ func (e *GoodsTag) Get(d *dto.GoodsTagGetReq, p *actions.DataPermission, model *
 	return nil
 }
 
-// Insert 创建GoodsTag对象
-func (e *GoodsTag) Insert(cId int,c *dto.GoodsTagInsertReq) error {
+// Insert 创建GoodsSpecs对象
+func (e *GoodsSpecs) Insert(c *dto.GoodsSpecsInsertReq) error {
     var err error
-    var data models.GoodsTag
+    var data models.GoodsSpecs
     c.Generate(&data)
-	data.CId = cId
 	err = e.Orm.Create(&data).Error
 	if err != nil {
-		e.Log.Errorf("GoodsTagService Insert error:%s \r\n", err)
+		e.Log.Errorf("GoodsSpecsService Insert error:%s \r\n", err)
 		return err
 	}
 	return nil
 }
 
-// Update 修改GoodsTag对象
-func (e *GoodsTag) Update(c *dto.GoodsTagUpdateReq, p *actions.DataPermission) error {
+// Update 修改GoodsSpecs对象
+func (e *GoodsSpecs) Update(c *dto.GoodsSpecsUpdateReq, p *actions.DataPermission) error {
     var err error
-    var data = models.GoodsTag{}
+    var data = models.GoodsSpecs{}
     e.Orm.Scopes(
             actions.Permission(data.TableName(), p),
         ).First(&data, c.GetId())
@@ -81,7 +81,7 @@ func (e *GoodsTag) Update(c *dto.GoodsTagUpdateReq, p *actions.DataPermission) e
 
     db := e.Orm.Save(&data)
     if err = db.Error; err != nil {
-        e.Log.Errorf("修改标签失败,", err)
+        e.Log.Errorf("GoodsSpecsService Save error:%s \r\n", err)
         return err
     }
     if db.RowsAffected == 0 {
@@ -90,16 +90,16 @@ func (e *GoodsTag) Update(c *dto.GoodsTagUpdateReq, p *actions.DataPermission) e
     return nil
 }
 
-// Remove 删除GoodsTag
-func (e *GoodsTag) Remove(d *dto.GoodsTagDeleteReq, p *actions.DataPermission) error {
-	var data models.GoodsTag
+// Remove 删除GoodsSpecs
+func (e *GoodsSpecs) Remove(d *dto.GoodsSpecsDeleteReq, p *actions.DataPermission) error {
+	var data models.GoodsSpecs
 
 	db := e.Orm.Model(&data).
 		Scopes(
 			actions.Permission(data.TableName(), p),
 		).Delete(&data, d.GetId())
 	if err := db.Error; err != nil {
-        e.Log.Errorf("Service RemoveGoodsTag error:%s \r\n", err)
+        e.Log.Errorf("Service RemoveGoodsSpecs error:%s \r\n", err)
         return err
     }
     if db.RowsAffected == 0 {

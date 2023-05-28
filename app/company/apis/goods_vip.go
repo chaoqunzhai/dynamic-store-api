@@ -8,33 +8,35 @@ import (
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 
-	"go-admin/app/shop/models"
-	"go-admin/app/shop/service"
-	"go-admin/app/shop/service/dto"
+	"go-admin/app/company/models"
+	"go-admin/app/company/service"
+	"go-admin/app/company/service/dto"
 	"go-admin/common/actions"
 )
 
-type Goods struct {
+type GoodsVip struct {
 	api.Api
 }
 
-// GetPage 获取Goods列表
-// @Summary 获取Goods列表
-// @Description 获取Goods列表
-// @Tags Goods
+// GetPage 获取GoodsVip列表
+// @Summary 获取GoodsVip列表
+// @Description 获取GoodsVip列表
+// @Tags GoodsVip
 // @Param layer query string false "排序"
 // @Param enable query string false "开关"
 // @Param cId query string false "大BID"
-// @Param name query string false "商品名称"
-// @Param vipSale query string false "会员价"
+// @Param goodsId query string false "商品ID"
+// @Param specsId query string false "规格ID"
+// @Param gradeId query string false "VipId"
+// @Param customPrice query string false "自定义价格"
 // @Param pageSize query int false "页条数"
 // @Param pageIndex query int false "页码"
-// @Success 200 {object} response.Response{data=response.Page{list=[]models.Goods}} "{"code": 200, "data": [...]}"
-// @Router /api/v1/goods [get]
+// @Success 200 {object} response.Response{data=response.Page{list=[]models.GoodsVip}} "{"code": 200, "data": [...]}"
+// @Router /api/v1/goods-vip [get]
 // @Security Bearer
-func (e Goods) GetPage(c *gin.Context) {
-    req := dto.GoodsGetPageReq{}
-    s := service.Goods{}
+func (e GoodsVip) GetPage(c *gin.Context) {
+    req := dto.GoodsVipGetPageReq{}
+    s := service.GoodsVip{}
     err := e.MakeContext(c).
         MakeOrm().
         Bind(&req).
@@ -47,29 +49,29 @@ func (e Goods) GetPage(c *gin.Context) {
    	}
 
 	p := actions.GetPermissionFromContext(c)
-	list := make([]models.Goods, 0)
+	list := make([]models.GoodsVip, 0)
 	var count int64
 
 	err = s.GetPage(&req, p, &list, &count)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("获取Goods失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("获取GoodsVip失败，\r\n失败信息 %s", err.Error()))
         return
 	}
 
 	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
-// Get 获取Goods
-// @Summary 获取Goods
-// @Description 获取Goods
-// @Tags Goods
+// Get 获取GoodsVip
+// @Summary 获取GoodsVip
+// @Description 获取GoodsVip
+// @Tags GoodsVip
 // @Param id path int false "id"
-// @Success 200 {object} response.Response{data=models.Goods} "{"code": 200, "data": [...]}"
-// @Router /api/v1/goods/{id} [get]
+// @Success 200 {object} response.Response{data=models.GoodsVip} "{"code": 200, "data": [...]}"
+// @Router /api/v1/goods-vip/{id} [get]
 // @Security Bearer
-func (e Goods) Get(c *gin.Context) {
-	req := dto.GoodsGetReq{}
-	s := service.Goods{}
+func (e GoodsVip) Get(c *gin.Context) {
+	req := dto.GoodsVipGetReq{}
+	s := service.GoodsVip{}
     err := e.MakeContext(c).
 		MakeOrm().
 		Bind(&req).
@@ -80,31 +82,31 @@ func (e Goods) Get(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	var object models.Goods
+	var object models.GoodsVip
 
 	p := actions.GetPermissionFromContext(c)
 	err = s.Get(&req, p, &object)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("获取Goods失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("获取GoodsVip失败，\r\n失败信息 %s", err.Error()))
         return
 	}
 
 	e.OK( object, "查询成功")
 }
 
-// Insert 创建Goods
-// @Summary 创建Goods
-// @Description 创建Goods
-// @Tags Goods
+// Insert 创建GoodsVip
+// @Summary 创建GoodsVip
+// @Description 创建GoodsVip
+// @Tags GoodsVip
 // @Accept application/json
 // @Product application/json
-// @Param data body dto.GoodsInsertReq true "data"
+// @Param data body dto.GoodsVipInsertReq true "data"
 // @Success 200 {object} response.Response	"{"code": 200, "message": "添加成功"}"
-// @Router /api/v1/goods [post]
+// @Router /api/v1/goods-vip [post]
 // @Security Bearer
-func (e Goods) Insert(c *gin.Context) {
-    req := dto.GoodsInsertReq{}
-    s := service.Goods{}
+func (e GoodsVip) Insert(c *gin.Context) {
+    req := dto.GoodsVipInsertReq{}
+    s := service.GoodsVip{}
     err := e.MakeContext(c).
         MakeOrm().
         Bind(&req).
@@ -120,27 +122,27 @@ func (e Goods) Insert(c *gin.Context) {
 
 	err = s.Insert(&req)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("创建Goods失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("创建GoodsVip失败，\r\n失败信息 %s", err.Error()))
         return
 	}
 
 	e.OK(req.GetId(), "创建成功")
 }
 
-// Update 修改Goods
-// @Summary 修改Goods
-// @Description 修改Goods
-// @Tags Goods
+// Update 修改GoodsVip
+// @Summary 修改GoodsVip
+// @Description 修改GoodsVip
+// @Tags GoodsVip
 // @Accept application/json
 // @Product application/json
 // @Param id path int true "id"
-// @Param data body dto.GoodsUpdateReq true "body"
+// @Param data body dto.GoodsVipUpdateReq true "body"
 // @Success 200 {object} response.Response	"{"code": 200, "message": "修改成功"}"
-// @Router /api/v1/goods/{id} [put]
+// @Router /api/v1/goods-vip/{id} [put]
 // @Security Bearer
-func (e Goods) Update(c *gin.Context) {
-    req := dto.GoodsUpdateReq{}
-    s := service.Goods{}
+func (e GoodsVip) Update(c *gin.Context) {
+    req := dto.GoodsVipUpdateReq{}
+    s := service.GoodsVip{}
     err := e.MakeContext(c).
         MakeOrm().
         Bind(&req).
@@ -156,23 +158,23 @@ func (e Goods) Update(c *gin.Context) {
 
 	err = s.Update(&req, p)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("修改Goods失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("修改GoodsVip失败，\r\n失败信息 %s", err.Error()))
         return
 	}
 	e.OK( req.GetId(), "修改成功")
 }
 
-// Delete 删除Goods
-// @Summary 删除Goods
-// @Description 删除Goods
-// @Tags Goods
-// @Param data body dto.GoodsDeleteReq true "body"
+// Delete 删除GoodsVip
+// @Summary 删除GoodsVip
+// @Description 删除GoodsVip
+// @Tags GoodsVip
+// @Param data body dto.GoodsVipDeleteReq true "body"
 // @Success 200 {object} response.Response	"{"code": 200, "message": "删除成功"}"
-// @Router /api/v1/goods [delete]
+// @Router /api/v1/goods-vip [delete]
 // @Security Bearer
-func (e Goods) Delete(c *gin.Context) {
-    s := service.Goods{}
-    req := dto.GoodsDeleteReq{}
+func (e GoodsVip) Delete(c *gin.Context) {
+    s := service.GoodsVip{}
+    req := dto.GoodsVipDeleteReq{}
     err := e.MakeContext(c).
         MakeOrm().
         Bind(&req).
@@ -189,7 +191,7 @@ func (e Goods) Delete(c *gin.Context) {
 
 	err = s.Remove(&req, p)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("删除Goods失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("删除GoodsVip失败，\r\n失败信息 %s", err.Error()))
         return
 	}
 	e.OK( req.GetId(), "删除成功")

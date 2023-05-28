@@ -7,20 +7,20 @@ import (
 	"github.com/go-admin-team/go-admin-core/sdk/service"
 	"gorm.io/gorm"
 
-	"go-admin/app/shop/models"
-	"go-admin/app/shop/service/dto"
+	"go-admin/app/company/models"
+	"go-admin/app/company/service/dto"
 	"go-admin/common/actions"
 	cDto "go-admin/common/dto"
 )
 
-type GoodsVip struct {
+type GoodsSales struct {
 	service.Service
 }
 
-// GetPage 获取GoodsVip列表
-func (e *GoodsVip) GetPage(c *dto.GoodsVipGetPageReq, p *actions.DataPermission, list *[]models.GoodsVip, count *int64) error {
+// GetPage 获取GoodsSales列表
+func (e *GoodsSales) GetPage(c *dto.GoodsSalesGetPageReq, p *actions.DataPermission, list *[]models.GoodsSales, count *int64) error {
 	var err error
-	var data models.GoodsVip
+	var data models.GoodsSales
 
 	err = e.Orm.Model(&data).
 		Scopes(
@@ -31,15 +31,15 @@ func (e *GoodsVip) GetPage(c *dto.GoodsVipGetPageReq, p *actions.DataPermission,
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {
-		e.Log.Errorf("GoodsVipService GetPage error:%s \r\n", err)
+		e.Log.Errorf("GoodsSalesService GetPage error:%s \r\n", err)
 		return err
 	}
 	return nil
 }
 
-// Get 获取GoodsVip对象
-func (e *GoodsVip) Get(d *dto.GoodsVipGetReq, p *actions.DataPermission, model *models.GoodsVip) error {
-	var data models.GoodsVip
+// Get 获取GoodsSales对象
+func (e *GoodsSales) Get(d *dto.GoodsSalesGetReq, p *actions.DataPermission, model *models.GoodsSales) error {
+	var data models.GoodsSales
 
 	err := e.Orm.Model(&data).
 		Scopes(
@@ -48,7 +48,7 @@ func (e *GoodsVip) Get(d *dto.GoodsVipGetReq, p *actions.DataPermission, model *
 		First(model, d.GetId()).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		err = errors.New("查看对象不存在或无权查看")
-		e.Log.Errorf("Service GetGoodsVip error:%s \r\n", err)
+		e.Log.Errorf("Service GetGoodsSales error:%s \r\n", err)
 		return err
 	}
 	if err != nil {
@@ -58,23 +58,23 @@ func (e *GoodsVip) Get(d *dto.GoodsVipGetReq, p *actions.DataPermission, model *
 	return nil
 }
 
-// Insert 创建GoodsVip对象
-func (e *GoodsVip) Insert(c *dto.GoodsVipInsertReq) error {
+// Insert 创建GoodsSales对象
+func (e *GoodsSales) Insert(c *dto.GoodsSalesInsertReq) error {
     var err error
-    var data models.GoodsVip
+    var data models.GoodsSales
     c.Generate(&data)
 	err = e.Orm.Create(&data).Error
 	if err != nil {
-		e.Log.Errorf("GoodsVipService Insert error:%s \r\n", err)
+		e.Log.Errorf("GoodsSalesService Insert error:%s \r\n", err)
 		return err
 	}
 	return nil
 }
 
-// Update 修改GoodsVip对象
-func (e *GoodsVip) Update(c *dto.GoodsVipUpdateReq, p *actions.DataPermission) error {
+// Update 修改GoodsSales对象
+func (e *GoodsSales) Update(c *dto.GoodsSalesUpdateReq, p *actions.DataPermission) error {
     var err error
-    var data = models.GoodsVip{}
+    var data = models.GoodsSales{}
     e.Orm.Scopes(
             actions.Permission(data.TableName(), p),
         ).First(&data, c.GetId())
@@ -82,7 +82,7 @@ func (e *GoodsVip) Update(c *dto.GoodsVipUpdateReq, p *actions.DataPermission) e
 
     db := e.Orm.Save(&data)
     if err = db.Error; err != nil {
-        e.Log.Errorf("GoodsVipService Save error:%s \r\n", err)
+        e.Log.Errorf("GoodsSalesService Save error:%s \r\n", err)
         return err
     }
     if db.RowsAffected == 0 {
@@ -91,16 +91,16 @@ func (e *GoodsVip) Update(c *dto.GoodsVipUpdateReq, p *actions.DataPermission) e
     return nil
 }
 
-// Remove 删除GoodsVip
-func (e *GoodsVip) Remove(d *dto.GoodsVipDeleteReq, p *actions.DataPermission) error {
-	var data models.GoodsVip
+// Remove 删除GoodsSales
+func (e *GoodsSales) Remove(d *dto.GoodsSalesDeleteReq, p *actions.DataPermission) error {
+	var data models.GoodsSales
 
 	db := e.Orm.Model(&data).
 		Scopes(
 			actions.Permission(data.TableName(), p),
 		).Delete(&data, d.GetId())
 	if err := db.Error; err != nil {
-        e.Log.Errorf("Service RemoveGoodsVip error:%s \r\n", err)
+        e.Log.Errorf("Service RemoveGoodsSales error:%s \r\n", err)
         return err
     }
     if db.RowsAffected == 0 {

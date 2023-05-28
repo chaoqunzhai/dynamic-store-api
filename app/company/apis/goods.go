@@ -1,40 +1,42 @@
 package apis
 
 import (
-    "fmt"
+	"errors"
+	"fmt"
+	customUser "go-admin/common/jwt/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 
-	"go-admin/app/shop/models"
-	"go-admin/app/shop/service"
-	"go-admin/app/shop/service/dto"
+	"go-admin/app/company/models"
+	"go-admin/app/company/service"
+	"go-admin/app/company/service/dto"
 	"go-admin/common/actions"
 )
 
-type GoodsSales struct {
+type Goods struct {
 	api.Api
 }
 
-// GetPage 获取GoodsSales列表
-// @Summary 获取GoodsSales列表
-// @Description 获取GoodsSales列表
-// @Tags GoodsSales
+// GetPage 获取Goods列表
+// @Summary 获取Goods列表
+// @Description 获取Goods列表
+// @Tags Goods
 // @Param layer query string false "排序"
 // @Param enable query string false "开关"
 // @Param cId query string false "大BID"
-// @Param productId query string false "产品ID"
-// @Param productName query string false "产品名称"
+// @Param name query string false "商品名称"
+// @Param vipSale query string false "会员价"
 // @Param pageSize query int false "页条数"
 // @Param pageIndex query int false "页码"
-// @Success 200 {object} response.Response{data=response.Page{list=[]models.GoodsSales}} "{"code": 200, "data": [...]}"
-// @Router /api/v1/goods-sales [get]
+// @Success 200 {object} response.Response{data=response.Page{list=[]models.Goods}} "{"code": 200, "data": [...]}"
+// @Router /api/v1/goods [get]
 // @Security Bearer
-func (e GoodsSales) GetPage(c *gin.Context) {
-    req := dto.GoodsSalesGetPageReq{}
-    s := service.GoodsSales{}
+func (e Goods) GetPage(c *gin.Context) {
+    req := dto.GoodsGetPageReq{}
+    s := service.Goods{}
     err := e.MakeContext(c).
         MakeOrm().
         Bind(&req).
@@ -47,29 +49,29 @@ func (e GoodsSales) GetPage(c *gin.Context) {
    	}
 
 	p := actions.GetPermissionFromContext(c)
-	list := make([]models.GoodsSales, 0)
+	list := make([]models.Goods, 0)
 	var count int64
 
 	err = s.GetPage(&req, p, &list, &count)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("获取GoodsSales失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("获取Goods失败，\r\n失败信息 %s", err.Error()))
         return
 	}
 
 	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
-// Get 获取GoodsSales
-// @Summary 获取GoodsSales
-// @Description 获取GoodsSales
-// @Tags GoodsSales
+// Get 获取Goods
+// @Summary 获取Goods
+// @Description 获取Goods
+// @Tags Goods
 // @Param id path int false "id"
-// @Success 200 {object} response.Response{data=models.GoodsSales} "{"code": 200, "data": [...]}"
-// @Router /api/v1/goods-sales/{id} [get]
+// @Success 200 {object} response.Response{data=models.Goods} "{"code": 200, "data": [...]}"
+// @Router /api/v1/goods/{id} [get]
 // @Security Bearer
-func (e GoodsSales) Get(c *gin.Context) {
-	req := dto.GoodsSalesGetReq{}
-	s := service.GoodsSales{}
+func (e Goods) Get(c *gin.Context) {
+	req := dto.GoodsGetReq{}
+	s := service.Goods{}
     err := e.MakeContext(c).
 		MakeOrm().
 		Bind(&req).
@@ -80,31 +82,31 @@ func (e GoodsSales) Get(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	var object models.GoodsSales
+	var object models.Goods
 
 	p := actions.GetPermissionFromContext(c)
 	err = s.Get(&req, p, &object)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("获取GoodsSales失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("获取Goods失败，\r\n失败信息 %s", err.Error()))
         return
 	}
 
 	e.OK( object, "查询成功")
 }
 
-// Insert 创建GoodsSales
-// @Summary 创建GoodsSales
-// @Description 创建GoodsSales
-// @Tags GoodsSales
+// Insert 创建Goods
+// @Summary 创建Goods
+// @Description 创建Goods
+// @Tags Goods
 // @Accept application/json
 // @Product application/json
-// @Param data body dto.GoodsSalesInsertReq true "data"
+// @Param data body dto.GoodsInsertReq true "data"
 // @Success 200 {object} response.Response	"{"code": 200, "message": "添加成功"}"
-// @Router /api/v1/goods-sales [post]
+// @Router /api/v1/goods [post]
 // @Security Bearer
-func (e GoodsSales) Insert(c *gin.Context) {
-    req := dto.GoodsSalesInsertReq{}
-    s := service.GoodsSales{}
+func (e Goods) Insert(c *gin.Context) {
+    req := dto.GoodsInsertReq{}
+    s := service.Goods{}
     err := e.MakeContext(c).
         MakeOrm().
         Bind(&req).
@@ -118,29 +120,41 @@ func (e GoodsSales) Insert(c *gin.Context) {
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
 
-	err = s.Insert(&req)
+	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("创建GoodsSales失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	var count int64
+	e.Orm.Model(&models.Goods{}).Where("c_id = ? and name = ?", userDto.CId, req.Name).Count(&count)
+	if count > 0 {
+		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
+		return
+	}
+	err = s.Insert(userDto.CId,&req)
+	if err != nil {
+		e.Error(500, err, fmt.Sprintf("创建商品失败,%s", err.Error()))
         return
 	}
 
 	e.OK(req.GetId(), "创建成功")
 }
 
-// Update 修改GoodsSales
-// @Summary 修改GoodsSales
-// @Description 修改GoodsSales
-// @Tags GoodsSales
+// Update 修改Goods
+// @Summary 修改Goods
+// @Description 修改Goods
+// @Tags Goods
 // @Accept application/json
 // @Product application/json
 // @Param id path int true "id"
-// @Param data body dto.GoodsSalesUpdateReq true "body"
+// @Param data body dto.GoodsUpdateReq true "body"
 // @Success 200 {object} response.Response	"{"code": 200, "message": "修改成功"}"
-// @Router /api/v1/goods-sales/{id} [put]
+// @Router /api/v1/goods/{id} [put]
 // @Security Bearer
-func (e GoodsSales) Update(c *gin.Context) {
-    req := dto.GoodsSalesUpdateReq{}
-    s := service.GoodsSales{}
+func (e Goods) Update(c *gin.Context) {
+    req := dto.GoodsUpdateReq{}
+    s := service.Goods{}
     err := e.MakeContext(c).
         MakeOrm().
         Bind(&req).
@@ -156,23 +170,23 @@ func (e GoodsSales) Update(c *gin.Context) {
 
 	err = s.Update(&req, p)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("修改GoodsSales失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("修改Goods失败，\r\n失败信息 %s", err.Error()))
         return
 	}
 	e.OK( req.GetId(), "修改成功")
 }
 
-// Delete 删除GoodsSales
-// @Summary 删除GoodsSales
-// @Description 删除GoodsSales
-// @Tags GoodsSales
-// @Param data body dto.GoodsSalesDeleteReq true "body"
+// Delete 删除Goods
+// @Summary 删除Goods
+// @Description 删除Goods
+// @Tags Goods
+// @Param data body dto.GoodsDeleteReq true "body"
 // @Success 200 {object} response.Response	"{"code": 200, "message": "删除成功"}"
-// @Router /api/v1/goods-sales [delete]
+// @Router /api/v1/goods [delete]
 // @Security Bearer
-func (e GoodsSales) Delete(c *gin.Context) {
-    s := service.GoodsSales{}
-    req := dto.GoodsSalesDeleteReq{}
+func (e Goods) Delete(c *gin.Context) {
+    s := service.Goods{}
+    req := dto.GoodsDeleteReq{}
     err := e.MakeContext(c).
         MakeOrm().
         Bind(&req).
@@ -189,7 +203,7 @@ func (e GoodsSales) Delete(c *gin.Context) {
 
 	err = s.Remove(&req, p)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("删除GoodsSales失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("删除Goods失败，\r\n失败信息 %s", err.Error()))
         return
 	}
 	e.OK( req.GetId(), "删除成功")

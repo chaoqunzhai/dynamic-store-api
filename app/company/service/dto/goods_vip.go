@@ -7,7 +7,7 @@ import (
      
      
      
-     "go-admin/app/shop/models"
+     "go-admin/app/company/models"
 	"go-admin/common/dto"
 	common "go-admin/common/models"
 )
@@ -45,13 +45,13 @@ func (m *GoodsVipGetPageReq) GetNeedSearch() interface{} {
 
 type GoodsVipInsertReq struct {
     Id int `json:"-" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
-    CId string `json:"cId" comment:"大BID"`
-    GoodsId string `json:"goodsId" comment:"商品ID"`
-    SpecsId string `json:"specsId" comment:"规格ID"`
-    GradeId string `json:"gradeId" comment:"VipId"`
-    CustomPrice string `json:"customPrice" comment:"自定义价格"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
+
+    GoodsId int `json:"goodsId" comment:"商品ID"`
+    SpecsId int `json:"specsId" comment:"规格ID"`
+    GradeId int `json:"gradeId" comment:"VipId"`
+    CustomPrice float64 `json:"customPrice" comment:"自定义价格"`
     common.ControlBy
 }
 
@@ -62,7 +62,7 @@ func (s *GoodsVipInsertReq) Generate(model *models.GoodsVip)  {
     model.CreateBy = s.CreateBy // 添加这而，需要记录是被谁创建的
     model.Layer = s.Layer
     model.Enable = s.Enable
-    model.CId = s.CId
+
     model.GoodsId = s.GoodsId
     model.SpecsId = s.SpecsId
     model.GradeId = s.GradeId
@@ -75,13 +75,13 @@ func (s *GoodsVipInsertReq) GetId() interface{} {
 
 type GoodsVipUpdateReq struct {
     Id int `uri:"id" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
-    CId string `json:"cId" comment:"大BID"`
-    GoodsId string `json:"goodsId" comment:"商品ID"`
-    SpecsId string `json:"specsId" comment:"规格ID"`
-    GradeId string `json:"gradeId" comment:"VipId"`
-    CustomPrice string `json:"customPrice" comment:"自定义价格"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
+
+    GoodsId int `json:"goodsId" comment:"商品ID"`
+    SpecsId int `json:"specsId" comment:"规格ID"`
+    GradeId int `json:"gradeId" comment:"VipId"`
+    CustomPrice float64 `json:"customPrice" comment:"自定义价格"`
     common.ControlBy
 }
 
@@ -91,7 +91,7 @@ func (s *GoodsVipUpdateReq) Generate(model *models.GoodsVip)  {
     }
     model.Layer = s.Layer
     model.Enable = s.Enable
-    model.CId = s.CId
+
     model.GoodsId = s.GoodsId
     model.SpecsId = s.SpecsId
     model.GradeId = s.GradeId

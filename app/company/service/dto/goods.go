@@ -5,7 +5,7 @@ import (
      
      
      
-     "go-admin/app/shop/models"
+     "go-admin/app/company/models"
 	"go-admin/common/dto"
 	common "go-admin/common/models"
 )
@@ -46,19 +46,34 @@ func (m *GoodsGetPageReq) GetNeedSearch() interface{} {
 
 type GoodsInsertReq struct {
     Id int `json:"-" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"商品详情"`
-    CId string `json:"cId" comment:"大BID"`
     Name string `json:"name" comment:"商品名称"`
     Subtitle string `json:"subtitle" comment:"副标题"`
     Image string `json:"image" comment:"商品图片路径"`
-    Quota string `json:"quota" comment:"是否限购"`
-    VipSale string `json:"vipSale" comment:"会员价"`
+    Quota bool `json:"quota" comment:"是否限购"`
+    VipSale bool `json:"vip_sale" comment:"会员价"`
     Code string `json:"code" comment:"条形码"`
+    Tag []int `json:"tag" comment:"标签"`
+    Class []int `json:"class" comment:"分类"`
+    Specs []Specs `json:"specs" comment:"规格"`
     common.ControlBy
 }
 
+type Specs struct {
+    Name string `json:"name" comment:"规格名称"`
+    Price float64 `json:"price" comment:"售价"`
+    Original float64 `json:"original" comment:"原价"`
+    Inventory int `json:"inventory" comment:"库存"`
+    Unit string `json:"unit" comment:"单位"`
+    Limit int `json:"limit" comment:"起售量"`
+    Vip []Vip  `json:"vip" comment:"vip价格设置"`
+}
+type Vip struct {
+    Grade int `json:"grade" comment:"登记"`
+    Price float64  `json:"price" comment:"售价"`
+}
 func (s *GoodsInsertReq) Generate(model *models.Goods)  {
     if s.Id == 0 {
         model.Model = common.Model{ Id: s.Id }
@@ -67,7 +82,7 @@ func (s *GoodsInsertReq) Generate(model *models.Goods)  {
     model.Layer = s.Layer
     model.Enable = s.Enable
     model.Desc = s.Desc
-    model.CId = s.CId
+
     model.Name = s.Name
     model.Subtitle = s.Subtitle
     model.Image = s.Image
@@ -81,17 +96,19 @@ func (s *GoodsInsertReq) GetId() interface{} {
 }
 
 type GoodsUpdateReq struct {
-    Id int `uri:"id" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    Id int `json:"-" comment:"主键编码"` // 主键编码
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"商品详情"`
-    CId string `json:"cId" comment:"大BID"`
     Name string `json:"name" comment:"商品名称"`
     Subtitle string `json:"subtitle" comment:"副标题"`
     Image string `json:"image" comment:"商品图片路径"`
-    Quota string `json:"quota" comment:"是否限购"`
-    VipSale string `json:"vipSale" comment:"会员价"`
+    Quota bool `json:"quota" comment:"是否限购"`
+    VipSale bool `json:"vip_sale" comment:"会员价"`
     Code string `json:"code" comment:"条形码"`
+    Tag []int `json:"tag" comment:"标签"`
+    Class []int `json:"class" comment:"分类"`
+    Specs []Specs `json:"specs" comment:"规格"`
     common.ControlBy
 }
 
@@ -103,7 +120,6 @@ func (s *GoodsUpdateReq) Generate(model *models.Goods)  {
     model.Layer = s.Layer
     model.Enable = s.Enable
     model.Desc = s.Desc
-    model.CId = s.CId
     model.Name = s.Name
     model.Subtitle = s.Subtitle
     model.Image = s.Image

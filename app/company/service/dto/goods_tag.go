@@ -1,10 +1,10 @@
 package dto
 
 import (
-     
-     
-     
-     "go-admin/app/shop/models"
+
+
+
+    "go-admin/app/company/models"
 	"go-admin/common/dto"
 	common "go-admin/common/models"
 )

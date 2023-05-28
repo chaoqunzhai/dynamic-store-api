@@ -7,8 +7,8 @@ import (
 	"github.com/go-admin-team/go-admin-core/sdk/service"
 	"gorm.io/gorm"
 
-	"go-admin/app/shop/models"
-	"go-admin/app/shop/service/dto"
+	"go-admin/app/company/models"
+	"go-admin/app/company/service/dto"
 	"go-admin/common/actions"
 	cDto "go-admin/common/dto"
 )
@@ -58,12 +58,81 @@ func (e *Goods) Get(d *dto.GoodsGetReq, p *actions.DataPermission, model *models
 	return nil
 }
 
+func (e *Goods)getTagModels(ids []int) (list []models.GoodsTag) {
+	for _, id := range ids {
+		var row models.GoodsTag
+		e.Orm.Model(&models.GoodsTag{}).Where("id = ?", id).First(&row)
+		if row.Id == 0 {
+			continue
+		}
+		list = append(list, row)
+	}
+	return list
+}
+func (e *Goods)getClassModels(ids []int) (list []models.GoodsClass) {
+	for _, id := range ids {
+		var row models.GoodsClass
+		e.Orm.Model(&models.GoodsClass{}).Where("id = ?", id).First(&row)
+		if row.Id == 0 {
+			continue
+		}
+		list = append(list, row)
+	}
+	return list
+}
 // Insert 创建Goods对象
-func (e *Goods) Insert(c *dto.GoodsInsertReq) error {
+func (e *Goods) Insert(cid int,c *dto.GoodsInsertReq) error {
     var err error
     var data models.Goods
     c.Generate(&data)
+    data.CId = cid
+
+    //标签
+    if len(c.Tag) > 0 {
+		data.Tag = e.getTagModels(c.Tag)
+	}
+	//分类
+	if len(c.Class) > 0 {
+		data.Class = e.getClassModels(c.Tag)
+	}
 	err = e.Orm.Create(&data).Error
+
+	//规格 + vip价格设置存在
+	if len(c.Specs) > 0 {
+
+		for _,row:=range c.Specs{
+			specsModels :=models.GoodsSpecs{
+				Name: row.Name,
+				CId: cid,
+				Enable: true,
+				Layer: 0,
+				GoodsId: data.Id,
+				Price: row.Price,
+				Original: row.Original,
+				Inventory: row.Inventory,
+				Unit: row.Unit,
+				Limit: row.Limit,
+			}
+			specsModels.CreateBy = data.CreateBy
+			e.Orm.Create(&specsModels)
+			for _,v:=range row.Vip{
+				var gradeRow models.GradeVip
+				e.Orm.Model(&models.GradeVip{}).Where("enable = ? and id = ?",true,v.Grade).Limit(1).Find(&gradeRow)
+				if gradeRow.Id == 0 {continue}
+				vipRow:=models.GoodsVip{
+					CId: cid,
+					GoodsId:data.Id,
+					Enable: true,
+					GradeId: gradeRow.Id,
+					Layer: 0,
+					CustomPrice: v.Price,
+				}
+				vipRow.CreateBy = data.CreateBy
+				e.Orm.Create(&vipRow)
+			}
+		}
+	}
+
 	if err != nil {
 		e.Log.Errorf("GoodsService Insert error:%s \r\n", err)
 		return err

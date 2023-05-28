@@ -1,12 +1,12 @@
 package dto
 
 import (
-     
-     
-     
-     
-     
-     "go-admin/app/shop/models"
+
+
+
+
+
+    "go-admin/app/company/models"
 	"go-admin/common/dto"
 	common "go-admin/common/models"
 )
@@ -46,16 +46,16 @@ func (m *GoodsSpecsGetPageReq) GetNeedSearch() interface{} {
 
 type GoodsSpecsInsertReq struct {
     Id int `json:"-" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
-    CId string `json:"cId" comment:"大BID"`
-    GoodsId string `json:"goodsId" comment:"商品ID"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
+
+    GoodsId int `json:"goodsId" comment:"商品ID"`
     Name string `json:"name" comment:"规格名称"`
-    Price string `json:"price" comment:"售价"`
-    Original string `json:"original" comment:"原价"`
-    Inventory string `json:"inventory" comment:"库存"`
+    Price float64 `json:"price" comment:"售价"`
+    Original float64 `json:"original" comment:"原价"`
+    Inventory int `json:"inventory" comment:"库存"`
     Unit string `json:"unit" comment:"单位"`
-    Limit string `json:"limit" comment:"起售量"`
+    Limit int `json:"limit" comment:"起售量"`
     common.ControlBy
 }
 
@@ -66,7 +66,7 @@ func (s *GoodsSpecsInsertReq) Generate(model *models.GoodsSpecs)  {
     model.CreateBy = s.CreateBy // 添加这而，需要记录是被谁创建的
     model.Layer = s.Layer
     model.Enable = s.Enable
-    model.CId = s.CId
+
     model.GoodsId = s.GoodsId
     model.Name = s.Name
     model.Price = s.Price
@@ -82,16 +82,16 @@ func (s *GoodsSpecsInsertReq) GetId() interface{} {
 
 type GoodsSpecsUpdateReq struct {
     Id int `uri:"id" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
-    CId string `json:"cId" comment:"大BID"`
-    GoodsId string `json:"goodsId" comment:"商品ID"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
+
+    GoodsId int `json:"goodsId" comment:"商品ID"`
     Name string `json:"name" comment:"规格名称"`
-    Price string `json:"price" comment:"售价"`
-    Original string `json:"original" comment:"原价"`
-    Inventory string `json:"inventory" comment:"库存"`
+    Price float64 `json:"price" comment:"售价"`
+    Original float64 `json:"original" comment:"原价"`
+    Inventory int `json:"inventory" comment:"库存"`
     Unit string `json:"unit" comment:"单位"`
-    Limit string `json:"limit" comment:"起售量"`
+    Limit int `json:"limit" comment:"起售量"`
     common.ControlBy
 }
 
@@ -101,7 +101,7 @@ func (s *GoodsSpecsUpdateReq) Generate(model *models.GoodsSpecs)  {
     }
     model.Layer = s.Layer
     model.Enable = s.Enable
-    model.CId = s.CId
+
     model.GoodsId = s.GoodsId
     model.Name = s.Name
     model.Price = s.Price

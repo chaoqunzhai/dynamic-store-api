@@ -11,9 +11,9 @@ import (
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 
-	"go-admin/app/shop/models"
-	"go-admin/app/shop/service"
-	"go-admin/app/shop/service/dto"
+	"go-admin/app/company/models"
+	"go-admin/app/company/service"
+	"go-admin/app/company/service/dto"
 	"go-admin/common/actions"
 )
 

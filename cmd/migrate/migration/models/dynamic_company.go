@@ -35,7 +35,7 @@ func (CompanyRenewalTimeLog) TableName() string {
 	return "company_renewal_time_log"
 }
 
-// todo:大B的VIP等级
+// todo:大B设置的VIP等级
 type GradeVip struct {
 	BigBRichGlobal
 	Name     string  `gorm:"size:30;comment:等级名称"`
