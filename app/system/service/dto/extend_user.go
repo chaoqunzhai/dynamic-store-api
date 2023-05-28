@@ -62,7 +62,7 @@ func (s *ExtendUserInsertReq) Generate(model *models.ExtendUser)  {
     model.Platform = s.Platform
     model.GradeId = s.GradeId
     model.SuggestId = s.SuggestId
-    model.InvitationCode = s.InvitationCode
+
     model.Desc = s.Desc
 }
 
@@ -93,7 +93,7 @@ func (s *ExtendUserUpdateReq) Generate(model *models.ExtendUser)  {
     model.Platform = s.Platform
     model.GradeId = s.GradeId
     model.SuggestId = s.SuggestId
-    model.InvitationCode = s.InvitationCode
+
     model.Desc = s.Desc
 }
 

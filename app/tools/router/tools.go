@@ -20,6 +20,7 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 	{
 		r.GET("/image", api.ShowImage)
 		r.POST("/image/:t/:name", api.SaveImage)
-
+		//小B注册
+		r.POST("/apply/shop")
 	}
 }

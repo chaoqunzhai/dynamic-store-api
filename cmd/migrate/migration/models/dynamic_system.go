@@ -27,19 +27,10 @@ type ExtendUser struct {
 	Platform       string `json:"platform" gorm:"size:12;comment:注册来源"`
 	GradeId        int    `gorm:"index;comment:会员等级"`
 	SuggestId      int    `gorm:"index;comment:推荐人ID"`
-	InvitationCode string `gorm:"size:10;comment:本人邀请码"`
 }
 
 func (ExtendUser) TableName() string {
 	return "extend_user"
-}
-//todo: 用户消费记录
-type ConsumeLog struct {
-	BigBMiniGlobal
-	UserId int  `gorm:"index;comment:用户ID"`
-	Money float64 `gorm:"comment:消费金额"`
-
-
 }
 // todo: 每个大B设置的角色
 // 这里为什么没有使用系统的角色,

@@ -13,7 +13,6 @@ type ExtendUser struct {
     Platform string `json:"platform" gorm:"type:varchar(12);comment:注册来源"` 
     GradeId int `json:"gradeId" gorm:"type:bigint(20);comment:会员等级"`
     SuggestId int `json:"suggestId" gorm:"type:bigint(20);comment:推荐人ID"`
-    InvitationCode string `json:"invitationCode" gorm:"type:varchar(10);comment:本人邀请码"`
     Desc string
 	models.ModelTime
 	models.ControlBy

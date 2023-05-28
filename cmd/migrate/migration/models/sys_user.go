@@ -1,6 +1,7 @@
 package models
 
 import (
+	"go-admin/common/utils"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -23,6 +24,7 @@ type SysUser struct {
 	Status   string `json:"status" gorm:"type:varchar(4);comment:状态"`
 	UnionId  string `json:"union" gorm:"size:30;"`     //微信唯一的ID
 	OOpenId  string `json:"o_open_id" gorm:"size:30;"` //微信公众号的openid
+	InvitationCode string `json:"invitationCode" gorm:"type:varchar(10);comment:本人邀请码"`
 	ControlBy
 	ModelTime
 }
@@ -38,6 +40,8 @@ func (e *SysUser) Encrypt() (err error) {
 	}
 
 	var hash []byte
+	//同时生成他的邀请码
+	e.InvitationCode = utils.GenValidateCode(6)
 	if hash, err = bcrypt.GenerateFromPassword([]byte(e.Password), bcrypt.DefaultCost); err != nil {
 		return
 	} else {

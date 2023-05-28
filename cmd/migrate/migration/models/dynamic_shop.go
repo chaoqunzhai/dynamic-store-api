@@ -90,7 +90,7 @@ func (ShopIntegralLog) TableName() string {
 	return "shop_integral_log"
 }
 
-// todo:客户每次订单的统计日志
+// todo:客户每次订单的统计日志,是一个消费的统计
 // 专门用来数据统计
 type ShopOrderRecord struct {
 	Model
