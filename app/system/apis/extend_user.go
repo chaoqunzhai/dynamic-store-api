@@ -1,7 +1,11 @@
 package apis
 
 import (
-    "fmt"
+	"errors"
+	"fmt"
+	sys "go-admin/app/admin/models"
+	models2 "go-admin/cmd/migrate/migration/models"
+	customUser "go-admin/common/jwt/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -56,8 +60,38 @@ func (e ExtendUser) GetPage(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("获取ExtendUser失败，\r\n失败信息 %s", err.Error()))
         return
 	}
+	result :=make([]map[string]interface{},0)
+	for _,row:=range list{
 
-	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+		u:=map[string]interface{}{
+			"id":row.UserId,
+			"platform":row.Platform,
+			"create_at":row.CreatedAt.Format("2006-01-02 15:04:05"),
+		}
+		if row.UserId == 0 {continue}
+
+		var userRow sys.SysUser
+		e.Orm.Model(&sys.SysUser{}).Where("user_id = ? and enable = ?",row.UserId,true).Limit(1).Find(&userRow)
+		u["user_name"] = userRow.Username
+
+		if row.GradeId > 0 {
+			var gradeRow models2.GradeVip
+			e.Orm.Model(&models2.GradeVip{}).Where("id = ? and enable = ?",row.GradeId,true).Limit(1).Find(&gradeRow)
+			if gradeRow.Id > 0 {
+				u["grade"] = gradeRow.Name
+			}
+		}
+
+		var shopRow models2.Shop
+		e.Orm.Model(&models2.Shop{}).Where("user_id = ?",row.UserId).Limit(1).Find(&shopRow)
+		if shopRow.Id > 0 {
+			u["amount"] = shopRow.Amount
+			u["integral"] = shopRow.Integral
+			u["shop"] = shopRow.Name
+		}
+		result = append(result,u)
+	}
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
 // Get 获取ExtendUser
@@ -118,8 +152,28 @@ func (e ExtendUser) Insert(c *gin.Context) {
     }
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 
-	err = s.Insert(&req)
+
+	var count int64
+	e.Orm.Model(&models.ExtendUser{}).Where("user_id = ? ",req.UserId).Count(&count)
+	if count > 0 {
+		e.Error(500, errors.New("已经存在"), "已经存在")
+		return
+	}
+	var userCount int64
+	e.Orm.Model(&sys.SysUser{}).Where("user_id = ? ",req.UserId).Count(&userCount)
+	if userCount == 0 {
+		e.Error(500, errors.New("用户不存在"), "用户不存在")
+		return
+	}
+	//谁创建的那谁就是推荐人
+	req.SuggestId = req.CreateBy
+	err = s.Insert(userDto.CId,&req)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("创建ExtendUser失败，\r\n失败信息 %s", err.Error()))
         return
@@ -163,6 +217,29 @@ func (e ExtendUser) Update(c *gin.Context) {
 	e.OK( req.GetId(), "修改成功")
 }
 
+func (e ExtendUser) Grade(c *gin.Context)()  {
+	s := service.ExtendUser{}
+	req := dto.ExtendUserGradeReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	e.Orm.Model(&models.ExtendUser{}).Where("id in ?",req.Ids).Updates(map[string]interface{}{
+		"grade_id":req.Grade,
+		"update_by":user.GetUserId(c),
+	})
+
+	e.OK("","successful")
+	return
+
+}
 // Delete 删除ExtendUser
 // @Summary 删除ExtendUser
 // @Description 删除ExtendUser

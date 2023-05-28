@@ -58,10 +58,11 @@ func (e *ExtendUser) Get(d *dto.ExtendUserGetReq, p *actions.DataPermission, mod
 }
 
 // Insert 创建ExtendUser对象
-func (e *ExtendUser) Insert(c *dto.ExtendUserInsertReq) error {
+func (e *ExtendUser) Insert(cid int,c *dto.ExtendUserInsertReq) error {
     var err error
     var data models.ExtendUser
     c.Generate(&data)
+    data.CId  = cid
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("ExtendUserService Insert error:%s \r\n", err)

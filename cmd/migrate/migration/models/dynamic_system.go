@@ -22,7 +22,8 @@ func (DyNamicMenu) TableName() string {
 
 // todo: 用户扩展信息
 type ExtendUser struct {
-	MiniGlobal
+	BigBRichGlobal
+	UserId int `gorm:"index;comment:用户ID"`
 	Platform       string `json:"platform" gorm:"size:12;comment:注册来源"`
 	GradeId        int    `gorm:"index;comment:会员等级"`
 	SuggestId      int    `gorm:"index;comment:推荐人ID"`
@@ -32,7 +33,14 @@ type ExtendUser struct {
 func (ExtendUser) TableName() string {
 	return "extend_user"
 }
+//todo: 用户消费记录
+type ConsumeLog struct {
+	BigBMiniGlobal
+	UserId int  `gorm:"index;comment:用户ID"`
+	Money float64 `gorm:"comment:消费金额"`
 
+
+}
 // todo: 每个大B设置的角色
 // 这里为什么没有使用系统的角色,
 // 因为:系统和大B的角色是需要区分隔离开,不能混淆

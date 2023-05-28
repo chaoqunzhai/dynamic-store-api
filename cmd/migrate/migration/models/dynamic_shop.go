@@ -11,6 +11,7 @@ import (
 
 
 // todo:小B商家信息,也就是客户
+//费用,积分是给小B的
 type Shop struct {
 	BigBRichGlobal
 	UserId    int     `gorm:"index;comment:管理员ID"`

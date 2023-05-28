@@ -16,12 +16,14 @@ func init() {
 // registerExtendUserRouter
 func registerExtendUserRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
 	api := apis.ExtendUser{}
-	r := v1.Group("/extend-user").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole())
+	r := v1.Group("/user-vip").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
-		r.GET("", actions.PermissionAction(), api.GetPage)
-		r.GET("/:id", actions.PermissionAction(), api.Get)
+		r.GET("",  api.GetPage)
+		r.GET("/:id", api.Get)
 		r.POST("", api.Insert)
-		r.PUT("/:id", actions.PermissionAction(), api.Update)
+		r.PUT("/grade",api.Grade)
+		//创建用户VIP后不需要专门更新一些值
+		//r.PUT("/:id", api.Update)
 		r.DELETE("", api.Delete)
 	}
 }

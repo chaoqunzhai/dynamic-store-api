@@ -165,9 +165,16 @@ func (e Shop) Insert(c *gin.Context) {
 	}
 
 	var count int64
-	e.Orm.Model(&models.Shop{}).Where("c_id = ? and name = ?", userDto.CId, req.Name).Count(&count)
+	e.Orm.Model(&models.Shop{}).Where("c_id = ? and name = ? ", userDto.CId, req.Name).Count(&count)
 	if count > 0 {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
+		return
+	}
+
+	var shopCount int64
+	e.Orm.Model(&models.Shop{}).Where("user_id = ?",req.UserId).Count(&shopCount)
+	if shopCount > 0 {
+		e.Error(500, errors.New("该用户已有管理店铺"), "该用户已有管理店铺")
 		return
 	}
 	err = s.Insert(userDto.CId,&req)

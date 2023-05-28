@@ -40,12 +40,14 @@ func (m *ExtendUserGetPageReq) GetNeedSearch() interface{} {
 
 type ExtendUserInsertReq struct {
     Id int `json:"-" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    UserId int `json:"user_id" comment:""`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
     Platform string `json:"platform" comment:"注册来源"`
-    GradeId string `json:"gradeId" comment:"会员等级"`
-    SuggestId string `json:"suggestId" comment:"推荐人ID"`
+    GradeId int `json:"grade_id" comment:"会员等级"`
+    SuggestId int `json:"suggest_id" comment:"推荐人ID"`
     InvitationCode string `json:"invitationCode" comment:"本人邀请码"`
+    Desc string `json:"desc" comment:""`
     common.ControlBy
 }
 
@@ -54,12 +56,14 @@ func (s *ExtendUserInsertReq) Generate(model *models.ExtendUser)  {
         model.Model = common.Model{ Id: s.Id }
     }
     model.CreateBy = s.CreateBy // 添加这而，需要记录是被谁创建的
+    model.UserId = s.UserId
     model.Layer = s.Layer
     model.Enable = s.Enable
     model.Platform = s.Platform
     model.GradeId = s.GradeId
     model.SuggestId = s.SuggestId
     model.InvitationCode = s.InvitationCode
+    model.Desc = s.Desc
 }
 
 func (s *ExtendUserInsertReq) GetId() interface{} {
@@ -68,12 +72,14 @@ func (s *ExtendUserInsertReq) GetId() interface{} {
 
 type ExtendUserUpdateReq struct {
     Id int `uri:"id" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    Layer int `json:"layer" comment:"排序"`
+    UserId int `json:"user_id" comment:""`
+    Enable bool `json:"enable" comment:"开关"`
     Platform string `json:"platform" comment:"注册来源"`
-    GradeId string `json:"gradeId" comment:"会员等级"`
-    SuggestId string `json:"suggestId" comment:"推荐人ID"`
+    GradeId int `json:"gradeId" comment:"会员等级"`
+    SuggestId int `json:"suggestId" comment:"推荐人ID"`
     InvitationCode string `json:"invitationCode" comment:"本人邀请码"`
+    Desc string `json:"desc" comment:""`
     common.ControlBy
 }
 
@@ -81,12 +87,14 @@ func (s *ExtendUserUpdateReq) Generate(model *models.ExtendUser)  {
     if s.Id == 0 {
         model.Model = common.Model{ Id: s.Id }
     }
+    model.UserId = s.UserId
     model.Layer = s.Layer
     model.Enable = s.Enable
     model.Platform = s.Platform
     model.GradeId = s.GradeId
     model.SuggestId = s.SuggestId
     model.InvitationCode = s.InvitationCode
+    model.Desc = s.Desc
 }
 
 func (s *ExtendUserUpdateReq) GetId() interface{} {
@@ -101,6 +109,11 @@ func (s *ExtendUserGetReq) GetId() interface{} {
 	return s.Id
 }
 
+
+type ExtendUserGradeReq struct {
+    Grade int `json:"grade"`
+    Ids []int `json:"ids"`
+}
 // ExtendUserDeleteReq 功能删除请求参数
 type ExtendUserDeleteReq struct {
 	Ids []int `json:"ids"`
