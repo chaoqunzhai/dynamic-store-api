@@ -2,8 +2,9 @@ package service
 
 import (
 	"errors"
+	"go-admin/global"
 
-    "github.com/go-admin-team/go-admin-core/sdk/service"
+	"github.com/go-admin-team/go-admin-core/sdk/service"
 	"gorm.io/gorm"
 
 	"go-admin/app/company/models"
@@ -26,7 +27,7 @@ func (e *GradeVip) GetPage(c *dto.GradeVipGetPageReq, p *actions.DataPermission,
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
-		).
+		).Order(global.OrderLayerKey).
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {
@@ -58,10 +59,11 @@ func (e *GradeVip) Get(d *dto.GradeVipGetReq, p *actions.DataPermission, model *
 }
 
 // Insert 创建GradeVip对象
-func (e *GradeVip) Insert(c *dto.GradeVipInsertReq) error {
+func (e *GradeVip) Insert(cid int,c *dto.GradeVipInsertReq) error {
     var err error
     var data models.GradeVip
     c.Generate(&data)
+    data.CId = cid
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("GradeVipService Insert error:%s \r\n", err)

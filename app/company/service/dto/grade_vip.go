@@ -46,14 +46,13 @@ func (m *GradeVipGetPageReq) GetNeedSearch() interface{} {
 
 type GradeVipInsertReq struct {
     Id int `json:"-" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"描述信息"`
-    CId string `json:"cId" comment:"大BID"`
     Name string `json:"name" comment:"等级名称"`
-    Weight string `json:"weight" comment:"权重,从小到大"`
-    Discount string `json:"discount" comment:"折扣"`
-    Upgrade string `json:"upgrade" comment:"升级条件,满多少金额,自动升级Weight+1"`
+    Weight int `json:"weight" comment:"权重,从小到大"`
+    Discount float64 `json:"discount" comment:"折扣"`
+    Upgrade int `json:"upgrade" comment:"升级条件,满多少金额,自动升级Weight+1"`
     common.ControlBy
 }
 
@@ -65,7 +64,6 @@ func (s *GradeVipInsertReq) Generate(model *models.GradeVip)  {
     model.Layer = s.Layer
     model.Enable = s.Enable
     model.Desc = s.Desc
-    model.CId = s.CId
     model.Name = s.Name
     model.Weight = s.Weight
     model.Discount = s.Discount
@@ -78,14 +76,13 @@ func (s *GradeVipInsertReq) GetId() interface{} {
 
 type GradeVipUpdateReq struct {
     Id int `uri:"id" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"描述信息"`
-    CId string `json:"cId" comment:"大BID"`
     Name string `json:"name" comment:"等级名称"`
-    Weight string `json:"weight" comment:"权重,从小到大"`
-    Discount string `json:"discount" comment:"折扣"`
-    Upgrade string `json:"upgrade" comment:"升级条件,满多少金额,自动升级Weight+1"`
+    Weight int `json:"weight" comment:"权重,从小到大"`
+    Discount float64 `json:"discount" comment:"折扣"`
+    Upgrade int `json:"upgrade" comment:"升级条件,满多少金额,自动升级Weight+1"`
     common.ControlBy
 }
 
@@ -97,7 +94,6 @@ func (s *GradeVipUpdateReq) Generate(model *models.GradeVip)  {
     model.Layer = s.Layer
     model.Enable = s.Enable
     model.Desc = s.Desc
-    model.CId = s.CId
     model.Name = s.Name
     model.Weight = s.Weight
     model.Discount = s.Discount
