@@ -2,6 +2,8 @@ package models
 
 import (
 	"go-admin/common/models"
+	"gorm.io/gorm"
+	"time"
 )
 
 type GoodsVip struct {
@@ -14,17 +16,13 @@ type GoodsVip struct {
 	SpecsId     int `json:"specs_id" gorm:"type:bigint(20);comment:规格ID"`
 	GradeId     int `json:"grade_id" gorm:"type:bigint(20);comment:VipId"`
 	CustomPrice float64 `json:"customPrice" gorm:"type:float;comment:自定义价格"`
-	models.ModelTime
-	models.ControlBy
+	CreateBy int `json:"create_by" gorm:"index;comment:创建者"`
+	CreatedAt time.Time      `json:"created_at" gorm:"comment:创建时间"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
 }
 
 func (GoodsVip) TableName() string {
 	return "goods_vip"
-}
-
-func (e *GoodsVip) Generate() models.ActiveRecord {
-	o := *e
-	return &o
 }
 
 func (e *GoodsVip) GetId() interface{} {

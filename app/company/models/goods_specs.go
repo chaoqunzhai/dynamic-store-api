@@ -2,6 +2,8 @@ package models
 
 import (
 	"go-admin/common/models"
+	"gorm.io/gorm"
+	"time"
 )
 
 type GoodsSpecs struct {
@@ -17,18 +19,15 @@ type GoodsSpecs struct {
 	Inventory int `json:"inventory" gorm:"type:bigint(20);comment:库存"`
 	Unit      string `json:"unit" gorm:"type:varchar(8);comment:单位"`
 	Limit     int `json:"limit" gorm:"type:bigint(20);comment:起售量"`
-	models.ModelTime
-	models.ControlBy
+	CreateBy int `json:"create_by" gorm:"index;comment:创建者"`
+	CreatedAt time.Time      `json:"created_at" gorm:"comment:创建时间"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
 }
 
 func (GoodsSpecs) TableName() string {
 	return "goods_specs"
 }
 
-func (e *GoodsSpecs) Generate() models.ActiveRecord {
-	o := *e
-	return &o
-}
 
 func (e *GoodsSpecs) GetId() interface{} {
 	return e.Id

@@ -2,7 +2,9 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"go-admin/global"
+	"strings"
 
 	"github.com/go-admin-team/go-admin-core/sdk/service"
 	"gorm.io/gorm"
@@ -93,7 +95,7 @@ func (e *Goods) Insert(cid int,c *dto.GoodsInsertReq) error {
 	}
 	//分类
 	if len(c.Class) > 0 {
-		data.Class = e.getClassModels(c.Tag)
+		data.Class = e.getClassModels(c.Class)
 	}
 	err = e.Orm.Create(&data).Error
 
@@ -104,8 +106,8 @@ func (e *Goods) Insert(cid int,c *dto.GoodsInsertReq) error {
 			specsModels :=models.GoodsSpecs{
 				Name: row.Name,
 				CId: cid,
-				Enable: true,
-				Layer: 0,
+				Enable:  row.Enable,
+				Layer:  row.Layer,
 				GoodsId: data.Id,
 				Price: row.Price,
 				Original: row.Original,
@@ -122,9 +124,9 @@ func (e *Goods) Insert(cid int,c *dto.GoodsInsertReq) error {
 				vipRow:=models.GoodsVip{
 					CId: cid,
 					GoodsId:data.Id,
-					Enable: true,
+					Enable:  v.Enable,
+					Layer:  v.Layer,
 					GradeId: gradeRow.Id,
-					Layer: 0,
 					CustomPrice: v.Price,
 				}
 				vipRow.CreateBy = data.CreateBy
@@ -141,7 +143,7 @@ func (e *Goods) Insert(cid int,c *dto.GoodsInsertReq) error {
 }
 
 // Update 修改Goods对象
-func (e *Goods) Update(c *dto.GoodsUpdateReq, p *actions.DataPermission) error {
+func (e *Goods) Update(cid int,c *dto.GoodsUpdateReq, p *actions.DataPermission) error {
     var err error
     var data = models.Goods{}
     e.Orm.Scopes(
@@ -149,6 +151,76 @@ func (e *Goods) Update(c *dto.GoodsUpdateReq, p *actions.DataPermission) error {
         ).First(&data, c.GetId())
     c.Generate(&data)
 
+
+
+	//标签
+	e.Orm.Model(&data).Association("Tag").Clear()
+	if len(c.Tag) > 0 {
+		data.Tag = e.getTagModels(c.Tag)
+	}
+	//分类
+	e.Orm.Model(&data).Association("Class").Clear()
+	if len(c.Class) > 0 {
+		data.Class = e.getClassModels(c.Class)
+	}
+
+	//规格更新
+	if len(c.Specs) > 0 {
+		for _, row := range c.Specs {
+			if row.Id > 0 {
+				//就是一个规格资源的更新
+				var specsRow models.GoodsSpecs
+				e.Orm.Model(&models.GoodsSpecs{}).Where("id = ?",row.Id).First(&specsRow)
+
+				specsRow.Name = row.Name
+				specsRow.Enable = row.Enable
+				specsRow.Layer = row.Layer
+				specsRow.Price = row.Price
+				specsRow.Original = row.Original
+				specsRow.Inventory = row.Inventory
+				specsRow.Unit = row.Unit
+				specsRow.Limit = row.Limit
+				e.Orm.Save(&specsRow)
+			}else {
+				//规格资源的创建
+				specsModels :=models.GoodsSpecs{
+					Name: row.Name,
+					CId: cid,
+					Enable:  row.Enable,
+					Layer:  row.Layer,
+					GoodsId: data.Id,
+					Price: row.Price,
+					Original: row.Original,
+					Inventory: row.Inventory,
+					Unit: row.Unit,
+					Limit: row.Limit,
+				}
+				specsModels.CreateBy = data.CreateBy
+				e.Orm.Create(&specsModels)
+			}
+			for _,v:=range row.Vip{
+				if v.Id > 0 {
+					//vip价格的更新
+				}else {
+					//vip价格的创建
+					var gradeRow models.GradeVip
+					e.Orm.Model(&models.GradeVip{}).Where("enable = ? and id = ?",true,v.Grade).Limit(1).Find(&gradeRow)
+					if gradeRow.Id == 0 {continue}
+					vipRow:=models.GoodsVip{
+						CId: cid,
+						GoodsId:data.Id,
+						Enable: v.Enable,
+						GradeId: gradeRow.Id,
+						Layer: v.Layer,
+						CustomPrice: v.Price,
+					}
+					vipRow.CreateBy = data.CreateBy
+					e.Orm.Create(&vipRow)
+				}
+			}
+		}
+
+	}
     db := e.Orm.Save(&data)
     if err = db.Error; err != nil {
         e.Log.Errorf("GoodsService Save error:%s \r\n", err)
@@ -169,11 +241,18 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq, p *actions.DataPermission) error {
 			actions.Permission(data.TableName(), p),
 		).Delete(&data, d.GetId())
 	if err := db.Error; err != nil {
-        e.Log.Errorf("Service RemoveGoods error:%s \r\n", err)
+        e.Log.Errorf("删除失败,", err)
         return err
     }
+
     if db.RowsAffected == 0 {
         return errors.New("无权删除该数据")
     }
+	removeIds :=make([]string,0)
+	for _,t:=range d.Ids{
+		removeIds = append(removeIds,fmt.Sprintf("%v",t))
+	}
+	e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_tag` WHERE `goods_mark_tag`.`goods_id` IN (%v)",strings.Join(removeIds,",")))
+	e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_class` WHERE `goods_mark_class`.`goods_id` IN (%v)",strings.Join(removeIds,",")))
 	return nil
 }

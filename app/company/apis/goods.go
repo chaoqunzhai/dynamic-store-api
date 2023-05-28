@@ -167,10 +167,29 @@ func (e Goods) Update(c *gin.Context) {
     }
 	req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
-
-	err = s.Update(&req, p)
+	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("修改Goods失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, err.Error())
+		return
+	}
+	var count int64
+	e.Orm.Model(&models.Goods{}).Where("id = ?",req.Id).Count(&count)
+	if count == 0 {
+		e.Error(500, errors.New("数据不存在"), "数据不存在")
+		return
+	}
+	var oldRow models.Goods
+	e.Orm.Model(&models.Goods{}).Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&oldRow)
+
+	if oldRow.Id != 0 {
+		if oldRow.Id != req.Id {
+			e.Error(500, errors.New("名称不可重复"), "名称不可重复")
+			return
+		}
+	}
+	err = s.Update(userDto.CId,&req, p)
+	if err != nil {
+		e.Error(500, err, fmt.Sprintf("修改商品信息失败,%s", err.Error()))
         return
 	}
 	e.OK( req.GetId(), "修改成功")
@@ -203,7 +222,7 @@ func (e Goods) Delete(c *gin.Context) {
 
 	err = s.Remove(&req, p)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("删除Goods失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("删除Goods失败,%s", err.Error()))
         return
 	}
 	e.OK( req.GetId(), "删除成功")

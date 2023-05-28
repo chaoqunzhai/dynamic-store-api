@@ -8,6 +8,7 @@ import (
      "go-admin/app/company/models"
 	"go-admin/common/dto"
 	common "go-admin/common/models"
+    "strings"
 )
 
 type GoodsGetPageReq struct {
@@ -33,7 +34,6 @@ type GoodsOrder struct {
     CId string `form:"cIdOrder"  search:"type:order;column:c_id;table:goods"`
     Name string `form:"nameOrder"  search:"type:order;column:name;table:goods"`
     Subtitle string `form:"subtitleOrder"  search:"type:order;column:subtitle;table:goods"`
-    Image string `form:"imageOrder"  search:"type:order;column:image;table:goods"`
     Quota string `form:"quotaOrder"  search:"type:order;column:quota;table:goods"`
     VipSale string `form:"vipSaleOrder"  search:"type:order;column:vip_sale;table:goods"`
     Code string `form:"codeOrder"  search:"type:order;column:code;table:goods"`
@@ -51,7 +51,7 @@ type GoodsInsertReq struct {
     Desc string `json:"desc" comment:"商品详情"`
     Name string `json:"name" comment:"商品名称"`
     Subtitle string `json:"subtitle" comment:"副标题"`
-    Image string `json:"image" comment:"商品图片路径"`
+    Image []string `json:"image" comment:"商品图片路径"`
     Quota bool `json:"quota" comment:"是否限购"`
     VipSale bool `json:"vip_sale" comment:"会员价"`
     Code string `json:"code" comment:"条形码"`
@@ -64,6 +64,8 @@ type GoodsInsertReq struct {
 type Specs struct {
     Name string `json:"name" comment:"规格名称"`
     Price float64 `json:"price" comment:"售价"`
+    Layer int `json:"layer"`
+    Enable bool `json:"enable"`
     Original float64 `json:"original" comment:"原价"`
     Inventory int `json:"inventory" comment:"库存"`
     Unit string `json:"unit" comment:"单位"`
@@ -71,6 +73,28 @@ type Specs struct {
     Vip []Vip  `json:"vip" comment:"vip价格设置"`
 }
 type Vip struct {
+    Layer int `json:"layer"`
+    Enable bool `json:"enable"`
+    Grade int `json:"grade" comment:"登记"`
+    Price float64  `json:"price" comment:"售价"`
+}
+
+type UpdateSpecs struct {
+    Id int `json:"id" `
+    Name string `json:"name" comment:"规格名称"`
+    Layer int `json:"layer"`
+    Enable bool `json:"enable"`
+    Price float64 `json:"price" comment:"售价"`
+    Original float64 `json:"original" comment:"原价"`
+    Inventory int `json:"inventory" comment:"库存"`
+    Unit string `json:"unit" comment:"单位"`
+    Limit int `json:"limit" comment:"起售量"`
+    Vip []UpdateVip  `json:"vip" comment:"vip价格设置"`
+}
+type UpdateVip struct {
+    Id int `json:"id" `
+    Layer int `json:"layer"`
+    Enable bool `json:"enable"`
     Grade int `json:"grade" comment:"登记"`
     Price float64  `json:"price" comment:"售价"`
 }
@@ -85,7 +109,9 @@ func (s *GoodsInsertReq) Generate(model *models.Goods)  {
 
     model.Name = s.Name
     model.Subtitle = s.Subtitle
-    model.Image = s.Image
+    if len(s.Image) > 0 {
+        model.Image  = strings.Join(s.Image,",")
+    }
     model.Quota = s.Quota
     model.VipSale = s.VipSale
     model.Code = s.Code
@@ -96,19 +122,19 @@ func (s *GoodsInsertReq) GetId() interface{} {
 }
 
 type GoodsUpdateReq struct {
-    Id int `json:"-" comment:"主键编码"` // 主键编码
+    Id     int    `uri:"id" comment:""` //
     Layer int `json:"layer" comment:"排序"`
     Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"商品详情"`
     Name string `json:"name" comment:"商品名称"`
     Subtitle string `json:"subtitle" comment:"副标题"`
-    Image string `json:"image" comment:"商品图片路径"`
+    Image []string `json:"image" comment:"商品图片路径"`
     Quota bool `json:"quota" comment:"是否限购"`
     VipSale bool `json:"vip_sale" comment:"会员价"`
     Code string `json:"code" comment:"条形码"`
     Tag []int `json:"tag" comment:"标签"`
     Class []int `json:"class" comment:"分类"`
-    Specs []Specs `json:"specs" comment:"规格"`
+    Specs []UpdateSpecs `json:"specs" comment:"规格"`
     common.ControlBy
 }
 
@@ -122,7 +148,9 @@ func (s *GoodsUpdateReq) Generate(model *models.Goods)  {
     model.Desc = s.Desc
     model.Name = s.Name
     model.Subtitle = s.Subtitle
-    model.Image = s.Image
+    if len(s.Image) > 0 {
+        model.Image  = strings.Join(s.Image,",")
+    }
     model.Quota = s.Quota
     model.VipSale = s.VipSale
     model.Code = s.Code
