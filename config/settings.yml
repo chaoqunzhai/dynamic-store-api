@@ -42,8 +42,7 @@ settings:
   extend: # 扩展项使用说明
     work: "/data/universe/"
     domain: "http://localhost:8099"
-    cityAdv: "image/city/adv/" #城市管理员的照片路径
-    leaderImage: "image/leader/"
+    imageBase: "image" #所有照片的基础目录
     wxLeader: #帮主端
       appid: "wx9e7c2f2a95287bc8"
       secret: "ea44bdfcbd19e235429eb53fa4070dd1"

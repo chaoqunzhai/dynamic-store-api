@@ -32,6 +32,8 @@ const (
 
 	CouponTypeFd = 1
 	CouponDiscount = 2
+
+	ImageBase = "./image/"
 )
 
 func GetCouponType(v int) string  {
