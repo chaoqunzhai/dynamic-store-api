@@ -111,7 +111,6 @@ func (s *SysUserInsertReq) Generate(model *models.SysUser) {
 	}
 	model.Username = s.Username
 	model.Password = s.Password
-	model.NickName = s.NickName
 	model.Phone = s.Phone
 	model.RoleId = s.RoleId
 	model.Avatar = s.Avatar
@@ -149,7 +148,7 @@ func (s *SysUserUpdateReq) Generate(model *models.SysUser) {
 		model.UserId = s.UserId
 	}
 	model.Username = s.Username
-	model.NickName = s.NickName
+
 	model.Phone = s.Phone
 	model.RoleId = s.RoleId
 	model.Avatar = s.Avatar

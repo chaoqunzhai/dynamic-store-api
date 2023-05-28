@@ -44,7 +44,7 @@ func (e *CompanyRole) Get(d *dto.CompanyRoleGetReq, p *actions.DataPermission, m
 	err := e.Orm.Model(&data).
 		Scopes(
 			actions.Permission(data.TableName(), p),
-		).
+		).Preload("SysMenu").Preload("SysUser").
 		First(model, d.GetId()).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		err = errors.New("查看对象不存在或无权查看")

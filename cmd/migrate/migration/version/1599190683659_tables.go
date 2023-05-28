@@ -58,6 +58,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.ShopIntegralLog),
 			new(models.ShopOrderRecord),
 			new(models.ShopOrderBindRecord),
+			new(models.Coupon),
 
 			new(models.Goods),
 			new(models.GoodsSpecs),

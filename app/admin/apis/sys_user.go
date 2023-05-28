@@ -456,10 +456,10 @@ func (e SysUser) GetInfo(c *gin.Context) {
 	if sysUser.Avatar != "" {
 		mp["avatar"] = sysUser.Avatar
 	}
-	mp["userName"] = sysUser.NickName
+	mp["userName"] = sysUser.Username
 	mp["userId"] = sysUser.UserId
 	mp["deptId"] = sysUser.DeptId
-	mp["name"] = sysUser.NickName
+	mp["name"] = sysUser.Username
 	mp["code"] = 200
 	e.OK(mp, "")
 }
@@ -490,7 +490,7 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 	userInfo := map[string]interface{}{
 		"store_user_id": sysUser.UserId,
 		"user_name":     sysUser.Username,
-		"real_name":     sysUser.NickName,
+		"real_name":     sysUser.Username,
 		"is_delete":     0,
 		"sort":          0,
 		"store_id":      0,

@@ -25,4 +25,36 @@ const (
 	UserNumberReduce = "reduce" //减少
 	UserNumberSet = "set" //设置
 
+
+	CouponGlobal = 1
+	CouponAppointShop = 2
+	CouponAppointClass = 3
+
+	CouponTypeFd = 1
+	CouponDiscount = 2
 )
+
+func GetCouponType(v int) string  {
+	switch v {
+	case CouponTypeFd:
+		return "满减卷"
+	case CouponDiscount:
+		return "折扣卷"		
+	}
+
+	return ""
+	
+}
+func GetCouponStr(v int) string  {
+
+	switch v {
+	case CouponGlobal:
+		return "全场通用"
+	case CouponAppointShop:
+		return "指定商品"
+	case CouponAppointClass:
+		return "指定分类"
+
+	}
+	return ""
+}

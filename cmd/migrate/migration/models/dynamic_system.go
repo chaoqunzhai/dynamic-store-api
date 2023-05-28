@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type DyNamicMenu struct {
 	Model
 	ModelTime
@@ -41,7 +43,7 @@ type CompanyRole struct {
 	Name    string `json:"roleName" gorm:"size:30;"`           // 角色名称
 	Enable  int
 	Layer    int           //角色排序
-	Remark  string        `json:"remark" gorm:"size:50;"` //备注
+	Remark  string        `json:"remark" gorm:"size:50;comment:备注"` //备注
 	Admin   bool          `json:"admin" gorm:"size:4;"`
 	SysMenu []DyNamicMenu `json:"sysMenu" gorm:"many2many:company_role_menu;foreignKey:id;joinForeignKey:role_id;references:id;joinReferences:menu_id;"`
 	SysUser []SysUser `json:"sysUser" gorm:"many2many:company_role_user;foreignKey:id;joinForeignKey:role_id;references:user_id;joinReferences:user_id;"`
@@ -51,4 +53,21 @@ type CompanyRole struct {
 
 func (CompanyRole) TableName() string {
 	return "company_role"
+}
+
+type Coupon struct {
+	BigBRichGlobal
+	Name string `json:"name" gorm:"size:50;comment:优惠卷名称"`
+	Type int  `gorm:"comment:类型"`
+	Range int `gorm:"comment:使用范围"`
+	Money int `gorm:"comment:优惠卷金额"`
+	Min float64 `gorm:"comment:最低多少钱可以用"`
+	Max float64 `gorm:"comment:满多少钱可以用"`
+	StartTime time.Time `gorm:"comment:开始使用时间"`
+	EndTime time.Time  `gorm:"comment:截止使用时间"`
+	Inventory int  `gorm:"comment:库存"`
+	Limit int `gorm:"comment:每个人限领次数"`
+}
+func (Coupon) TableName() string {
+	return "company_coupon"
 }
