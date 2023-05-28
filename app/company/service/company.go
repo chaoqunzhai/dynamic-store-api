@@ -63,6 +63,7 @@ func (e *Company) Insert(c *dto.CompanyInsertReq) error {
     var err error
     var data models.Company
     c.Generate(&data)
+
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("CompanyService Insert error:%s \r\n", err)

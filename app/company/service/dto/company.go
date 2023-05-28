@@ -1,14 +1,8 @@
 package dto
 
 import (
-     
-     
-     
-     
-     
-     
-     
-     "time"
+    "strings"
+    "time"
 
 	"go-admin/app/company/models"
 	"go-admin/common/dto"
@@ -55,21 +49,28 @@ func (m *CompanyGetPageReq) GetNeedSearch() interface{} {
 	return *m
 }
 
+type CompanyRenewGetPage struct {
+    dto.Pagination     `search:"-"`
+
+}
+func (m *CompanyRenewGetPage) GetNeedSearch() interface{} {
+    return *m
+}
 type CompanyInsertReq struct {
     Id int `json:"-" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"描述信息"`
     Name string `json:"name" comment:"公司(大B)名称"`
     Phone string `json:"phone" comment:"负责人联系手机号"`
-    UserName string `json:"userName" comment:"大B负责人名称"`
-    Shop string `json:"shop" comment:"自定义大B系统名称"`
+    UserName string `json:"user_name" comment:"大B负责人名称"`
+    ShopName string `json:"shop_name" comment:"自定义大B系统名称"`
     Address string `json:"address" comment:"大B地址位置"`
-    Longitude string `json:"longitude" comment:""`
-    Latitude string `json:"latitude" comment:""`
-    Image string `json:"image" comment:"logo图片"`
-    RenewalTime time.Time `json:"renewalTime" comment:"续费时间"`
-    ExpirationTime time.Time `json:"expirationTime" comment:"到期时间"`
+    Longitude float64 `json:"longitude" comment:""`
+    Latitude float64 `json:"latitude" comment:""`
+    Image []string `json:"image" comment:"logo图片"`
+    RenewalTime string `json:"renewal_time" comment:"续费时间"`
+    ExpirationTime string `json:"expiration_time" comment:"到期时间"`
     common.ControlBy
 }
 
@@ -84,13 +85,23 @@ func (s *CompanyInsertReq) Generate(model *models.Company)  {
     model.Name = s.Name
     model.Phone = s.Phone
     model.UserName = s.UserName
-    model.Shop = s.Shop
+    model.ShopName = s.ShopName
     model.Address = s.Address
     model.Longitude = s.Longitude
     model.Latitude = s.Latitude
-    model.Image = s.Image
-    model.RenewalTime = s.RenewalTime
-    model.ExpirationTime = s.ExpirationTime
+    if len(s.Image) > 0 {
+        model.Image = strings.Join(s.Image,",")
+    }
+
+
+    if s.RenewalTime != ""{
+        t, _ := time.Parse("2006-01-02 15:04:05", s.RenewalTime)
+        model.RenewalTime = t
+    }
+    if s.ExpirationTime != ""{
+        t, _ := time.Parse("2006-01-02 15:04:05", s.ExpirationTime)
+        model.ExpirationTime = t
+    }
 }
 
 func (s *CompanyInsertReq) GetId() interface{} {
@@ -99,19 +110,19 @@ func (s *CompanyInsertReq) GetId() interface{} {
 
 type CompanyUpdateReq struct {
     Id int `uri:"id" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"描述信息"`
     Name string `json:"name" comment:"公司(大B)名称"`
     Phone string `json:"phone" comment:"负责人联系手机号"`
     UserName string `json:"userName" comment:"大B负责人名称"`
-    Shop string `json:"shop" comment:"自定义大B系统名称"`
+    ShopName string `json:"shop_name" comment:"自定义大B系统名称"`
     Address string `json:"address" comment:"大B地址位置"`
-    Longitude string `json:"longitude" comment:""`
-    Latitude string `json:"latitude" comment:""`
-    Image string `json:"image" comment:"logo图片"`
-    RenewalTime time.Time `json:"renewalTime" comment:"续费时间"`
-    ExpirationTime time.Time `json:"expirationTime" comment:"到期时间"`
+    Longitude float64 `json:"longitude" comment:""`
+    Latitude float64 `json:"latitude" comment:""`
+    Image []string `json:"image" comment:"logo图片"`
+    RenewalTime string `json:"renewalTime" comment:"续费时间"`
+    ExpirationTime string `json:"expirationTime" comment:"到期时间"`
     common.ControlBy
 }
 
@@ -126,13 +137,22 @@ func (s *CompanyUpdateReq) Generate(model *models.Company)  {
     model.Name = s.Name
     model.Phone = s.Phone
     model.UserName = s.UserName
-    model.Shop = s.Shop
+    model.ShopName = s.ShopName
     model.Address = s.Address
     model.Longitude = s.Longitude
     model.Latitude = s.Latitude
-    model.Image = s.Image
-    model.RenewalTime = s.RenewalTime
-    model.ExpirationTime = s.ExpirationTime
+    if len(s.Image) > 0 {
+        model.Image = strings.Join(s.Image,",")
+    }
+
+    if s.RenewalTime != ""{
+        t, _ := time.Parse("2006-01-02 15:04:05", s.RenewalTime)
+        model.RenewalTime = t
+    }
+    if s.ExpirationTime != ""{
+        t, _ := time.Parse("2006-01-02 15:04:05", s.ExpirationTime)
+        model.ExpirationTime = t
+    }
 }
 
 func (s *CompanyUpdateReq) GetId() interface{} {
@@ -145,6 +165,13 @@ type CompanyGetReq struct {
 }
 func (s *CompanyGetReq) GetId() interface{} {
 	return s.Id
+}
+
+type CompanyRenewReq struct {
+    Time string `json:"time"`
+    Money float64 `json:"money"`
+    Ids []int `json:"ids"`
+    Desc string  `json:"desc"`
 }
 
 // CompanyDeleteReq 功能删除请求参数

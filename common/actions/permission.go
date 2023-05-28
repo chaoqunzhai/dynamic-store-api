@@ -22,7 +22,48 @@ type DataPermission struct {
 	Enable    bool
 	CId       int
 }
+func PermissionSuperRole() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		db, err := pkg.GetOrm(c)
+		if err != nil {
+			log.Error(err)
+			return
+		}
 
+		msgID := pkg.GenerateMsgIDFromContext(c)
+		var p = new(DataPermission)
+		if userId := user.GetUserIdStr(c); userId != "" {
+			p, err = newDataPermission(db, userId)
+			if err != nil {
+				log.Errorf("MsgID[%s] PermissionAction error: %s", msgID, err)
+				response.Error(c, 500, err, "权限范围鉴定错误")
+				c.Abort()
+				return
+			}
+		}
+		if !p.Enable {
+			response.Error(c, 401, errors.New("您账户已被停用！"), "您账户已被停用！")
+			c.Abort()
+			return
+		}
+
+		if p.RoleId == 0 {
+			response.Error(c, 401, errors.New("您没有权限访问"), "您没有权限访问")
+			c.Abort()
+			return
+		}
+		//权限校验
+		if p.DataScope != global.RoleSuper {
+			response.Error(c, 401, errors.New("您没有权限访问"), "您没有权限访问")
+			c.Abort()
+			return
+		}
+
+
+		c.Set(PermissionKey, p)
+		c.Next()
+	}
+}
 func PermissionCompanyRole() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		db, err := pkg.GetOrm(c)

@@ -25,10 +25,11 @@ func (Company) TableName() string {
 type CompanyRenewalTimeLog struct {
 	Model
 	ModelTime
-	CreateBy int     `json:"createBy" gorm:"index;comment:创建者"`
-	CId      int     `gorm:"index;comment:公司(大B)ID"`
-	Money    float64 `gorm:"comment:续费金额"`
-	Desc     string  `gorm:"size:50;comment:描述信息"`
+	CreateBy int     `json:"create_by" gorm:"index;comment:创建者"`
+	CId      int     `json:"-" gorm:"index;comment:公司(大B)ID"`
+	Money    float64 `json:"money" gorm:"comment:续费金额"`
+	Desc     string  `json:"desc" gorm:"size:50;comment:描述信息"`
+	ExpirationTime time.Time `json:"expiration_time" gorm:"comment:续费到期时间"`
 }
 
 func (CompanyRenewalTimeLog) TableName() string {
