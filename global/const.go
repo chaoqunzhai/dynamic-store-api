@@ -12,42 +12,58 @@ const (
 	Company = "company"
 
 	//大B资源限制
-	CompanyMaxRole = 5 //大B最多可以设置5个角色
+	CompanyMaxRole       = 5  //大B最多可以设置5个角色
 	CompanyMaxGoodsClass = 30 //大B最多可以设置分类个数
-	CompanyMaxGoodsTag = 30 //大B最多可以设置标签个数
+	CompanyMaxGoodsTag   = 30 //大B最多可以设置标签个数
 
 	CompanyUserTag = 30 //大B最多可以设置客户标签个数
 
 	OrderLayerKey = "layer desc"
 
-
-	UserNumberAdd = "add" //增加
+	UserNumberAdd    = "add"    //增加
 	UserNumberReduce = "reduce" //减少
-	UserNumberSet = "set" //设置
+	UserNumberSet    = "set"    //设置
 
-
-	CouponGlobal = 1
-	CouponAppointShop = 2
+	CouponGlobal       = 1
+	CouponAppointShop  = 2
 	CouponAppointClass = 3
 
-	CouponTypeFd = 1
+	CouponTypeFd   = 1
 	CouponDiscount = 2
 
-	ImageBase = "./image/"
+	//订单ID开头
+	OrderStartId = 1000
+	//待配送
+	OrderStatusWait = 1
+	//已配送
+	OrderStatusOk = 2
+	//退回
+	OrderStatusReturn = 3
+	//退款
+	OrderStatusRefund = 4
+
+	//Cycle 配送的设置
+	//每天
+	CycleDay = 0
+	//每周
+	CycleWeek = 1
+
+	SplitOrder          = 1
+	SplitOrderTableName = "orders"
 )
 
-func GetCouponType(v int) string  {
+func GetCouponType(v int) string {
 	switch v {
 	case CouponTypeFd:
 		return "满减卷"
 	case CouponDiscount:
-		return "折扣卷"		
+		return "折扣卷"
 	}
 
 	return ""
-	
+
 }
-func GetCouponStr(v int) string  {
+func GetCouponStr(v int) string {
 
 	switch v {
 	case CouponGlobal:

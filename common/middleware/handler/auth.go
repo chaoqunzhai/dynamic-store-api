@@ -78,38 +78,33 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 	}
 
 	var loginVals Login
-	var status = "2"
-	var msg = "登录成功"
-	var username = ""
-	defer func() {
-		LoginLogToDB(c, status, msg, username)
-	}()
 
 	if err = c.ShouldBind(&loginVals); err != nil {
-		username = loginVals.Phone
-		msg = "数据解析失败"
-		status = "1"
 
 		return nil, ErrMissingLoginValues
 	}
 	if config.ApplicationConfig.Mode != "dev" {
 		if !captcha.Verify(loginVals.UUID, loginVals.Code, true) {
-			username = loginVals.Phone
-			msg = "验证码错误"
-			status = "1"
 
 			return nil, ErrInvalidVerificationode
 		}
 	}
-	userRow, role, e := loginVals.GetUser(db)
-	if e == nil {
-		username = loginVals.Phone
+	if loginVals.Phone != "" {
+		userRow, role, e := loginVals.GetUserPhone(db)
+		if e == nil {
 
-		return map[string]interface{}{"user": userRow, "role": role}, nil
+			return map[string]interface{}{"user": userRow, "role": role}, nil
+		} else {
+			log.Warnf("%s login failed!", loginVals.Phone)
+		}
 	} else {
-		msg = "登录失败"
-		status = "1"
-		log.Warnf("%s login failed!", loginVals.Phone)
+		userRow, role, e := loginVals.GetUser(db)
+		if e == nil {
+
+			return map[string]interface{}{"user": userRow, "role": role}, nil
+		} else {
+			log.Warnf("%s login failed!", loginVals.Phone)
+		}
 	}
 	return nil, ErrFailedAuthentication
 }
