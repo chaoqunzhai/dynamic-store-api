@@ -1,16 +1,14 @@
 package models
 
-import "time"
-
 type CycleTimeConf struct {
 	BigBRichGlobal
-	Type      string    `gorm:"index;comment:类型,每天,每周"`
-	StartWeek int       `gorm:"comment:类型为周,每周开始天"`
-	EndWeek   int       `gorm:"comment:类型为周,每周结束天"`
-	StartTime time.Time `gorm:"size:15;comment:开始下单时间"`
-	EndTime   time.Time `gorm:"size:15;comment:结束时间"`
-	GiveDay   int       `gorm:"comment:跨天值为0是当天,大于0就是当天+天数"`
-	GiveTime  string    `gorm:"size:30;comment:配送时间,例如：15点至19点"`
+	Type      int    `gorm:"index;comment:类型,每天,每周"`
+	StartWeek int    `gorm:"comment:类型为周,每周开始天"`
+	EndWeek   int    `gorm:"comment:类型为周,每周结束天"`
+	StartTime string `gorm:"size:5;comment:开始下单时间"`
+	EndTime   string `gorm:"size:5;comment:结束时间"`
+	GiveDay   int    `gorm:"comment:跨天值为0是当天,大于0就是当天+天数"`
+	GiveTime  string `gorm:"size:30;comment:配送时间,例如：15点至19点"`
 }
 
 func (CycleTimeConf) TableName() string {
