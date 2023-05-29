@@ -59,10 +59,11 @@ func (e *CycleTimeConf) Get(d *dto.CycleTimeConfGetReq, p *actions.DataPermissio
 }
 
 // Insert 创建CycleTimeConf对象
-func (e *CycleTimeConf) Insert(c *dto.CycleTimeConfInsertReq) error {
+func (e *CycleTimeConf) Insert(cid int,c *dto.CycleTimeConfInsertReq) error {
 	var err error
 	var data models.CycleTimeConf
 	c.Generate(&data)
+	data.CId = cid
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("CycleTimeConfService Insert error:%s \r\n", err)

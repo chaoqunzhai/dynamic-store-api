@@ -42,14 +42,15 @@ const (
 	//退款
 	OrderStatusRefund = 4
 
-	//Cycle 配送的设置
-	//每天
-	CycleDay = 0
-	//每周
-	CycleWeek = 1
-
+	//分表的逻辑
 	SplitOrder                 = 1
 	SplitOrderDefaultTableName = "orders"
+
+	//Cycle 配送的设置
+	//每天
+	CyCleTimeDay = 1
+	//每周
+	CyCleTimeWeek = 2
 )
 
 func GetCouponType(v int) string {

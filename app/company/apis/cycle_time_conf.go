@@ -1,7 +1,10 @@
 package apis
 
 import (
+	"errors"
 	"fmt"
+	customUser "go-admin/common/jwt/user"
+	"go-admin/global"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -116,11 +119,38 @@ func (e CycleTimeConf) Insert(c *gin.Context) {
 	}
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
-	//时间不能重复
-
-	err = s.Insert(&req)
+	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("创建CycleTimeConf失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, err.Error())
+		return
+	}
+	var count int64
+
+	//时间不能重复,也就是start_time 和end_time 是不能存在相同的
+	whereSql :=""
+	switch req.Type {
+
+	case global.CyCleTimeDay:
+		whereSql =fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v'",
+			userDto.CId,true,global.CyCleTimeDay,req.StartTime,req.EndTime)
+
+	case global.CyCleTimeWeek:
+		whereSql =fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v' and start_week = %v and end_week = %v",
+			userDto.CId,true,global.CyCleTimeWeek,req.StartTime,req.EndTime,req.StartWeek,req.EndWeek)
+
+
+	default:
+		e.Error(500, nil, "非法类型")
+		return
+	}
+	e.Orm.Model(&models.CycleTimeConf{}).Where(whereSql).Count(&count)
+	if count > 0 {
+		e.Error(500, errors.New("时间不可重复"), "时间不可重复")
+		return
+	}
+	err = s.Insert(userDto.CId,&req)
+	if err != nil {
+		e.Error(500, err, fmt.Sprintf("时间区间创建失败,%s", err.Error()))
 		return
 	}
 
@@ -153,7 +183,33 @@ func (e CycleTimeConf) Update(c *gin.Context) {
 	}
 	req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 
+	whereSql :=""
+	var timeConf models.CycleTimeConf
+	switch req.Type {
+
+	case global.CyCleTimeDay:
+
+		whereSql =fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v'",
+			userDto.CId,true,global.CyCleTimeDay,req.StartTime,req.EndTime)
+
+	case global.CyCleTimeWeek:
+		whereSql =fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v' and start_week = %v and end_week = %v",
+			userDto.CId,true,global.CyCleTimeWeek,req.StartTime,req.EndTime,req.StartWeek,req.EndWeek)
+	default:
+		e.Error(500, nil, "非法类型")
+		return
+	}
+	e.Orm.Model(&models.CycleTimeConf{}).Where(whereSql).Limit(1).Find(&timeConf)
+	if timeConf.Id >0 && timeConf.Id != req.Id {
+		e.Error(500, nil, "时间不可重复")
+		return
+	}
 	err = s.Update(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("修改CycleTimeConf失败，\r\n失败信息 %s", err.Error()))
