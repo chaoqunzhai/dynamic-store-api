@@ -7,6 +7,7 @@ import (
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
+	models2 "go-admin/app/company/models"
 	"go-admin/global"
 	"time"
 
@@ -122,7 +123,7 @@ func (e SplitTableMap) Insert(c *gin.Context) {
 	switch req.Type {
 	case global.SplitOrder:
 		//订单名称
-		tableName = fmt.Sprintf("%v_%v_%v", global.SplitOrderTableName, req.CId, nowUnix)
+		tableName = fmt.Sprintf("%v_%v_%v", global.SplitOrderDefaultTableName, req.CId, nowUnix)
 	default:
 		e.Error(500, nil, "分来类型不存在")
 		return
@@ -138,9 +139,25 @@ func (e SplitTableMap) Insert(c *gin.Context) {
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
 	req.Name = tableName
-	err = s.Insert(&req)
+	uid, err := s.Insert(&req)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("创建分表失败,%s", err.Error()))
+		return
+	}
+	//数据创建成功后,创建一张分表
+	switch req.Type {
+	case global.SplitOrder:
+		//表名称
+		SplitRow := models2.Orders{}
+		newOrmObject := e.Orm.Model(&SplitRow).Table(tableName)
+		createErr := newOrmObject.Migrator().CreateTable(&SplitRow)
+		if createErr != nil {
+			e.Orm.Unscoped().Delete(&models.SplitTableMap{}, uid)
+			e.Error(500, createErr, fmt.Sprintf("创建分表失败,%s", createErr.Error()))
+			return
+		}
+	default:
+		e.Error(500, nil, "分来类型不存在")
 		return
 	}
 
@@ -194,16 +211,39 @@ func (e SplitTableMap) Update(c *gin.Context) {
 		return
 	}
 	var splitRow models.SplitTableMap
-	e.Orm.Model(&models.SplitTableMap{}).Where("name =  ? and enable = ?", req.Name, true).Limit(1).First(&splitRow)
+	e.Orm.Model(&models.SplitTableMap{}).Where("name =  ? and enable = ?", req.Name, true).Limit(1).Find(&splitRow)
 	if splitRow.Id > 0 && splitRow.Id != req.Id {
 		e.Error(500, errors.New("分表名称已经存在"), "分表名称已经存在")
 		return
 	}
-	err = s.Update(&req, p)
+	oldTableName, err := s.Update(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("修改分表失败,%s", err.Error()))
 		return
 	}
+	//查询oldTableName这个表
+	//1.查询原表是否存在,如果存在 重命名表名
+	//2.如果是一个新的表,那就创建吧
+	switch req.Type {
+	case global.SplitOrder:
+		SplitRow := models2.Orders{}
+		valid := e.Orm.Migrator().HasTable(oldTableName)
+		if valid {
+			reNameErr := e.Orm.Migrator().RenameTable(oldTableName, req.Name)
+			if reNameErr != nil {
+				e.Error(500, reNameErr, fmt.Sprintf("表名更新失败,请重试,%s", reNameErr.Error()))
+				return
+			}
+		} else {
+			newOrmObject := e.Orm.Model(&SplitRow).Table(req.Name)
+			createErr := newOrmObject.Migrator().CreateTable(&SplitRow)
+			if createErr != nil {
+				e.Error(500, createErr, fmt.Sprintf("表名更新失败,请重试,%s", createErr.Error()))
+				return
+			}
+		}
+	}
+
 	e.OK(req.GetId(), "修改成功")
 }
 

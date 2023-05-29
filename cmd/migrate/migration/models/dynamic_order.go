@@ -1,15 +1,20 @@
 package models
 
-type Cycle struct {
+import "time"
+
+type CycleTimeConf struct {
 	BigBRichGlobal
-	Name  string `gorm:"size:15;comment:周期名称"`
-	Type  int    `gorm:"index;comment:类型"`
-	Start string `gorm:"size:15;comment:开始下单时间"`
-	End   string `gorm:"size:15;comment:结束时间"`
+	Type      string    `gorm:"index;comment:类型,每天,每周"`
+	StartWeek int       `gorm:"comment:类型为周,每周开始天"`
+	EndWeek   int       `gorm:"comment:类型为周,每周结束天"`
+	StartTime time.Time `gorm:"size:15;comment:开始下单时间"`
+	EndTime   time.Time `gorm:"size:15;comment:结束时间"`
+	GiveDay   int       `gorm:"comment:跨天值为0是当天,大于0就是当天+天数"`
+	GiveTime  string    `gorm:"size:30;comment:配送时间,例如：15点至19点"`
 }
 
-func (Cycle) TableName() string {
-	return "cycle"
+func (CycleTimeConf) TableName() string {
+	return "cycle_time_conf"
 }
 
 // todo:订单
@@ -20,7 +25,7 @@ type Orders struct {
 	Status   int     `gorm:"index;comment:配送状态"`
 	Money    float64 `gorm:"comment:金额"`
 	Number   int     `gorm:"comment:下单数量"`
-	Delivery int     `gorm:"comment:配送周期"`
+	Delivery int     `gorm:"comment:配送时间周期"`
 }
 
 func (Orders) TableName() string {

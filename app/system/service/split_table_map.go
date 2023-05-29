@@ -59,37 +59,38 @@ func (e *SplitTableMap) Get(d *dto.SplitTableMapGetReq, p *actions.DataPermissio
 }
 
 // Insert 创建SplitTableMap对象
-func (e *SplitTableMap) Insert(c *dto.SplitTableMapInsertReq) error {
-	var err error
+func (e *SplitTableMap) Insert(c *dto.SplitTableMapInsertReq) (uid int, err error) {
+
 	var data models.SplitTableMap
 	c.Generate(&data)
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("分表创建失败\r\n", err)
-		return err
+		return 0, err
 	}
 
-	return nil
+	return data.Id, nil
 }
 
 // Update 修改SplitTableMap对象
-func (e *SplitTableMap) Update(c *dto.SplitTableMapUpdateReq, p *actions.DataPermission) error {
-	var err error
+func (e *SplitTableMap) Update(c *dto.SplitTableMapUpdateReq, p *actions.DataPermission) (name string, err error) {
+
 	var data = models.SplitTableMap{}
 	e.Orm.Scopes(
 		actions.Permission(data.TableName(), p),
 	).First(&data, c.GetId())
+	oldTableName := data.Name
 	c.Generate(&data)
 
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("SplitTableMapService Save error:%s \r\n", err)
-		return err
+		return "", err
 	}
 	if db.RowsAffected == 0 {
-		return errors.New("无权更新该数据")
+		return "", errors.New("无权更新该数据")
 	}
-	return nil
+	return oldTableName, nil
 }
 
 // Remove 删除SplitTableMap

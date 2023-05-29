@@ -48,8 +48,8 @@ const (
 	//每周
 	CycleWeek = 1
 
-	SplitOrder          = 1
-	SplitOrderTableName = "orders"
+	SplitOrder                 = 1
+	SplitOrderDefaultTableName = "orders"
 )
 
 func GetCouponType(v int) string {
