@@ -42,16 +42,21 @@ func (m *OrdersGetPageReq) GetNeedSearch() interface{} {
 
 type OrdersInsertReq struct {
 	Id       int    `json:"-" comment:"主键编码"` // 主键编码
-	Layer    string `json:"layer" comment:"排序"`
-	Enable   string `json:"enable" comment:"开关"`
+	Layer    int `json:"layer" comment:"排序"`
+	Enable   bool `json:"enable" comment:"开关"`
 	Desc     string `json:"desc" comment:"描述信息"`
-	CId      string `json:"cId" comment:"大BID"`
-	ShopId   string `json:"shopId" comment:"关联客户"`
-	Status   string `json:"status" comment:"配送状态"`
-	Money    string `json:"money" comment:"金额"`
-	Number   string `json:"number" comment:"下单数量"`
-	Delivery string `json:"delivery" comment:"配送周期"`
+	ShopId   int `json:"shop_id" comment:"关联客户"`
+	Status   int `json:"status" comment:"配送状态"`
+	Number   int `json:"number" comment:"下单数量"`
+	Delivery int `json:"delivery" comment:"配送周期"`
+	Goods []OrderGoods `json:"goods" comment:"商品"`
 	common.ControlBy
+}
+type OrderGoods struct {
+	SpecsId int `json:"specs_id" comment:"规格ID"`
+	Name string `json:"name" comment:"产品名称"`
+	Spec string `json:"spec" comment:"规格"`
+	Money    float64 `json:"money" comment:"金额"`
 }
 
 func (s *OrdersInsertReq) Generate(model *models.Orders) {
@@ -62,10 +67,9 @@ func (s *OrdersInsertReq) Generate(model *models.Orders) {
 	model.Layer = s.Layer
 	model.Enable = s.Enable
 	model.Desc = s.Desc
-	model.CId = s.CId
 	model.ShopId = s.ShopId
 	model.Status = s.Status
-	model.Money = s.Money
+
 	model.Number = s.Number
 	model.Delivery = s.Delivery
 }
@@ -76,15 +80,14 @@ func (s *OrdersInsertReq) GetId() interface{} {
 
 type OrdersUpdateReq struct {
 	Id       int    `uri:"id" comment:"主键编码"` // 主键编码
-	Layer    string `json:"layer" comment:"排序"`
-	Enable   string `json:"enable" comment:"开关"`
+	Layer    int `json:"layer" comment:"排序"`
+	Enable   bool `json:"enable" comment:"开关"`
 	Desc     string `json:"desc" comment:"描述信息"`
-	CId      string `json:"cId" comment:"大BID"`
-	ShopId   string `json:"shopId" comment:"关联客户"`
-	Status   string `json:"status" comment:"配送状态"`
-	Money    string `json:"money" comment:"金额"`
-	Number   string `json:"number" comment:"下单数量"`
-	Delivery string `json:"delivery" comment:"配送周期"`
+	ShopId   int `json:"shop_id" comment:"关联客户"`
+	Status   int `json:"status" comment:"配送状态"`
+	Money    float64 `json:"money" comment:"金额"`
+	Number   int `json:"number" comment:"下单数量"`
+	Delivery int `json:"delivery" comment:"配送周期"`
 	common.ControlBy
 }
 
@@ -96,7 +99,6 @@ func (s *OrdersUpdateReq) Generate(model *models.Orders) {
 	model.Layer = s.Layer
 	model.Enable = s.Enable
 	model.Desc = s.Desc
-	model.CId = s.CId
 	model.ShopId = s.ShopId
 	model.Status = s.Status
 	model.Money = s.Money

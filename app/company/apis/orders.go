@@ -153,12 +153,48 @@ func (e Orders) Insert(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	userId := user.GetUserId(c)
+	tableName:=e.getTableName(userDto.CId)
 	err = s.Insert(e.getTableName(userDto.CId), &req)
-	if err != nil {
-		e.Error(500, err, fmt.Sprintf("创建Orders失败，\r\n失败信息 %s", err.Error()))
+
+	var data models.Orders
+
+	data.CId = userDto.CId
+	data.Enable = true
+	data.Layer = req.Layer
+	data.Status = global.OrderStatusWait
+	data.Desc = req.Desc
+	data.ShopId = req.ShopId
+	//根据下单的时间区间，来匹配
+	//todo:配送周期
+	//根据下单的时间区间来自动匹配,
+	//1.查询这个时间段内是否配置了cycle_time_conf得值,如果创建了进行关联即可
+	//2.如果没有这个时间
+	//data.Delivery = req.Delivery
+	data.CreateBy = userId
+	createErr := e.Orm.Table(tableName).Create(&data).Error
+	if createErr != nil {
+		e.Error(500, createErr, "订单创建失败")
 		return
 	}
-
+	var orderMoney float64
+	var goodsNumber int
+	for _,good:=range req.Goods{
+		var count int64
+		e.Orm.Model(&models.GoodsSpecs{}).Where("id = ?",good.SpecsId).Count(&count)
+		if count == 0 {continue}
+		orderMoney+=good.Money
+		goodsNumber++
+		e.Orm.Create(&models2.OrderSpecs{
+			OrderId: data.Id,
+			SpecsId: good.SpecsId,
+			Status: global.OrderStatusWait,
+			Money: good.Money,
+		})
+	}
+	data.Number = goodsNumber
+	data.Money = orderMoney
+	e.Orm.Save(&data)
 	e.OK(req.GetId(), "创建成功")
 }
 

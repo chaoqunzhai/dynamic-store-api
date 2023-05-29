@@ -1,5 +1,10 @@
 package models
 
+import (
+	"gorm.io/gorm"
+	"time"
+)
+
 type CycleTimeConf struct {
 	BigBRichGlobal
 	Type      int    `gorm:"index;comment:类型,每天,每周"`
@@ -33,8 +38,8 @@ func (Orders) TableName() string {
 // todo:订单规格
 type OrderSpecs struct {
 	Model
-	ControlBy
-	ModelTime
+	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
 	OrderId int     `gorm:"index;comment:关联订单ID"`
 	SpecsId int     `gorm:"index;comment:规格ID"`
 	Status  int     `gorm:"index;comment:配送状态"`
