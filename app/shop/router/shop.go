@@ -27,5 +27,7 @@ func registerShopRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewar
 		r.POST("/integral",api.Integral)
 		//积分增加
 		r.POST("/amount",api.Amount)
+		//获取客户配置的路线信息
+		r.GET("/line/:id",api.GetLine)
 	}
 }

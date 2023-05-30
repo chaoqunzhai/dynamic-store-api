@@ -387,3 +387,57 @@ func (e Shop)Integral(c *gin.Context)  {
 	return
 
 }
+
+
+func (e Shop) GetLine(c *gin.Context) {
+
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	shopId:=c.Param("id")
+
+	var object models.Shop
+	e.Orm.Model(&models.Shop{}).Where("id = ? and enable = ?",shopId,true).Limit(1).Find(&object)
+	if object.Id == 0 {
+		e.Error(500,nil,"数据不存在")
+		return
+	}
+
+	result :=map[string]interface{}{
+		"username":object.UserName,
+		"address":object.Address,
+		"line":"",
+		"grade":"",
+		"driver":"",
+	}
+	var lineObject models2.Line
+	e.Orm.Model(&models2.Line{}).Where("id = ? and enable = ?",object.LineId,true).Limit(1).Find(&lineObject)
+	if lineObject.Id  > 0 {
+		result["line"] = lineObject.Name
+	}
+	var driverObject models2.Driver
+	e.Orm.Model(&models2.Driver{}).Where("id = ? and enable = ?",lineObject.DriverId,true).Limit(1).Find(&driverObject)
+	if driverObject.Id  > 0 {
+		result["driver_name"] = driverObject.Name
+		result["driver_phone"] = driverObject.Phone
+	}
+	var extendUser models2.ExtendUser
+	e.Orm.Model(&models2.ExtendUser{}).Where("id = ? and enable = ?",object.UserId,true).Limit(1).Find(&extendUser)
+	if extendUser.Id  > 0 {
+
+		var gradeVip models2.GradeVip
+		e.Orm.Model(&models2.GradeVip{}).Where("id = ? and enable = ?",extendUser.GradeId,true).Limit(1).Find(&gradeVip)
+		if gradeVip.Id  > 0 {
+			result["grade"] = gradeVip.Name
+		}
+
+	}
+	e.OK(result,"successful")
+	return
+
+}
