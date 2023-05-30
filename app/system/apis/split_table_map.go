@@ -105,6 +105,7 @@ func (e SplitTableMap) Get(c *gin.Context) {
 // @Success 200 {object} response.Response	"{"code": 200, "message": "添加成功"}"
 // @Router /api/v1/split-table-map [post]
 // @Security Bearer
+// 分表的创建,如果是订单类表的类型,因为订单表是有父表和多子表来分表存储订单数据,所以当父表进行了分表,子表也跟随分表
 func (e SplitTableMap) Insert(c *gin.Context) {
 	req := dto.SplitTableMapInsertReq{}
 	s := service.SplitTableMap{}
@@ -120,10 +121,12 @@ func (e SplitTableMap) Insert(c *gin.Context) {
 	}
 	nowUnix := fmt.Sprintf("%v", time.Now().Unix())[4:]
 	tableName := ""
+	subTableName :=""
 	switch req.Type {
 	case global.SplitOrder:
-		//订单名称
+		//订单父表名称
 		tableName = fmt.Sprintf("%v_%v_%v", global.SplitOrderDefaultTableName, req.CId, nowUnix)
+		subTableName = fmt.Sprintf("%v_%v_%v", global.SplitOrderDefaultSubTableName, req.CId, nowUnix)
 	default:
 		e.Error(500, nil, "分来类型不存在")
 		return
@@ -145,6 +148,7 @@ func (e SplitTableMap) Insert(c *gin.Context) {
 		return
 	}
 	//数据创建成功后,创建一张分表
+	//因为订单表是做了分表的
 	switch req.Type {
 	case global.SplitOrder:
 		//表名称
@@ -154,6 +158,15 @@ func (e SplitTableMap) Insert(c *gin.Context) {
 		if createErr != nil {
 			e.Orm.Unscoped().Delete(&models.SplitTableMap{}, uid)
 			e.Error(500, createErr, fmt.Sprintf("创建分表失败,%s", createErr.Error()))
+			return
+		}
+		//订单子表规格创建
+		SplitSubRow := models2.OrderSpecs{}
+		newSubOrmObject := e.Orm.Model(&SplitSubRow).Table(subTableName)
+		createSubErr := newSubOrmObject.Migrator().CreateTable(&SplitSubRow)
+		if createSubErr != nil {
+			e.Orm.Unscoped().Delete(&models.SplitTableMap{}, uid)
+			e.Error(500, createSubErr, fmt.Sprintf("创建子表失败,%s", createSubErr.Error()))
 			return
 		}
 	default:
@@ -175,77 +188,89 @@ func (e SplitTableMap) Insert(c *gin.Context) {
 // @Success 200 {object} response.Response	"{"code": 200, "message": "修改成功"}"
 // @Router /api/v1/split-table-map/{id} [put]
 // @Security Bearer
-func (e SplitTableMap) Update(c *gin.Context) {
-	req := dto.SplitTableMapUpdateReq{}
-	s := service.SplitTableMap{}
-	err := e.MakeContext(c).
-		MakeOrm().
-		Bind(&req).
-		MakeService(&s.Service).
-		Errors
-	if err != nil {
-		e.Logger.Error(err)
-		e.Error(500, err, err.Error())
-		return
-	}
-	req.SetUpdateBy(user.GetUserId(c))
-	p := actions.GetPermissionFromContext(c)
-
-	var count int64
-	e.Orm.Model(&models.SplitTableMap{}).Where("id = ?", req.Id).Count(&count)
-	if count == 0 {
-		e.Error(500, errors.New("数据不存在"), "数据不存在")
-		return
-	}
-	var oldRow models.SplitTableMap
-	e.Orm.Model(&models.SplitTableMap{}).Where("c_id = ? and type = ? and enable = ?", req.CId, req.Type, true).Limit(1).Find(&oldRow)
-
-	if oldRow.Id != 0 {
-		if oldRow.Id != req.Id {
-			e.Error(500, errors.New("分表不可重复"), "分表不可重复")
-			return
-		}
-	}
-	if req.Name == "" {
-		e.Error(500, errors.New("请输入分表名称"), "请输入分表名称")
-		return
-	}
-	var splitRow models.SplitTableMap
-	e.Orm.Model(&models.SplitTableMap{}).Where("name =  ? and enable = ?", req.Name, true).Limit(1).Find(&splitRow)
-	if splitRow.Id > 0 && splitRow.Id != req.Id {
-		e.Error(500, errors.New("分表名称已经存在"), "分表名称已经存在")
-		return
-	}
-	oldTableName, err := s.Update(&req, p)
-	if err != nil {
-		e.Error(500, err, fmt.Sprintf("修改分表失败,%s", err.Error()))
-		return
-	}
-	//查询oldTableName这个表
-	//1.查询原表是否存在,如果存在 重命名表名
-	//2.如果是一个新的表,那就创建吧
-	switch req.Type {
-	case global.SplitOrder:
-		SplitRow := models2.Orders{}
-		valid := e.Orm.Migrator().HasTable(oldTableName)
-		if valid {
-			reNameErr := e.Orm.Migrator().RenameTable(oldTableName, req.Name)
-			if reNameErr != nil {
-				e.Error(500, reNameErr, fmt.Sprintf("表名更新失败,请重试,%s", reNameErr.Error()))
-				return
-			}
-		} else {
-			newOrmObject := e.Orm.Model(&SplitRow).Table(req.Name)
-			createErr := newOrmObject.Migrator().CreateTable(&SplitRow)
-			if createErr != nil {
-				e.Error(500, createErr, fmt.Sprintf("表名更新失败,请重试,%s", createErr.Error()))
-				return
-			}
-		}
-	}
-
-	e.OK(req.GetId(), "修改成功")
-}
+//func (e SplitTableMap) Update(c *gin.Context) {
+//	req := dto.SplitTableMapUpdateReq{}
+//	s := service.SplitTableMap{}
+//	err := e.MakeContext(c).
+//		MakeOrm().
+//		Bind(&req).
+//		MakeService(&s.Service).
+//		Errors
+//	if err != nil {
+//		e.Logger.Error(err)
+//		e.Error(500, err, err.Error())
+//		return
+//	}
+//	req.SetUpdateBy(user.GetUserId(c))
+//	p := actions.GetPermissionFromContext(c)
+//
+//	var count int64
+//	e.Orm.Model(&models.SplitTableMap{}).Where("id = ?", req.Id).Count(&count)
+//	if count == 0 {
+//		e.Error(500, errors.New("数据不存在"), "数据不存在")
+//		return
+//	}
+//	var oldRow models.SplitTableMap
+//	e.Orm.Model(&models.SplitTableMap{}).Where("c_id = ? and type = ? and enable = ?", req.CId, req.Type, true).Limit(1).Find(&oldRow)
+//
+//	if oldRow.Id != 0 {
+//		if oldRow.Id != req.Id {
+//			e.Error(500, errors.New("分表不可重复"), "分表不可重复")
+//			return
+//		}
+//	}
+//	if req.Name == "" {
+//		e.Error(500, errors.New("请输入分表名称"), "请输入分表名称")
+//		return
+//	}
+//	var splitRow models.SplitTableMap
+//	e.Orm.Model(&models.SplitTableMap{}).Where("name =  ? and enable = ?", req.Name, true).Limit(1).Find(&splitRow)
+//	if splitRow.Id > 0 && splitRow.Id != req.Id {
+//		e.Error(500, errors.New("分表名称已经存在"), "分表名称已经存在")
+//		return
+//	}
+//	oldTableName, err := s.Update(&req, p)
+//	if err != nil {
+//		e.Error(500, err, fmt.Sprintf("修改分表失败,%s", err.Error()))
+//		return
+//	}
+//
+//
+//	//查询oldTableName这个表
+//	//1.查询原表是否存在,如果存在 重命名表名
+//	//2.如果是一个新的表,那就创建吧
+//	switch req.Type {
+//	case global.SplitOrder:
+//		tableName := fmt.Sprintf("%v_%v",global.SplitOrderDefaultTableName,req.Name)
+//		subTableName := fmt.Sprintf("%v_%v", global.SplitOrderDefaultSubTableName, req.Name)
+//		SplitRow := models2.Orders{}
+//		SplitSubRow := models2.OrderSpecs{}
+//		valid := e.Orm.Migrator().HasTable(oldTableName)
+//		if valid {
+//			reNameErr := e.Orm.Migrator().RenameTable(oldTableName, tableName)
+//			if reNameErr != nil {
+//				e.Error(500, reNameErr, fmt.Sprintf("表名更新失败,请重试,%s", reNameErr.Error()))
+//				return
+//			}
+//		} else {
+//			newOrmObject := e.Orm.Model(&SplitRow).Table(tableName)
+//			createErr := newOrmObject.Migrator().CreateTable(&SplitRow)
+//			if createErr != nil {
+//				e.Error(500, createErr, fmt.Sprintf("表名更新失败,请重试,%s", createErr.Error()))
+//				return
+//			}
+//
+//			newSubOrmObject := e.Orm.Model(&SplitSubRow).Table(subTableName)
+//			createSubErr := newSubOrmObject.Migrator().CreateTable(&SplitRow)
+//			if createSubErr != nil {
+//				e.Error(500, createSubErr, fmt.Sprintf("子表名更新失败,%s", createSubErr.Error()))
+//				return
+//			}
+//		}
+//	}
+//
+//	e.OK(req.GetId(), "修改成功")
+//}
 
 // Delete 删除SplitTableMap
 // @Summary 删除SplitTableMap

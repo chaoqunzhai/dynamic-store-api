@@ -32,3 +32,27 @@ func (Orders) TableName(tableName string) string {
 func (e *Orders) GetId() interface{} {
 	return e.Id
 }
+type OrderSpecs struct {
+	models.Model
+
+	OrderId int `json:"orderId" gorm:"type:bigint(20);comment:关联订单ID"`
+	SpecsId int `json:"specsId" gorm:"type:bigint(20);comment:规格ID"`
+	Status int `json:"status" gorm:"type:bigint(20);comment:配送状态"`
+	Money float64 `json:"money" gorm:"type:double;comment:价格"`
+	Number int `json:"number" gorm:"type:bigint(20);comment:下单产品数"`
+	CreatedAt models.XTime      `json:"created_at" gorm:"comment:创建时间"`
+	DeletedAt *models.XTime `json:"-" gorm:"index;comment:删除时间"`
+}
+
+func (OrderSpecs) TableName(tableName string) string {
+	if tableName == "" {
+		return "order_specs"
+	} else {
+		return tableName
+	}
+}
+
+
+func (e *OrderSpecs) GetId() interface{} {
+	return e.Id
+}

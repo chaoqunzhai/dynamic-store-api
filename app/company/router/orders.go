@@ -18,17 +18,16 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 	api := apis.Orders{}
 	r := v1.Group("/orders").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
-
+		r.GET("", api.GetPage)
 		r.PUT("/:id", api.Update)
+		r.POST("/valet_order",api.ValetOrder)
 		r.DELETE("", api.Delete)
 	}
 
 	r2 := v1.Group("/orders").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole())
 	{
-		r2.GET("", api.GetPage)
 		r2.GET("/:id", api.Get)
 		r2.POST("", api.Insert)
-
 		//todo:校验是否可以下单
 		r2.GET("/valid_time",api.ValidTimeConf)
 

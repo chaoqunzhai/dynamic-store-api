@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk/service"
 	"go-admin/common/utils"
 	"go-admin/global"
@@ -64,10 +65,12 @@ func (e *Orders)ValidTimeConf(cid int) (v bool,uid int) {
 func (e *Orders) GetPage(tableName string, c *dto.OrdersGetPageReq, p *actions.DataPermission, list *[]models.Orders, count *int64) error {
 	var err error
 	var data models.Orders
-
-	err = e.Orm.Table(tableName).
+	whereSQL :=fmt.Sprintf("")
+	if c.CId > 0 {
+		whereSQL =fmt.Sprintf("c_id = %v",c.CId)
+	}
+	err = e.Orm.Table(tableName).Where(whereSQL).
 		Scopes(
-			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(tableName), p),
 		).

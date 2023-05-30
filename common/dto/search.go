@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"fmt"
 	"github.com/go-admin-team/go-admin-core/tools/search"
 	"go-admin/common/global"
 	"gorm.io/gorm"
@@ -49,6 +50,7 @@ func MakeCondition(q interface{}) func(db *gorm.DB) *gorm.DB {
 			if join == nil {
 				continue
 			}
+			fmt.Println("join",join)
 			db = db.Joins(join.JoinOn)
 			for k, v := range join.Where {
 				db = db.Where(k, v...)

@@ -28,7 +28,7 @@ type OrdersOrder struct {
 	Layer     string `form:"layerOrder"  search:"type:order;column:layer;table:orders"`
 	Enable    string `form:"enableOrder"  search:"type:order;column:enable;table:orders"`
 	Desc      string `form:"descOrder"  search:"type:order;column:desc;table:orders"`
-	CId       string `form:"cIdOrder"  search:"type:order;column:c_id;table:orders"`
+	CId       string `form:"cIdOrder"  search:"type:order;column:c_id;"`
 	ShopId    string `form:"shopIdOrder"  search:"type:order;column:shop_id;table:orders"`
 	Status    string `form:"statusOrder"  search:"type:order;column:status;table:orders"`
 	Money     string `form:"moneyOrder"  search:"type:order;column:money;table:orders"`

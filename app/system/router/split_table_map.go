@@ -21,7 +21,8 @@ func registerSplitTableMapRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWT
 		r.GET("", api.GetPage)
 		r.GET("/:id", api.Get)
 		r.POST("", api.Insert)
-		r.PUT("/:id", api.Update)
+		//因为事务性,不支持重命名表名,会影响整个表
+		//r.PUT("/:id", api. )
 		r.DELETE("", api.Delete)
 	}
 }

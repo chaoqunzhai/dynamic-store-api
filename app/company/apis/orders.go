@@ -11,6 +11,7 @@ import (
 	customUser "go-admin/common/jwt/user"
 	"go-admin/global"
 	"gorm.io/gorm"
+	"strings"
 
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
@@ -116,7 +117,8 @@ func (e Orders) Get(c *gin.Context) {
 
 	var object models.Orders
 
-	orderErr := e.Orm.Table(e.getTableName(userDto.CId)).First(&object,req.Id).Error
+	orderTableName :=e.getTableName(userDto.CId)
+	orderErr := e.Orm.Table(orderTableName).First(&object,req.Id).Error
 	if orderErr != nil && errors.Is(orderErr, gorm.ErrRecordNotFound) {
 
 		e.Error(500, orderErr, "订单不存在")
@@ -143,8 +145,14 @@ func (e Orders) Get(c *gin.Context) {
 		"shop_phone":shopRow.Phone,
 		"shop_address":shopRow.Address,
 	}
-	var orderSpecs []models2.OrderSpecs
-	e.Orm.Model(&models2.OrderSpecs{}).Where("order_id = ?",object.Id).Find(&orderSpecs)
+	var orderSpecs []models.OrderSpecs
+	//是一个分表的名称
+	specsTable:=global.SplitOrderDefaultSubTableName
+	if orderTableName != global.SplitOrderDefaultTableName {
+
+		specsTable =fmt.Sprintf("%v%v",specsTable,strings.Replace(orderTableName,global.SplitOrderDefaultTableName,"",-1))
+	}
+	e.Orm.Table(specsTable).Where("order_id = ?",object.Id).Find(&orderSpecs)
 
 	specsList :=make([]map[string]interface{},0)
 	for _,row:=range orderSpecs{
@@ -162,6 +170,20 @@ func (e Orders) Get(c *gin.Context) {
 	e.OK(result, "查询成功")
 }
 
+
+func (e Orders) ValetOrder(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+
+
+}
 func (e Orders) Times(c *gin.Context) {
 	s := service.Orders{}
 	err := e.MakeContext(c).
@@ -250,7 +272,7 @@ func (e Orders) Insert(c *gin.Context) {
 	}
 	userId := user.GetUserId(c)
 	//todo:获取表名
-	tableName:=e.getTableName(userDto.CId)
+	orderTableName:=e.getTableName(userDto.CId)
 
 	var data models.Orders
 
@@ -265,11 +287,18 @@ func (e Orders) Insert(c *gin.Context) {
 	data.Delivery = DeliveryId
 
 	data.CreateBy = userId
-	createErr := e.Orm.Table(tableName).Create(&data).Error
+	createErr := e.Orm.Table(orderTableName).Create(&data).Error
 	if createErr != nil {
 		e.Error(500, createErr, "订单创建失败")
 		return
 	}
+
+	specsTable:=global.SplitOrderDefaultSubTableName
+	if orderTableName != global.SplitOrderDefaultTableName {
+
+		specsTable =fmt.Sprintf("%v%v",specsTable,strings.Replace(orderTableName,global.SplitOrderDefaultTableName,"",-1))
+	}
+
 	var orderMoney float64
 	var goodsNumber int
 	for _,good:=range req.Goods{
@@ -278,7 +307,8 @@ func (e Orders) Insert(c *gin.Context) {
 		if count == 0 {continue}
 		orderMoney+=good.Money
 		goodsNumber++
-		e.Orm.Create(&models2.OrderSpecs{
+
+		e.Orm.Table(specsTable).Create(&models.OrderSpecs{
 			OrderId: data.Id,
 			SpecsId: good.SpecsId,
 			Status: global.OrderStatusWait,
@@ -286,7 +316,7 @@ func (e Orders) Insert(c *gin.Context) {
 		})
 	}
 
-	e.Orm.Model(&models.Orders{}).Table(tableName).Where("id = ?",data.Id).Updates(map[string]interface{}{
+	e.Orm.Model(&models.Orders{}).Table(orderTableName).Where("id = ?",data.Id).Updates(map[string]interface{}{
 		"number":goodsNumber,
 		"money":orderMoney,
 	})
