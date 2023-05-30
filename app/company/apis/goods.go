@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	customUser "go-admin/common/jwt/user"
+	"go-admin/global"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -20,6 +21,75 @@ type Goods struct {
 	api.Api
 }
 
+
+type ClassData struct {
+	ClassId int  `json:"class_id" `
+	ClassName string `json:"class_name" `
+	GoodsList []specsRow  `json:"goods_list" `
+}
+
+type specsRow struct {
+	GoodsId int `json:"goods_id" `
+	Money  float64 `json:"money" `
+	Unit string  `json:"unit" `
+	Name string  `json:"name" `
+	Inventory int `json:"inventory" ` //库存
+}
+func (e Goods) ClassSpecs(c *gin.Context) {
+
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var goods []models.Goods
+	e.Orm.Model(&models.Goods{}).Where("c_id = ? and enable = ?",userDto.CId,true).
+		Order(global.OrderLayerKey).Preload("Class").Find(&goods)
+
+
+	result :=make(map[int]ClassData,0)
+	for _,row:=range goods{
+
+		var specsObject models.GoodsSpecs
+		e.Orm.Model(&models.GoodsSpecs{}).Where("c_id = ? and enable = ? and goods_id = ?",userDto.CId,true,row.Id).Limit(1).Find(&specsObject)
+		if specsObject.Id == 0 {
+			continue
+		}
+		specData :=specsRow{
+			GoodsId:row.Id,
+			Money:specsObject.Price,
+			Unit:specsObject.Unit,
+			Name: specsObject.Name,
+			Inventory: specsObject.Inventory,
+		}
+		for _,class :=range row.Class {
+			data,ok:=result[class.Id]
+			if ok {
+				data.GoodsList = append(data.GoodsList,specData)
+				result[class.Id] = data
+			}else {
+				result[class.Id] = ClassData{
+					ClassId: class.Id,
+					ClassName: class.Name,
+					GoodsList: []specsRow{specData},
+				}
+			}
+		}
+	}
+
+
+	e.OK(result,"successful")
+	return
+
+}
 // GetPage 获取Goods列表
 // @Summary 获取Goods列表
 // @Description 获取Goods列表
