@@ -9,6 +9,7 @@ import (
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 	models2 "go-admin/cmd/migrate/migration/models"
 	customUser "go-admin/common/jwt/user"
+	"go-admin/common/utils"
 	"go-admin/global"
 	"gorm.io/gorm"
 	"strings"
@@ -285,7 +286,7 @@ func (e Orders) Insert(c *gin.Context) {
 	orderTableName:=e.getTableName(userDto.CId)
 
 	var data models.Orders
-
+	data.Id = utils.GenUUID()
 	data.CId = userDto.CId
 	data.Enable = true
 	data.Layer = req.Layer
