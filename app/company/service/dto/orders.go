@@ -48,7 +48,7 @@ type OrdersInsertReq struct {
 	ShopId   int `json:"shop_id" comment:"关联客户"`
 	Status   int `json:"status" comment:"配送状态"`
 	Number   int `json:"number" comment:"下单数量"`
-	Delivery int `json:"delivery" comment:"配送周期"`
+	//Delivery int `json:"delivery" comment:"配送周期"`
 	Goods []OrderGoods `json:"goods" comment:"商品"`
 	common.ControlBy
 }
@@ -71,7 +71,7 @@ func (s *OrdersInsertReq) Generate(model *models.Orders) {
 	model.Status = s.Status
 
 	model.Number = s.Number
-	model.Delivery = s.Delivery
+	//model.Delivery = s.Delivery
 }
 
 func (s *OrdersInsertReq) GetId() interface{} {
@@ -87,7 +87,7 @@ type OrdersUpdateReq struct {
 	Status   int `json:"status" comment:"配送状态"`
 	Money    float64 `json:"money" comment:"金额"`
 	Number   int `json:"number" comment:"下单数量"`
-	Delivery int `json:"delivery" comment:"配送周期"`
+	//Delivery int `json:"delivery" comment:"配送周期"`
 	common.ControlBy
 }
 
@@ -103,7 +103,7 @@ func (s *OrdersUpdateReq) Generate(model *models.Orders) {
 	model.Status = s.Status
 	model.Money = s.Money
 	model.Number = s.Number
-	model.Delivery = s.Delivery
+	//model.Delivery = s.Delivery
 }
 
 func (s *OrdersUpdateReq) GetId() interface{} {

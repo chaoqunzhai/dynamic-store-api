@@ -15,6 +15,7 @@ type Orders struct {
 	Status   int `json:"status" gorm:"type:bigint;comment:配送状态"`
 	Money    float64 `json:"money" gorm:"type:double;comment:下单总金额"`
 	Number   int `json:"number" gorm:"type:bigint;comment:下单产品数量"`
+	Pay   int `json:"pay" gorm:"type:bigint;comment:支付方式"`
 	Delivery int `json:"delivery" gorm:"type:bigint;comment:配送周期"`
 	models.ModelTime
 	models.ControlBy

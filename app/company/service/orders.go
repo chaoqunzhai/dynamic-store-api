@@ -2,8 +2,9 @@ package service
 
 import (
 	"errors"
-
 	"github.com/go-admin-team/go-admin-core/sdk/service"
+	"go-admin/common/utils"
+	"go-admin/global"
 	"gorm.io/gorm"
 
 	"go-admin/app/company/models"
@@ -16,6 +17,49 @@ type Orders struct {
 	service.Service
 }
 
+func (e *Orders)ValidTimeConf(cid int) (v bool,uid int) {
+	var data models.CycleTimeConf
+	var count int64
+	e.Orm.Model(&data).Where("c_id = ? and enable = ?",cid,true).Count(&count)
+	if count == 0 {
+		return false,0
+	}
+	//todo:获取当前时间是周几,
+	thisWeek :=utils.HasWeekNumber()
+
+
+	//todo:查询是否配置了每天的时间,查询出大B配置的开始-结束 时间区间的值
+	var timeConfDay []models.CycleTimeConf
+	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and enable = ? and type = ?",cid,true,global.CyCleTimeDay).Find(&timeConfDay)
+	dayId :=0
+	for _,d:=range timeConfDay{
+		//匹配到时间区间直接返回,时间配置的ID即可
+		if utils.TimeCheckRange(d.StartTime,d.EndTime){
+			dayId =d.Id
+		}
+	}
+	if dayId > 0 {
+		return true,dayId
+	}
+
+	//todo:检测是否配置了每周的时间
+	var timeConfWeek []models.CycleTimeConf
+	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and enable = ? and type = ?",cid,true,global.CyCleTimeWeek).Find(&timeConfWeek)
+	weekId:=0
+	for _,w:= range timeConfWeek{
+		//当前周在配置的周期中
+		if  thisWeek > w.StartWeek && thisWeek < w.EndWeek {
+			if utils.TimeCheckRange(w.StartTime,w.EndTime){
+				weekId =w.Id
+			}
+		}
+	}
+	if weekId > 0 {
+		return true,weekId
+	}
+
+	return false,0
+}
 // GetPage 获取Orders列表
 func (e *Orders) GetPage(tableName string, c *dto.OrdersGetPageReq, p *actions.DataPermission, list *[]models.Orders, count *int64) error {
 	var err error

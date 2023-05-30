@@ -1,15 +1,16 @@
 package apis
 
 import (
+	"errors"
 	"fmt"
-	models2 "go-admin/cmd/migrate/migration/models"
-	customUser "go-admin/common/jwt/user"
-	"go-admin/global"
-
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
+	models2 "go-admin/cmd/migrate/migration/models"
+	customUser "go-admin/common/jwt/user"
+	"go-admin/global"
+	"gorm.io/gorm"
 
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
@@ -33,6 +34,7 @@ func (e Orders) getTableName(cid int) string {
 	} else {
 		tableName = global.SplitOrderDefaultTableName
 	}
+
 	return tableName
 }
 
@@ -111,18 +113,101 @@ func (e Orders) Get(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+
 	var object models.Orders
 
-	p := actions.GetPermissionFromContext(c)
-	err = s.Get(e.getTableName(userDto.CId), &req, p, &object)
-	if err != nil {
-		e.Error(500, err, fmt.Sprintf("获取Orders失败，\r\n失败信息 %s", err.Error()))
+	orderErr := e.Orm.Table(e.getTableName(userDto.CId)).First(&object,req.Id).Error
+	if orderErr != nil && errors.Is(orderErr, gorm.ErrRecordNotFound) {
+
+		e.Error(500, orderErr, "订单不存在")
+		return
+	}
+	if orderErr != nil {
+		e.Error(500, orderErr, "订单不存在")
 		return
 	}
 
-	e.OK(object, "查询成功")
+	var shopRow models2.Shop
+	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?",object.ShopId,userDto.CId).Limit(1).Find(&shopRow)
+
+	var timeCnf models.CycleTimeConf
+	e.Orm.Model(&models.CycleTimeConf{}).Where("id = ? and c_id = ?",object.Delivery,userDto.CId).Limit(1).Find(&timeCnf)
+	result :=map[string]interface{}{
+		"order_id":object.Id,
+		"created_at":object.CreatedAt,
+		"delivery":timeCnf.Id,
+		"delivery_give":timeCnf.GiveTime,
+		"pay":global.GetPayStr(object.Pay),
+		"shop_name":shopRow.Name,
+		"shop_username":shopRow.UserName,
+		"shop_phone":shopRow.Phone,
+		"shop_address":shopRow.Address,
+	}
+	var orderSpecs []models2.OrderSpecs
+	e.Orm.Model(&models2.OrderSpecs{}).Where("order_id = ?",object.Id).Find(&orderSpecs)
+
+	specsList :=make([]map[string]interface{},0)
+	for _,row:=range orderSpecs{
+		var specRow models.GoodsSpecs
+		e.Orm.Model(&models.GoodsSpecs{}).Where("id = ? and c_id = ?",row.SpecsId,userDto.CId).Limit(1).Find(&specRow)
+		ss :=map[string]interface{}{
+			"name":specRow.Name,
+			"spec":fmt.Sprintf("%v%v",row.Number,specRow.Unit),
+			"status":row.Status,
+			"money":row.Money,
+		}
+		specsList  = append(specsList,ss)
+	}
+	result["specs_list"]  = specsList
+	e.OK(result, "查询成功")
 }
 
+func (e Orders) Times(c *gin.Context) {
+	s := service.Orders{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var lists []models.CycleTimeConf
+	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and enable = ?",userDto.CId,true).Order(global.OrderLayerKey).Find(&lists)
+
+	e.PageOK(lists,len(lists),1,-1,"successful")
+	return
+}
+func (e Orders) ValidTimeConf(c *gin.Context) {
+	s := service.Orders{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	timeConf,_ :=s.ValidTimeConf(userDto.CId)
+	if !timeConf{
+		e.Error(500, errors.New("非下单时间段"), "非下单时间段")
+		return
+	}
+	e.OK("当前时间可下单","successful")
+	return
+}
 // Insert 创建Orders
 // @Summary 创建Orders
 // @Description 创建Orders
@@ -153,9 +238,19 @@ func (e Orders) Insert(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	//根据下单的时间区间，来匹配
+	//todo:配送周期
+	//根据下单的时间区间来自动匹配,
+	//1.查询这个时间段内是否配置了cycle_time_conf得值,如果创建了进行关联即可
+	//2.如果没有这个时间
+	timeConf,DeliveryId :=s.ValidTimeConf(userDto.CId)
+	if !timeConf{
+		e.Error(500, errors.New("非下单时间段"), "非下单时间段")
+		return
+	}
 	userId := user.GetUserId(c)
+	//todo:获取表名
 	tableName:=e.getTableName(userDto.CId)
-	err = s.Insert(e.getTableName(userDto.CId), &req)
 
 	var data models.Orders
 
@@ -165,12 +260,10 @@ func (e Orders) Insert(c *gin.Context) {
 	data.Status = global.OrderStatusWait
 	data.Desc = req.Desc
 	data.ShopId = req.ShopId
-	//根据下单的时间区间，来匹配
+
 	//todo:配送周期
-	//根据下单的时间区间来自动匹配,
-	//1.查询这个时间段内是否配置了cycle_time_conf得值,如果创建了进行关联即可
-	//2.如果没有这个时间
-	//data.Delivery = req.Delivery
+	data.Delivery = DeliveryId
+
 	data.CreateBy = userId
 	createErr := e.Orm.Table(tableName).Create(&data).Error
 	if createErr != nil {
@@ -192,9 +285,11 @@ func (e Orders) Insert(c *gin.Context) {
 			Money: good.Money,
 		})
 	}
-	data.Number = goodsNumber
-	data.Money = orderMoney
-	e.Orm.Save(&data)
+
+	e.Orm.Model(&models.Orders{}).Table(tableName).Where("id = ?",data.Id).Updates(map[string]interface{}{
+		"number":goodsNumber,
+		"money":orderMoney,
+	})
 	e.OK(req.GetId(), "创建成功")
 }
 

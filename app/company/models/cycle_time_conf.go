@@ -10,7 +10,7 @@ type CycleTimeConf struct {
 	Layer     int    `json:"layer" gorm:"type:tinyint;comment:排序"`
 	Enable    bool   `json:"enable" gorm:"type:tinyint(1);comment:开关"`
 	Desc      string `json:"desc" gorm:"type:varchar(35);comment:描述信息"`
-	CId       int    `json:"cId" gorm:"type:bigint;comment:大BID"`
+	CId       int    `json:"-" gorm:"type:bigint;comment:大BID"`
 	Type      int    `json:"type" gorm:";comment:类型,每天,每周"`
 	StartWeek int    `json:"start_week" gorm:"type:bigint;comment:类型为周,每周开始天"`
 	EndWeek   int    `json:"end_week" gorm:"type:bigint;comment:类型为周,每周结束天"`

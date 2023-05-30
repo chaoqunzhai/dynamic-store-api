@@ -22,3 +22,44 @@ func GenValidateCode(width int) string {
 	}
 	return sb.String()
 }
+//获取当前周几
+func HasWeekNumber() int {
+	n :=time.Now()
+	week :=0
+	switch n.Weekday().String() {
+	case "Sunday":
+		week = 0
+	case "Monday":
+		week = 1
+	case "Tuesday":
+		week = 2
+	case "Wednesday":
+		week = 3
+	case "Thursday":
+		week = 4
+	case "Friday":
+		week = 5
+	case "Saturday":
+		week = 6
+	}
+	return week
+}
+
+//判断当前时间 是否在开始和结束时间区间
+//TimeCheckRange("09:00","16:00")
+func TimeCheckRange(start,end string) bool {
+	now :=time.Now()
+	yearMD:=now.Format("2006-01-02")
+	//转换开始时间
+	dbStartStr :=fmt.Sprintf("%v %v",yearMD,start)
+	dbStartTimer,_:=time.Parse("2006-01-02 15:04",dbStartStr)
+
+	//转换结束时间
+	dbEndStr :=fmt.Sprintf("%v %v",yearMD,end)
+	dbEndTimer,_:=time.Parse("2006-01-02 15:04",dbEndStr)
+
+	//转换当前时间
+	nowParse,_ := time.Parse("2006-01-02 15:04", time.Now().Format("2006-01-02 15:04"))
+
+	return dbStartTimer.Before(nowParse) && nowParse.Before(dbEndTimer)
+}
