@@ -147,11 +147,8 @@ func (e Orders) Get(c *gin.Context) {
 	}
 	var orderSpecs []models.OrderSpecs
 	//是一个分表的名称
-	specsTable:=global.SplitOrderDefaultSubTableName
-	if orderTableName != global.SplitOrderDefaultTableName {
+	specsTable:=e.OrderSpecsTableName(orderTableName)
 
-		specsTable =fmt.Sprintf("%v%v",specsTable,strings.Replace(orderTableName,global.SplitOrderDefaultTableName,"",-1))
-	}
 	e.Orm.Table(specsTable).Where("order_id = ?",object.Id).Find(&orderSpecs)
 
 	specsList :=make([]map[string]interface{},0)
@@ -230,6 +227,19 @@ func (e Orders) ValidTimeConf(c *gin.Context) {
 	e.OK("当前时间可下单","successful")
 	return
 }
+
+func (e Orders)OrderSpecsTableName(orderTable string)  string {
+	//子表默认名称
+	specsTable:=global.SplitOrderDefaultSubTableName
+	//判断是否分表了
+	//默认是 orders 表名，如果分表后就是 orders_大BID_时间戳后6位
+
+	if orderTable != global.SplitOrderDefaultTableName {
+		//拼接位 order_specs_大BID_时间戳后6位
+		specsTable =fmt.Sprintf("%v%v",specsTable,strings.Replace(orderTable,global.SplitOrderDefaultTableName,"",-1))
+	}
+	return specsTable
+}
 // Insert 创建Orders
 // @Summary 创建Orders
 // @Description 创建Orders
@@ -292,12 +302,8 @@ func (e Orders) Insert(c *gin.Context) {
 		e.Error(500, createErr, "订单创建失败")
 		return
 	}
-
-	specsTable:=global.SplitOrderDefaultSubTableName
-	if orderTableName != global.SplitOrderDefaultTableName {
-
-		specsTable =fmt.Sprintf("%v%v",specsTable,strings.Replace(orderTableName,global.SplitOrderDefaultTableName,"",-1))
-	}
+	//分表检测
+	specsTable:=e.OrderSpecsTableName(orderTableName)
 
 	var orderMoney float64
 	var goodsNumber int

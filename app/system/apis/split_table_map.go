@@ -160,7 +160,7 @@ func (e SplitTableMap) Insert(c *gin.Context) {
 			e.Error(500, createErr, fmt.Sprintf("创建分表失败,%s", createErr.Error()))
 			return
 		}
-		//订单子表规格创建
+		//订单子表规格表自动创建
 		SplitSubRow := models2.OrderSpecs{}
 		newSubOrmObject := e.Orm.Model(&SplitSubRow).Table(subTableName)
 		createSubErr := newSubOrmObject.Migrator().CreateTable(&SplitSubRow)
