@@ -14,7 +14,7 @@ type CycleTimeConf struct {
 	EndTime   string `gorm:"size:5;comment:结束时间"`
 	GiveDay   int    `gorm:"comment:跨天值为0是当天,大于0就是当天+天数"`
 	GiveTime  string `gorm:"size:30;comment:配送时间,例如：15点至19点"`
-	Desc   string `gorm:"size:60;comment:描述信息"` //描述
+	Desc      string `gorm:"size:60;comment:描述信息"` //描述
 }
 
 func (CycleTimeConf) TableName() string {
@@ -22,15 +22,15 @@ func (CycleTimeConf) TableName() string {
 }
 
 // todo:订单
-// 订单号是 1000 + id = 订单号
 type Orders struct {
 	BigBRichGlobal
 	ShopId   int     `gorm:"index;comment:关联客户"`
+	ClassId  int     `gorm:"index;comment:商品分类"`
 	Status   int     `gorm:"index;comment:配送状态"`
 	Money    float64 `gorm:"comment:金额"`
 	Number   int     `gorm:"comment:下单数量"`
 	Delivery int     `gorm:"index;comment:配送时间周期"`
-	Pay int `gorm:"index;comment:支付方式"`
+	Pay      int     `gorm:"index;comment:支付方式"`
 }
 
 func (Orders) TableName() string {
@@ -42,11 +42,11 @@ type OrderSpecs struct {
 	Model
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
-	OrderId int     `gorm:"index;comment:关联订单ID"`
-	SpecsId int     `gorm:"index;comment:规格ID"`
-	Number int  `gorm:"comment:下单产品数"`
-	Status  int     `gorm:"index;comment:配送状态"`
-	Money   float64 `gorm:"comment:价格"`
+	OrderId   int            `gorm:"index;comment:关联订单ID"`
+	SpecsId   int            `gorm:"index;comment:规格ID"`
+	Number    int            `gorm:"comment:下单产品数"`
+	Status    int            `gorm:"index;comment:配送状态"`
+	Money     float64        `gorm:"comment:价格"`
 }
 
 func (OrderSpecs) TableName() string {

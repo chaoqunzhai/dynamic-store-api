@@ -53,9 +53,12 @@ const (
 	//每周
 	CyCleTimeWeek = 2
 	//支付方式
-	PayWechat = 1 //微信支付
-	PayAmount = 2 //余额支付
+	PayWechat  = 1 //微信支付
+	PayAmount  = 2 //余额支付
 	PayCollect = 3 //到付
+
+	OrderToolsActionStatus   = 1
+	OrderToolsActionDelivery = 2
 )
 
 func GetCouponType(v int) string {
@@ -69,7 +72,7 @@ func GetCouponType(v int) string {
 	return ""
 
 }
-func GetPayStr(v int) string  {
+func GetPayStr(v int) string {
 	switch v {
 	case PayWechat:
 		return "微信支付"

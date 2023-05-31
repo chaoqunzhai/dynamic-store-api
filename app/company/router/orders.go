@@ -19,19 +19,27 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 	r := v1.Group("/orders").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
 		r.GET("", api.GetPage)
-		r.PUT("/:id", api.Update)
-		r.POST("/valet_order",api.ValetOrder)
+
+		//todo:代客下单
+		r.POST("/valet_order", api.ValetOrder)
+		//不支持对订单数据的直接更新,因为是客户下单的
+		//r.PUT("/:id", api.Update)
+		//todo:订单状态更新,周期延后 等
+		r.PUT("/tools/:id", api.ToolsOrders)
+		//暂时不可进行订单删除
 		r.DELETE("", api.Delete)
 	}
 
 	r2 := v1.Group("/orders").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole())
 	{
+		//todo:订单详情
 		r2.GET("/:id", api.Get)
+		//todo:订单列表
 		r2.POST("", api.Insert)
 		//todo:校验是否可以下单
-		r2.GET("/valid_time",api.ValidTimeConf)
+		r2.GET("/valid_time", api.ValidTimeConf)
 
 		//todo:获取下单的时间配置
-		r2.GET("/times",api.Times)
+		r2.GET("/times", api.Times)
 	}
 }

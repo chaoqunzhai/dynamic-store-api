@@ -41,22 +41,23 @@ func (m *OrdersGetPageReq) GetNeedSearch() interface{} {
 }
 
 type OrdersInsertReq struct {
-	Id       int    `json:"-" comment:"主键编码"` // 主键编码
-	Layer    int `json:"layer" comment:"排序"`
-	Enable   bool `json:"enable" comment:"开关"`
-	Desc     string `json:"desc" comment:"描述信息"`
-	ShopId   int `json:"shop_id" comment:"关联客户"`
-	Status   int `json:"status" comment:"配送状态"`
-	Number   int `json:"number" comment:"下单数量"`
+	Id      int    `json:"-" comment:"主键编码"` // 主键编码
+	Layer   int    `json:"layer" comment:"排序"`
+	Enable  bool   `json:"enable" comment:"开关"`
+	Desc    string `json:"desc" comment:"描述信息"`
+	ShopId  int    `json:"shop_id" comment:"关联客户"`
+	ClassId int    `json:"class_id"`
+	Status  int    `json:"status" comment:"配送状态"`
+	Number  int    `json:"number" comment:"下单数量"`
 	//Delivery int `json:"delivery" comment:"配送周期"`
 	Goods []OrderGoods `json:"goods" comment:"商品"`
 	common.ControlBy
 }
 type OrderGoods struct {
-	SpecsId int `json:"specs_id" comment:"规格ID"`
-	Name string `json:"name" comment:"产品名称"`
-	Spec string `json:"spec" comment:"规格"`
-	Money    float64 `json:"money" comment:"金额"`
+	SpecsId int     `json:"specs_id" comment:"规格ID"`
+	Name    string  `json:"name" comment:"产品名称"`
+	Spec    string  `json:"spec" comment:"规格"`
+	Money   float64 `json:"money" comment:"金额"`
 }
 
 func (s *OrdersInsertReq) Generate(model *models.Orders) {
@@ -78,15 +79,37 @@ func (s *OrdersInsertReq) GetId() interface{} {
 	return s.Id
 }
 
-type OrdersUpdateReq struct {
+type ValetOrderReq struct {
+	ShopId   int                `json:"shop_id"`
+	Delivery int                `json:"delivery"`
+	Goods    []*valetOrderSpecs `json:"goods"`
+	Desc     string             `json:"desc"`
+}
+type valetOrderSpecs struct {
+	ClassId int           `json:"class_id"`
+	Specs   []*valetSpecs `json:"specs"`
+}
+type valetSpecs struct {
+	Id     int     `json:"id"`
+	Number int     `json:"number"`
+	Money  float64 `json:"money"`
+}
+type ToolsOrdersUpdateReq struct {
 	Id       int    `uri:"id" comment:"主键编码"` // 主键编码
-	Layer    int `json:"layer" comment:"排序"`
-	Enable   bool `json:"enable" comment:"开关"`
-	Desc     string `json:"desc" comment:"描述信息"`
-	ShopId   int `json:"shop_id" comment:"关联客户"`
-	Status   int `json:"status" comment:"配送状态"`
-	Money    float64 `json:"money" comment:"金额"`
-	Number   int `json:"number" comment:"下单数量"`
+	Type     int    `json:"type"`
+	Status   int    `json:"status"`
+	Desc     string `json:"desc"`
+	Delivery int    `json:"delivery"`
+}
+type OrdersUpdateReq struct {
+	Id     int     `uri:"id" comment:"主键编码"` // 主键编码
+	Layer  int     `json:"layer" comment:"排序"`
+	Enable bool    `json:"enable" comment:"开关"`
+	Desc   string  `json:"desc" comment:"描述信息"`
+	ShopId int     `json:"shop_id" comment:"关联客户"`
+	Status int     `json:"status" comment:"配送状态"`
+	Money  float64 `json:"money" comment:"金额"`
+	Number int     `json:"number" comment:"下单数量"`
 	//Delivery int `json:"delivery" comment:"配送周期"`
 	common.ControlBy
 }

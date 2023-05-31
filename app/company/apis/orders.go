@@ -118,8 +118,8 @@ func (e Orders) Get(c *gin.Context) {
 
 	var object models.Orders
 
-	orderTableName :=e.getTableName(userDto.CId)
-	orderErr := e.Orm.Table(orderTableName).First(&object,req.Id).Error
+	orderTableName := e.getTableName(userDto.CId)
+	orderErr := e.Orm.Table(orderTableName).First(&object, req.Id).Error
 	if orderErr != nil && errors.Is(orderErr, gorm.ErrRecordNotFound) {
 
 		e.Error(500, orderErr, "订单不存在")
@@ -131,46 +131,47 @@ func (e Orders) Get(c *gin.Context) {
 	}
 
 	var shopRow models2.Shop
-	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?",object.ShopId,userDto.CId).Limit(1).Find(&shopRow)
+	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?", object.ShopId, userDto.CId).Limit(1).Find(&shopRow)
 
 	var timeCnf models.CycleTimeConf
-	e.Orm.Model(&models.CycleTimeConf{}).Where("id = ? and c_id = ?",object.Delivery,userDto.CId).Limit(1).Find(&timeCnf)
-	result :=map[string]interface{}{
-		"order_id":object.Id,
-		"created_at":object.CreatedAt,
-		"delivery":timeCnf.Id,
-		"delivery_give":timeCnf.GiveTime,
-		"pay":global.GetPayStr(object.Pay),
-		"shop_name":shopRow.Name,
-		"shop_username":shopRow.UserName,
-		"shop_phone":shopRow.Phone,
-		"shop_address":shopRow.Address,
+	e.Orm.Model(&models.CycleTimeConf{}).Where("id = ? and c_id = ?", object.Delivery, userDto.CId).Limit(1).Find(&timeCnf)
+	result := map[string]interface{}{
+		"order_id":      object.Id,
+		"created_at":    object.CreatedAt,
+		"delivery":      timeCnf.Id,
+		"delivery_give": timeCnf.GiveTime,
+		"pay":           global.GetPayStr(object.Pay),
+		"shop_name":     shopRow.Name,
+		"shop_username": shopRow.UserName,
+		"shop_phone":    shopRow.Phone,
+		"shop_address":  shopRow.Address,
 	}
 	var orderSpecs []models.OrderSpecs
 	//是一个分表的名称
-	specsTable:=e.OrderSpecsTableName(orderTableName)
+	specsTable := e.OrderSpecsTableName(orderTableName)
 
-	e.Orm.Table(specsTable).Where("order_id = ?",object.Id).Find(&orderSpecs)
+	e.Orm.Table(specsTable).Where("order_id = ?", object.Id).Find(&orderSpecs)
 
-	specsList :=make([]map[string]interface{},0)
-	for _,row:=range orderSpecs{
+	specsList := make([]map[string]interface{}, 0)
+	for _, row := range orderSpecs {
 		var specRow models.GoodsSpecs
-		e.Orm.Model(&models.GoodsSpecs{}).Where("id = ? and c_id = ?",row.SpecsId,userDto.CId).Limit(1).Find(&specRow)
-		ss :=map[string]interface{}{
-			"name":specRow.Name,
-			"spec":fmt.Sprintf("%v%v",row.Number,specRow.Unit),
-			"status":row.Status,
-			"money":row.Money,
+		e.Orm.Model(&models.GoodsSpecs{}).Where("id = ? and c_id = ?", row.SpecsId, userDto.CId).Limit(1).Find(&specRow)
+		ss := map[string]interface{}{
+			"name":   specRow.Name,
+			"spec":   fmt.Sprintf("%v%v", row.Number, specRow.Unit),
+			"status": row.Status,
+			"money":  row.Money,
 		}
-		specsList  = append(specsList,ss)
+		specsList = append(specsList, ss)
 	}
-	result["specs_list"]  = specsList
+	result["specs_list"] = specsList
 	e.OK(result, "查询成功")
 }
 
-
 func (e Orders) ValetOrder(c *gin.Context) {
+	req := dto.ValetOrderReq{}
 	err := e.MakeContext(c).
+		Bind(&req).
 		MakeOrm().
 		Errors
 	if err != nil {
@@ -178,9 +179,104 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	orderTableName := e.getTableName(userDto.CId)
+	specsTable := e.OrderSpecsTableName(orderTableName)
 
+	var shopCount int64
+	e.Orm.Model(&models2.Shop{}).Where("id = ? and enable =? and c_id = ?", req.ShopId, true, userDto.CId).Count(&shopCount)
+	if shopCount == 0 {
+		e.Error(500, nil, "商户不存在")
+		return
+	}
+	for _, good := range req.Goods {
+		orderRow := &models.Orders{
+			Enable:   true,
+			Layer:    0,
+			Desc:     req.Desc,
+			ShopId:   req.ShopId,
+			Delivery: req.Delivery,
+			ClassId:  good.ClassId,
+		}
+		orderId := utils.GenUUID()
+		orderRow.Id = orderId
+		orderRow.CreateBy = userDto.UserId
+		e.Orm.Table(orderTableName).Create(orderRow)
+		var orderMoney float64
+		var goodsNumber int
+		for _, spec := range good.Specs {
+			orderMoney += spec.Money
+			goodsNumber++
+			specRow := &models.OrderSpecs{
+				SpecsId: spec.Id,
+				Number:  spec.Number,
+				Money:   spec.Money,
+				OrderId: orderRow.Id,
+			}
+			e.Orm.Table(specsTable).Create(specRow)
+		}
+		e.Orm.Table(orderTableName).Where("id = ?", orderId).Updates(map[string]interface{}{
+			"number": goodsNumber,
+			"money":  orderMoney,
+		})
+	}
+	e.OK("", "successful")
+	return
+}
+func (e Orders) ToolsOrders(c *gin.Context) {
+	req := dto.ToolsOrdersUpdateReq{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	orderTableName := e.getTableName(userDto.CId)
+	specsTable := e.OrderSpecsTableName(orderTableName)
+	switch req.Type {
+	case global.OrderToolsActionStatus: //状态更新
+		switch req.Status {
+		case global.OrderStatusWait:
+		case global.OrderStatusOk:
+		case global.OrderStatusReturn:
+		case global.OrderStatusRefund:
+		default:
+			e.Error(500, nil, "状态非法")
+			return
 
+		}
+		e.Orm.Table(orderTableName).Where("id = ? and enable = ?", req.Id, true).Updates(map[string]interface{}{
+			"status": req.Status,
+			"desc":   req.Desc,
+		})
+		e.Orm.Table(specsTable).Where("order_id = ?", req.Id).Updates(map[string]interface{}{
+			"status": req.Status,
+		})
+	case global.OrderToolsActionDelivery: //周期更改
+		if req.Delivery > 0 {
+			e.Orm.Table(orderTableName).Where("id = ? and enable = ?", req.Id, true).Updates(map[string]interface{}{
+				"delivery": req.Delivery,
+			})
+		} else {
+			e.Error(500, nil, "状态非法")
+			return
+		}
+	}
 
+	e.OK("", "successful")
+	return
 }
 func (e Orders) Times(c *gin.Context) {
 	s := service.Orders{}
@@ -199,9 +295,9 @@ func (e Orders) Times(c *gin.Context) {
 		return
 	}
 	var lists []models.CycleTimeConf
-	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and enable = ?",userDto.CId,true).Order(global.OrderLayerKey).Find(&lists)
+	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and enable = ?", userDto.CId, true).Order(global.OrderLayerKey).Find(&lists)
 
-	e.PageOK(lists,len(lists),1,-1,"successful")
+	e.PageOK(lists, len(lists), 1, -1, "successful")
 	return
 }
 func (e Orders) ValidTimeConf(c *gin.Context) {
@@ -220,27 +316,28 @@ func (e Orders) ValidTimeConf(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	timeConf,_ :=s.ValidTimeConf(userDto.CId)
-	if !timeConf{
+	timeConf, _ := s.ValidTimeConf(userDto.CId)
+	if !timeConf {
 		e.Error(500, errors.New("非下单时间段"), "非下单时间段")
 		return
 	}
-	e.OK("当前时间可下单","successful")
+	e.OK("当前时间可下单", "successful")
 	return
 }
 
-func (e Orders)OrderSpecsTableName(orderTable string)  string {
+func (e Orders) OrderSpecsTableName(orderTable string) string {
 	//子表默认名称
-	specsTable:=global.SplitOrderDefaultSubTableName
+	specsTable := global.SplitOrderDefaultSubTableName
 	//判断是否分表了
 	//默认是 orders 表名，如果分表后就是 orders_大BID_时间戳后6位
 
 	if orderTable != global.SplitOrderDefaultTableName {
 		//拼接位 order_specs_大BID_时间戳后6位
-		specsTable =fmt.Sprintf("%v%v",specsTable,strings.Replace(orderTable,global.SplitOrderDefaultTableName,"",-1))
+		specsTable = fmt.Sprintf("%v%v", specsTable, strings.Replace(orderTable, global.SplitOrderDefaultTableName, "", -1))
 	}
 	return specsTable
 }
+
 // Insert 创建Orders
 // @Summary 创建Orders
 // @Description 创建Orders
@@ -276,14 +373,14 @@ func (e Orders) Insert(c *gin.Context) {
 	//根据下单的时间区间来自动匹配,
 	//1.查询这个时间段内是否配置了cycle_time_conf得值,如果创建了进行关联即可
 	//2.如果没有这个时间
-	timeConf,DeliveryId :=s.ValidTimeConf(userDto.CId)
-	if !timeConf{
+	timeConf, DeliveryId := s.ValidTimeConf(userDto.CId)
+	if !timeConf {
 		e.Error(500, errors.New("非下单时间段"), "非下单时间段")
 		return
 	}
 	userId := user.GetUserId(c)
 	//todo:获取表名
-	orderTableName:=e.getTableName(userDto.CId)
+	orderTableName := e.getTableName(userDto.CId)
 
 	var data models.Orders
 	data.Id = utils.GenUUID()
@@ -293,7 +390,7 @@ func (e Orders) Insert(c *gin.Context) {
 	data.Status = global.OrderStatusWait
 	data.Desc = req.Desc
 	data.ShopId = req.ShopId
-
+	data.ClassId = req.ClassId
 	//todo:配送周期
 	data.Delivery = DeliveryId
 
@@ -304,28 +401,30 @@ func (e Orders) Insert(c *gin.Context) {
 		return
 	}
 	//分表检测
-	specsTable:=e.OrderSpecsTableName(orderTableName)
+	specsTable := e.OrderSpecsTableName(orderTableName)
 
 	var orderMoney float64
 	var goodsNumber int
-	for _,good:=range req.Goods{
+	for _, good := range req.Goods {
 		var count int64
-		e.Orm.Model(&models.GoodsSpecs{}).Where("id = ?",good.SpecsId).Count(&count)
-		if count == 0 {continue}
-		orderMoney+=good.Money
+		e.Orm.Model(&models.GoodsSpecs{}).Where("id = ?", good.SpecsId).Count(&count)
+		if count == 0 {
+			continue
+		}
+		orderMoney += good.Money
 		goodsNumber++
 
 		e.Orm.Table(specsTable).Create(&models.OrderSpecs{
 			OrderId: data.Id,
 			SpecsId: good.SpecsId,
-			Status: global.OrderStatusWait,
-			Money: good.Money,
+			Status:  global.OrderStatusWait,
+			Money:   good.Money,
 		})
 	}
 
-	e.Orm.Model(&models.Orders{}).Table(orderTableName).Where("id = ?",data.Id).Updates(map[string]interface{}{
-		"number":goodsNumber,
-		"money":orderMoney,
+	e.Orm.Model(&models.Orders{}).Table(orderTableName).Where("id = ?", data.Id).Updates(map[string]interface{}{
+		"number": goodsNumber,
+		"money":  orderMoney,
 	})
 	e.OK(req.GetId(), "创建成功")
 }
