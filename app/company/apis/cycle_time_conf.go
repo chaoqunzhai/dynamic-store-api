@@ -117,6 +117,10 @@ func (e CycleTimeConf) Insert(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	//特殊处理下
+	if req.EndTime == "24:00"{
+		req.EndTime = "23:59"
+	}
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
 	userDto, err := customUser.GetUserDto(e.Orm, c)
@@ -148,6 +152,7 @@ func (e CycleTimeConf) Insert(c *gin.Context) {
 		e.Error(500, errors.New("时间不可重复"), "时间不可重复")
 		return
 	}
+
 	err = s.Insert(userDto.CId,&req)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("时间区间创建失败,%s", err.Error()))

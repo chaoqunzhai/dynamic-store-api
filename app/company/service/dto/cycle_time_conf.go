@@ -69,7 +69,9 @@ func (s *CycleTimeConfInsertReq) Generate(model *models.CycleTimeConf) {
 	model.EndWeek = s.EndWeek
 
 	model.StartTime = s.StartTime
+
 	model.EndTime = s.EndTime
+
 	model.GiveDay = s.GiveDay
 	model.GiveTime = s.GiveTime
 }
