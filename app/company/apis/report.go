@@ -43,22 +43,23 @@ type reportGoods struct {
 // 按配送员区分,每个配送员
 // 下订单是和商家关联的，而且商家都有一个关联的路线,所以反查即可
 // 是根据配送周期
-// [
+//[
 //
-//	{
-//	  "line":"丈八",
-//	  "driver":"张山",
-//	  "id":1,
-//	  "goods":[
-//	    {
-//	      "name":"红枣",
-//	      "image":"",
-//	      "number":"20"
-//	    }
-//	  ]
-//	}
-//
-// ]
+//  {
+//    "line":"丈八",
+//    "driver":"张山",
+//    "id":1,
+//    "shop_name":"生鲜超市",
+//    "shop_image":"",
+//    "goods":[
+//      {
+//        "name":"红枣",
+//        "image":"",
+//        "number":"20"
+//      }
+//    ]
+//  }
+//]
 func (e Orders) Index(c *gin.Context) {
 	req := IndexReq{}
 	err := e.MakeContext(c).
@@ -99,10 +100,10 @@ func (e Orders) Index(c *gin.Context) {
 		lineList = append(lineList, row.LineId)
 	}
 	goodsList := make([]int, 0)
-	goodMapline := make(map[int]interface{}, 0)
+	goodMapLine := make(map[int]interface{}, 0)
 	for _, row := range orderResult {
 		goodsList = append(goodsList, row.GoodId)
-		goodMapline[row.GoodId] = row.LineId
+		goodMapLine[row.GoodId] = row.LineId
 	}
 	//todo:商品信息,要把查询到对的商品放到指定的路线下
 
