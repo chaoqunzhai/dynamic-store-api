@@ -13,6 +13,7 @@ type Orders struct {
 	CId          int          `json:"c_id" gorm:"type:bigint;comment:大BID"`
 	ShopId       int          `json:"shop_id" gorm:"type:bigint;comment:关联客户"`
 	ClassId      int          `json:"class_id"`
+	LineId       int       `gorm:"index;comment:线路ID"`
 	GoodId       int          `gorm:"index;comment:商品ID"`
 	Status       int          `json:"status" gorm:"type:bigint;comment:配送状态"`
 	Money        float64      `json:"money" gorm:"type:double;comment:下单总金额"`

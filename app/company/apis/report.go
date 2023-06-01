@@ -36,7 +36,7 @@ type ReportResult struct {
 type reportGoods struct {
 	Name   string `json:"name"`
 	Image  string `json:"image"`
-	Number string `json:"number"`
+	Number int `json:"number"`
 }
 
 // 获取指定日期的报表
@@ -90,58 +90,81 @@ func (e Orders) Index(c *gin.Context) {
 	orderResult := make([]OrderShopResult, 0)
 	e.Orm.Table(orderTableName).Raw(whereSql).Scan(&orderResult)
 
-	//通过商家列表获取到各路线
+	//todo:统一聚合查询,统一查询资源
 	shopList := make([]int, 0)
-	for _, row := range orderResult {
-		shopList = append(shopList, row.ShopId)
-	}
 	lineList := make([]int, 0)
-	for _, row := range orderResult {
-		lineList = append(lineList, row.LineId)
-	}
 	goodsList := make([]int, 0)
-	goodMapLine := make(map[int]interface{}, 0)
 	for _, row := range orderResult {
 		goodsList = append(goodsList, row.GoodId)
-		goodMapLine[row.GoodId] = row.LineId
+		shopList = append(shopList, row.ShopId)
+		lineList = append(lineList, row.LineId)
 	}
 	//todo:商品信息,要把查询到对的商品放到指定的路线下
-
 	goodsModelLists := make([]models2.Goods, 0)
-	e.Orm.Model(&models.Shop{}).Select("name,image").Where("enable = ? and c_id = ? and id in ?", true, userDto.CId, goodsList).Find(&goodsModelLists)
-
+	e.Orm.Model(&models2.Goods{}).Select("name,image,id").Where("enable = ? and c_id = ? and id in ?", true, userDto.CId, goodsList).Find(&goodsModelLists)
+	goodsMapData:=make(map[int]models2.Goods,0)
+	for _,g:=range goodsModelLists{
+		goodsMapData[g.Id] =g
+	}
+	//todo:统一查询,做map的key
 	//todo:商家的信息
 	shopModelLists := make([]models.Shop, 0)
-	e.Orm.Model(&models.Shop{}).Select("name,image,line_id").Where("enable = ? and c_id = ? and id in ?", true, userDto.CId, shopList).Find(&shopModelLists)
-
+	e.Orm.Model(&models.Shop{}).Select("name,image,line_id,id").Where("enable = ? and c_id = ? and id in ?", true, userDto.CId, shopList).Find(&shopModelLists)
 	shopInfoMap := make(map[int]models.Shop)
-	for _, r := range shopModelLists {
-		shopInfoMap[r.LineId] = r
+	for _, s := range shopModelLists {
+		shopInfoMap[s.LineId] = s
 	}
 	//todo:路线信息
 	lineModelLists := make([]models2.Line, 0)
-	e.Orm.Model(&models2.Line{}).Select("name,driver_id").Where("enable = ? and c_id = ? and id in ?", true, userDto.CId, lineList).Find(&lineModelLists)
+	e.Orm.Model(&models2.Line{}).Select("name,driver_id,id").Where("enable = ? and c_id = ? and id in ?", true, userDto.CId, lineList).Find(&lineModelLists)
 
 	fmt.Println("lineIds", lineModelLists)
 
-	result := make([]ReportResult, 0)
-
+	reportCache :=make(map[int]ReportResult,0)
 	for _, line := range lineModelLists {
-
 		if _, ok := shopInfoMap[line.Id]; !ok {
 			fmt.Println("路线和商家数据严重不符合！！！")
 			continue
 		}
+		var DriverObject models2.Driver
+		e.Orm.Model(&DriverObject).Where("id = ?",line.DriverId).Limit(1).Find(&DriverObject)
 		re := ReportResult{
 			Line:      line.Name,
 			Id:        line.Id,
 			ShopName:  shopInfoMap[line.Id].Name,
 			ShopImage: shopInfoMap[line.Id].Image,
-			//Driver: line.DriverId,
+			Driver:DriverObject.Name,
+		}
+		reportCache[line.Id] = re
+	}
+
+	var list []models2.Orders
+	result := make([]ReportResult, 0)
+	e.Orm.Table(orderTableName).Select("number,good_id,line_id").Where("c_id = ? and enable = ? and delivery_time = ? and status =? ",userDto.CId,true,req.Day,global.OrderStatusWait).Find(&list)
+
+	for _,row:=range list{
+		fmt.Println("商品ID",row.GoodId,"路线ID",row.LineId)
+		goodsRow,ok:=goodsMapData[row.GoodId]
+		if !ok{
+			fmt.Println("订单中的商品不在统一数据中！")
+			continue
 		}
 
-		result = append(result, re)
+		reportRow,okReport:=reportCache[row.LineId]
+		if !okReport{
+			fmt.Println("订单中的路线不在统一数据中！")
+			continue
+		}
+		report :=reportGoods{
+			Name: goodsRow.Name,
+			Image: goodsRow.Image,
+			Number: row.Number,
+		}
+		reportRow.Goods = append(reportRow.Goods,report)
+		result = append(result,reportRow)
 	}
+
+	e.OK(result,"successful")
 	return
 }
 func (e Orders) Detail(c *gin.Context) {

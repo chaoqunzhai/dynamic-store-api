@@ -189,19 +189,23 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	orderTableName := e.getTableName(userDto.CId)
 	specsTable := e.OrderSpecsTableName(orderTableName)
 
-	var shopCount int64
-	e.Orm.Model(&models2.Shop{}).Where("id = ? and enable =? and c_id = ?", req.ShopId, true, userDto.CId).Count(&shopCount)
-	if shopCount == 0 {
-		e.Error(500, nil, "商户不存在")
+	var shopObject models2.Shop
+	e.Orm.Model(&models2.Shop{}).Where("id = ? and enable =? and c_id = ?", req.ShopId, true, userDto.CId).Limit(1).Find(&shopObject)
+	if shopObject.Id == 0 {
+		e.Error(500, errors.New("商户不存在"), "商户不存在")
 		return
 	}
-
+	if shopObject.LineId == 0 {
+		e.Error(500, errors.New("商家暂无路线"), "商家暂无路线")
+		return
+	}
 	var DeliveryObject models.CycleTimeConf
 	e.Orm.Model(&models2.CycleTimeConf{}).Where("id = ? and enable =? and c_id = ?", req.DeliveryId, true, userDto.CId).Limit(1).Find(&DeliveryObject)
 	if DeliveryObject.Id == 0 {
 		e.Error(500, nil, "时间区间不存在")
 		return
 	}
+
 
 	for _, good := range req.Goods {
 
@@ -212,6 +216,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			ShopId:     req.ShopId,
 			DeliveryId: req.DeliveryId,
 			ClassId:    good.ClassId,
+			LineId: shopObject.LineId,
 		}
 		orderId := utils.GenUUID()
 		orderRow.Id = orderId
@@ -412,7 +417,19 @@ func (e Orders) Insert(c *gin.Context) {
 	data.Layer = req.Layer
 	data.Status = global.OrderStatusWait
 	data.Desc = req.Desc
+	//选择了商家,获取商家关联的路线
 	data.ShopId = req.ShopId
+	var shopObject models2.Shop
+	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ? and enable = ?",req.ShopId,userDto.UserId,true).Limit(1).Find(&shopObject)
+	if shopObject.Id == 0 {
+		e.Error(500, errors.New("暂无商家"), "商家暂无路线")
+		return
+	}
+	if shopObject.LineId == 0 {
+		e.Error(500, errors.New("商家暂无路线"), "商家暂无路线")
+		return
+	}
+	data.LineId = shopObject.LineId
 	data.ClassId = req.ClassId
 	//todo:配送周期
 	data.DeliveryId = DeliveryId
