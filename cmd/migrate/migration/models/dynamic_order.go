@@ -26,6 +26,8 @@ type Orders struct {
 	BigBRichGlobal
 	ShopId       int       `gorm:"index;comment:关联客户"`
 	ClassId      int       `gorm:"index;comment:商品分类"`
+	GoodId       int       `gorm:"index;comment:商品ID"`
+	LineId       int       `gorm:"index;comment:线路ID"`
 	Status       int       `gorm:"type:tinyint(1);default:1;index;comment:配送状态"`
 	Money        float64   `gorm:"comment:金额"`
 	Number       int       `gorm:"comment:下单数量"`

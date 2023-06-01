@@ -49,11 +49,12 @@ type OrdersInsertReq struct {
 	ClassId int    `json:"class_id"`
 	Status  int    `json:"status" comment:"配送状态"`
 	Number  int    `json:"number" comment:"下单数量"`
+	GoodsId int    `json:"goods_id"  comment:"商品ID"`
 	//Delivery int `json:"delivery" comment:"配送周期"`
-	Goods []OrderGoods `json:"goods" comment:"商品"`
+	GoodsSpecs []OrderGoodsSpecs `json:"goods_specs" comment:"商品规格"`
 	common.ControlBy
 }
-type OrderGoods struct {
+type OrderGoodsSpecs struct {
 	SpecsId int     `json:"specs_id" comment:"规格ID"`
 	Name    string  `json:"name" comment:"产品名称"`
 	Spec    string  `json:"spec" comment:"规格"`
@@ -90,9 +91,10 @@ type valetOrderSpecs struct {
 	Specs   []*valetSpecs `json:"specs"`
 }
 type valetSpecs struct {
-	Id     int     `json:"id"`
-	Number int     `json:"number"`
-	Money  float64 `json:"money"`
+	Id      int     `json:"id"`
+	Number  int     `json:"number"`
+	Money   float64 `json:"money"`
+	GoodsId int     `json:"goods_id"`
 }
 type ToolsOrdersUpdateReq struct {
 	Id       int    `uri:"id" comment:"主键编码"` // 主键编码

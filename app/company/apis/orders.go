@@ -204,6 +204,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	}
 
 	for _, good := range req.Goods {
+
 		orderRow := &models.Orders{
 			Enable:     true,
 			Layer:      0,
@@ -231,6 +232,9 @@ func (e Orders) ValetOrder(c *gin.Context) {
 				Money:   spec.Money,
 				OrderId: orderRow.Id,
 			}
+			e.Orm.Table(orderTableName).Where("id = ?", orderRow.Id).Updates(map[string]interface{}{
+				"goods_id": spec.GoodsId,
+			})
 			e.Orm.Table(specsTable).Create(specRow)
 		}
 		e.Orm.Table(orderTableName).Where("id = ?", orderId).Updates(map[string]interface{}{
@@ -412,6 +416,7 @@ func (e Orders) Insert(c *gin.Context) {
 	data.ClassId = req.ClassId
 	//todo:配送周期
 	data.DeliveryId = DeliveryId
+	data.GoodId = req.GoodsId
 	data.DeliveryTime = delivery_time
 	data.DeliveryStr = deliveryStr
 	data.CreateBy = userId
@@ -425,7 +430,7 @@ func (e Orders) Insert(c *gin.Context) {
 
 	var orderMoney float64
 	var goodsNumber int
-	for _, good := range req.Goods {
+	for _, good := range req.GoodsSpecs {
 		var count int64
 		e.Orm.Model(&models.GoodsSpecs{}).Where("id = ?", good.SpecsId).Count(&count)
 		if count == 0 {
