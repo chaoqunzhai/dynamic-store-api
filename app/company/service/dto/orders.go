@@ -80,10 +80,10 @@ func (s *OrdersInsertReq) GetId() interface{} {
 }
 
 type ValetOrderReq struct {
-	ShopId   int                `json:"shop_id"`
-	Delivery int                `json:"delivery"`
-	Goods    []*valetOrderSpecs `json:"goods"`
-	Desc     string             `json:"desc"`
+	ShopId     int                `json:"shop_id"`
+	DeliveryId int                `json:"delivery_id"` //代客下单,只需要获取选择的时间段就行
+	Goods      []*valetOrderSpecs `json:"goods"`
+	Desc       string             `json:"desc"`
 }
 type valetOrderSpecs struct {
 	ClassId int           `json:"class_id"`

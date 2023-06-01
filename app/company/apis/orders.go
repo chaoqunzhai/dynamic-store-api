@@ -134,7 +134,7 @@ func (e Orders) Get(c *gin.Context) {
 	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?", object.ShopId, userDto.CId).Limit(1).Find(&shopRow)
 
 	var timeCnf models.CycleTimeConf
-	e.Orm.Model(&models.CycleTimeConf{}).Where("id = ? and c_id = ?", object.Delivery, userDto.CId).Limit(1).Find(&timeCnf)
+	e.Orm.Model(&models.CycleTimeConf{}).Where("id = ? and c_id = ?", object.DeliveryId, userDto.CId).Limit(1).Find(&timeCnf)
 	result := map[string]interface{}{
 		"order_id":      object.Id,
 		"created_at":    object.CreatedAt,
@@ -170,9 +170,11 @@ func (e Orders) Get(c *gin.Context) {
 
 func (e Orders) ValetOrder(c *gin.Context) {
 	req := dto.ValetOrderReq{}
+	s := service.Orders{}
 	err := e.MakeContext(c).
 		Bind(&req).
 		MakeOrm().
+		MakeService(&s.Service).
 		Errors
 	if err != nil {
 		e.Logger.Error(err)
@@ -193,17 +195,29 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.Error(500, nil, "商户不存在")
 		return
 	}
+
+	var DeliveryObject models.CycleTimeConf
+	e.Orm.Model(&models2.CycleTimeConf{}).Where("id = ? and enable =? and c_id = ?", req.DeliveryId, true, userDto.CId).Limit(1).Find(&DeliveryObject)
+	if DeliveryObject.Id == 0 {
+		e.Error(500, nil, "时间区间不存在")
+		return
+	}
+
 	for _, good := range req.Goods {
 		orderRow := &models.Orders{
-			Enable:   true,
-			Layer:    0,
-			Desc:     req.Desc,
-			ShopId:   req.ShopId,
-			Delivery: req.Delivery,
-			ClassId:  good.ClassId,
+			Enable:     true,
+			Layer:      0,
+			Desc:       req.Desc,
+			ShopId:     req.ShopId,
+			DeliveryId: req.DeliveryId,
+			ClassId:    good.ClassId,
 		}
 		orderId := utils.GenUUID()
 		orderRow.Id = orderId
+		//代客下单,需要把配送周期保存，方便周期配送
+		orderRow.DeliveryTime = s.CalculateTime(DeliveryObject.GiveDay)
+		orderRow.DeliveryStr = DeliveryObject.GiveTime
+
 		orderRow.CreateBy = userDto.UserId
 		e.Orm.Table(orderTableName).Create(orderRow)
 		var orderMoney float64
@@ -258,8 +272,9 @@ func (e Orders) ToolsOrders(c *gin.Context) {
 
 		}
 		e.Orm.Table(orderTableName).Where("id = ? and enable = ?", req.Id, true).Updates(map[string]interface{}{
-			"status": req.Status,
-			"desc":   req.Desc,
+			"status":    req.Status,
+			"desc":      req.Desc,
+			"update_by": userDto.UserId,
 		})
 		e.Orm.Table(specsTable).Where("order_id = ?", req.Id).Updates(map[string]interface{}{
 			"status": req.Status,
@@ -267,7 +282,8 @@ func (e Orders) ToolsOrders(c *gin.Context) {
 	case global.OrderToolsActionDelivery: //周期更改
 		if req.Delivery > 0 {
 			e.Orm.Table(orderTableName).Where("id = ? and enable = ?", req.Id, true).Updates(map[string]interface{}{
-				"delivery": req.Delivery,
+				"delivery":  req.Delivery,
+				"update_by": userDto.UserId,
 			})
 		} else {
 			e.Error(500, nil, "状态非法")
@@ -316,12 +332,15 @@ func (e Orders) ValidTimeConf(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	timeConf, _ := s.ValidTimeConf(userDto.CId)
+	timeConf, _, delivery_time, deliveryStr := s.ValidTimeConf(userDto.CId)
 	if !timeConf {
 		e.Error(500, errors.New("非下单时间段"), "非下单时间段")
 		return
 	}
-	e.OK("当前时间可下单", "successful")
+	e.OK(map[string]interface{}{
+		"time": delivery_time,
+		"str":  deliveryStr,
+	}, "successful")
 	return
 }
 
@@ -373,7 +392,7 @@ func (e Orders) Insert(c *gin.Context) {
 	//根据下单的时间区间来自动匹配,
 	//1.查询这个时间段内是否配置了cycle_time_conf得值,如果创建了进行关联即可
 	//2.如果没有这个时间
-	timeConf, DeliveryId := s.ValidTimeConf(userDto.CId)
+	timeConf, DeliveryId, delivery_time, deliveryStr := s.ValidTimeConf(userDto.CId)
 	if !timeConf {
 		e.Error(500, errors.New("非下单时间段"), "非下单时间段")
 		return
@@ -392,8 +411,9 @@ func (e Orders) Insert(c *gin.Context) {
 	data.ShopId = req.ShopId
 	data.ClassId = req.ClassId
 	//todo:配送周期
-	data.Delivery = DeliveryId
-
+	data.DeliveryId = DeliveryId
+	data.DeliveryTime = delivery_time
+	data.DeliveryStr = deliveryStr
 	data.CreateBy = userId
 	createErr := e.Orm.Table(orderTableName).Create(&data).Error
 	if createErr != nil {

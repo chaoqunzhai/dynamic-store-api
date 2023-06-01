@@ -40,9 +40,9 @@ type BigBMiniGlobal struct {
 // todo:公司映射表,起到分表作用
 type SplitTableMap struct {
 	RichGlobal
-	CId  int    `gorm:"index;comment:公司ID"`           //公司ID
-	Type int    `gorm:"index;comment:映射表的类型"`         //根据不同的类型,来做细分
-	Name string `gorm:"size:60;index;comment:对应表的名称"` //分表的名称
+	CId  int    `gorm:"index;comment:公司ID"`                             //公司ID
+	Type int    `gorm:"type:tinyint(1);default:1;index;comment:映射表的类型"` //根据不同的类型,来做细分
+	Name string `gorm:"size:60;index;comment:对应表的名称"`                   //分表的名称
 	Desc string `gorm:"size:30;index;comment:对应表的名称"`
 }
 
