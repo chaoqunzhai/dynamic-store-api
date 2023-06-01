@@ -23,15 +23,16 @@ func (DyNamicMenu) TableName() string {
 // todo: 用户扩展信息
 type ExtendUser struct {
 	BigBRichGlobal
-	UserId int `gorm:"index;comment:用户ID"`
-	Platform       string `json:"platform" gorm:"size:12;comment:注册来源"`
-	GradeId        int    `gorm:"index;comment:会员等级"`
-	SuggestId      int    `gorm:"index;comment:推荐人ID"`
+	UserId    int    `gorm:"index;comment:用户ID"`
+	Platform  string `json:"platform" gorm:"size:12;comment:注册来源"`
+	GradeId   int    `gorm:"index;comment:会员等级"`
+	SuggestId int    `gorm:"index;comment:推荐人ID"`
 }
 
 func (ExtendUser) TableName() string {
 	return "extend_user"
 }
+
 // todo: 每个大B设置的角色
 // 这里为什么没有使用系统的角色,
 // 因为:系统和大B的角色是需要区分隔离开,不能混淆
@@ -40,12 +41,12 @@ type CompanyRole struct {
 	CId     int    `gorm:"index;comment:大BID"`
 	Id      int    `json:"id" gorm:"primaryKey;autoIncrement"` // 角色编码
 	Name    string `json:"roleName" gorm:"size:30;"`           // 角色名称
-	Enable  int
-	Layer    int           //角色排序
+	Enable  bool
+	Layer   int           `gorm:"size:1;index;comment:排序"`          //排序
 	Remark  string        `json:"remark" gorm:"size:50;comment:备注"` //备注
 	Admin   bool          `json:"admin" gorm:"size:4;"`
 	SysMenu []DyNamicMenu `json:"sysMenu" gorm:"many2many:company_role_menu;foreignKey:id;joinForeignKey:role_id;references:id;joinReferences:menu_id;"`
-	SysUser []SysUser `json:"sysUser" gorm:"many2many:company_role_user;foreignKey:id;joinForeignKey:role_id;references:user_id;joinReferences:user_id;"`
+	SysUser []SysUser     `json:"sysUser" gorm:"many2many:company_role_user;foreignKey:id;joinForeignKey:role_id;references:user_id;joinReferences:user_id;"`
 	ControlBy
 	ModelTime
 }
@@ -56,17 +57,18 @@ func (CompanyRole) TableName() string {
 
 type Coupon struct {
 	BigBRichGlobal
-	Name string `json:"name" gorm:"size:50;comment:优惠卷名称"`
-	Type int  `gorm:"comment:类型"`
-	Range int `gorm:"comment:使用范围"`
-	Money int `gorm:"comment:优惠卷金额"`
-	Min float64 `gorm:"comment:最低多少钱可以用"`
-	Max float64 `gorm:"comment:满多少钱可以用"`
+	Name      string    `json:"name" gorm:"size:50;comment:优惠卷名称"`
+	Type      int       `gorm:"type:tinyint(1);default:1;comment:类型"`
+	Range     int       `gorm:"type:tinyint(1);default:1;comment:使用范围"`
+	Money     float64   `gorm:"comment:优惠卷金额"`
+	Min       float64   `gorm:"comment:最低多少钱可以用"`
+	Max       float64   `gorm:"comment:满多少钱可以用"`
 	StartTime time.Time `gorm:"comment:开始使用时间"`
-	EndTime time.Time  `gorm:"comment:截止使用时间"`
-	Inventory int  `gorm:"comment:库存"`
-	Limit int `gorm:"comment:每个人限领次数"`
+	EndTime   time.Time `gorm:"comment:截止使用时间"`
+	Inventory int       `gorm:"comment:库存"`
+	Limit     int       `gorm:"comment:每个人限领次数"`
 }
+
 func (Coupon) TableName() string {
 	return "company_coupon"
 }
