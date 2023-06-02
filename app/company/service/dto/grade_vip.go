@@ -43,7 +43,7 @@ type GradeVipInsertReq struct {
     Layer    int     `json:"layer" comment:"排序"`
     Enable   bool    `json:"enable" comment:"开关"`
     Desc     string  `json:"desc" comment:"描述信息"`
-    Name     string  `json:"name" comment:"等级名称"`
+    Name     string  `json:"name" comment:"等级名称"  binding:"required"`
     Weight   int     `json:"weight" comment:"权重,从小到大"`
     Discount float64 `json:"discount" comment:"折扣"`
     Upgrade  int     `json:"upgrade" comment:"升级条件,满多少金额,自动升级Weight+1"`
@@ -73,7 +73,7 @@ type GradeVipUpdateReq struct {
     Layer    int     `json:"layer" comment:"排序"`
     Enable   bool    `json:"enable" comment:"开关"`
     Desc     string  `json:"desc" comment:"描述信息"`
-    Name     string  `json:"name" comment:"等级名称"`
+    Name     string  `json:"name" comment:"等级名称"  binding:"required"`
     Weight   int     `json:"weight" comment:"权重,从小到大"`
     Discount float64 `json:"discount" comment:"折扣"`
     Upgrade  int     `json:"upgrade" comment:"升级条件,满多少金额,自动升级Weight+1"`

@@ -59,8 +59,17 @@ func (e Driver) GetPage(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("获取Driver失败，\r\n失败信息 %s", err.Error()))
 		return
 	}
+	result := make([]interface{}, 0)
+	for _, row := range list {
+		var bindLine models.Line
+		e.Orm.Model(&models.Line{}).Select("name,id").Where("driver_id = ? and enable = ?", row.Id,true).Limit(1).Find(&bindLine)
+		if bindLine.Id > 0 {
+			row.LineName = bindLine.Name
 
-	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+		}
+		result = append(result, row)
+	}
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
 // Get 获取Driver

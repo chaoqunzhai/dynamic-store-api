@@ -93,6 +93,23 @@ func (e Line) GetPage(c *gin.Context) {
 	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
+func (e Line) GetTabs(c *gin.Context) {
+	req := dto.LineTabsReq{}
+	s := service.Line{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+
+
+}
 // Get 获取Line
 // @Summary 获取Line
 // @Description 获取Line

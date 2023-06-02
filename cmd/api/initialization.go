@@ -424,6 +424,37 @@ func Initialization() {
 			"Hidden":     true,
 			"ParentName": "user",
 		},
+		{
+			"Name":       "/user/grade/index",
+			"Path":       "/user/grade/index",
+			"Component":  "@/views/user/grade/Index",
+			"MetaTitle":  "VIP等级管理",
+			"KeepAlive":  false,
+			"MetaIcon":   "",
+			"Hidden":     false,
+			"ParentName": "user",
+		},
+		{
+			"Name":       "/user/grade/create",
+			"Path":       "/user/grade/create",
+			"Component":  "@/views/user/grade/Create",
+			"MetaTitle":  "VIP等级创建",
+			"KeepAlive":  false,
+			"MetaIcon":   "",
+			"Hidden":     true,
+			"ParentName": "user",
+		},
+		{
+			"Name":       "/user/grade/update",
+			"Path":       "/user/grade/update",
+			"Component":  "@/views/user/grade/Update",
+			"MetaTitle":  "VIP等级更新",
+			"KeepAlive":  false,
+			"MetaIcon":   "",
+			"Hidden":     true,
+			"ParentName": "user",
+		},
+
 	}
 	for _, db := range dbs {
 

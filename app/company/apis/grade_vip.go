@@ -3,6 +3,7 @@ package apis
 import (
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin/binding"
 	customUser "go-admin/common/jwt/user"
 
 	"github.com/gin-gonic/gin"
@@ -110,7 +111,7 @@ func (e GradeVip) Insert(c *gin.Context) {
     s := service.GradeVip{}
     err := e.MakeContext(c).
         MakeOrm().
-        Bind(&req).
+		Bind(&req, binding.JSON, nil).
         MakeService(&s.Service).
         Errors
     if err != nil {
@@ -157,7 +158,7 @@ func (e GradeVip) Update(c *gin.Context) {
     s := service.GradeVip{}
     err := e.MakeContext(c).
         MakeOrm().
-        Bind(&req).
+		Bind(&req, binding.JSON, nil).
         MakeService(&s.Service).
         Errors
     if err != nil {

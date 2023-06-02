@@ -17,8 +17,9 @@ type Driver struct {
     CId int `json:"cId" gorm:"type:bigint(20);comment:大BID"`
     UserId int `json:"userId" gorm:"type:bigint(20);comment:关联的用户ID"`
     Name string `json:"name" gorm:"type:varchar(12);comment:司机名称"` 
-    Phone string `json:"phone" gorm:"type:varchar(11);comment:联系手机号"` 
-    models.ModelTime
+    Phone string `json:"phone" gorm:"type:varchar(11);comment:联系手机号"`
+    LineName string `json:"line_name" gorm:"-"`
+	models.ModelTime
     models.ControlBy
 }
 

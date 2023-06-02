@@ -16,6 +16,9 @@ type LineGetPageReq struct {
 	LineOrder
 }
 
+type LineTabsReq struct {
+
+}
 type BindLineUserReq struct {
 	LineId int   `json:"line_id"`
 	ShopId []int `json:"shop_id"`

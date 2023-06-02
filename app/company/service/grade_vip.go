@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"go-admin/global"
 
 	"github.com/go-admin-team/go-admin-core/sdk/service"
@@ -81,6 +82,7 @@ func (e *GradeVip) Update(c *dto.GradeVipUpdateReq, p *actions.DataPermission) e
         ).First(&data, c.GetId())
     c.Generate(&data)
 
+    fmt.Println("ur",data.Upgrade)
     db := e.Orm.Save(&data)
     if err = db.Error; err != nil {
         e.Log.Errorf("GradeVipService Save error:%s \r\n", err)
