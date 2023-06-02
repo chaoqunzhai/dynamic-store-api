@@ -195,9 +195,8 @@ func initRouter() {
 		r.Use(handler.TlsHandler())
 	}
 	//.Use(common.SentinelContext()) 需要测试
-	r.Use(common.Sentinel()).
-		Use(common.RequestId(pkg.TrafficKey)).
-		Use(api.SetRequestLogger).Use(Cors())
+	r.Use(common.RequestId(pkg.TrafficKey)).
+		Use(api.SetRequestLogger)
 	common.InitMiddleware(r)
 
 }

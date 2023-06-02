@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql/driver"
 	"fmt"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -27,9 +28,10 @@ type Model struct {
 }
 
 type ModelTime struct {
-	CreatedAt XTime      `json:"created_at" gorm:"comment:创建时间"`
-	UpdatedAt XTime      `json:"updated_at" gorm:"comment:最后更新时间"`
-	DeletedAt *XTime `json:"-" gorm:"index;comment:删除时间"`
+	CreatedAt XTime `json:"created_at" gorm:"comment:创建时间"`
+	UpdatedAt XTime `json:"updated_at" gorm:"comment:最后更新时间"`
+	//保留软删除使用gorm.DeletedAt字段, 如果不保留软删除,使用其他time字段
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
 }
 
 // 1. 创建 time.Time 类型的副本 XTime；

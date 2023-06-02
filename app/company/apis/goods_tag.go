@@ -3,6 +3,7 @@ package apis
 import (
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin/binding"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/global"
 
@@ -35,18 +36,18 @@ type GoodsTag struct {
 // @Router /api/v1/goods-tag [get]
 // @Security Bearer
 func (e GoodsTag) GetPage(c *gin.Context) {
-    req := dto.GoodsTagGetPageReq{}
-    s := service.GoodsTag{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-   	if err != nil {
-   		e.Logger.Error(err)
-   		e.Error(500, err, err.Error())
-   		return
-   	}
+	req := dto.GoodsTagGetPageReq{}
+	s := service.GoodsTag{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 
 	p := actions.GetPermissionFromContext(c)
 	list := make([]models.GoodsTag, 0)
@@ -55,10 +56,18 @@ func (e GoodsTag) GetPage(c *gin.Context) {
 	err = s.GetPage(&req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取GoodsTag失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
 
-	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	result := make([]interface{}, 0)
+	for _, row := range list {
+		var bindCount int64
+		whereSql := fmt.Sprintf("SELECT COUNT(*) as count from goods_mark_tag where tag_id = %v", row.Id)
+		e.Orm.Raw(whereSql).Scan(&bindCount)
+		row.GoodsCount = bindCount
+		result = append(result, row)
+	}
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
 // Get 获取GoodsTag
@@ -72,7 +81,7 @@ func (e GoodsTag) GetPage(c *gin.Context) {
 func (e GoodsTag) Get(c *gin.Context) {
 	req := dto.GoodsTagGetReq{}
 	s := service.GoodsTag{}
-    err := e.MakeContext(c).
+	err := e.MakeContext(c).
 		MakeOrm().
 		Bind(&req).
 		MakeService(&s.Service).
@@ -88,10 +97,10 @@ func (e GoodsTag) Get(c *gin.Context) {
 	err = s.Get(&req, p, &object)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取GoodsTag失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
 
-	e.OK( object, "查询成功")
+	e.OK(object, "查询成功")
 }
 
 // Insert 创建GoodsTag
@@ -105,18 +114,18 @@ func (e GoodsTag) Get(c *gin.Context) {
 // @Router /api/v1/goods-tag [post]
 // @Security Bearer
 func (e GoodsTag) Insert(c *gin.Context) {
-    req := dto.GoodsTagInsertReq{}
-    s := service.GoodsTag{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+	req := dto.GoodsTagInsertReq{}
+	s := service.GoodsTag{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
 
@@ -128,9 +137,8 @@ func (e GoodsTag) Insert(c *gin.Context) {
 	var countAll int64
 	e.Orm.Model(&models.GoodsTag{}).Where("c_id = ?", userDto.CId).Count(&countAll)
 
-
 	if countAll > global.CompanyMaxGoodsTag {
-		e.Error(500, errors.New(fmt.Sprintf("标签最多只可创建%v个",global.CompanyMaxGoodsTag)), fmt.Sprintf("标签最多只可创建%v个",global.CompanyMaxGoodsTag))
+		e.Error(500, errors.New(fmt.Sprintf("标签最多只可创建%v个", global.CompanyMaxGoodsTag)), fmt.Sprintf("标签最多只可创建%v个", global.CompanyMaxGoodsTag))
 		return
 	}
 	var count int64
@@ -139,10 +147,10 @@ func (e GoodsTag) Insert(c *gin.Context) {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return
 	}
-	err = s.Insert(userDto.CId,&req)
+	err = s.Insert(userDto.CId, &req)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("创建标签失败,%s", err.Error()))
-        return
+		return
 	}
 
 	e.OK(req.GetId(), "创建成功")
@@ -160,18 +168,18 @@ func (e GoodsTag) Insert(c *gin.Context) {
 // @Router /api/v1/goods-tag/{id} [put]
 // @Security Bearer
 func (e GoodsTag) Update(c *gin.Context) {
-    req := dto.GoodsTagUpdateReq{}
-    s := service.GoodsTag{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+	req := dto.GoodsTagUpdateReq{}
+	s := service.GoodsTag{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 	req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
 	userDto, err := customUser.GetUserDto(e.Orm, c)
@@ -181,13 +189,13 @@ func (e GoodsTag) Update(c *gin.Context) {
 	}
 
 	var count int64
-	e.Orm.Model(&models.GoodsTag{}).Where("id = ?",req.Id).Count(&count)
+	e.Orm.Model(&models.GoodsTag{}).Where("id = ?", req.Id).Count(&count)
 	if count == 0 {
 		e.Error(500, errors.New("数据不存在"), "数据不存在")
 		return
 	}
 	var oldRow models.GoodsTag
-	e.Orm.Model(&models.GoodsTag{}).Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&oldRow)
+	e.Orm.Model(&models.GoodsTag{}).Where("name = ? and c_id = ?", req.Name, userDto.CId).Limit(1).Find(&oldRow)
 
 	if oldRow.Id != 0 {
 		if oldRow.Id != req.Id {
@@ -198,9 +206,9 @@ func (e GoodsTag) Update(c *gin.Context) {
 	err = s.Update(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("修改标签失败,%s", err.Error()))
-        return
+		return
 	}
-	e.OK( req.GetId(), "修改成功")
+	e.OK(req.GetId(), "修改成功")
 }
 
 // Delete 删除GoodsTag
@@ -212,28 +220,28 @@ func (e GoodsTag) Update(c *gin.Context) {
 // @Router /api/v1/goods-tag [delete]
 // @Security Bearer
 func (e GoodsTag) Delete(c *gin.Context) {
-    s := service.GoodsTag{}
-    req := dto.GoodsTagDeleteReq{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+	s := service.GoodsTag{}
+	req := dto.GoodsTagDeleteReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 
 	p := actions.GetPermissionFromContext(c)
 
-	newIds :=make([]int,0)
-	for _,t:=range req.Ids{
+	newIds := make([]int, 0)
+	for _, t := range req.Ids {
 		var count int64
-		whereSql:=fmt.Sprintf("SELECT COUNT(*) as count from goods_mark_tag where tag_id = %v",t)
+		whereSql := fmt.Sprintf("SELECT COUNT(*) as count from goods_mark_tag where tag_id = %v", t)
 		e.Orm.Raw(whereSql).Scan(&count)
 		if count == 0 {
-			newIds = append(newIds,t)
+			newIds = append(newIds, t)
 		}
 	}
 	if len(newIds) == 0 {
@@ -244,7 +252,7 @@ func (e GoodsTag) Delete(c *gin.Context) {
 	err = s.Remove(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除标签失败,%s", err.Error()))
-       return
+		return
 	}
-	e.OK( req.GetId(), "删除成功")
+	e.OK(req.GetId(), "删除成功")
 }

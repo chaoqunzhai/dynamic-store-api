@@ -154,6 +154,13 @@ func (e Company) MonitorData(c *gin.Context) {
 	e.OK(result, "successful")
 	return
 }
+
+func (e Company) Demo(c *gin.Context) {
+
+	c.JSON(200, "")
+	return
+
+}
 func (e Company) Info(c *gin.Context) {
 	req := dto.CompanyGetReq{}
 	s := service.Company{}
@@ -334,13 +341,13 @@ func (e Company) Update(c *gin.Context) {
 	req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
 	var count int64
-	e.Orm.Model(&models.Company{}).Where("id = ?",req.Id).Count(&count)
+	e.Orm.Model(&models.Company{}).Where("id = ?", req.Id).Count(&count)
 	if count == 0 {
 		e.Error(500, errors.New("数据不存在"), "数据不存在")
 		return
 	}
 	var oldRow models.Company
-	e.Orm.Model(&models.Company{}).Where("name = ? ",req.Name).Limit(1).Find(&oldRow)
+	e.Orm.Model(&models.Company{}).Where("name = ? ", req.Name).Limit(1).Find(&oldRow)
 
 	if oldRow.Id != 0 {
 		if oldRow.Id != req.Id {
@@ -356,7 +363,6 @@ func (e Company) Update(c *gin.Context) {
 	e.OK(req.GetId(), "修改成功")
 }
 
-
 func (e Company) RenewPage(c *gin.Context) {
 	s := service.Company{}
 	req := dto.CompanyRenewGetPage{}
@@ -370,7 +376,7 @@ func (e Company) RenewPage(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	list :=make([]models2.CompanyRenewalTimeLog,0)
+	list := make([]models2.CompanyRenewalTimeLog, 0)
 	var count int64
 	e.Orm.Model(&models2.CompanyRenewalTimeLog{}).
 		Scopes(
@@ -379,18 +385,18 @@ func (e Company) RenewPage(c *gin.Context) {
 		).Order("id desc").
 		Find(&list).Limit(-1).Offset(-1).
 		Count(&count)
-	result:=make([]map[string]interface{},0)
-	for _,row:=range list{
-		mm :=map[string]interface{}{
-			"id":row.Id,
-			"desc":row.Desc,
-			"created_time":row.CreatedAt.Format("2006-01-02 15:04:05"),
-			"expiration_time":row.ExpirationTime.Format("2006-01-02 15:04:05"),
+	result := make([]map[string]interface{}, 0)
+	for _, row := range list {
+		mm := map[string]interface{}{
+			"id":              row.Id,
+			"desc":            row.Desc,
+			"created_time":    row.CreatedAt.Format("2006-01-02 15:04:05"),
+			"expiration_time": row.ExpirationTime.Format("2006-01-02 15:04:05"),
 		}
 		var userRow sys.SysUser
-		e.Orm.Model(&sys.SysUser{}).Where("user_id = ?",row.CreateBy).Limit(1).Find(&userRow)
+		e.Orm.Model(&sys.SysUser{}).Where("user_id = ?", row.CreateBy).Limit(1).Find(&userRow)
 		if userRow.UserId > 0 {
-			mm["user_name"]  = userRow.Username
+			mm["user_name"] = userRow.Username
 		}
 		result = append(result, mm)
 	}
@@ -411,39 +417,40 @@ func (e Company) Renew(c *gin.Context) {
 		return
 	}
 
-	if req.Time == ""{
+	if req.Time == "" {
 		e.Error(500, errors.New("请填入到期时间"), "请填入到期时间")
 		return
 	}
 	actionTime, err := time.Parse("2006-01-02 15:04:05", req.Time)
-	if err!=nil{
+	if err != nil {
 		e.Error(500, err, "时间非法")
 		return
 	}
 	//更新
-	e.Orm.Model(&models.Company{}).Where("id in ?",req.Ids).Updates(map[string]interface{}{
-		"renewal_time":time.Now(),
-		"expiration_time":actionTime,
+	e.Orm.Model(&models.Company{}).Where("id in ?", req.Ids).Updates(map[string]interface{}{
+		"renewal_time":    time.Now(),
+		"expiration_time": actionTime,
 	})
 	//增加日志记录
-	for _,r:=range req.Ids{
+	for _, r := range req.Ids {
 		var count int64
-		e.Orm.Model(&models.Company{}).Where("id = ? and enable = ?",r,true).Count(&count)
+		e.Orm.Model(&models.Company{}).Where("id = ? and enable = ?", r, true).Count(&count)
 		if count == 0 {
 			continue
 		}
-		row:=models2.CompanyRenewalTimeLog{
-			Desc: req.Desc,
-			Money: req.Money,
-			CId: r,
+		row := models2.CompanyRenewalTimeLog{
+			Desc:           req.Desc,
+			Money:          req.Money,
+			CId:            r,
 			ExpirationTime: actionTime,
 		}
 		row.CreateBy = user.GetUserId(c)
 		e.Orm.Create(&row)
 	}
-	e.OK("","successful")
+	e.OK("", "successful")
 	return
 }
+
 // Delete 删除Company
 // @Summary 删除Company
 // @Description 删除Company

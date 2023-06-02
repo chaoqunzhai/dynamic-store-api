@@ -3,6 +3,7 @@ package apis
 import (
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin/binding"
 	customUser "go-admin/common/jwt/user"
 
 	"github.com/gin-gonic/gin"
@@ -36,18 +37,18 @@ type Driver struct {
 // @Router /api/v1/driver [get]
 // @Security Bearer
 func (e Driver) GetPage(c *gin.Context) {
-    req := dto.DriverGetPageReq{}
-    s := service.Driver{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-   	if err != nil {
-   		e.Logger.Error(err)
-   		e.Error(500, err, err.Error())
-   		return
-   	}
+	req := dto.DriverGetPageReq{}
+	s := service.Driver{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 
 	p := actions.GetPermissionFromContext(c)
 	list := make([]models.Driver, 0)
@@ -56,7 +57,7 @@ func (e Driver) GetPage(c *gin.Context) {
 	err = s.GetPage(&req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取Driver失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
 
 	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
@@ -73,7 +74,7 @@ func (e Driver) GetPage(c *gin.Context) {
 func (e Driver) Get(c *gin.Context) {
 	req := dto.DriverGetReq{}
 	s := service.Driver{}
-    err := e.MakeContext(c).
+	err := e.MakeContext(c).
 		MakeOrm().
 		Bind(&req).
 		MakeService(&s.Service).
@@ -89,10 +90,10 @@ func (e Driver) Get(c *gin.Context) {
 	err = s.Get(&req, p, &object)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取Driver失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
 
-	e.OK( object, "查询成功")
+	e.OK(object, "查询成功")
 }
 
 // Insert 创建Driver
@@ -106,18 +107,18 @@ func (e Driver) Get(c *gin.Context) {
 // @Router /api/v1/driver [post]
 // @Security Bearer
 func (e Driver) Insert(c *gin.Context) {
-    req := dto.DriverInsertReq{}
-    s := service.Driver{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+	req := dto.DriverInsertReq{}
+	s := service.Driver{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {
 		e.Error(500, err, err.Error())
@@ -131,10 +132,10 @@ func (e Driver) Insert(c *gin.Context) {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return
 	}
-	err = s.Insert(userDto.CId,&req)
+	err = s.Insert(userDto.CId, &req)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("创建失败,%s", err.Error()))
-        return
+		return
 	}
 
 	e.OK(req.GetId(), "创建成功")
@@ -152,18 +153,18 @@ func (e Driver) Insert(c *gin.Context) {
 // @Router /api/v1/driver/{id} [put]
 // @Security Bearer
 func (e Driver) Update(c *gin.Context) {
-    req := dto.DriverUpdateReq{}
-    s := service.Driver{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+	req := dto.DriverUpdateReq{}
+	s := service.Driver{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 	req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
 
@@ -174,13 +175,13 @@ func (e Driver) Update(c *gin.Context) {
 	}
 
 	var count int64
-	e.Orm.Model(&models.Driver{}).Where("id = ?",req.Id).Count(&count)
+	e.Orm.Model(&models.Driver{}).Where("id = ?", req.Id).Count(&count)
 	if count == 0 {
 		e.Error(500, errors.New("数据不存在"), "数据不存在")
 		return
 	}
 	var oldRow models.Driver
-	e.Orm.Model(&models.Driver{}).Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&oldRow)
+	e.Orm.Model(&models.Driver{}).Where("name = ? and c_id = ?", req.Name, userDto.CId).Limit(1).Find(&oldRow)
 
 	if oldRow.Id != 0 {
 		if oldRow.Id != req.Id {
@@ -189,12 +190,12 @@ func (e Driver) Update(c *gin.Context) {
 		}
 	}
 
-	err = s.Update(userDto.CId,&req, p)
+	err = s.Update(userDto.CId, &req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("创建失败,%s", err.Error()))
-        return
+		return
 	}
-	e.OK( req.GetId(), "修改成功")
+	e.OK(req.GetId(), "修改成功")
 }
 
 // Delete 删除Driver
@@ -206,28 +207,28 @@ func (e Driver) Update(c *gin.Context) {
 // @Router /api/v1/driver [delete]
 // @Security Bearer
 func (e Driver) Delete(c *gin.Context) {
-    s := service.Driver{}
-    req := dto.DriverDeleteReq{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+	s := service.Driver{}
+	req := dto.DriverDeleteReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 
 	p := actions.GetPermissionFromContext(c)
 
-	newIds :=make([]int,0)
-	for _,d:=range req.Ids{
+	newIds := make([]int, 0)
+	for _, d := range req.Ids {
 		var count int64
-		e.Orm.Model(&models.Line{}).Where("driver_id = ?",d).Count(&count)
+		e.Orm.Model(&models.Line{}).Where("driver_id = ?", d).Count(&count)
 		//如果路线没有关联司机,那就是一个可删除的司机信息
 		if count == 0 {
-			newIds = append(newIds,d)
+			newIds = append(newIds, d)
 		}
 	}
 	if len(newIds) == 0 {
@@ -237,7 +238,7 @@ func (e Driver) Delete(c *gin.Context) {
 	err = s.Remove(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("司机信息删除失败,%s", err.Error()))
-        return
+		return
 	}
-	e.OK( req.GetId(), "删除成功")
+	e.OK(req.GetId(), "删除成功")
 }

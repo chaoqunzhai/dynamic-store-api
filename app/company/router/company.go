@@ -21,7 +21,8 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
 		r.GET("/info", api.Info)
-		r.GET("/home", api.MonitorData)
+		//r.GET("/home", api.MonitorData)
+		r.GET("/home", api.Demo)
 	}
 
 	//只有超管有权限
@@ -29,7 +30,7 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		Use(middleware.AuthCheckRole()).Use(actions.PermissionSuperRole())
 	{
 		//进行续费,大B的续费最好是通过这个接口来统一进行续费
-		r2.POST("/renew",api.Renew)
+		r2.POST("/renew", api.Renew)
 		//续费日志
 		r2.GET("/renew", api.RenewPage)
 		r2.GET("", api.GetPage)

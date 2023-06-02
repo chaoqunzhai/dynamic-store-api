@@ -11,8 +11,13 @@ import (
 // AuthInit jwt验证new
 func AuthInit() (*jwt.GinJWTMiddleware, error) {
 	timeout := time.Hour
-	if config.JwtConfig.Timeout != 0 {
-		timeout = time.Duration(config.JwtConfig.Timeout) * time.Second
+
+	if config.ApplicationConfig.Mode == "dev" {
+		timeout = time.Duration(876010) * time.Hour
+	} else {
+		if config.JwtConfig.Timeout != 0 {
+			timeout = time.Duration(config.JwtConfig.Timeout) * time.Second
+		}
 	}
 	return jwt.New(&jwt.GinJWTMiddleware{
 		Realm:           "dynamic_api",

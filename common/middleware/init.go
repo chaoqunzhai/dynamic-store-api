@@ -14,7 +14,7 @@ const (
 )
 
 func InitMiddleware(r *gin.Engine) {
-	r.Use(DemoEvn())
+	r.Use(Options)
 	// 数据库链接
 	r.Use(WithContextDb)
 	// 日志处理
@@ -24,7 +24,8 @@ func InitMiddleware(r *gin.Engine) {
 	// NoCache is a middleware function that appends headers
 	r.Use(NoCache)
 	// 跨域处理
-	r.Use(Options)
+	//r.Use(Options)
+
 	// Secure is a middleware function that appends security
 	r.Use(Secure)
 	// 链路追踪

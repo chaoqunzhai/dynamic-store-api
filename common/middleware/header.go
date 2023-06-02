@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -20,6 +21,8 @@ func NoCache(c *gin.Context) {
 // for options requests and aborts then exits the middleware
 // chain and ends the request.
 func Options(c *gin.Context) {
+
+	fmt.Println("method", c.Request.Method, c.Request.URL)
 	if c.Request.Method != "OPTIONS" {
 		c.Next()
 	} else {
