@@ -47,6 +47,8 @@ const (
 	SplitOrderDefaultTableName = "orders"
 	//关联的订单子表,如果进行了订单表的分割,也会默认进行一个分割
 	SplitOrderDefaultSubTableName = "order_specs"
+	//扩展表
+	SplitOrderExtendSubTableName = "order_extend"
 	//Cycle 配送的设置
 	//每天
 	CyCleTimeDay = 1

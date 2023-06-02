@@ -23,7 +23,12 @@ func (CycleTimeConf) TableName() string {
 
 // todo:订单
 type Orders struct {
-	BigBRichGlobal
+	Model
+	ControlBy
+	ModelTime
+	CId          int       `gorm:"index;comment:大BID"`
+	Layer        int       `gorm:"size:1;index;comment:排序"` //排序
+	Enable       bool      `gorm:"comment:开关"`
 	ShopId       int       `gorm:"index;comment:关联客户"`
 	ClassId      int       `gorm:"index;comment:商品分类"`
 	GoodId       int       `gorm:"index;comment:商品ID"`
@@ -34,7 +39,6 @@ type Orders struct {
 	Pay          int       `gorm:"type:tinyint(1);default:1;index;comment:支付方式"`
 	DeliveryId   int       `gorm:"index;comment:配送时间周期"`
 	DeliveryTime time.Time `json:"delivery_time" gorm:"type:date;comment:计算配送时间"`
-	DeliveryStr  string    `gorm:"size:14;comment:配送时间,例如：15点至19点" json:"delivery_str"`
 }
 
 func (Orders) TableName() string {
@@ -55,4 +59,19 @@ type OrderSpecs struct {
 
 func (OrderSpecs) TableName() string {
 	return "order_specs"
+}
+
+// todo:订单扩展信息,存放一些其他无关紧要数据
+type OrderExtend struct {
+	Model
+	CreatedAt   time.Time      `json:"createdAt" gorm:"comment:创建时间"`
+	DeletedAt   gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
+	OrderId     int            `gorm:"index;comment:关联订单ID"`
+	DeliveryStr string         `gorm:"size:14;comment:配送时间,例如：15点至19点" json:"delivery_str"`
+	Source      int            `gorm:"type:tinyint(1);default:0;index;comment:订单来源,客户下单还是,代客下单"`
+	Desc        string         `gorm:"size:35;comment:描述信息"` //描述
+}
+
+func (OrderExtend) TableName() string {
+	return "order_extend"
 }

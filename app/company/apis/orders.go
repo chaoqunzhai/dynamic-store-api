@@ -188,7 +188,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	}
 	orderTableName := e.getTableName(userDto.CId)
 	specsTable := e.OrderSpecsTableName(orderTableName)
-
+	orderExtend := e.OrderExtendTableName(orderTableName)
 	var shopObject models2.Shop
 	e.Orm.Model(&models2.Shop{}).Where("id = ? and enable =? and c_id = ?", req.ShopId, true, userDto.CId).Limit(1).Find(&shopObject)
 	if shopObject.Id == 0 {
@@ -206,31 +206,36 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		return
 	}
 
-
 	for _, good := range req.Goods {
 
 		orderRow := &models.Orders{
 			Enable:     true,
 			Layer:      0,
-			Desc:       req.Desc,
 			ShopId:     req.ShopId,
 			DeliveryId: req.DeliveryId,
 			ClassId:    good.ClassId,
-			LineId: shopObject.LineId,
+			LineId:     shopObject.LineId,
+			CId:        userDto.CId,
 		}
 		orderId := utils.GenUUID()
 		orderRow.Id = orderId
 		//代客下单,需要把配送周期保存，方便周期配送
 		orderRow.DeliveryTime = s.CalculateTime(DeliveryObject.GiveDay)
-		orderRow.DeliveryStr = DeliveryObject.GiveTime
 
 		orderRow.CreateBy = userDto.UserId
+
+		e.Orm.Table(orderExtend).Create(&models.OrderExtend{
+			OrderId:     orderRow.Id,
+			Desc:        req.Desc,
+			DeliveryStr: DeliveryObject.GiveTime,
+		})
+
 		e.Orm.Table(orderTableName).Create(orderRow)
 		var orderMoney float64
 		var goodsNumber int
 		for _, spec := range good.Specs {
 			orderMoney += spec.Money
-			goodsNumber++
+			goodsNumber += spec.Number
 			specRow := &models.OrderSpecs{
 				SpecsId: spec.Id,
 				Number:  spec.Number,
@@ -238,7 +243,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 				OrderId: orderRow.Id,
 			}
 			e.Orm.Table(orderTableName).Where("id = ?", orderRow.Id).Updates(map[string]interface{}{
-				"goods_id": spec.GoodsId,
+				"good_id": spec.GoodsId,
 			})
 			e.Orm.Table(specsTable).Create(specRow)
 		}
@@ -353,6 +358,18 @@ func (e Orders) ValidTimeConf(c *gin.Context) {
 	return
 }
 
+func (e Orders) OrderExtendTableName(orderTable string) string {
+	//子表默认名称
+	specsTable := global.SplitOrderExtendSubTableName
+	//判断是否分表了
+	//默认是 orders 表名，如果分表后就是 orders_大BID_时间戳后6位
+
+	if orderTable != global.SplitOrderExtendSubTableName {
+		//拼接位 order_specs_大BID_时间戳后6位
+		specsTable = fmt.Sprintf("%v%v", specsTable, strings.Replace(orderTable, global.SplitOrderExtendSubTableName, "", -1))
+	}
+	return specsTable
+}
 func (e Orders) OrderSpecsTableName(orderTable string) string {
 	//子表默认名称
 	specsTable := global.SplitOrderDefaultSubTableName
@@ -416,11 +433,11 @@ func (e Orders) Insert(c *gin.Context) {
 	data.Enable = true
 	data.Layer = req.Layer
 	data.Status = global.OrderStatusWait
-	data.Desc = req.Desc
+
 	//选择了商家,获取商家关联的路线
 	data.ShopId = req.ShopId
 	var shopObject models2.Shop
-	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ? and enable = ?",req.ShopId,userDto.UserId,true).Limit(1).Find(&shopObject)
+	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ? and enable = ?", req.ShopId, userDto.UserId, true).Limit(1).Find(&shopObject)
 	if shopObject.Id == 0 {
 		e.Error(500, errors.New("暂无商家"), "商家暂无路线")
 		return
@@ -435,13 +452,22 @@ func (e Orders) Insert(c *gin.Context) {
 	data.DeliveryId = DeliveryId
 	data.GoodId = req.GoodsId
 	data.DeliveryTime = delivery_time
-	data.DeliveryStr = deliveryStr
+
 	data.CreateBy = userId
 	createErr := e.Orm.Table(orderTableName).Create(&data).Error
 	if createErr != nil {
 		e.Error(500, createErr, "订单创建失败")
 		return
 	}
+	//扩展表
+
+	orderExtend := e.OrderExtendTableName(orderTableName)
+	e.Orm.Table(orderExtend).Create(&models.OrderExtend{
+		OrderId:     data.Id,
+		Desc:        req.Desc,
+		DeliveryStr: deliveryStr,
+	})
+
 	//分表检测
 	specsTable := e.OrderSpecsTableName(orderTableName)
 
@@ -454,13 +480,14 @@ func (e Orders) Insert(c *gin.Context) {
 			continue
 		}
 		orderMoney += good.Money
-		goodsNumber++
+		goodsNumber += good.Number
 
 		e.Orm.Table(specsTable).Create(&models.OrderSpecs{
 			OrderId: data.Id,
 			SpecsId: good.SpecsId,
 			Status:  global.OrderStatusWait,
 			Money:   good.Money,
+			Number:  good.Number,
 		})
 	}
 

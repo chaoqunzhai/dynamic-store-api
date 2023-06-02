@@ -121,7 +121,8 @@ func (e SplitTableMap) Insert(c *gin.Context) {
 	}
 	nowUnix := fmt.Sprintf("%v", time.Now().Unix())[4:]
 	tableName := ""
-	subTableName :=""
+	subTableName := ""
+
 	switch req.Type {
 	case global.SplitOrder:
 		//订单父表名称
@@ -167,6 +168,16 @@ func (e SplitTableMap) Insert(c *gin.Context) {
 		if createSubErr != nil {
 			e.Orm.Unscoped().Delete(&models.SplitTableMap{}, uid)
 			e.Error(500, createSubErr, fmt.Sprintf("创建子表失败,%s", createSubErr.Error()))
+			return
+		}
+
+		orderExtend := fmt.Sprintf("%v_%v_%v", global.SplitOrderExtendSubTableName, req.CId, nowUnix)
+		ExtendSubRow := models2.OrderExtend{}
+		ExtendOrmObject := e.Orm.Model(&ExtendSubRow).Table(orderExtend)
+		ExtendSubErr := ExtendOrmObject.Migrator().CreateTable(&ExtendSubRow)
+		if ExtendSubErr != nil {
+			e.Orm.Unscoped().Delete(&models.SplitTableMap{}, uid)
+			e.Error(500, ExtendSubErr, fmt.Sprintf("创建扩展表失败,%s", ExtendSubErr.Error()))
 			return
 		}
 	default:

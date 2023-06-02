@@ -9,11 +9,10 @@ type Orders struct {
 
 	Layer        int          `json:"layer" gorm:"type:tinyint;comment:排序"`
 	Enable       bool         `json:"enable" gorm:"type:tinyint(1);comment:开关"`
-	Desc         string       `json:"desc" gorm:"type:varchar(35);comment:描述信息"`
 	CId          int          `json:"c_id" gorm:"type:bigint;comment:大BID"`
 	ShopId       int          `json:"shop_id" gorm:"type:bigint;comment:关联客户"`
 	ClassId      int          `json:"class_id"`
-	LineId       int       `gorm:"index;comment:线路ID"`
+	LineId       int          `gorm:"index;comment:线路ID"`
 	GoodId       int          `gorm:"index;comment:商品ID"`
 	Status       int          `json:"status" gorm:"type:bigint;comment:配送状态"`
 	Money        float64      `json:"money" gorm:"type:double;comment:下单总金额"`
@@ -21,7 +20,6 @@ type Orders struct {
 	Pay          int          `json:"pay" gorm:"type:bigint;comment:支付方式"`
 	DeliveryId   int          `json:"delivery_id" gorm:"type:bigint;comment:配送周期"`
 	DeliveryTime models.XTime `json:"delivery_time"`
-	DeliveryStr  string       `json:"delivery_str" gorm:"type:varchar(14);comment:配送时间"`
 	models.ModelTime
 	models.ControlBy
 }
@@ -59,5 +57,27 @@ func (OrderSpecs) TableName(tableName string) string {
 }
 
 func (e *OrderSpecs) GetId() interface{} {
+	return e.Id
+}
+
+type OrderExtend struct {
+	models.Model
+
+	OrderId     int           `json:"orderId" gorm:"type:bigint(20);comment:关联订单ID"`
+	CreatedAt   models.XTime  `json:"created_at" gorm:"comment:创建时间"`
+	DeletedAt   *models.XTime `json:"-" gorm:"index;comment:删除时间"`
+	DeliveryStr string        `json:"delivery_str" gorm:"type:varchar(14);comment:配送时间"`
+	Desc        string        `json:"desc" gorm:"type:varchar(35);comment:描述信息"`
+}
+
+func (OrderExtend) TableName(tableName string) string {
+	if tableName == "" {
+		return "order_extend"
+	} else {
+		return tableName
+	}
+}
+
+func (e *OrderExtend) GetId() interface{} {
 	return e.Id
 }

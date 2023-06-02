@@ -63,6 +63,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.CycleTimeConf),
 			new(models.Orders),
 			new(models.OrderSpecs),
+			new(models.OrderExtend),
 			new(models.Goods),
 			new(models.GoodsSpecs),
 			new(models.GoodsVip),

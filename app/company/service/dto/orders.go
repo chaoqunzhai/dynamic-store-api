@@ -59,6 +59,7 @@ type OrderGoodsSpecs struct {
 	Name    string  `json:"name" comment:"产品名称"`
 	Spec    string  `json:"spec" comment:"规格"`
 	Money   float64 `json:"money" comment:"金额"`
+	Number  int     `json:"number" comment:"数量"`
 }
 
 func (s *OrdersInsertReq) Generate(model *models.Orders) {
@@ -68,7 +69,7 @@ func (s *OrdersInsertReq) Generate(model *models.Orders) {
 	model.CreateBy = s.CreateBy // 添加这而，需要记录是被谁创建的
 	model.Layer = s.Layer
 	model.Enable = s.Enable
-	model.Desc = s.Desc
+
 	model.ShopId = s.ShopId
 	model.Status = s.Status
 
@@ -123,7 +124,7 @@ func (s *OrdersUpdateReq) Generate(model *models.Orders) {
 	model.UpdateBy = s.UpdateBy // 添加这而，需要记录是被谁更新的
 	model.Layer = s.Layer
 	model.Enable = s.Enable
-	model.Desc = s.Desc
+
 	model.ShopId = s.ShopId
 	model.Status = s.Status
 	model.Money = s.Money
