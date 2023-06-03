@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin/binding"
 	models2 "go-admin/cmd/migrate/migration/models"
+	cDto "go-admin/common/dto"
 	customUser "go-admin/common/jwt/user"
+	"go-admin/global"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -52,6 +55,99 @@ func (e Line) BindShop(c *gin.Context) {
 	return
 }
 
+
+
+func (e Line) UpdateLineBindShopList(c *gin.Context) {
+	req := dto.UpdateLineBindShopReq{}
+	s := service.Line{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	var shopCount int64
+	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?",req.Id,userDto.CId).Count(&shopCount)
+
+	if shopCount == 0 {
+		e.Error(500, nil,"客户不存在")
+		return
+	}
+	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?",req.Id,userDto.CId).Updates(map[string]interface{}{
+		"layer":req.Layer,
+		"enable":req.Enable,
+		"desc":req.Desc,
+		"address":req.Address,
+		"longitude":req.Longitude,
+		"latitude":req.Latitude,
+	})
+	e.OK("successful","successful")
+	return
+}
+func (e Line) LineBindShopList(c *gin.Context) {
+	req := dto.LineBindShopGetPageReq{}
+	s := service.Line{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	//路线下的商户,那就是查询商户数据增加 大B + 路线ID
+	lineId :=c.Param("id")
+	lineIdNumber,_:=strconv.Atoi(lineId)
+	var lineObject models.Line
+	e.Orm.Model(&lineObject).Select("id,name").Where("id = ? and enable = ? and c_id = ?",lineIdNumber,true,userDto.CId).Limit(1).Find(&lineObject)
+	if lineObject.Id == 0{
+		e.Error(500, nil,"路线不存在")
+		return
+	}
+	result :=make([]interface{},0)
+	var list []models2.Shop
+	var count int64
+	e.Orm.Model(&models2.Shop{}).Where("enable = ? and c_id = ? and line_id = ?",true,userDto.UserId,lineIdNumber).
+		Scopes(
+		cDto.MakeCondition(req.GetNeedSearch()),
+		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
+	).Order(global.OrderLayerKey).Find(&list).Limit(-1).Offset(-1).
+		Count(&count)
+	for _,row:=range list{
+		cc:=map[string]interface{}{
+			"name":row.Name,
+			"phone":row.Phone,
+			"address":row.Address,
+			"local":fmt.Sprintf("%v,%v",row.Longitude,row.Latitude),
+			"line_name":lineObject.Name,
+			"id":row.Id,
+			"layer":row.Layer,
+			"created_at":row.CreatedAt.Format("2006-01-02 15:04:05"),
+			"desc":row.Desc,
+		}
+		result = append(result,cc)
+	}
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	return
+
+}
 // GetPage 获取Line列表
 // @Summary 获取Line列表
 // @Description 获取Line列表
@@ -89,27 +185,22 @@ func (e Line) GetPage(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("获取Line失败，\r\n失败信息 %s", err.Error()))
 		return
 	}
+	result := make([]interface{}, 0)
+	for _, row := range list {
+		var driverObject models.Driver
+		e.Orm.Model(&models.Driver{}).Select("name,phone,id").Where("id = ? and enable = ?",row.DriverId,true).Limit(1).Find(&driverObject)
 
-	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
-}
-
-func (e Line) GetTabs(c *gin.Context) {
-	req := dto.LineTabsReq{}
-	s := service.Line{}
-	err := e.MakeContext(c).
-		MakeOrm().
-		Bind(&req).
-		MakeService(&s.Service).
-		Errors
-	if err != nil {
-		e.Logger.Error(err)
-		e.Error(500, err, err.Error())
-		return
+		if driverObject.Id > 0 {
+			row.DriverName = fmt.Sprintf("%v-%v",driverObject.Name,driverObject.Phone)
+		}
+		var shopCount int64
+		e.Orm.Model(&models2.Shop{}).Where("line_id = ? and enable = ?",row.Id,true).Count(&shopCount)
+		row.ShopCount = shopCount
+		result = append(result,row)
 	}
-
-
-
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
+
 // Get 获取Line
 // @Summary 获取Line
 // @Description 获取Line

@@ -53,18 +53,19 @@ type ShopInsertReq struct {
 	Enable    bool    `json:"enable" comment:"开关"`
 	Desc      string  `json:"desc" comment:"描述信息"`
 	UserId    int     `json:"user_id" comment:"管理员ID"`
-	Name      string  `json:"name" comment:"小B名称"`
-	Phone     string  `json:"phone" comment:"联系手机号"`
-	UserName  string  `json:"userName" comment:"小B负责人名称"`
-	Address   string  `json:"address" comment:"小B收货地址"`
-	Longitude int     `json:"longitude" comment:""`
-	Latitude  int     `json:"latitude" comment:""`
+	Name      string  `json:"name" comment:"小B名称" binding:"required"`
+	Phone     string  `json:"phone" comment:"联系手机号" binding:"required"`
+	UserName  string  `json:"username" comment:"小B负责人名称" binding:"required"`
+	Address   string  `json:"address" comment:"小B收货地址" `
+	Longitude float64     `json:"longitude" comment:""`
+	Latitude  float64     `json:"latitude" comment:""`
 	Image     string  `json:"image" comment:"图片"`
 	LineId    int     `json:"line_id" comment:"归属配送路线"`
 	Amount    float64 `json:"amount" comment:"剩余金额"`
 	Integral  int     `json:"integral" comment:"可用积分"`
-	Salesman  int     `json:"salesman" comment:"推荐人"`
-	Tag       []int   `json:"tag" comment:"客户标签"`
+	SalesmanPhone  string     `json:"salesman_phone" comment:"推荐人"`
+	Salesman  int     `json:"-" comment:"推荐人"`
+	Tags       []int   `json:"tags" comment:"客户标签"`
 	common.ControlBy
 }
 
@@ -112,18 +113,19 @@ type ShopUpdateReq struct {
 	Enable    bool    `json:"enable" comment:"开关"`
 	Desc      string  `json:"desc" comment:"描述信息"`
 	UserId    int     `json:"userId" comment:"管理员ID"`
-	Name      string  `json:"name" comment:"小B名称"`
-	Phone     string  `json:"phone" comment:"联系手机号"`
-	UserName  string  `json:"userName" comment:"小B负责人名称"`
+	Name      string  `json:"name" comment:"小B名称" binding:"required"`
+	Phone     string  `json:"phone" comment:"联系手机号" binding:"required"`
+	UserName  string  `json:"username" comment:"小B负责人名称" binding:"required"`
 	Address   string  `json:"address" comment:"小B收货地址"`
-	Longitude int     `json:"longitude" comment:""`
-	Latitude  int     `json:"latitude" comment:""`
+	Longitude float64     `json:"longitude" comment:""`
+	Latitude  float64     `json:"latitude" comment:""`
 	Image     string  `json:"image" comment:"图片"`
 	LineId    int     `json:"line_id" comment:"归属配送路线"`
 	Amount    float64 `json:"amount" comment:"剩余金额"`
 	Integral  int     `json:"integral" comment:"可用积分"`
-	Salesman  int     `json:"salesman" comment:"推荐人"`
-	Tag       []int   `json:"tag" comment:"客户标签"`
+	SalesmanPhone  string     `json:"salesman_phone" comment:"推荐人"`
+	Salesman  int     `json:"-" comment:"推荐人"`
+	Tags       []int   `json:"tags" comment:"客户标签"`
 	common.ControlBy
 }
 

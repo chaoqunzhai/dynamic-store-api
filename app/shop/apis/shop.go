@@ -3,8 +3,10 @@ package apis
 import (
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin/binding"
 	sys "go-admin/app/admin/models"
 	models2 "go-admin/cmd/migrate/migration/models"
+	"go-admin/common/business"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/global"
 
@@ -68,13 +70,28 @@ func (e Shop) GetPage(c *gin.Context) {
 		cache :=row
 		if row.LineId > 0 {
 			var lineRow models2.Line
-			e.Orm.Model(&models2.Line{}).Where("id = ? and enable = ?",row.LineId,true).Limit(1).Find(&lineRow)
+			e.Orm.Model(&models2.Line{}).Select("name,id").Where("id = ? and enable = ?",row.LineId,true).Limit(1).Find(&lineRow)
 			if lineRow.Id > 0 {
-				cache.Line = lineRow.Name
+				cache.LineName = lineRow.Name
 			}
 		}
+		if row.Salesman  > 0 {
+			var userRow sys.SysUser
+			e.Orm.Model(&sys.SysUser{}).Select("username,phone,user_id").Where("user_id = ? and enable = ?",row.Salesman,true).Limit(1).Find(&userRow)
+			if userRow.UserId > 0 {
+				cache.SalesmanUser = userRow.Username
+				cache.SalesmanPhone = userRow.Phone
+			}
+		}
+		cacheTag:=make([]int,0)
+		cacheTagName:=make([]string,0)
+		for _,t:=range row.Tag{
+			cacheTag = append(cacheTag,t.Id)
+			cacheTagName = append(cacheTagName,t.Name)
+		}
+		cache.Tags = cacheTag
+		cache.TagName = cacheTagName
 		result = append(result,cache)
-
 	}
 
 	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
@@ -102,7 +119,11 @@ func (e Shop) Get(c *gin.Context) {
 		return
 	}
 	var object models.Shop
-
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	p := actions.GetPermissionFromContext(c)
 	err = s.Get(&req, p, &object)
 	if err != nil {
@@ -112,22 +133,27 @@ func (e Shop) Get(c *gin.Context) {
 
 	if object.LineId > 0 {
 		var lineRow models2.Line
-		e.Orm.Model(&models2.Line{}).Where("id = ? and enable = ?",object.LineId,true).Limit(1).Find(&lineRow)
+		e.Orm.Model(&models2.Line{}).Select("name,id").Where("id = ? and enable = ?",object.LineId,true).Limit(1).Find(&lineRow)
 		if lineRow.Id > 0 {
-			object.Line = lineRow.Name
+			object.LineName = lineRow.Name
 		}
 	}
 	if object.CreateBy  > 0 {
 		var userRow sys.SysUser
-		e.Orm.Model(&sys.SysUser{}).Where("user_id = ? and enable = ?",object.CreateBy,true).Limit(1).Find(&userRow)
+		e.Orm.Model(&sys.SysUser{}).Select("username,user_id").Where("user_id = ? and enable = ?",object.CreateBy,true).Limit(1).Find(&userRow)
 		if userRow.UserId > 0 {
 			object.CreateUser = userRow.Username
 		}
 	}
-	//下单记录查询
+	cacheTagName:=make([]string,0)
+	for _,t:=range object.Tag{
+		cacheTagName = append(cacheTagName,t.Name)
+	}
+	object.TagName = cacheTagName
 
-	//充值记录查询
-
+	var shopOrderCount int64
+	e.Orm.Table(business.GetTableName(userDto.CId,e.Orm)).Where("shop_id = ?",object.Id).Count(&shopOrderCount)
+	object.OrderCount = shopOrderCount
 
 	e.OK( object, "查询成功")
 }
@@ -147,7 +173,7 @@ func (e Shop) Insert(c *gin.Context) {
     s := service.Shop{}
     err := e.MakeContext(c).
         MakeOrm().
-        Bind(&req).
+		Bind(&req, binding.JSON, nil).
         MakeService(&s.Service).
         Errors
     if err != nil {
@@ -171,11 +197,10 @@ func (e Shop) Insert(c *gin.Context) {
 		return
 	}
 
-	var shopCount int64
-	e.Orm.Model(&models.Shop{}).Where("user_id = ?",req.UserId).Count(&shopCount)
-	if shopCount > 0 {
-		e.Error(500, errors.New("该用户已有管理店铺"), "该用户已有管理店铺")
-		return
+	var userObject sys.SysUser
+	e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? and enable = ?",req.SalesmanPhone,true).Limit(1).Find(&userObject)
+	if userObject.UserId > 0 {
+		req.Salesman = userObject.UserId
 	}
 	err = s.Insert(userDto.CId,&req)
 	if err != nil {
@@ -202,7 +227,7 @@ func (e Shop) Update(c *gin.Context) {
     s := service.Shop{}
     err := e.MakeContext(c).
         MakeOrm().
-        Bind(&req).
+		Bind(&req, binding.JSON, nil).
         MakeService(&s.Service).
         Errors
     if err != nil {
@@ -225,13 +250,18 @@ func (e Shop) Update(c *gin.Context) {
 		return
 	}
 	var oldRow models.Shop
-	e.Orm.Model(&models.Shop{}).Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&oldRow)
+	e.Orm.Model(&models.Shop{}).Select("id").Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&oldRow)
 
 	if oldRow.Id != 0 {
 		if oldRow.Id != req.Id {
 			e.Error(500, errors.New("名称不可重复"), "名称不可重复")
 			return
 		}
+	}
+	var userObject sys.SysUser
+	e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? and enable = ?",req.SalesmanPhone,true).Limit(1).Find(&userObject)
+	if userObject.UserId > 0 {
+		req.Salesman = userObject.UserId
 	}
 	err = s.Update(&req, p)
 	if err != nil {

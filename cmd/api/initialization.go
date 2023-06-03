@@ -384,17 +384,6 @@ func Initialization() {
 			"ParentName": "user",
 		},
 		{
-			"Name":       "/user/detail",
-			"Path":       "/user/detail",
-			"Component":  "@/views/user/Detail",
-			"MetaTitle":  "客户详细",
-			"KeepAlive":  false,
-			"MetaIcon":   "",
-			"Hidden":     true,
-			"ParentName": "user",
-		},
-
-		{
 			"Name":       "/user/tag/index",
 			"Path":       "/user/tag/index",
 			"Component":  "@/views/user/tag/Index",

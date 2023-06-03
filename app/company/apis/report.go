@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	models2 "go-admin/app/company/models"
 	"go-admin/app/shop/models"
+	"go-admin/common/business"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/global"
 )
@@ -89,7 +90,7 @@ func (e Orders) Index(c *gin.Context) {
 		return
 	}
 	//根据选择的日期 + 大B配置的自定义配送时间
-	orderTableName := e.getTableName(userDto.CId)
+	orderTableName := business.GetTableName(userDto.CId,e.Orm)
 	//获取指定天数的订单的商家列表
 	//大B + 选择天数 + 待送 + 有用的单子 +
 	//只聚合查询出，哪些客户=哪些路线  哪些商品=商品的配送

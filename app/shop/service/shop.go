@@ -76,8 +76,8 @@ func (e *Shop) Insert(cid int,c *dto.ShopInsertReq) error {
     c.Generate(&data)
     data.CId = cid
 
-    if len(c.Tag) > 0 {
-		data.Tag = e.getShopTagModels(c.Tag)
+    if len(c.Tags) > 0 {
+		data.Tag = e.getShopTagModels(c.Tags)
 	}
 	err = e.Orm.Create(&data).Error
 	if err != nil {
@@ -97,9 +97,10 @@ func (e *Shop) Update(c *dto.ShopUpdateReq, p *actions.DataPermission) error {
     c.Generate(&data)
 	//清除关联
 	e.Orm.Model(&data).Association("Tag").Clear()
-    if len(c.Tag) > 0 {
+    if len(c.Tags) > 0 {
 		//增加关联
-		data.Tag = e.getShopTagModels(c.Tag)
+    	fmt.Println("标签",c.Tags)
+		data.Tag = e.getShopTagModels(c.Tags)
 	}
 	db := e.Orm.Save(&data)
     if err = db.Error; err != nil {

@@ -107,14 +107,14 @@ func PermissionCompanyRole() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		db.Model(&models.Company{}).Where("id = ? and enable = ?", p.CId, true).First(&companyObject)
+		db.Model(&models.Company{}).Select("id,renewal_time").Where("id = ? and enable = ?", p.CId, true).First(&companyObject)
 		if companyObject.Id == 0 {
-			response.Error(c, 500, errors.New("您的系统已下线"), "您的系统已下线")
+			response.Error(c, 401, errors.New("您的系统已下线"), "您的系统已下线")
 			c.Abort()
 			return
 		}
 		if companyObject.RenewalTime.Before(time.Now()) {
-			response.Error(c, 500, errors.New("账号已到期,请及时续费"), "账号已到期,请及时续费")
+			response.Error(c, 401, errors.New("账号已到期,请及时续费"), "账号已到期,请及时续费")
 			c.Abort()
 			return
 		}

@@ -8,11 +8,12 @@ import (
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 	models2 "go-admin/cmd/migrate/migration/models"
+	"go-admin/common/business"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/common/utils"
 	"go-admin/global"
 	"gorm.io/gorm"
-	"strings"
+
 
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
@@ -24,21 +25,7 @@ type Orders struct {
 	api.Api
 }
 
-func (e Orders) getTableName(cid int) string {
-	//先在split分表中查询
 
-	var splitRow models2.SplitTableMap
-	e.Orm.Model(&models2.SplitTableMap{}).Where("c_id = ? and enable = ? and type = ?", cid, true, global.SplitOrder).Limit(1).Find(&splitRow)
-
-	tableName := ""
-	if splitRow.Id > 0 {
-		tableName = splitRow.Name
-	} else {
-		tableName = global.SplitOrderDefaultTableName
-	}
-
-	return tableName
-}
 
 // GetPage 获取Orders列表
 // @Summary 获取Orders列表
@@ -80,7 +67,7 @@ func (e Orders) GetPage(c *gin.Context) {
 	list := make([]models.Orders, 0)
 	var count int64
 	req.CId = userDto.CId
-	err = s.GetPage(e.getTableName(userDto.CId), &req, p, &list, &count)
+	err = s.GetPage(business.GetTableName(userDto.CId,e.Orm), &req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取订单失败,%s", err.Error()))
 		return
@@ -118,7 +105,7 @@ func (e Orders) Get(c *gin.Context) {
 
 	var object models.Orders
 
-	orderTableName := e.getTableName(userDto.CId)
+	orderTableName := business.GetTableName(userDto.CId,e.Orm)
 	orderErr := e.Orm.Table(orderTableName).First(&object, req.Id).Error
 	if orderErr != nil && errors.Is(orderErr, gorm.ErrRecordNotFound) {
 
@@ -148,7 +135,7 @@ func (e Orders) Get(c *gin.Context) {
 	}
 	var orderSpecs []models.OrderSpecs
 	//是一个分表的名称
-	specsTable := e.OrderSpecsTableName(orderTableName)
+	specsTable := business.OrderSpecsTableName(orderTableName)
 
 	e.Orm.Table(specsTable).Where("order_id = ?", object.Id).Find(&orderSpecs)
 
@@ -186,9 +173,9 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	orderTableName := e.getTableName(userDto.CId)
-	specsTable := e.OrderSpecsTableName(orderTableName)
-	orderExtend := e.OrderExtendTableName(orderTableName)
+	orderTableName := business.GetTableName(userDto.CId,e.Orm)
+	specsTable := business.OrderSpecsTableName(orderTableName)
+	orderExtend := business.OrderExtendTableName(orderTableName)
 	var shopObject models2.Shop
 	e.Orm.Model(&models2.Shop{}).Where("id = ? and enable =? and c_id = ?", req.ShopId, true, userDto.CId).Limit(1).Find(&shopObject)
 	if shopObject.Id == 0 {
@@ -271,8 +258,8 @@ func (e Orders) ToolsOrders(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	orderTableName := e.getTableName(userDto.CId)
-	specsTable := e.OrderSpecsTableName(orderTableName)
+	orderTableName := business.GetTableName(userDto.CId,e.Orm)
+	specsTable := business.OrderSpecsTableName(orderTableName)
 	switch req.Type {
 	case global.OrderToolsActionStatus: //状态更新
 		switch req.Status {
@@ -358,30 +345,6 @@ func (e Orders) ValidTimeConf(c *gin.Context) {
 	return
 }
 
-func (e Orders) OrderExtendTableName(orderTable string) string {
-	//子表默认名称
-	specsTable := global.SplitOrderExtendSubTableName
-	//判断是否分表了
-	//默认是 orders 表名，如果分表后就是 orders_大BID_时间戳后6位
-
-	if orderTable != global.SplitOrderExtendSubTableName {
-		//拼接位 order_specs_大BID_时间戳后6位
-		specsTable = fmt.Sprintf("%v%v", specsTable, strings.Replace(orderTable, global.SplitOrderExtendSubTableName, "", -1))
-	}
-	return specsTable
-}
-func (e Orders) OrderSpecsTableName(orderTable string) string {
-	//子表默认名称
-	specsTable := global.SplitOrderDefaultSubTableName
-	//判断是否分表了
-	//默认是 orders 表名，如果分表后就是 orders_大BID_时间戳后6位
-
-	if orderTable != global.SplitOrderDefaultTableName {
-		//拼接位 order_specs_大BID_时间戳后6位
-		specsTable = fmt.Sprintf("%v%v", specsTable, strings.Replace(orderTable, global.SplitOrderDefaultTableName, "", -1))
-	}
-	return specsTable
-}
 
 // Insert 创建Orders
 // @Summary 创建Orders
@@ -425,7 +388,7 @@ func (e Orders) Insert(c *gin.Context) {
 	}
 	userId := user.GetUserId(c)
 	//todo:获取表名
-	orderTableName := e.getTableName(userDto.CId)
+	orderTableName := business.GetTableName(userDto.CId,e.Orm)
 
 	var data models.Orders
 	data.Id = utils.GenUUID()
@@ -461,7 +424,7 @@ func (e Orders) Insert(c *gin.Context) {
 	}
 	//扩展表
 
-	orderExtend := e.OrderExtendTableName(orderTableName)
+	orderExtend := business.OrderExtendTableName(orderTableName)
 	e.Orm.Table(orderExtend).Create(&models.OrderExtend{
 		OrderId:     data.Id,
 		Desc:        req.Desc,
@@ -469,7 +432,7 @@ func (e Orders) Insert(c *gin.Context) {
 	})
 
 	//分表检测
-	specsTable := e.OrderSpecsTableName(orderTableName)
+	specsTable := business.OrderSpecsTableName(orderTableName)
 
 	var orderMoney float64
 	var goodsNumber int
@@ -529,7 +492,7 @@ func (e Orders) Update(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	err = s.Update(e.getTableName(userDto.CId), &req, p)
+	err = s.Update(business.GetTableName(userDto.CId,e.Orm), &req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("修改Orders失败，\r\n失败信息 %s", err.Error()))
 		return
@@ -566,7 +529,7 @@ func (e Orders) Delete(c *gin.Context) {
 	}
 	p := actions.GetPermissionFromContext(c)
 
-	err = s.Remove(e.getTableName(userDto.CId), &req, p)
+	err = s.Remove(business.GetTableName(userDto.CId,e.Orm), &req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除Orders失败，\r\n失败信息 %s", err.Error()))
 		return

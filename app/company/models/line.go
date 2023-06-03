@@ -13,6 +13,8 @@ type Line struct {
 	CId      int    `json:"cId" gorm:"type:bigint(20);comment:大BID"`
 	Name     string `json:"name" gorm:"type:varchar(16);comment:路线名称"`
 	DriverId int    `json:"driver_id" gorm:"type:bigint(20);comment:关联司机"`
+	DriverName string  `json:"driver_name" gorm:"-"`
+	ShopCount int64 `json:"shop_count" gorm:"-"`
 	models.ModelTime
 	models.ControlBy
 }

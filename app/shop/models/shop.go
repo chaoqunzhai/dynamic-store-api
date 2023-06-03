@@ -14,17 +14,22 @@ type Shop struct {
     Salesman   int       `json:"salesman" gorm:"type:bigint(20);comment:推荐人"`
     Name       string    `json:"name" gorm:"type:varchar(30);comment:小B名称"`
     Phone      string    `json:"phone" gorm:"type:varchar(11);comment:联系手机号"`
-    UserName   string    `json:"userName" gorm:"type:varchar(20);comment:小B负责人名称"`
+    UserName   string    `json:"username" gorm:"type:varchar(20);comment:小B负责人名称"`
     Address    string    `json:"address" gorm:"type:varchar(200);comment:小B收货地址"`
-    Longitude  int       `json:"longitude" gorm:"type:double;comment:Longitude"`
-    Latitude   int       `json:"latitude" gorm:"type:double;comment:Latitude"`
+    Longitude  float64       `json:"longitude" gorm:"type:double;comment:Longitude"`
+    Latitude   float64       `json:"latitude" gorm:"type:double;comment:Latitude"`
     Image      string    `json:"image" gorm:"type:varchar(80);comment:图片"`
-    LineId     int       `json:"-" gorm:"type:bigint(20);comment:归属配送路线"`
+    LineId     int       `json:"line_id" gorm:"type:bigint(20);comment:归属配送路线"`
     CreateUser string    `json:"create_user" gorm:"-"`
-    Line       string    `json:"line" gorm:"-"`
+    SalesmanUser string `json:"salesman_user" gorm:"-"`
+    SalesmanPhone string `json:"salesman_phone" gorm:"-"`
+    LineName       string    `json:"line_name" gorm:"-"`
+    Tags []int `json:"tags" gorm:"-"`
+    TagName []string `json:"tag_name" gorm:"-"`
+    OrderCount int64 `json:"order_count" gorm:"-"`
     Amount     float64   `json:"amount" gorm:"type:double;comment:剩余金额"`
     Integral   int       `json:"integral" gorm:"type:bigint(20);comment:可用积分"`
-    Tag        []ShopTag `json:"tag" gorm:"many2many:shop_mark_tag;foreignKey:id;joinForeignKey:shop_id;references:id;joinReferences:tag_id;"`
+    Tag        []ShopTag `json:"-" gorm:"many2many:shop_mark_tag;foreignKey:id;joinForeignKey:shop_id;references:id;joinReferences:tag_id;"`
     models.ModelTime
     models.ControlBy
 }
