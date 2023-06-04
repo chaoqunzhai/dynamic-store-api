@@ -83,6 +83,13 @@ func (e Shop) GetPage(c *gin.Context) {
 				cache.SalesmanPhone = userRow.Phone
 			}
 		}
+		if row.GradeId > 0 {
+			var gradeRow models2.GradeVip
+			e.Orm.Model(&models2.GradeVip{}).Select("name,id").Where("id = ? and enable = ?",row.GradeId,true).Limit(1).Find(&gradeRow)
+			if gradeRow.Id > 0 {
+				cache.GradeName = gradeRow.Name
+			}
+		}
 		cacheTag:=make([]int,0)
 		cacheTagName:=make([]string,0)
 		for _,t:=range row.Tag{
@@ -304,6 +311,37 @@ func (e Shop) Delete(c *gin.Context) {
 	e.OK( req.GetId(), "删除成功")
 }
 
+func (e Shop)Grade(c *gin.Context)  {
+	req := dto.ShopGradeReq{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var count int64
+	var object models.Shop
+	e.Orm.Model(&models.Shop{}).Select("id").Where("id = ? and c_id = ?",req.ShopId,userDto.CId).First(&object).Count(&count)
+	if count == 0 {
+		e.Error(500, errors.New("客户不存在"), "客户不存在")
+		return
+	}
+
+	e.Orm.Model(&models.Shop{}).Where("id = ?",object.Id).Updates(map[string]interface{}{
+		"grade_id":req.GradeId,
+		"update_by":user.GetUserId(c),
+	})
+	e.OK("","successful")
+	return
+}
 func (e Shop)Amount(c *gin.Context)  {
 	req := dto.ShopAmountReq{}
 	err := e.MakeContext(c).
@@ -320,40 +358,49 @@ func (e Shop)Amount(c *gin.Context)  {
 		e.Error(500, err, err.Error())
 		return
 	}
-
+	if req.Value < 0 {
+		e.Error(500, nil,"不可为负数")
+		return
+	}
 
 	var count int64
 	var object models.Shop
-	e.Orm.Model(&models.Shop{}).Where("id = ?",req.ShopId).First(&object).Count(&count)
+	e.Orm.Model(&models.Shop{}).Select("amount,id").Where("id = ? and c_id = ?",req.ShopId,userDto.CId).First(&object).Count(&count)
 	if count == 0 {
 		e.Error(500, errors.New("客户不存在"), "客户不存在")
 		return
 	}
 	Scene:=""
-	switch req.Action {
+	switch req.Mode {
 	case global.UserNumberAdd:
-		object.Amount += req.Number
-		Scene = fmt.Sprintf("手动增加%v元",req.Number)
+		object.Amount += req.Value
+		Scene = fmt.Sprintf("手动增加%v元",req.Value)
 	case global.UserNumberReduce:
-		if req.Number > object.Amount {
+		if req.Value > object.Amount {
 			e.Error(500, errors.New("数值非法"), "数值非法")
 			return
 		}
-		object.Amount -=req.Number
-		Scene = fmt.Sprintf("手动减少%v元",req.Number)
+		object.Amount -=req.Value
+		Scene = fmt.Sprintf("手动减少%v元",req.Value)
 	case global.UserNumberSet:
-		object.Amount = req.Number
-		Scene = fmt.Sprintf("手动设置为%v元",req.Number)
+		object.Amount = req.Value
+		Scene = fmt.Sprintf("手动设置为%v元",req.Value)
+	default:
+		e.Error(500, nil,"操作不合法")
+		return
 	}
-	object.UpdateBy = user.GetUserId(c)
-	e.Orm.Save(&object)
+	e.Orm.Model(&models.Shop{}).Where("id = ?",object.Id).Updates(map[string]interface{}{
+		"amount":object.Amount,
+		"update_by":user.GetUserId(c),
+	})
 	row:=models.ShopBalanceLog{
 		CId: userDto.CId,
 		ShopId: req.ShopId,
 		Desc: req.Desc,
-		Money: req.Number,
-		Scene:Scene,
-		Action: req.Action,
+		Money: req.Value,
+		Scene:fmt.Sprintf("后台管理员[%v] %v",userDto.Username,Scene),
+		Action: req.Mode,
+		Type: global.ScanAdmin,
 	}
 	row.CreateBy = user.GetUserId(c)
 	e.Orm.Create(&row)
@@ -371,7 +418,10 @@ func (e Shop)Integral(c *gin.Context)  {
 		e.Error(500, err, err.Error())
 		return
 	}
-
+	if req.Value < 0 {
+		e.Error(500, nil,"不可为负数")
+		return
+	}
 	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {
 		e.Error(500, err, err.Error())
@@ -379,37 +429,42 @@ func (e Shop)Integral(c *gin.Context)  {
 	}
 	var count int64
 	var object models.Shop
-	e.Orm.Model(&models.Shop{}).Where("id = ?",req.ShopId).First(&object).Count(&count)
+	e.Orm.Model(&models.Shop{}).Select("integral,id").Where("id = ? and c_id = ?",req.ShopId,userDto.CId).First(&object).Count(&count)
 	if count == 0 {
 		e.Error(500, errors.New("客户不存在"), "客户不存在")
 		return
 	}
 	Scene:=""
-	switch req.Action {
+	switch req.Mode {
 	case global.UserNumberAdd:
-		object.Integral += req.Number
-		Scene = fmt.Sprintf("手动增加%v个积分",req.Number)
+		object.Integral += req.Value
+		Scene = fmt.Sprintf("手动增加%v个积分",req.Value)
 	case global.UserNumberReduce:
-		if req.Number > object.Integral {
+		if req.Value > object.Integral {
 			e.Error(500, errors.New("数值非法"), "数值非法")
 			return
 		}
-		object.Integral -=req.Number
-		Scene = fmt.Sprintf("手动减少%v个积分",req.Number)
+		object.Integral -=req.Value
+		Scene = fmt.Sprintf("手动减少%v个积分",req.Value)
 	case global.UserNumberSet:
-		object.Integral = req.Number
-		Scene = fmt.Sprintf("手动积分设置为%v",req.Number)
-
+		object.Integral = req.Value
+		Scene = fmt.Sprintf("手动积分设置为%v",req.Value)
+	default:
+		e.Error(500, nil,"操作不合法")
+		return
 	}
-	object.UpdateBy = user.GetUserId(c)
-	e.Orm.Save(&object)
+	e.Orm.Model(&models.Shop{}).Where("id = ?",object.Id).Updates(map[string]interface{}{
+		"integral":object.Integral,
+		"update_by":user.GetUserId(c),
+	})
 	row:=models.ShopIntegralLog{
 		CId: userDto.CId,
 		ShopId: req.ShopId,
 		Desc: req.Desc,
-		Number: req.Number,
-		Scene:Scene,
-		Action: req.Action,
+		Number: req.Value,
+		Scene:fmt.Sprintf("后台管理员[%v] %v",userDto.Username,Scene),
+		Action: req.Mode,
+		Type: global.ScanAdmin,
 	}
 	row.CreateBy = user.GetUserId(c)
 	e.Orm.Create(&row)
@@ -456,17 +511,15 @@ func (e Shop) GetLine(c *gin.Context) {
 		result["driver_name"] = driverObject.Name
 		result["driver_phone"] = driverObject.Phone
 	}
-	var extendUser models2.ExtendUser
-	e.Orm.Model(&models2.ExtendUser{}).Where("id = ? and enable = ?",object.UserId,true).Limit(1).Find(&extendUser)
-	if extendUser.Id  > 0 {
-
+	if object.GradeId  > 0 {
 		var gradeVip models2.GradeVip
-		e.Orm.Model(&models2.GradeVip{}).Where("id = ? and enable = ?",extendUser.GradeId,true).Limit(1).Find(&gradeVip)
+		e.Orm.Model(&models2.GradeVip{}).Where("id = ? and enable = ?",object.GradeId,true).Limit(1).Find(&gradeVip)
 		if gradeVip.Id  > 0 {
 			result["grade"] = gradeVip.Name
 		}
 
 	}
+
 	e.OK(result,"successful")
 	return
 

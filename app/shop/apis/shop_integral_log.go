@@ -2,6 +2,8 @@ package apis
 
 import (
     "fmt"
+	customUser "go-admin/common/jwt/user"
+	"go-admin/global"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -51,8 +53,48 @@ func (e ShopIntegralLog) GetPage(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("获取ShopIntegralLog失败，\r\n失败信息 %s", err.Error()))
         return
 	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	shopMapCache:=make(map[int]bool,0)
+	shopList:=make([]int,0)
+	for _,row:=range list{
+		ok:=shopMapCache[row.ShopId]
+		if !ok {
+			shopList = append(shopList,row.ShopId)
+			shopMapCache[row.ShopId] = true
+		}
+	}
 
-	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	var shopObject []models.Shop
+	e.Orm.Model(&models.Shop{}).Select("name,id").Where("id in ? and c_id = ?",shopList,userDto.CId).Limit(1).Find(&shopObject)
+	shopRowMap:=make(map[int]string,0)
+	for _,row:=range shopObject{
+		shopRowMap[row.Id] = row.Name
+	}
+
+	result :=make([]interface{},0)
+	//聚合下shop,防止多次查询
+	for _,row:=range list{
+
+		r:=map[string]interface{}{
+			"id":row.Id,
+			"number":row.Number,
+			"desc":row.Desc,
+			"scene":row.Scene,
+			"created_at":row.CreatedAt,
+			"type":global.GetScanStr(row.Type),
+		}
+		if row.ShopId > 0 {
+			if shopName,ok:=shopRowMap[row.ShopId];ok{
+				r["shop_name"] = shopName
+			}
+		}
+		result = append(result,r)
+	}
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
 // Get 获取ShopIntegralLog

@@ -97,15 +97,20 @@ func (s *ShopInsertReq) GetId() interface{} {
 
 type ShopIntegralReq struct {
 	ShopId int    `json:"shop_id" `
-	Number int    `json:"number" `
+	Value int    `json:"value" `
 	Desc   string `json:"desc" `
-	Action string `json:"action"`
+	Mode string `json:"mode"`
 }
 type ShopAmountReq struct {
 	ShopId int     `json:"shop_id" `
-	Number float64 `json:"number" `
+	Value float64    `json:"value" `
 	Desc   string  `json:"desc" `
-	Action string  `json:"action"`
+	Mode string `json:"mode"`
+}
+
+type ShopGradeReq struct {
+	ShopId int     `json:"shop_id" `
+	GradeId int    `json:"grade_id" `
 }
 type ShopUpdateReq struct {
 	Id        int     `uri:"id" comment:"主键编码"` // 主键编码

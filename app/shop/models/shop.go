@@ -20,16 +20,21 @@ type Shop struct {
     Latitude   float64       `json:"latitude" gorm:"type:double;comment:Latitude"`
     Image      string    `json:"image" gorm:"type:varchar(80);comment:图片"`
     LineId     int       `json:"line_id" gorm:"type:bigint(20);comment:归属配送路线"`
+    GradeId   int    `gorm:"index;comment:会员等级"`
+    Platform  string `json:"platform" gorm:"size:10;comment:注册来源"`
+    SuggestId int    `gorm:"index;comment:推荐人ID"`
+    Amount     float64   `json:"amount" gorm:"type:double;comment:剩余金额"`
+    Integral   int       `json:"integral" gorm:"type:bigint(20);comment:可用积分"`
+    Tag        []ShopTag `json:"-" gorm:"many2many:shop_mark_tag;foreignKey:id;joinForeignKey:shop_id;references:id;joinReferences:tag_id;"`
+
     CreateUser string    `json:"create_user" gorm:"-"`
     SalesmanUser string `json:"salesman_user" gorm:"-"`
     SalesmanPhone string `json:"salesman_phone" gorm:"-"`
     LineName       string    `json:"line_name" gorm:"-"`
+    GradeName string `json:"grade_name" gorm:"-"`
     Tags []int `json:"tags" gorm:"-"`
     TagName []string `json:"tag_name" gorm:"-"`
     OrderCount int64 `json:"order_count" gorm:"-"`
-    Amount     float64   `json:"amount" gorm:"type:double;comment:剩余金额"`
-    Integral   int       `json:"integral" gorm:"type:bigint(20);comment:可用积分"`
-    Tag        []ShopTag `json:"-" gorm:"many2many:shop_mark_tag;foreignKey:id;joinForeignKey:shop_id;references:id;joinReferences:tag_id;"`
     models.ModelTime
     models.ControlBy
 }

@@ -26,7 +26,7 @@ func (e *ShopIntegralLog) GetPage(c *dto.ShopIntegralLogGetPageReq, p *actions.D
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
-		).
+		).Order("created_at desc").
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {

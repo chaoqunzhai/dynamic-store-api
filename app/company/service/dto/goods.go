@@ -49,7 +49,7 @@ type GoodsInsertReq struct {
     Layer int `json:"layer" comment:"排序"`
     Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"商品详情"`
-    Name string `json:"name" comment:"商品名称"`
+    Name string `json:"name" comment:"商品名称" binding:"required"`
     Subtitle string `json:"subtitle" comment:"副标题"`
     Image []string `json:"image" comment:"商品图片路径"`
     Quota bool `json:"quota" comment:"是否限购"`
@@ -126,7 +126,7 @@ type GoodsUpdateReq struct {
     Layer int `json:"layer" comment:"排序"`
     Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"商品详情"`
-    Name string `json:"name" comment:"商品名称"`
+    Name string `json:"name" comment:"商品名称" binding:"required"`
     Subtitle string `json:"subtitle" comment:"副标题"`
     Image []string `json:"image" comment:"商品图片路径"`
     Quota bool `json:"quota" comment:"是否限购"`

@@ -28,6 +28,9 @@ type Shop struct {
 	LineId   int       `gorm:"index;comment:归属配送路线"`
 	Amount   float64   `gorm:"comment:剩余金额"`
 	Integral int       `gorm:"comment:可用积分"`
+	GradeId   int    `gorm:"index;comment:会员等级"`
+	Platform  string `json:"platform" gorm:"size:10;comment:注册来源"`
+	SuggestId int    `gorm:"index;comment:推荐人ID"`
 }
 
 func (Shop) TableName() string {
@@ -65,6 +68,7 @@ type ShopBalanceLog struct {
 	Money     float64        `gorm:"comment:变动金额"`
 	Scene     string         ` gorm:"size:30;comment:变动场景"`
 	Desc string   ` gorm:"size:50;comment:描述/说明"`
+	Type int `gorm:"type:tinyint(1);default:1;index;comment:操作类型"`
 }
 
 func (ShopBalanceLog) TableName() string {
@@ -84,6 +88,7 @@ type ShopIntegralLog struct {
 	Number     float64        `gorm:"comment:积分变动数值"`
 	Scene     string         ` gorm:"size:30;comment:变动场景"`
 	Desc string   ` gorm:"size:50;comment:描述/说明"`
+	Type int `gorm:"type:tinyint(1);default:1;index;comment:操作类型"`
 }
 
 func (ShopIntegralLog) TableName() string {

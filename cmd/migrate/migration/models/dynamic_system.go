@@ -24,9 +24,6 @@ func (DyNamicMenu) TableName() string {
 type ExtendUser struct {
 	BigBRichGlobal
 	UserId    int    `gorm:"index;comment:用户ID"`
-	Platform  string `json:"platform" gorm:"size:12;comment:注册来源"`
-	GradeId   int    `gorm:"index;comment:会员等级"`
-	SuggestId int    `gorm:"index;comment:推荐人ID"`
 }
 
 func (ExtendUser) TableName() string {

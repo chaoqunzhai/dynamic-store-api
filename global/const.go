@@ -61,8 +61,29 @@ const (
 
 	OrderToolsActionStatus   = 1
 	OrderToolsActionDelivery = 2
+
+	ScanAdmin = 1 //管理员操作
+	ScanShopRecharge = 2 //用户充值
+	ScanShopUse = 3 //用户消费
+	ScanShopRefund = 4 //用户退款
 )
 
+func GetScanStr(v int)  string {
+	switch v {
+	case ScanAdmin:
+		return "管理员操作"
+	case ScanShopRecharge:
+		return "用户充值"
+	case ScanShopUse:
+		return "用户消费"
+	case ScanShopRefund:
+		return "用用户退款户充值"
+
+	}
+
+	return ""
+
+}
 func GetCouponType(v int) string {
 	switch v {
 	case CouponTypeFd:

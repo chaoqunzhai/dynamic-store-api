@@ -16,7 +16,7 @@ func init() {
 // registerExtendUserRouter
 func registerExtendUserRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
 	api := apis.ExtendUser{}
-	r := v1.Group("/user-grade").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
+	r := v1.Group("/user-extend").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
 		r.GET("", api.GetPage)
 		r.GET("/:id", api.Get)
