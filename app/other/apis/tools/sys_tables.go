@@ -309,7 +309,7 @@ func genTableInit(tx *gorm.DB, tablesList []string, i int, c *gin.Context) (tool
 // @Security Bearer
 func (e SysTable) Update(c *gin.Context) {
 	var data tools.SysTables
-	err := c.Bind(&data)
+	err := c.BindJSON(&data)
 	pkg.HasError(err, "数据解析失败", 500)
 
 	e.Context = c

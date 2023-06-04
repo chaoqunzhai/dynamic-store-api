@@ -27,6 +27,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.statistics",
 			"Hidden":     false,
 			"ParentName": "",
+			"Layer":95,
 		},
 		{
 			"Name":       "setting",
@@ -37,6 +38,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.setting",
 			"Hidden":     false,
 			"ParentName": "",
+			"Layer":90,
 		},
 		{
 			"Name":       "store",
@@ -47,6 +49,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.shop",
 			"Hidden":     false,
 			"ParentName": "",
+			"Layer":93,
 		},
 		{
 			"Name":       "/store/page",
@@ -77,6 +80,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.line",
 			"Hidden":     false,
 			"ParentName": "",
+			"Layer":94,
 		},
 		{
 			"Name":       "/line/index",
@@ -149,6 +153,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.market",
 			"Hidden":     false,
 			"ParentName": "",
+			"Layer":92,
 		},
 		{
 			"Name":       "/market/coupon",
@@ -212,6 +217,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.home",
 			"Hidden":     false,
 			"ParentName": "",
+			"Layer":100,
 		},
 		{
 			"Name":       "report",
@@ -222,6 +228,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.give",
 			"Hidden":     false,
 			"ParentName": "",
+			"Layer":99,
 		},
 		{
 			"Name":       "order",
@@ -232,6 +239,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.order",
 			"Hidden":     false,
 			"ParentName": "",
+			"Layer":98,
 		},
 		{
 			"Name":       "/order/index",
@@ -272,6 +280,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.goods",
 			"Hidden":     false,
 			"ParentName": "",
+			"Layer":97,
 		},
 		{
 			"Name":       "/goods/index",
@@ -372,6 +381,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.user",
 			"Hidden":     false,
 			"ParentName": "",
+			"Layer":96,
 		},
 		{
 			"Name":       "/user/index",
@@ -492,6 +502,7 @@ func Initialization() {
 			"MetaIcon":   "",
 			"Hidden":     false,
 			"ParentName": "",
+			"Layer":91,
 		},
 		{
 			"Name":       "/manage/user/index",
@@ -540,7 +551,7 @@ func Initialization() {
 
 			KeepAlive, _ := strconv.ParseBool(fmt.Sprintf("%v", row["KeepAlive"]))
 			hidden, _ := strconv.ParseBool(fmt.Sprintf("%v", row["Hidden"]))
-
+			LayerInt,_:=strconv.Atoi(fmt.Sprintf("%v", row["Layer"]))
 			rows := &models.DyNamicMenu{
 				Name:      fmt.Sprintf("%v", row["Name"]),
 				Path:      fmt.Sprintf("%v", row["Path"]),
@@ -550,6 +561,8 @@ func Initialization() {
 				MetaIcon:  fmt.Sprintf("%v", row["MetaIcon"]),
 				Hidden:    hidden,
 				Role:      "admin,company",
+				Enable: true,
+				Layer:LayerInt,
 			}
 
 			if ParentName != "" {

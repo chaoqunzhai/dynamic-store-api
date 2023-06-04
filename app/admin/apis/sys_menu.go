@@ -9,6 +9,7 @@ import (
 	"go-admin/app/admin/service"
 	"go-admin/app/admin/service/dto"
 	models2 "go-admin/cmd/migrate/migration/models"
+	"sort"
 )
 
 type SysMenu struct {
@@ -183,34 +184,10 @@ type MenuRow struct {
 	MetaIcon  string    `json:"icon"`
 	Hidden    bool      `json:"hidden"`
 	KeepAlive bool      `json:"keep_alive"`
+	Layer int
 	Children  []MenuRow `json:"children"`
 }
 
-func menuCall(menuList []MenuRow, menu MenuRow) MenuRow {
-	list := menuList
-
-	min := make([]MenuRow, 0)
-	for j := 0; j < len(list); j++ {
-
-		if menu.Id != list[j].ParentId {
-			continue
-		}
-		mi := MenuRow{}
-
-		mi.Path = list[j].Path
-
-		mi.ParentId = list[j].ParentId
-
-		mi.Component = list[j].Component
-
-		mi.Children = []MenuRow{}
-
-		ms := menuCall(menuList, mi)
-		min = append(min, ms)
-	}
-	menu.Children = min
-	return menu
-}
 
 func getParentAll(parent int, rr MenuRow, data map[int]MenuRow) map[int]MenuRow {
 
@@ -269,7 +246,7 @@ func (e SysMenu) GetMenuRole(c *gin.Context) {
 		return
 	}
 	var menu = make([]models2.DyNamicMenu, 0)
-	e.Orm.Model(&models2.DyNamicMenu{}).Find(&menu).Order("parent_id asc")
+	e.Orm.Model(&models2.DyNamicMenu{}).Where("enable = ?",true).Order("layer desc").Find(&menu)
 	cacheMap := make(map[int]MenuRow, 0)
 
 	result := make([]MenuRow, 0)
@@ -285,6 +262,7 @@ func (e SysMenu) GetMenuRole(c *gin.Context) {
 			MetaTitle: row.MetaTitle,
 			Component: row.Component,
 			Children:  make([]MenuRow, 0),
+			Layer: row.Layer,
 		}
 		////统计下
 		if row.ParentId > 0 {
@@ -303,10 +281,21 @@ func (e SysMenu) GetMenuRole(c *gin.Context) {
 			cacheMap[row.Id] = r
 		}
 	}
-
-	for _, row := range cacheMap {
-		result = append(result, row)
+	layerList :=make([]int,0)
+	for _,row :=range cacheMap{
+		layerList = append(layerList,row.Layer)
 	}
+	sort.Slice(layerList, func(i, j int) bool {
+		return layerList[i] > layerList[j]
+	})
+	for _,k:=range layerList{
+		for _, row := range cacheMap {
+			if row.Layer == k{
+				result = append(result, row)
+			}
+		}
+	}
+
 	e.OK(result, "")
 }
 

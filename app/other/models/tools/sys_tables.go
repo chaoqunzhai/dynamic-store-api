@@ -2,9 +2,8 @@ package tools
 
 import (
 	common "go-admin/common/models"
-	"strings"
-
 	"gorm.io/gorm"
+	"strings"
 
 	"go-admin/app/admin/models"
 )
@@ -38,7 +37,7 @@ type SysTables struct {
 	IsLogicalDelete     string `gorm:"size:1;" json:"isLogicalDelete"`
 	LogicalDelete       bool   `gorm:"size:1;" json:"logicalDelete"`
 	LogicalDeleteColumn string `gorm:"size:128;" json:"logicalDeleteColumn"`
-	common.ModelTime
+
 	common.ControlBy
 	DataScope string       `gorm:"-" json:"dataScope"`
 	Params    Params       `gorm:"-" json:"params"`

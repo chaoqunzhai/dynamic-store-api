@@ -5,6 +5,8 @@ import "time"
 type DyNamicMenu struct {
 	Model
 	ModelTime
+	Layer  int    `gorm:"size:1;index;comment:排序"` //排序
+	Enable bool   `gorm:"comment:开关"`
 	Role      string `gorm:"size:20;comment:哪个角色菜单"`
 	Name      string `gorm:"size:30;comment:英文名称"`
 	Path      string `gorm:"size:30;comment:路径,也是权限名称"`
@@ -14,6 +16,7 @@ type DyNamicMenu struct {
 	Hidden    bool   `gorm:"comment:是否隐藏"`
 	KeepAlive bool   `gorm:"comment:是否缓存"`
 	Component string `gorm:"size:50;comment:import路径"`
+
 }
 
 func (DyNamicMenu) TableName() string {
