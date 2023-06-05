@@ -94,9 +94,11 @@ func (e *CompanyRole) Insert(cId int, c *dto.CompanyRoleInsertReq) error {
 	if len(c.Menus) > 0 {
 		data.SysMenu = e.getMenuModels(c.Menus)
 	}
-	if len(c.User) > 0 {
-		data.SysUser = e.getUserModels(c.User)
-	}
+	//关闭用户的这个直接关联，在管理员中关联
+	//if len(c.User) > 0 {
+	//	data.SysUser = e.getUserModels(c.User)
+	//}
+
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("角色创建失败", err)
@@ -117,10 +119,10 @@ func (e *CompanyRole) Update(c *dto.CompanyRoleUpdateReq, p *actions.DataPermiss
 	if len(c.Menus) > 0 {
 		data.SysMenu = e.getMenuModels(c.Menus)
 	}
-	e.Orm.Model(&data).Association("SysUser").Clear()
-	if len(c.User) > 0 {
-		data.SysUser = e.getUserModels(c.User)
-	}
+	//e.Orm.Model(&data).Association("SysUser").Clear()
+	//if len(c.User) > 0 {
+	//	data.SysUser = e.getUserModels(c.User)
+	//}
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("CompanyRoleService Save error:%s \r\n", err)

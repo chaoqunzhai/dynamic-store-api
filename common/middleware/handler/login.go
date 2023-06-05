@@ -3,6 +3,7 @@ package handler
 import (
 	log "github.com/go-admin-team/go-admin-core/logger"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg"
+	"go-admin/global"
 	"gorm.io/gorm"
 )
 
@@ -15,7 +16,8 @@ type Login struct {
 }
 
 func (u *Login) GetUserPhone(tx *gorm.DB) (user SysUser, role SysRole, err error) {
-	err = tx.Table("sys_user").Where("phone = ?  and status = '2'", u.Phone).First(&user).Error
+	err = tx.Table("sys_user").Where("phone = ?  and status = ? and enable = ?",
+		u.Phone, global.SysUserSuccess, true).First(&user).Error
 	if err != nil {
 		log.Errorf("get user error, %s", err.Error())
 		return

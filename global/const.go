@@ -8,8 +8,12 @@ const (
 	RoleShop    = 82 //小B
 	RoleUser    = 83 //用户
 
-	Super   = "admin"
-	Company = "company"
+	//用户关闭的
+	SysUserDisable = 1
+	//用户是开启的
+	SysUserSuccess = 2
+	Super          = "admin"
+	Company        = "company"
 
 	//大B资源限制
 	CompanyMaxRole       = 10 //大B最多可以设置10个角色

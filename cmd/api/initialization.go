@@ -546,7 +546,7 @@ func Initialization() {
 			"Name":       "/manage/user/index",
 			"Path":       "/manage/user/index",
 			"Component":  "@/views/manage/user/Index",
-			"MetaTitle":  "管理员列表",
+			"MetaTitle":  "用户列表",
 			"KeepAlive":  false,
 			"MetaIcon":   "",
 			"Hidden":     false,

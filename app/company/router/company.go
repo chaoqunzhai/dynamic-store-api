@@ -25,9 +25,18 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.GET("/cnf", api.Cnf)
 		//r.GET("/home", api.MonitorData)
 		r.GET("/home", api.Demo)
-
 	}
-
+	//大B用户管理
+	{
+		//用户列表
+		r.GET("/user/list", api.List)
+		//更新用户信息
+		r.PUT("/user/:id", api.UpdateUser)
+		//对用户进行下线,大B看不到了,但是超管还是可以看到的,更新用户的enable
+		r.POST("/user/offline", api.Offline)
+		//增加用户
+		r.POST("/user/add", api.CreateUser)
+	}
 	//只有超管有权限
 	r2 := v1.Group("/company").Use(authMiddleware.MiddlewareFunc()).
 		Use(middleware.AuthCheckRole()).Use(actions.PermissionSuperRole())

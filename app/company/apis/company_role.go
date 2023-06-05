@@ -73,6 +73,7 @@ func (e CompanyRole) GetPage(c *gin.Context) {
 			"created_at": row.CreatedAt,
 			"user_count": len(row.SysUser),
 			"menuIds":    menuIds,
+			"enable":     row.Enable,
 		}
 		result = append(result, r)
 	}
