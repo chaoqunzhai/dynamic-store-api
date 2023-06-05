@@ -1,19 +1,18 @@
 package global
 
 const (
-	SysName     = "动创云订货配送"
-	Describe    = "致力于解决订货渠道"
-	RoleSuper   = 80 //超管
-	RoleCompany = 81 //大B
-	RoleShop    = 82 //小B
-	RoleUser    = 83 //用户
+	SysName         = "动创云订货配送"
+	Describe        = "致力于解决订货渠道"
+	RoleSuper       = 80 //超管
+	RoleCompany     = 81 //大B
+	RoleCompanyUser = 82 //大B下用户
+	RoleShop        = 83 //小B
+	RoleUser        = 84 //用户
 
 	//用户关闭的
 	SysUserDisable = 1
 	//用户是开启的
 	SysUserSuccess = 2
-	Super          = "admin"
-	Company        = "company"
 
 	//大B资源限制
 	CompanyMaxRole       = 10 //大B最多可以设置10个角色

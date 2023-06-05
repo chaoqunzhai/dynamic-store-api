@@ -30,7 +30,7 @@ type UpdateReq struct {
 	Id       int    `uri:"id" comment:"主键编码"` // 主键编码
 	Layer    int    `json:"layer" comment:"排序"`
 	RoleId   int    `json:"role_id"`
-	Status   int    `json:"status" comment:"用户状态"`
+	Status   string `json:"status" comment:"用户状态"`
 	UserName string `json:"username" comment:"用户名称" binding:"required"`
 	Phone    string `json:"phone" comment:"手机号"`
 	PassWord string `json:"password" comment:"密码" binding:"required"`
@@ -184,7 +184,6 @@ func (e Company) UpdateUser(c *gin.Context) {
 		"layer":    req.Layer,
 		"status":   req.Status,
 	}
-
 	var runSql string
 	//更新第三张表角色ID
 	if req.RoleId > 0 {
@@ -251,10 +250,10 @@ func (e Company) CreateUser(c *gin.Context) {
 		Username: req.UserName,
 		Phone:    req.Phone,
 		Enable:   true,
-		Status:   fmt.Sprintf("%v", req.Status),
+		Status:   req.Status,
 		Password: req.PassWord,
 		CId:      userDto.CId,
-		RoleId:   global.RoleShop,
+		RoleId:   global.RoleCompanyUser,
 		Layer:    req.Layer,
 	}
 	userObject.CreateBy = userDto.UserId

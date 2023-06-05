@@ -1,11 +1,13 @@
 package apis
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin/binding"
 	"go-admin/app/admin/models"
 	"go-admin/global"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -400,7 +402,6 @@ func (e SysUser) GetProfile(c *gin.Context) {
 	}, "查询成功")
 }
 
-
 // GetInfo
 // @Summary 获取个人信息
 // @Description 获取JSON
@@ -481,7 +482,8 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 
 	var mp = make(map[string]interface{})
 	sysUser := models.SysUser{}
-	req.Id = user.GetUserId(c)
+	userID := user.GetUserId(c)
+	req.Id = userID
 	err = s.Get(&req, p, &sysUser)
 	if err != nil {
 		e.Error(http.StatusUnauthorized, err, "登录失败")
@@ -506,17 +508,26 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 	}
 	super := false
 	//超管是获取所有的菜单的
-	switch user.GetRoleName(c) {
-	case global.Super:
+	ClaimsData := user.ExtractClaims(c)
+	dataScope := 0
+	if ClaimsData["datascope"] != nil {
+
+		dataScope, _ = strconv.Atoi(fmt.Sprintf("%v", ClaimsData["datascope"]))
+	}
+
+	switch dataScope {
+	case global.RoleSuper:
 		//超管
 		super = true
 		rolesMap["permissionList"] = make([]string, 0)
-	case global.Company:
-		super = true
+	case global.RoleCompany:
 		//大B,这里的菜单最好还是跟超管的区分的
 		rolesMap["permissionList"] = r.GetCustomById(user.GetUserId(c))
+	case global.RoleCompanyUser:
+		rolesMap["permissionList"] = r.GetCustomById(user.GetUserId(c))
 	default:
-		super = false
+		e.OK("", "您没有权限")
+		return
 
 	}
 	userInfo["isSuper"] = super

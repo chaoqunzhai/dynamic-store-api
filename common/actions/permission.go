@@ -22,6 +22,7 @@ type DataPermission struct {
 	Enable    bool
 	CId       int
 }
+
 func PermissionSuperRole() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		db, err := pkg.GetOrm(c)
@@ -59,11 +60,15 @@ func PermissionSuperRole() gin.HandlerFunc {
 			return
 		}
 
-
 		c.Set(PermissionKey, p)
 		c.Next()
 	}
 }
+func init() {
+
+}
+
+//大B的权限
 func PermissionCompanyRole() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		db, err := pkg.GetOrm(c)
@@ -95,7 +100,12 @@ func PermissionCompanyRole() gin.HandlerFunc {
 			return
 		}
 		//权限校验
-		if p.DataScope > global.RoleShop {
+		if p.DataScope == 0 {
+			response.Error(c, 401, errors.New("您没有权限访问"), "您没有权限访问")
+			c.Abort()
+			return
+		}
+		if p.DataScope == global.RoleShop || p.DataScope == global.RoleUser {
 			response.Error(c, 401, errors.New("您没有权限访问"), "您没有权限访问")
 			c.Abort()
 			return
