@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/global"
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -22,20 +23,20 @@ type Goods struct {
 	api.Api
 }
 
-
 type ClassData struct {
-	ClassId int  `json:"class_id" `
-	ClassName string `json:"class_name" `
-	GoodsList []specsRow  `json:"goods_list" `
+	ClassId   int        `json:"class_id" `
+	ClassName string     `json:"class_name" `
+	GoodsList []specsRow `json:"goods_list" `
 }
 
 type specsRow struct {
-	GoodsId int `json:"goods_id" `
-	Money  float64 `json:"money" `
-	Unit string  `json:"unit" `
-	Name string  `json:"name" `
-	Inventory int `json:"inventory" ` //库存
+	GoodsId   int     `json:"goods_id" `
+	Money     float64 `json:"money" `
+	Unit      string  `json:"unit" `
+	Name      string  `json:"name" `
+	Inventory int     `json:"inventory" ` //库存
 }
+
 func (e Goods) ClassSpecs(c *gin.Context) {
 
 	err := e.MakeContext(c).
@@ -52,33 +53,34 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 		return
 	}
 	var goods []models.Goods
-	e.Orm.Model(&models.Goods{}).Where("c_id = ? and enable = ?",userDto.CId,true).
-		Order(global.OrderLayerKey).Preload("Class").Find(&goods)
+	e.Orm.Model(&models.Goods{}).Where("c_id = ? and enable = ?", userDto.CId, true).
+		Order(global.OrderLayerKey).Preload("Class", func(tx *gorm.DB) *gorm.DB {
+		return tx.Select("id", "name")
+	}).Find(&goods)
 
-
-	result :=make(map[int]ClassData,0)
-	for _,row:=range goods{
+	result := make(map[int]ClassData, 0)
+	for _, row := range goods {
 
 		var specsObject models.GoodsSpecs
-		e.Orm.Model(&models.GoodsSpecs{}).Where("c_id = ? and enable = ? and goods_id = ?",userDto.CId,true,row.Id).Limit(1).Find(&specsObject)
+		e.Orm.Model(&models.GoodsSpecs{}).Where("c_id = ? and enable = ? and goods_id = ?", userDto.CId, true, row.Id).Limit(1).Find(&specsObject)
 		if specsObject.Id == 0 {
 			continue
 		}
-		specData :=specsRow{
-			GoodsId:row.Id,
-			Money:specsObject.Price,
-			Unit:specsObject.Unit,
-			Name: specsObject.Name,
+		specData := specsRow{
+			GoodsId:   row.Id,
+			Money:     specsObject.Price,
+			Unit:      specsObject.Unit,
+			Name:      specsObject.Name,
 			Inventory: specsObject.Inventory,
 		}
-		for _,class :=range row.Class {
-			data,ok:=result[class.Id]
+		for _, class := range row.Class {
+			data, ok := result[class.Id]
 			if ok {
-				data.GoodsList = append(data.GoodsList,specData)
+				data.GoodsList = append(data.GoodsList, specData)
 				result[class.Id] = data
-			}else {
+			} else {
 				result[class.Id] = ClassData{
-					ClassId: class.Id,
+					ClassId:   class.Id,
 					ClassName: class.Name,
 					GoodsList: []specsRow{specData},
 				}
@@ -86,11 +88,11 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 		}
 	}
 
-
-	e.OK(result,"successful")
+	e.OK(result, "successful")
 	return
 
 }
+
 // GetPage 获取Goods列表
 // @Summary 获取Goods列表
 // @Description 获取Goods列表
@@ -106,18 +108,18 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 // @Router /api/v1/goods [get]
 // @Security Bearer
 func (e Goods) GetPage(c *gin.Context) {
-    req := dto.GoodsGetPageReq{}
-    s := service.Goods{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-   	if err != nil {
-   		e.Logger.Error(err)
-   		e.Error(500, err, err.Error())
-   		return
-   	}
+	req := dto.GoodsGetPageReq{}
+	s := service.Goods{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 
 	p := actions.GetPermissionFromContext(c)
 	list := make([]models.Goods, 0)
@@ -126,7 +128,7 @@ func (e Goods) GetPage(c *gin.Context) {
 	err = s.GetPage(&req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取Goods失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
 
 	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
@@ -143,7 +145,7 @@ func (e Goods) GetPage(c *gin.Context) {
 func (e Goods) Get(c *gin.Context) {
 	req := dto.GoodsGetReq{}
 	s := service.Goods{}
-    err := e.MakeContext(c).
+	err := e.MakeContext(c).
 		MakeOrm().
 		Bind(&req).
 		MakeService(&s.Service).
@@ -159,10 +161,10 @@ func (e Goods) Get(c *gin.Context) {
 	err = s.Get(&req, p, &object)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取Goods失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
 
-	e.OK( object, "查询成功")
+	e.OK(object, "查询成功")
 }
 
 // Insert 创建Goods
@@ -176,18 +178,18 @@ func (e Goods) Get(c *gin.Context) {
 // @Router /api/v1/goods [post]
 // @Security Bearer
 func (e Goods) Insert(c *gin.Context) {
-    req := dto.GoodsInsertReq{}
-    s := service.Goods{}
-    err := e.MakeContext(c).
-        MakeOrm().
+	req := dto.GoodsInsertReq{}
+	s := service.Goods{}
+	err := e.MakeContext(c).
+		MakeOrm().
 		Bind(&req, binding.JSON, nil).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
 
@@ -203,10 +205,10 @@ func (e Goods) Insert(c *gin.Context) {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return
 	}
-	err = s.Insert(userDto.CId,&req)
+	err = s.Insert(userDto.CId, &req)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("创建商品失败,%s", err.Error()))
-        return
+		return
 	}
 
 	e.OK(req.GetId(), "创建成功")
@@ -224,18 +226,18 @@ func (e Goods) Insert(c *gin.Context) {
 // @Router /api/v1/goods/{id} [put]
 // @Security Bearer
 func (e Goods) Update(c *gin.Context) {
-    req := dto.GoodsUpdateReq{}
-    s := service.Goods{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+	req := dto.GoodsUpdateReq{}
+	s := service.Goods{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 	req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
 	userDto, err := customUser.GetUserDto(e.Orm, c)
@@ -244,13 +246,13 @@ func (e Goods) Update(c *gin.Context) {
 		return
 	}
 	var count int64
-	e.Orm.Model(&models.Goods{}).Where("id = ?",req.Id).Count(&count)
+	e.Orm.Model(&models.Goods{}).Where("id = ?", req.Id).Count(&count)
 	if count == 0 {
 		e.Error(500, errors.New("数据不存在"), "数据不存在")
 		return
 	}
 	var oldRow models.Goods
-	e.Orm.Model(&models.Goods{}).Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&oldRow)
+	e.Orm.Model(&models.Goods{}).Where("name = ? and c_id = ?", req.Name, userDto.CId).Limit(1).Find(&oldRow)
 
 	if oldRow.Id != 0 {
 		if oldRow.Id != req.Id {
@@ -258,12 +260,12 @@ func (e Goods) Update(c *gin.Context) {
 			return
 		}
 	}
-	err = s.Update(userDto.CId,&req, p)
+	err = s.Update(userDto.CId, &req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("修改商品信息失败,%s", err.Error()))
-        return
+		return
 	}
-	e.OK( req.GetId(), "修改成功")
+	e.OK(req.GetId(), "修改成功")
 }
 
 // Delete 删除Goods
@@ -275,18 +277,18 @@ func (e Goods) Update(c *gin.Context) {
 // @Router /api/v1/goods [delete]
 // @Security Bearer
 func (e Goods) Delete(c *gin.Context) {
-    s := service.Goods{}
-    req := dto.GoodsDeleteReq{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+	s := service.Goods{}
+	req := dto.GoodsDeleteReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 
 	// req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
@@ -294,7 +296,7 @@ func (e Goods) Delete(c *gin.Context) {
 	err = s.Remove(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除Goods失败,%s", err.Error()))
-        return
+		return
 	}
-	e.OK( req.GetId(), "删除成功")
+	e.OK(req.GetId(), "删除成功")
 }

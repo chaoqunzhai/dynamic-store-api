@@ -4,8 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin/binding"
+	"go-admin/common/business"
 	customUser "go-admin/common/jwt/user"
-	"go-admin/global"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -137,8 +138,10 @@ func (e ShopTag) Insert(c *gin.Context) {
 	var countAll int64
 	e.Orm.Model(&models.ShopTag{}).Where("c_id = ?", userDto.CId).Count(&countAll)
 
-	if countAll > global.CompanyUserTag {
-		e.Error(500, errors.New(fmt.Sprintf("分类最多只可创建%v个", global.CompanyUserTag)), fmt.Sprintf("分类最多只可创建%v个", global.CompanyUserTag))
+	CompanyCnf := business.GetCompanyCnf(userDto.CId, "good_tag", e.Orm)
+	MaxNumber, _ := strconv.Atoi(CompanyCnf["shop_tag"])
+	if countAll > int64(MaxNumber) {
+		e.Error(500, errors.New(fmt.Sprintf("分类最多只可创建%v个", MaxNumber)), fmt.Sprintf("分类最多只可创建%v个", MaxNumber))
 		return
 	}
 	var count int64

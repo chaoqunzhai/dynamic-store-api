@@ -5,8 +5,8 @@ import "time"
 type DyNamicMenu struct {
 	Model
 	ModelTime
-	Layer  int    `gorm:"size:1;index;comment:排序"` //排序
-	Enable bool   `gorm:"comment:开关"`
+	Layer     int    `gorm:"size:1;index;comment:排序"` //排序
+	Enable    bool   `gorm:"comment:开关"`
 	Role      string `gorm:"size:20;comment:哪个角色菜单"`
 	Name      string `gorm:"size:30;comment:英文名称"`
 	Path      string `gorm:"size:30;comment:路径,也是权限名称"`
@@ -16,7 +16,6 @@ type DyNamicMenu struct {
 	Hidden    bool   `gorm:"comment:是否隐藏"`
 	KeepAlive bool   `gorm:"comment:是否缓存"`
 	Component string `gorm:"size:50;comment:import路径"`
-
 }
 
 func (DyNamicMenu) TableName() string {
@@ -26,7 +25,7 @@ func (DyNamicMenu) TableName() string {
 // todo: 用户扩展信息
 type ExtendUser struct {
 	BigBRichGlobal
-	UserId    int    `gorm:"index;comment:用户ID"`
+	UserId int `gorm:"index;comment:用户ID"`
 }
 
 func (ExtendUser) TableName() string {
@@ -42,8 +41,8 @@ type CompanyRole struct {
 	Id      int    `json:"id" gorm:"primaryKey;autoIncrement"` // 角色编码
 	Name    string `json:"roleName" gorm:"size:30;"`           // 角色名称
 	Enable  bool
-	Layer   int           `gorm:"size:1;index;comment:排序"`          //排序
-	Remark  string        `json:"remark" gorm:"size:50;comment:备注"` //备注
+	Layer   int           `gorm:"size:1;index;comment:排序"`        //排序
+	Desc    string        `json:"desc" gorm:"size:35;comment:备注"` //备注
 	Admin   bool          `json:"admin" gorm:"size:4;"`
 	SysMenu []DyNamicMenu `json:"sysMenu" gorm:"many2many:company_role_menu;foreignKey:id;joinForeignKey:role_id;references:id;joinReferences:menu_id;"`
 	SysUser []SysUser     `json:"sysUser" gorm:"many2many:company_role_user;foreignKey:id;joinForeignKey:role_id;references:user_id;joinReferences:user_id;"`

@@ -28,7 +28,9 @@ func (e *Shop) GetPage(c *dto.ShopGetPageReq, p *actions.DataPermission, list *[
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
-		).Order(global.OrderLayerKey).Preload("Tag").
+		).Order(global.OrderLayerKey).Preload("Tag", func(tx *gorm.DB) *gorm.DB {
+		return tx.Select("id", "name")
+	}).
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {
@@ -45,7 +47,9 @@ func (e *Shop) Get(d *dto.ShopGetReq, p *actions.DataPermission, model *models.S
 	err := e.Orm.Model(&data).
 		Scopes(
 			actions.Permission(data.TableName(), p),
-		).Preload("Tag").
+		).Preload("Tag", func(tx *gorm.DB) *gorm.DB {
+		return tx.Select("id", "name")
+	}).
 		First(model, d.GetId()).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		err = errors.New("查看对象不存在或无权查看")
@@ -69,14 +73,15 @@ func (e *Shop) getShopTagModels(ids []int) (list []models.ShopTag) {
 	}
 	return list
 }
-// Insert 创建Shop对象
-func (e *Shop) Insert(cid int,c *dto.ShopInsertReq) error {
-    var err error
-    var data models.Shop
-    c.Generate(&data)
-    data.CId = cid
 
-    if len(c.Tags) > 0 {
+// Insert 创建Shop对象
+func (e *Shop) Insert(cid int, c *dto.ShopInsertReq) error {
+	var err error
+	var data models.Shop
+	c.Generate(&data)
+	data.CId = cid
+
+	if len(c.Tags) > 0 {
 		data.Tag = e.getShopTagModels(c.Tags)
 	}
 	err = e.Orm.Create(&data).Error
@@ -89,28 +94,28 @@ func (e *Shop) Insert(cid int,c *dto.ShopInsertReq) error {
 
 // Update 修改Shop对象
 func (e *Shop) Update(c *dto.ShopUpdateReq, p *actions.DataPermission) error {
-    var err error
-    var data = models.Shop{}
-    e.Orm.Scopes(
-            actions.Permission(data.TableName(), p),
-        ).First(&data, c.GetId())
-    c.Generate(&data)
+	var err error
+	var data = models.Shop{}
+	e.Orm.Scopes(
+		actions.Permission(data.TableName(), p),
+	).First(&data, c.GetId())
+	c.Generate(&data)
 	//清除关联
 	e.Orm.Model(&data).Association("Tag").Clear()
-    if len(c.Tags) > 0 {
+	if len(c.Tags) > 0 {
 		//增加关联
-    	fmt.Println("标签",c.Tags)
+		fmt.Println("标签", c.Tags)
 		data.Tag = e.getShopTagModels(c.Tags)
 	}
 	db := e.Orm.Save(&data)
-    if err = db.Error; err != nil {
-        e.Log.Errorf("ShopService Save error:%s \r\n", err)
-        return err
-    }
-    if db.RowsAffected == 0 {
-        return errors.New("无权更新该数据")
-    }
-    return nil
+	if err = db.Error; err != nil {
+		e.Log.Errorf("ShopService Save error:%s \r\n", err)
+		return err
+	}
+	if db.RowsAffected == 0 {
+		return errors.New("无权更新该数据")
+	}
+	return nil
 }
 
 // Remove 删除Shop
@@ -120,17 +125,17 @@ func (e *Shop) Remove(d *dto.ShopDeleteReq, p *actions.DataPermission) error {
 	db := e.Orm.Model(&data).
 		Scopes(
 			actions.Permission(data.TableName(), p),
-		).Delete(&data,d.GetId())
+		).Delete(&data, d.GetId())
 	if err := db.Error; err != nil {
 		e.Log.Errorf("用户删除失败,", err)
 		return err
 	}
 
-	removeIds :=make([]string,0)
-	for _,t:=range d.Ids{
-		removeIds = append(removeIds,fmt.Sprintf("%v",t))
+	removeIds := make([]string, 0)
+	for _, t := range d.Ids {
+		removeIds = append(removeIds, fmt.Sprintf("%v", t))
 	}
-	e.Orm.Exec(fmt.Sprintf("DELETE FROM `shop_mark_tag` WHERE `shop_mark_tag`.`shop_id` IN (%v)",strings.Join(removeIds,",")))
+	e.Orm.Exec(fmt.Sprintf("DELETE FROM `shop_mark_tag` WHERE `shop_mark_tag`.`shop_id` IN (%v)", strings.Join(removeIds, ",")))
 	if db.RowsAffected == 0 {
 		return errors.New("无权删除该数据")
 	}

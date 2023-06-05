@@ -10,7 +10,7 @@ type CompanyRoleGetPageReq struct {
 	dto.Pagination `search:"-"`
 	Name           string `form:"name"  search:"type:contains;column:name;table:company_role" comment:""`
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:company_role" comment:""`
-	Layer           string `form:"layer"  search:"type:exact;column:layer;table:company_role" comment:""`
+	Layer          string `form:"layer"  search:"type:exact;column:layer;table:company_role" comment:""`
 	Remark         string `form:"remark"  search:"type:exact;column:remark;table:company_role" comment:""`
 	Admin          string `form:"admin"  search:"type:exact;column:admin;table:company_role" comment:""`
 	CompanyRoleOrder
@@ -36,13 +36,13 @@ func (m *CompanyRoleGetPageReq) GetNeedSearch() interface{} {
 
 type CompanyRoleInsertReq struct {
 	Id     int    `json:"-" comment:""` //
-	Name   string `json:"name" comment:""`
+	Name   string `json:"name" comment:""  binding:"required"`
 	Enable bool   `json:"enable" comment:""`
-	Layer   int    `json:"layer" comment:""`
-	Remark string `json:"remark" comment:""`
+	Layer  int    `json:"layer" comment:""`
+	Desc   string `json:"desc" comment:""`
 	Admin  bool   `json:"admin" comment:""`
-	Menu   []int  `json:"menu"`
-	User []int   `json:"user"`
+	Menus  []int  `json:"menus"`
+	User   []int  `json:"user"`
 	common.ControlBy
 }
 
@@ -53,7 +53,7 @@ func (s *CompanyRoleInsertReq) Generate(model *models.CompanyRole) {
 	model.Name = s.Name
 	model.Enable = s.Enable
 	model.Layer = s.Layer
-	model.Remark = s.Remark
+	model.Desc = s.Desc
 	model.Admin = s.Admin
 	model.CreateBy = s.CreateBy // 添加这而，需要记录是被谁创建的
 }
@@ -64,13 +64,13 @@ func (s *CompanyRoleInsertReq) GetId() interface{} {
 
 type CompanyRoleUpdateReq struct {
 	Id     int    `uri:"id" comment:""` //
-	Name   string `json:"name" comment:""`
+	Name   string `json:"name" comment:""  binding:"required"`
 	Enable bool   `json:"enable" comment:""`
-	Layer   int    `json:"layer" comment:""`
-	Remark string `json:"remark" comment:""`
+	Layer  int    `json:"layer" comment:""`
+	Desc   string `json:"desc" comment:""`
 	Admin  bool   `json:"admin" comment:""`
-	Menu   []int  `json:"menu"`
-	User []int   `json:"user"`
+	Menus  []int  `json:"menus"`
+	User   []int  `json:"user"`
 	common.ControlBy
 }
 
@@ -81,7 +81,7 @@ func (s *CompanyRoleUpdateReq) Generate(model *models.CompanyRole) {
 	model.Name = s.Name
 	model.Enable = s.Enable
 	model.Layer = s.Layer
-	model.Remark = s.Remark
+	model.Desc = s.Desc
 	model.Admin = s.Admin
 	model.UpdateBy = s.UpdateBy // 添加这而，需要记录是被谁更新的
 }

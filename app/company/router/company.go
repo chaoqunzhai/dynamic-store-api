@@ -21,8 +21,11 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
 		r.GET("/info", api.Info)
+		//一些限制配置
+		r.GET("/cnf", api.Cnf)
 		//r.GET("/home", api.MonitorData)
 		r.GET("/home", api.Demo)
+
 	}
 
 	//只有超管有权限

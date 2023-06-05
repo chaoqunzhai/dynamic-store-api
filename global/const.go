@@ -12,11 +12,10 @@ const (
 	Company = "company"
 
 	//大B资源限制
-	CompanyMaxRole       = 5  //大B最多可以设置5个角色
+	CompanyMaxRole       = 10 //大B最多可以设置10个角色
 	CompanyMaxGoodsClass = 30 //大B最多可以设置分类个数
 	CompanyMaxGoodsTag   = 30 //大B最多可以设置标签个数
-
-	CompanyUserTag = 30 //大B最多可以设置客户标签个数
+	CompanyUserTag       = 30 //大B最多可以设置客户标签个数
 
 	OrderLayerKey = "layer desc"
 
@@ -62,13 +61,13 @@ const (
 	OrderToolsActionStatus   = 1
 	OrderToolsActionDelivery = 2
 
-	ScanAdmin = 1 //管理员操作
+	ScanAdmin        = 1 //管理员操作
 	ScanShopRecharge = 2 //用户充值
-	ScanShopUse = 3 //用户消费
-	ScanShopRefund = 4 //用户退款
+	ScanShopUse      = 3 //用户消费
+	ScanShopRefund   = 4 //用户退款
 )
 
-func GetScanStr(v int)  string {
+func GetScanStr(v int) string {
 	switch v {
 	case ScanAdmin:
 		return "管理员操作"

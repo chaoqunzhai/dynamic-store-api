@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk"
 	"go-admin/cmd/migrate/migration/models"
+	"go-admin/global"
 	"strconv"
 )
 
@@ -16,6 +17,43 @@ func Initialization() {
 
 	fmt.Println("开始录入系统初始化配置")
 	dbs := sdk.Runtime.GetDb()
+	ComPanyCnf := []map[string]interface{}{
+		{
+			"key":   "role",
+			"value": global.CompanyMaxRole,
+		},
+		{
+			"key":   "good_class",
+			"value": global.CompanyMaxGoodsClass,
+		},
+		{
+			"key":   "good_tag",
+			"value": global.CompanyMaxGoodsTag,
+		},
+		{
+			"key":   "shop_tag",
+			"value": global.CompanyUserTag,
+		},
+	}
+	for _, db := range dbs {
+		for _, row := range ComPanyCnf {
+			var thisRow models.CompanyCnf
+			var count int64
+			if db.Model(&models.CompanyCnf{}).Where("key = ?", row["key"]).First(&thisRow).Count(&count); count > 0 {
+				continue
+			}
+			rows := &models.CompanyCnf{
+				Key:   fmt.Sprintf("%v", row["key"]),
+				Value: fmt.Sprintf("%v", row["value"]),
+				BigBRichGlobal: models.BigBRichGlobal{
+					RichGlobal: models.RichGlobal{
+						Enable: true,
+					},
+				},
+			}
+			db.Create(&rows)
+		}
+	}
 	//抽成默认配置
 	Menus := []map[string]interface{}{
 		{
@@ -27,7 +65,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.statistics",
 			"Hidden":     false,
 			"ParentName": "",
-			"Layer":95,
+			"Layer":      95,
 		},
 		{
 			"Name":       "setting",
@@ -38,7 +76,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.setting",
 			"Hidden":     false,
 			"ParentName": "",
-			"Layer":90,
+			"Layer":      90,
 		},
 		{
 			"Name":       "store",
@@ -49,7 +87,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.shop",
 			"Hidden":     false,
 			"ParentName": "",
-			"Layer":93,
+			"Layer":      93,
 		},
 		{
 			"Name":       "/store/page",
@@ -80,7 +118,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.line",
 			"Hidden":     false,
 			"ParentName": "",
-			"Layer":94,
+			"Layer":      94,
 		},
 		{
 			"Name":       "/line/index",
@@ -153,7 +191,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.market",
 			"Hidden":     false,
 			"ParentName": "",
-			"Layer":92,
+			"Layer":      92,
 		},
 		{
 			"Name":       "/market/coupon",
@@ -217,7 +255,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.home",
 			"Hidden":     false,
 			"ParentName": "",
-			"Layer":100,
+			"Layer":      100,
 		},
 		{
 			"Name":       "report",
@@ -228,7 +266,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.give",
 			"Hidden":     false,
 			"ParentName": "",
-			"Layer":99,
+			"Layer":      99,
 		},
 		{
 			"Name":       "order",
@@ -239,7 +277,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.order",
 			"Hidden":     false,
 			"ParentName": "",
-			"Layer":98,
+			"Layer":      98,
 		},
 		{
 			"Name":       "/order/index",
@@ -280,7 +318,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.goods",
 			"Hidden":     false,
 			"ParentName": "",
-			"Layer":97,
+			"Layer":      97,
 		},
 		{
 			"Name":       "/goods/index",
@@ -381,7 +419,7 @@ func Initialization() {
 			"MetaIcon":   "Icons.user",
 			"Hidden":     false,
 			"ParentName": "",
-			"Layer":96,
+			"Layer":      96,
 		},
 		{
 			"Name":       "/user/index",
@@ -502,7 +540,7 @@ func Initialization() {
 			"MetaIcon":   "",
 			"Hidden":     false,
 			"ParentName": "",
-			"Layer":91,
+			"Layer":      91,
 		},
 		{
 			"Name":       "/manage/user/index",
@@ -551,7 +589,7 @@ func Initialization() {
 
 			KeepAlive, _ := strconv.ParseBool(fmt.Sprintf("%v", row["KeepAlive"]))
 			hidden, _ := strconv.ParseBool(fmt.Sprintf("%v", row["Hidden"]))
-			LayerInt,_:=strconv.Atoi(fmt.Sprintf("%v", row["Layer"]))
+			LayerInt, _ := strconv.Atoi(fmt.Sprintf("%v", row["Layer"]))
 			rows := &models.DyNamicMenu{
 				Name:      fmt.Sprintf("%v", row["Name"]),
 				Path:      fmt.Sprintf("%v", row["Path"]),
@@ -561,8 +599,8 @@ func Initialization() {
 				MetaIcon:  fmt.Sprintf("%v", row["MetaIcon"]),
 				Hidden:    hidden,
 				Role:      "admin,company",
-				Enable: true,
-				Layer:LayerInt,
+				Enable:    true,
+				Layer:     LayerInt,
 			}
 
 			if ParentName != "" {

@@ -8,6 +8,7 @@ import (
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 	sys "go-admin/app/admin/models"
 	models2 "go-admin/cmd/migrate/migration/models"
+	"go-admin/common/business"
 	cDto "go-admin/common/dto"
 	"go-admin/common/jwt/user"
 	"go-admin/global"
@@ -160,6 +161,24 @@ func (e Company) Demo(c *gin.Context) {
 	c.JSON(200, "")
 	return
 
+}
+func (e Company) Cnf(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	cnf := business.GetCompanyCnf(userDto.CId, "", e.Orm)
+	e.OK(cnf, "successful")
+	return
 }
 func (e Company) Info(c *gin.Context) {
 	req := dto.CompanyGetReq{}

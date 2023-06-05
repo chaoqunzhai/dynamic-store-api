@@ -2,15 +2,15 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk/service"
 	sys "go-admin/app/admin/models"
-	"go-admin/global"
-	"gorm.io/gorm"
-
 	"go-admin/app/company/models"
 	"go-admin/app/company/service/dto"
 	"go-admin/common/actions"
 	cDto "go-admin/common/dto"
+	"go-admin/global"
+	"gorm.io/gorm"
 )
 
 type CompanyRole struct {
@@ -27,7 +27,11 @@ func (e *CompanyRole) GetPage(c *dto.CompanyRoleGetPageReq, p *actions.DataPermi
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
-		).Order(global.OrderLayerKey).
+		).Order(global.OrderLayerKey).Preload("SysMenu", func(tx *gorm.DB) *gorm.DB {
+		return tx.Select("id")
+	}).Preload("SysUser", func(tx *gorm.DB) *gorm.DB {
+		return tx.Select("user_id")
+	}).
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {
@@ -80,15 +84,15 @@ func (e *CompanyRole) getUserModels(ids []int) (list []sys.SysUser) {
 	return list
 }
 
-
 // Insert 创建CompanyRole对象
 func (e *CompanyRole) Insert(cId int, c *dto.CompanyRoleInsertReq) error {
 	var err error
 	var data models.CompanyRole
 	c.Generate(&data)
 	data.CId = cId
-	if len(c.Menu) > 0 {
-		data.SysMenu = e.getMenuModels(c.Menu)
+	fmt.Println("关联菜单", c.Menus)
+	if len(c.Menus) > 0 {
+		data.SysMenu = e.getMenuModels(c.Menus)
 	}
 	if len(c.User) > 0 {
 		data.SysUser = e.getUserModels(c.User)
@@ -110,8 +114,8 @@ func (e *CompanyRole) Update(c *dto.CompanyRoleUpdateReq, p *actions.DataPermiss
 	).First(&data, c.GetId())
 	c.Generate(&data)
 	e.Orm.Model(&data).Association("SysMenu").Clear()
-	if len(c.Menu) > 0 {
-		data.SysMenu = e.getMenuModels(c.Menu)
+	if len(c.Menus) > 0 {
+		data.SysMenu = e.getMenuModels(c.Menus)
 	}
 	e.Orm.Model(&data).Association("SysUser").Clear()
 	if len(c.User) > 0 {
@@ -130,12 +134,14 @@ func (e *CompanyRole) Update(c *dto.CompanyRoleUpdateReq, p *actions.DataPermiss
 
 // Remove 删除CompanyRole
 func (e *CompanyRole) Remove(d *dto.CompanyRoleDeleteReq, p *actions.DataPermission) error {
-	var data models.CompanyRole
+	var data []models.CompanyRole
 
-	db := e.Orm.Model(&data).
-		Scopes(
-			actions.Permission(data.TableName(), p),
-		).Delete(&data, d.GetId())
+	db := e.Orm.Model(&data).Where("id in ?", d.GetId()).Find(&data)
+	for _, row := range d.Ids {
+		_ = e.Orm.Model(&data).Where("role_id = ?", row).Association("SysMenu").Clear()
+		_ = e.Orm.Model(&data).Where("role_id = ?", row).Association("SysUser").Clear()
+		e.Orm.Model(&data).Where("id = ?", row).Delete(&models.CompanyRole{})
+	}
 	if err := db.Error; err != nil {
 		e.Log.Errorf("Service RemoveCompanyRole error:%s \r\n", err)
 		return err

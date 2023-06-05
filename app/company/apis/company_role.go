@@ -3,7 +3,9 @@ package apis
 import (
 	"errors"
 	"fmt"
-	"go-admin/global"
+	"github.com/gin-gonic/gin/binding"
+	"go-admin/common/business"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -57,8 +59,24 @@ func (e CompanyRole) GetPage(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("获取CompanyRole失败，\r\n失败信息 %s", err.Error()))
 		return
 	}
-
-	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	result := make([]interface{}, 0)
+	for _, row := range list {
+		menuIds := make([]int, 0)
+		for _, bindMenu := range row.SysMenu {
+			menuIds = append(menuIds, bindMenu.Id)
+		}
+		r := map[string]interface{}{
+			"name":       row.Name,
+			"id":         row.Id,
+			"layer":      row.Layer,
+			"desc":       row.Desc,
+			"created_at": row.CreatedAt,
+			"user_count": len(row.SysUser),
+			"menuIds":    menuIds,
+		}
+		result = append(result, r)
+	}
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
 // Get 获取CompanyRole
@@ -109,7 +127,7 @@ func (e CompanyRole) Insert(c *gin.Context) {
 	s := service.CompanyRole{}
 	err := e.MakeContext(c).
 		MakeOrm().
-		Bind(&req).
+		Bind(&req, binding.JSON, nil).
 		MakeService(&s.Service).
 		Errors
 	if err != nil {
@@ -126,8 +144,12 @@ func (e CompanyRole) Insert(c *gin.Context) {
 	}
 	var countAll int64
 	e.Orm.Model(&models.CompanyRole{}).Where("c_id = ?", userDto.CId).Count(&countAll)
-	if countAll > global.CompanyMaxRole {
-		e.Error(500, errors.New(fmt.Sprintf("角色最多只能创建%v个",global.CompanyMaxRole)), fmt.Sprintf("角色最多只能创建%v个",global.CompanyMaxRole))
+
+	CompanyCnf := business.GetCompanyCnf(userDto.CId, "role", e.Orm)
+	MaxRole, _ := strconv.Atoi(CompanyCnf["role"])
+
+	if countAll > int64(MaxRole) {
+		e.Error(500, errors.New(fmt.Sprintf("角色最多只能创建%v个", MaxRole)), fmt.Sprintf("角色最多只能创建%v个", MaxRole))
 		return
 	}
 	var count int64
@@ -161,7 +183,7 @@ func (e CompanyRole) Update(c *gin.Context) {
 	s := service.CompanyRole{}
 	err := e.MakeContext(c).
 		MakeOrm().
-		Bind(&req).
+		Bind(&req, binding.JSON, nil).
 		MakeService(&s.Service).
 		Errors
 	if err != nil {
@@ -177,13 +199,13 @@ func (e CompanyRole) Update(c *gin.Context) {
 		return
 	}
 	var count int64
-	e.Orm.Model(&models.CompanyRole{}).Where("id = ?",req.Id).Count(&count)
+	e.Orm.Model(&models.CompanyRole{}).Where("id = ?", req.Id).Count(&count)
 	if count == 0 {
 		e.Error(500, errors.New("数据不存在"), "数据不存在")
 		return
 	}
 	var oldRow models.CompanyRole
-	e.Orm.Model(&models.CompanyRole{}).Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&oldRow)
+	e.Orm.Model(&models.CompanyRole{}).Where("name = ? and c_id = ?", req.Name, userDto.CId).Limit(1).Find(&oldRow)
 
 	if oldRow.Id != 0 {
 		if oldRow.Id != req.Id {
@@ -227,7 +249,7 @@ func (e CompanyRole) Delete(c *gin.Context) {
 
 	err = s.Remove(&req, p)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("删除CompanyRole失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("删除角色失败,%s", err.Error()))
 		return
 	}
 	e.OK(req.GetId(), "删除成功")

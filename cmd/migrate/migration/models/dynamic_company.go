@@ -74,3 +74,16 @@ type Driver struct {
 func (Driver) TableName() string {
 	return "driver"
 }
+
+// todo:大B配置表,一般用于配置一些限制,
+// 默认是读取global的配置,读取这个表配置,如果有使用配置表数据
+type CompanyCnf struct {
+	BigBRichGlobal
+	Key         string `gorm:"size:20;comment:配置Key"`
+	Value       string `gorm:"size:20;comment:限制的Value"`
+	ExtendValue string `gorm:"size:20;comment:扩展的Value"`
+}
+
+func (CompanyCnf) TableName() string {
+	return "company_cnf"
+}

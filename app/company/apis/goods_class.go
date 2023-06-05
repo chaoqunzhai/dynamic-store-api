@@ -4,8 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin/binding"
+	"go-admin/common/business"
 	customUser "go-admin/common/jwt/user"
-	"go-admin/global"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -137,8 +138,11 @@ func (e GoodsClass) Insert(c *gin.Context) {
 	var countAll int64
 	e.Orm.Model(&models.GoodsClass{}).Where("c_id = ?", userDto.CId).Count(&countAll)
 
-	if countAll > global.CompanyMaxGoodsClass {
-		e.Error(500, errors.New(fmt.Sprintf("分类最多只可创建%v个", global.CompanyMaxGoodsClass)), fmt.Sprintf("分类最多只可创建%v个", global.CompanyMaxGoodsClass))
+	CompanyCnf := business.GetCompanyCnf(userDto.CId, "good_class", e.Orm)
+	MaxNumber, _ := strconv.Atoi(CompanyCnf["good_class"])
+
+	if countAll > int64(MaxNumber) {
+		e.Error(500, errors.New(fmt.Sprintf("分类最多只可创建%v个", MaxNumber)), fmt.Sprintf("分类最多只可创建%v个", MaxNumber))
 		return
 	}
 	var count int64
