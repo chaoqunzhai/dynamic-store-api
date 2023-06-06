@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk/service"
 	sys "go-admin/app/admin/models"
 	"go-admin/app/company/models"
@@ -90,7 +89,6 @@ func (e *CompanyRole) Insert(cId int, c *dto.CompanyRoleInsertReq) error {
 	var data models.CompanyRole
 	c.Generate(&data)
 	data.CId = cId
-	fmt.Println("关联菜单", c.Menus)
 	if len(c.Menus) > 0 {
 		data.SysMenu = e.getMenuModels(c.Menus)
 	}

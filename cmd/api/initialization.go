@@ -39,7 +39,7 @@ func Initialization() {
 		for _, row := range ComPanyCnf {
 			var thisRow models.CompanyCnf
 			var count int64
-			if db.Model(&models.CompanyCnf{}).Where("key = ?", row["key"]).First(&thisRow).Count(&count); count > 0 {
+			if db.Model(&models.CompanyCnf{}).Where("`key` = ?", row["key"]).First(&thisRow).Count(&count); count > 0 {
 				continue
 			}
 			rows := &models.CompanyCnf{

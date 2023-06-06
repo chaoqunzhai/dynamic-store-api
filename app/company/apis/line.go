@@ -37,15 +37,20 @@ func (e Line) BindShop(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	p := actions.GetPermissionFromContext(c)
 	var object models.Line
-	e.Orm.Model(&models.Line{}).Where("id = ? and enable = ?", req.LineId, true).Limit(1).Find(&object)
+	e.Orm.Model(&models.Line{}).Where("id = ? and enable = ?", req.LineId, true).Scopes(
+		actions.Permission("line", p),
+	).Limit(1).Find(&object)
 
 	if object.Id == 0 {
 		e.Error(500, errors.New("路线不存在"), "路线不存在")
 		return
 	}
 
-	e.Orm.Model(&models2.Shop{}).Where("id in ?", req.ShopId).Updates(map[string]interface{}{
+	e.Orm.Model(&models2.Shop{}).Where("id in ?", req.ShopId).Scopes(
+		actions.Permission("line", p),
+	).Updates(map[string]interface{}{
 		"line_id":    req.LineId,
 		"updated_at": time.Now(),
 		"update_by":  user.GetUserId(c),
@@ -54,8 +59,6 @@ func (e Line) BindShop(c *gin.Context) {
 	e.OK("", "successful")
 	return
 }
-
-
 
 func (e Line) UpdateLineBindShopList(c *gin.Context) {
 	req := dto.UpdateLineBindShopReq{}
@@ -77,21 +80,21 @@ func (e Line) UpdateLineBindShopList(c *gin.Context) {
 	}
 
 	var shopCount int64
-	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?",req.Id,userDto.CId).Count(&shopCount)
+	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?", req.Id, userDto.CId).Count(&shopCount)
 
 	if shopCount == 0 {
-		e.Error(500, nil,"客户不存在")
+		e.Error(500, nil, "客户不存在")
 		return
 	}
-	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?",req.Id,userDto.CId).Updates(map[string]interface{}{
-		"layer":req.Layer,
-		"enable":req.Enable,
-		"desc":req.Desc,
-		"address":req.Address,
-		"longitude":req.Longitude,
-		"latitude":req.Latitude,
+	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?", req.Id, userDto.CId).Updates(map[string]interface{}{
+		"layer":     req.Layer,
+		"enable":    req.Enable,
+		"desc":      req.Desc,
+		"address":   req.Address,
+		"longitude": req.Longitude,
+		"latitude":  req.Latitude,
 	})
-	e.OK("successful","successful")
+	e.OK("successful", "successful")
 	return
 }
 func (e Line) LineBindShopList(c *gin.Context) {
@@ -113,41 +116,44 @@ func (e Line) LineBindShopList(c *gin.Context) {
 		return
 	}
 	//路线下的商户,那就是查询商户数据增加 大B + 路线ID
-	lineId :=c.Param("id")
-	lineIdNumber,_:=strconv.Atoi(lineId)
+	lineId := c.Param("id")
+	lineIdNumber, _ := strconv.Atoi(lineId)
 	var lineObject models.Line
-	e.Orm.Model(&lineObject).Select("id,name").Where("id = ? and enable = ? and c_id = ?",lineIdNumber,true,userDto.CId).Limit(1).Find(&lineObject)
-	if lineObject.Id == 0{
-		e.Error(500, nil,"路线不存在")
+	e.Orm.Model(&lineObject).Select("id,name").Where("id = ? and enable = ? and c_id = ?", lineIdNumber, true, userDto.CId).Limit(1).Find(&lineObject)
+	if lineObject.Id == 0 {
+		e.Error(500, nil, "路线不存在")
 		return
 	}
-	result :=make([]interface{},0)
+	result := make([]interface{}, 0)
 	var list []models2.Shop
 	var count int64
-	e.Orm.Model(&models2.Shop{}).Where("enable = ? and c_id = ? and line_id = ?",true,userDto.UserId,lineIdNumber).
+	p := actions.GetPermissionFromContext(c)
+	e.Orm.Model(&models2.Shop{}).Where("enable = ? and c_id = ? and line_id = ?", true, userDto.UserId, lineIdNumber).
 		Scopes(
-		cDto.MakeCondition(req.GetNeedSearch()),
-		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-	).Order(global.OrderLayerKey).Find(&list).Limit(-1).Offset(-1).
+			cDto.MakeCondition(req.GetNeedSearch()),
+			cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
+			actions.Permission("shop", p),
+		).Order(global.OrderLayerKey).Find(&list).Limit(-1).Offset(-1).
 		Count(&count)
-	for _,row:=range list{
-		cc:=map[string]interface{}{
-			"name":row.Name,
-			"phone":row.Phone,
-			"address":row.Address,
-			"local":fmt.Sprintf("%v,%v",row.Longitude,row.Latitude),
-			"line_name":lineObject.Name,
-			"id":row.Id,
-			"layer":row.Layer,
-			"created_at":row.CreatedAt.Format("2006-01-02 15:04:05"),
-			"desc":row.Desc,
+	for _, row := range list {
+		cc := map[string]interface{}{
+			"name":       row.Name,
+			"phone":      row.Phone,
+			"address":    row.Address,
+			"local":      fmt.Sprintf("%v,%v", row.Longitude, row.Latitude),
+			"line_name":  lineObject.Name,
+			"id":         row.Id,
+			"layer":      row.Layer,
+			"created_at": row.CreatedAt.Format("2006-01-02 15:04:05"),
+			"desc":       row.Desc,
 		}
-		result = append(result,cc)
+		result = append(result, cc)
 	}
 	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 	return
 
 }
+
 // GetPage 获取Line列表
 // @Summary 获取Line列表
 // @Description 获取Line列表
@@ -188,15 +194,15 @@ func (e Line) GetPage(c *gin.Context) {
 	result := make([]interface{}, 0)
 	for _, row := range list {
 		var driverObject models.Driver
-		e.Orm.Model(&models.Driver{}).Select("name,phone,id").Where("id = ? and enable = ?",row.DriverId,true).Limit(1).Find(&driverObject)
+		e.Orm.Model(&models.Driver{}).Select("name,phone,id").Where("id = ? and enable = ?", row.DriverId, true).Limit(1).Find(&driverObject)
 
 		if driverObject.Id > 0 {
-			row.DriverName = fmt.Sprintf("%v-%v",driverObject.Name,driverObject.Phone)
+			row.DriverName = fmt.Sprintf("%v-%v", driverObject.Name, driverObject.Phone)
 		}
 		var shopCount int64
-		e.Orm.Model(&models2.Shop{}).Where("line_id = ? and enable = ?",row.Id,true).Count(&shopCount)
+		e.Orm.Model(&models2.Shop{}).Where("line_id = ? and enable = ?", row.Id, true).Count(&shopCount)
 		row.ShopCount = shopCount
-		result = append(result,row)
+		result = append(result, row)
 	}
 	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }

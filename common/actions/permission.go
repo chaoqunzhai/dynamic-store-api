@@ -2,6 +2,7 @@ package actions
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/go-admin-team/go-admin-core/logger"
 	"github.com/go-admin-team/go-admin-core/sdk/config"
@@ -68,7 +69,7 @@ func init() {
 
 }
 
-//大B的权限
+// 大B的权限
 func PermissionCompanyRole() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		db, err := pkg.GetOrm(c)
@@ -173,24 +174,30 @@ func newDataPermission(tx *gorm.DB, userId interface{}) (*DataPermission, error)
 	return p, nil
 }
 
-// todo:后续细分
-// 针对DB层的权限校验
+// todo:针对DB层的权限校验
 func Permission(tableName string, p *DataPermission) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		if !config.ApplicationConfig.EnableDP {
 			return db
 		}
-		return db
-		//switch p.DataScope {
-		//case global.RoleSuper:
-		//	return db
-		//case global.RoleCompany:
-		//	return db.Where(tableName+".create_by in (SELECT user_id from sys_user where dept_id = ? )", p.DeptId)
-		//case global.RoleShop:
-		//	return db.Where(tableName+".create_by = ?", p.UserId)
-		//default:
-		//	return db
-		//}
+		fmt.Println("p.dataScope", p.DataScope, p.CId)
+
+		switch p.DataScope {
+		case global.RoleSuper:
+			fmt.Println("RoleSuper")
+			return db
+		case global.RoleCompany:
+
+			return db.Where(tableName+".c_id = ?", p.CId)
+		case global.RoleCompanyUser:
+
+			return db.Where(tableName+".c_id = ?", p.CId)
+
+		default:
+			fmt.Println("default")
+			return db
+		}
+
 	}
 }
 

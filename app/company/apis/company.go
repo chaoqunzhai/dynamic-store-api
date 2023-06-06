@@ -398,10 +398,12 @@ func (e Company) RenewPage(c *gin.Context) {
 	}
 	list := make([]models2.CompanyRenewalTimeLog, 0)
 	var count int64
+	p := actions.GetPermissionFromContext(c)
 	e.Orm.Model(&models2.CompanyRenewalTimeLog{}).
 		Scopes(
 			cDto.MakeCondition(req.GetNeedSearch()),
 			cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
+			actions.Permission("company_renewal_time_log", p),
 		).Order("id desc").
 		Find(&list).Limit(-1).Offset(-1).
 		Count(&count)
@@ -446,15 +448,20 @@ func (e Company) Renew(c *gin.Context) {
 		e.Error(500, err, "时间非法")
 		return
 	}
+	p := actions.GetPermissionFromContext(c)
 	//更新
-	e.Orm.Model(&models.Company{}).Where("id in ?", req.Ids).Updates(map[string]interface{}{
+	e.Orm.Model(&models.Company{}).Where("id in ?", req.Ids).Scopes(
+		actions.Permission("company", p),
+	).Updates(map[string]interface{}{
 		"renewal_time":    time.Now(),
 		"expiration_time": actionTime,
 	})
 	//增加日志记录
 	for _, r := range req.Ids {
 		var count int64
-		e.Orm.Model(&models.Company{}).Where("id = ? and enable = ?", r, true).Count(&count)
+		e.Orm.Model(&models.Company{}).Where("id = ? and enable = ?", r, true).Scopes(
+			actions.Permission("company", p),
+		).Count(&count)
 		if count == 0 {
 			continue
 		}

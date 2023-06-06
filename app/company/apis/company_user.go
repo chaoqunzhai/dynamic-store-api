@@ -64,6 +64,7 @@ func (e Company) List(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+
 	var userLists []sys.SysUser
 	var count int64
 	//必须只能更新 大B下的用户,防止随意根据用户ID更改信息
