@@ -18,6 +18,11 @@ func Initialization() {
 	fmt.Println("开始录入系统初始化配置")
 	dbs := sdk.Runtime.GetDb()
 	ComPanyCnf := []map[string]interface{}{
+
+		{
+			"key":   "vip",
+			"value": global.CompanyVip,
+		},
 		{
 			"key":   "role",
 			"value": global.CompanyMaxRole,
@@ -29,6 +34,10 @@ func Initialization() {
 		{
 			"key":   "good_tag",
 			"value": global.CompanyMaxGoodsTag,
+		},
+		{
+			"key":   "good_image",
+			"value": global.CompanyMaxGoodsImage,
 		},
 		{
 			"key":   "shop_tag",

@@ -3,15 +3,19 @@ package apis
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin/binding"
-	customUser "go-admin/common/jwt/user"
-	"go-admin/global"
-	"gorm.io/gorm"
-
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
+	"github.com/go-admin-team/go-admin-core/sdk/pkg/utils"
+	"github.com/google/uuid"
+	customUser "go-admin/common/jwt/user"
+	"go-admin/config"
+	"go-admin/global"
+	"gorm.io/gorm"
+	"path"
+	"strings"
 
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
@@ -205,10 +209,35 @@ func (e Goods) Insert(c *gin.Context) {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return
 	}
-	err = s.Insert(userDto.CId, &req)
+	form, err := c.MultipartForm()
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("创建商品失败,%s", err.Error()))
+		e.Error(500, errors.New("图片获取失败"), "图片获取失败")
 		return
+	}
+
+	goodId, goodErr := s.Insert(userDto.CId, &req)
+	if goodErr != nil {
+		e.Error(500, err, fmt.Sprintf("创建商品失败,%s", goodErr.Error()))
+		return
+	}
+	//商品信息创建成功,才会保存客户的商品照片
+	goodsImagePath := path.Join(config.ExtConfig.ImageBase, global.GoodsPath,
+		fmt.Sprintf("%v", userDto.CId)) + "/"
+
+	// 获取所有图片
+	files := form.File["files"]
+	// 遍历所有图片
+	for _, file := range files {
+		// 逐个存
+		guid := strings.Split(uuid.New().String(), "-")
+		filePath := goodsImagePath + guid[0] + utils.GetExt(file.Filename)
+		fileList := make([]string, 0)
+		if saveErr := c.SaveUploadedFile(file, filePath); saveErr != nil {
+			fileList = append(fileList, filePath)
+		}
+		e.Orm.Model(&models.Goods{}).Where("id = ?", goodId).Updates(map[string]interface{}{
+			"image": strings.Join(fileList, ","),
+		})
 	}
 
 	e.OK(req.GetId(), "创建成功")

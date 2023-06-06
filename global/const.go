@@ -1,6 +1,8 @@
 package global
 
 const (
+	//商品目录
+	GoodsPath       = "goods"
 	SysName         = "动创云订货配送"
 	Describe        = "致力于解决订货渠道"
 	RoleSuper       = 80 //超管
@@ -15,9 +17,11 @@ const (
 	SysUserSuccess = 2
 
 	//大B资源限制
+	CompanyVip           = 6  //大B最多可以设置6个VIP
 	CompanyMaxRole       = 10 //大B最多可以设置10个角色
 	CompanyMaxGoodsClass = 30 //大B最多可以设置分类个数
 	CompanyMaxGoodsTag   = 30 //大B最多可以设置标签个数
+	CompanyMaxGoodsImage = 6  //大B最多可以设置单个商品做多6张图片
 	CompanyUserTag       = 30 //大B最多可以设置客户标签个数
 
 	OrderLayerKey = "layer desc"

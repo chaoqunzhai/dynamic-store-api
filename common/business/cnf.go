@@ -9,7 +9,9 @@ import (
 
 func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]string {
 	defaultCnf := map[string]string{
+		"vip":        fmt.Sprintf("%v", global.CompanyVip),
 		"role":       fmt.Sprintf("%v", global.CompanyMaxRole),
+		"good_image": fmt.Sprintf("%v", global.CompanyMaxGoodsImage),
 		"good_class": fmt.Sprintf("%v", global.CompanyMaxGoodsClass),
 		"good_tag":   fmt.Sprintf("%v", global.CompanyMaxGoodsTag),
 		"shop_tag":   fmt.Sprintf("%v", global.CompanyUserTag),

@@ -60,7 +60,7 @@ func (e *Goods) Get(d *dto.GoodsGetReq, p *actions.DataPermission, model *models
 	return nil
 }
 
-func (e *Goods)getTagModels(ids []int) (list []models.GoodsTag) {
+func (e *Goods) getTagModels(ids []int) (list []models.GoodsTag) {
 	for _, id := range ids {
 		var row models.GoodsTag
 		e.Orm.Model(&models.GoodsTag{}).Where("id = ?", id).First(&row)
@@ -71,7 +71,7 @@ func (e *Goods)getTagModels(ids []int) (list []models.GoodsTag) {
 	}
 	return list
 }
-func (e *Goods)getClassModels(ids []int) (list []models.GoodsClass) {
+func (e *Goods) getClassModels(ids []int) (list []models.GoodsClass) {
 	for _, id := range ids {
 		var row models.GoodsClass
 		e.Orm.Model(&models.GoodsClass{}).Where("id = ?", id).First(&row)
@@ -82,15 +82,16 @@ func (e *Goods)getClassModels(ids []int) (list []models.GoodsClass) {
 	}
 	return list
 }
-// Insert 创建Goods对象
-func (e *Goods) Insert(cid int,c *dto.GoodsInsertReq) error {
-    var err error
-    var data models.Goods
-    c.Generate(&data)
-    data.CId = cid
 
-    //标签
-    if len(c.Tag) > 0 {
+// Insert 创建Goods对象
+func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
+
+	var data models.Goods
+	c.Generate(&data)
+	data.CId = cid
+
+	//标签
+	if len(c.Tag) > 0 {
 		data.Tag = e.getTagModels(c.Tag)
 	}
 	//分类
@@ -102,32 +103,43 @@ func (e *Goods) Insert(cid int,c *dto.GoodsInsertReq) error {
 	//规格 + vip价格设置存在
 	if len(c.Specs) > 0 {
 
-		for _,row:=range c.Specs{
-			specsModels :=models.GoodsSpecs{
-				Name: row.Name,
-				CId: cid,
-				Enable:  row.Enable,
-				Layer:  row.Layer,
-				GoodsId: data.Id,
-				Price: row.Price,
-				Original: row.Original,
+		for _, row := range c.Specs {
+			specsModels := models.GoodsSpecs{
+				Name:      row.Name,
+				CId:       cid,
+				Enable:    row.Enable,
+				Layer:     row.Layer,
+				GoodsId:   data.Id,
+				Price:     row.Price,
+				Original:  row.Original,
 				Inventory: row.Inventory,
-				Unit: row.Unit,
-				Limit: row.Limit,
+				Unit:      row.Unit,
+				Limit:     row.Limit,
 			}
 			specsModels.CreateBy = data.CreateBy
 			e.Orm.Create(&specsModels)
-			for _,v:=range row.Vip{
+			var vipEnable bool
+			for k, v := range row.Vip {
+				if k == "enable" {
+					vipEnable = v.(bool)
+				}
+				if !strings.HasPrefix(k, "vip_") {
+					continue
+				}
+				gradeInt := strings.Replace(k, "vip_", "", -1)
+
 				var gradeRow models.GradeVip
-				e.Orm.Model(&models.GradeVip{}).Where("enable = ? and id = ?",true,v.Grade).Limit(1).Find(&gradeRow)
-				if gradeRow.Id == 0 {continue}
-				vipRow:=models.GoodsVip{
-					CId: cid,
-					GoodsId:data.Id,
-					Enable:  v.Enable,
-					Layer:  v.Layer,
-					GradeId: gradeRow.Id,
-					CustomPrice: v.Price,
+				e.Orm.Model(&models.GradeVip{}).Where("enable = ? and id = ? and c_id = ?", true, gradeInt, cid).Limit(1).Find(&gradeRow)
+				if gradeRow.Id == 0 {
+					continue
+				}
+				vipRow := models.GoodsVip{
+					CId:         cid,
+					GoodsId:     data.Id,
+					Enable:      vipEnable,
+					Layer:       0,
+					GradeId:     gradeRow.Id,
+					CustomPrice: v.(float64),
 				}
 				vipRow.CreateBy = data.CreateBy
 				e.Orm.Create(&vipRow)
@@ -137,21 +149,19 @@ func (e *Goods) Insert(cid int,c *dto.GoodsInsertReq) error {
 
 	if err != nil {
 		e.Log.Errorf("GoodsService Insert error:%s \r\n", err)
-		return err
+		return 0, err
 	}
-	return nil
+	return data.Id, err
 }
 
 // Update 修改Goods对象
-func (e *Goods) Update(cid int,c *dto.GoodsUpdateReq, p *actions.DataPermission) error {
-    var err error
-    var data = models.Goods{}
-    e.Orm.Scopes(
-            actions.Permission(data.TableName(), p),
-        ).First(&data, c.GetId())
-    c.Generate(&data)
-
-
+func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission) error {
+	var err error
+	var data = models.Goods{}
+	e.Orm.Scopes(
+		actions.Permission(data.TableName(), p),
+	).First(&data, c.GetId())
+	c.Generate(&data)
 
 	//标签
 	e.Orm.Model(&data).Association("Tag").Clear()
@@ -170,7 +180,7 @@ func (e *Goods) Update(cid int,c *dto.GoodsUpdateReq, p *actions.DataPermission)
 			if row.Id > 0 {
 				//就是一个规格资源的更新
 				var specsRow models.GoodsSpecs
-				e.Orm.Model(&models.GoodsSpecs{}).Where("id = ?",row.Id).First(&specsRow)
+				e.Orm.Model(&models.GoodsSpecs{}).Where("id = ?", row.Id).First(&specsRow)
 
 				specsRow.Name = row.Name
 				specsRow.Enable = row.Enable
@@ -181,37 +191,39 @@ func (e *Goods) Update(cid int,c *dto.GoodsUpdateReq, p *actions.DataPermission)
 				specsRow.Unit = row.Unit
 				specsRow.Limit = row.Limit
 				e.Orm.Save(&specsRow)
-			}else {
+			} else {
 				//规格资源的创建
-				specsModels :=models.GoodsSpecs{
-					Name: row.Name,
-					CId: cid,
-					Enable:  row.Enable,
-					Layer:  row.Layer,
-					GoodsId: data.Id,
-					Price: row.Price,
-					Original: row.Original,
+				specsModels := models.GoodsSpecs{
+					Name:      row.Name,
+					CId:       cid,
+					Enable:    row.Enable,
+					Layer:     row.Layer,
+					GoodsId:   data.Id,
+					Price:     row.Price,
+					Original:  row.Original,
 					Inventory: row.Inventory,
-					Unit: row.Unit,
-					Limit: row.Limit,
+					Unit:      row.Unit,
+					Limit:     row.Limit,
 				}
 				specsModels.CreateBy = data.CreateBy
 				e.Orm.Create(&specsModels)
 			}
-			for _,v:=range row.Vip{
+			for _, v := range row.Vip {
 				if v.Id > 0 {
 					//vip价格的更新
-				}else {
+				} else {
 					//vip价格的创建
 					var gradeRow models.GradeVip
-					e.Orm.Model(&models.GradeVip{}).Where("enable = ? and id = ?",true,v.Grade).Limit(1).Find(&gradeRow)
-					if gradeRow.Id == 0 {continue}
-					vipRow:=models.GoodsVip{
-						CId: cid,
-						GoodsId:data.Id,
-						Enable: v.Enable,
-						GradeId: gradeRow.Id,
-						Layer: v.Layer,
+					e.Orm.Model(&models.GradeVip{}).Where("enable = ? and id = ?", true, v.Grade).Limit(1).Find(&gradeRow)
+					if gradeRow.Id == 0 {
+						continue
+					}
+					vipRow := models.GoodsVip{
+						CId:         cid,
+						GoodsId:     data.Id,
+						Enable:      v.Enable,
+						GradeId:     gradeRow.Id,
+						Layer:       v.Layer,
 						CustomPrice: v.Price,
 					}
 					vipRow.CreateBy = data.CreateBy
@@ -221,15 +233,15 @@ func (e *Goods) Update(cid int,c *dto.GoodsUpdateReq, p *actions.DataPermission)
 		}
 
 	}
-    db := e.Orm.Save(&data)
-    if err = db.Error; err != nil {
-        e.Log.Errorf("GoodsService Save error:%s \r\n", err)
-        return err
-    }
-    if db.RowsAffected == 0 {
-        return errors.New("无权更新该数据")
-    }
-    return nil
+	db := e.Orm.Save(&data)
+	if err = db.Error; err != nil {
+		e.Log.Errorf("GoodsService Save error:%s \r\n", err)
+		return err
+	}
+	if db.RowsAffected == 0 {
+		return errors.New("无权更新该数据")
+	}
+	return nil
 }
 
 // Remove 删除Goods
@@ -241,18 +253,18 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq, p *actions.DataPermission) error {
 			actions.Permission(data.TableName(), p),
 		).Delete(&data, d.GetId())
 	if err := db.Error; err != nil {
-        e.Log.Errorf("删除失败,", err)
-        return err
-    }
-
-    if db.RowsAffected == 0 {
-        return errors.New("无权删除该数据")
-    }
-	removeIds :=make([]string,0)
-	for _,t:=range d.Ids{
-		removeIds = append(removeIds,fmt.Sprintf("%v",t))
+		e.Log.Errorf("删除失败,", err)
+		return err
 	}
-	e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_tag` WHERE `goods_mark_tag`.`goods_id` IN (%v)",strings.Join(removeIds,",")))
-	e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_class` WHERE `goods_mark_class`.`goods_id` IN (%v)",strings.Join(removeIds,",")))
+
+	if db.RowsAffected == 0 {
+		return errors.New("无权删除该数据")
+	}
+	removeIds := make([]string, 0)
+	for _, t := range d.Ids {
+		removeIds = append(removeIds, fmt.Sprintf("%v", t))
+	}
+	e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_tag` WHERE `goods_mark_tag`.`goods_id` IN (%v)", strings.Join(removeIds, ",")))
+	e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_class` WHERE `goods_mark_class`.`goods_id` IN (%v)", strings.Join(removeIds, ",")))
 	return nil
 }

@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin/binding"
+	"go-admin/common/business"
 	customUser "go-admin/common/jwt/user"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -37,18 +39,18 @@ type GradeVip struct {
 // @Router /api/v1/grade-vip [get]
 // @Security Bearer
 func (e GradeVip) GetPage(c *gin.Context) {
-    req := dto.GradeVipGetPageReq{}
-    s := service.GradeVip{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-   	if err != nil {
-   		e.Logger.Error(err)
-   		e.Error(500, err, err.Error())
-   		return
-   	}
+	req := dto.GradeVipGetPageReq{}
+	s := service.GradeVip{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 
 	p := actions.GetPermissionFromContext(c)
 	list := make([]models.GradeVip, 0)
@@ -57,7 +59,7 @@ func (e GradeVip) GetPage(c *gin.Context) {
 	err = s.GetPage(&req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取GradeVip失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
 
 	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
@@ -74,7 +76,7 @@ func (e GradeVip) GetPage(c *gin.Context) {
 func (e GradeVip) Get(c *gin.Context) {
 	req := dto.GradeVipGetReq{}
 	s := service.GradeVip{}
-    err := e.MakeContext(c).
+	err := e.MakeContext(c).
 		MakeOrm().
 		Bind(&req).
 		MakeService(&s.Service).
@@ -90,10 +92,10 @@ func (e GradeVip) Get(c *gin.Context) {
 	err = s.Get(&req, p, &object)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取GradeVip失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
 
-	e.OK( object, "查询成功")
+	e.OK(object, "查询成功")
 }
 
 // Insert 创建GradeVip
@@ -107,18 +109,18 @@ func (e GradeVip) Get(c *gin.Context) {
 // @Router /api/v1/grade-vip [post]
 // @Security Bearer
 func (e GradeVip) Insert(c *gin.Context) {
-    req := dto.GradeVipInsertReq{}
-    s := service.GradeVip{}
-    err := e.MakeContext(c).
-        MakeOrm().
+	req := dto.GradeVipInsertReq{}
+	s := service.GradeVip{}
+	err := e.MakeContext(c).
+		MakeOrm().
 		Bind(&req, binding.JSON, nil).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
 	userDto, err := customUser.GetUserDto(e.Orm, c)
@@ -126,17 +128,25 @@ func (e GradeVip) Insert(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	var countAll int64
+	CompanyCnf := business.GetCompanyCnf(userDto.CId, "vip", e.Orm)
+	MaxNumber, _ := strconv.Atoi(CompanyCnf["vip"])
 
+	if countAll > int64(MaxNumber) {
+		e.Error(500, errors.New(fmt.Sprintf("VIP最多只可创建%v个", MaxNumber)),
+			fmt.Sprintf("VIP最多只可创建%v个", MaxNumber))
+		return
+	}
 	var count int64
 	e.Orm.Model(&models.GradeVip{}).Where("c_id = ? and name = ?", userDto.CId, req.Name).Count(&count)
 	if count > 0 {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return
 	}
-	err = s.Insert(userDto.CId,&req)
+	err = s.Insert(userDto.CId, &req)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("创建VIP失败信息,%s", err.Error()))
-        return
+		return
 	}
 
 	e.OK(req.GetId(), "创建成功")
@@ -154,18 +164,18 @@ func (e GradeVip) Insert(c *gin.Context) {
 // @Router /api/v1/grade-vip/{id} [put]
 // @Security Bearer
 func (e GradeVip) Update(c *gin.Context) {
-    req := dto.GradeVipUpdateReq{}
-    s := service.GradeVip{}
-    err := e.MakeContext(c).
-        MakeOrm().
+	req := dto.GradeVipUpdateReq{}
+	s := service.GradeVip{}
+	err := e.MakeContext(c).
+		MakeOrm().
 		Bind(&req, binding.JSON, nil).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 	req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
 	userDto, err := customUser.GetUserDto(e.Orm, c)
@@ -175,13 +185,13 @@ func (e GradeVip) Update(c *gin.Context) {
 	}
 
 	var count int64
-	e.Orm.Model(&models.GradeVip{}).Where("id = ?",req.Id).Count(&count)
+	e.Orm.Model(&models.GradeVip{}).Where("id = ?", req.Id).Count(&count)
 	if count == 0 {
 		e.Error(500, errors.New("数据不存在"), "数据不存在")
 		return
 	}
 	var oldRow models.GradeVip
-	e.Orm.Model(&models.GradeVip{}).Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&oldRow)
+	e.Orm.Model(&models.GradeVip{}).Where("name = ? and c_id = ?", req.Name, userDto.CId).Limit(1).Find(&oldRow)
 
 	if oldRow.Id != 0 {
 		if oldRow.Id != req.Id {
@@ -192,9 +202,9 @@ func (e GradeVip) Update(c *gin.Context) {
 	err = s.Update(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("修改信息失败,%s", err.Error()))
-        return
+		return
 	}
-	e.OK( req.GetId(), "修改成功")
+	e.OK(req.GetId(), "修改成功")
 }
 
 // Delete 删除GradeVip
@@ -206,18 +216,18 @@ func (e GradeVip) Update(c *gin.Context) {
 // @Router /api/v1/grade-vip [delete]
 // @Security Bearer
 func (e GradeVip) Delete(c *gin.Context) {
-    s := service.GradeVip{}
-    req := dto.GradeVipDeleteReq{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+	s := service.GradeVip{}
+	req := dto.GradeVipDeleteReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 
 	// req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
@@ -225,7 +235,7 @@ func (e GradeVip) Delete(c *gin.Context) {
 	err = s.Remove(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除GradeVip失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
-	e.OK( req.GetId(), "删除成功")
+	e.OK(req.GetId(), "删除成功")
 }

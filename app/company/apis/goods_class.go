@@ -177,7 +177,7 @@ func (e GoodsClass) Update(c *gin.Context) {
 	s := service.GoodsClass{}
 	err := e.MakeContext(c).
 		MakeOrm().
-		Bind(&req).
+		Bind(&req, binding.JSON, nil).
 		MakeService(&s.Service).
 		Errors
 	if err != nil {
