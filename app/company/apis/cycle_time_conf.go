@@ -58,7 +58,35 @@ func (e CycleTimeConf) GetPage(c *gin.Context) {
 		return
 	}
 
-	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	result :=make([]map[string]interface{},0)
+
+	for _,row:=range list{
+		cnf:=map[string]interface{}{
+			"id":row.Id,
+			"enable":row.Enable,
+			"layer":row.Layer,
+			"created_at":row.CreatedAt,
+			"give_range": func() string {
+				if row.GiveDay == 0 {
+					return fmt.Sprintf("下单当天,%v",row.GiveTime)
+				}
+				return fmt.Sprintf("下单第%v天,%v",row.GiveDay,row.GiveTime)
+			}(),
+		}
+		switch row.Type {
+		case global.CyCleTimeDay:
+			cnf["type"] = "每天"
+			cnf["order_range"] = fmt.Sprintf("%v-%v",row.StartTime,row.EndTime)
+		case global.CyCleTimeWeek:
+			cnf["type"] = "每周"
+			cnf["order_range"] = fmt.Sprintf("每周%v %v-每周%v %v",row.StartWeek,row.StartTime,
+				row.EndWeek,row.EndTime,
+				)
+		}
+		result = append(result,cnf)
+
+	}
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
 // Get 获取CycleTimeConf

@@ -311,7 +311,7 @@ func Initialization() {
 		{
 			"Name":       "/order/interval",
 			"Path":       "/order/interval",
-			"Component":  "@/views/order/interval",
+			"Component":  "@/views/order/interval/index",
 			"MetaTitle":  "下单区间",
 			"KeepAlive":  false,
 			"MetaIcon":   "",
