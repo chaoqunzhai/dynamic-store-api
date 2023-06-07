@@ -309,6 +309,16 @@ func Initialization() {
 			"ParentName": "order",
 		},
 		{
+			"Name":       "/order/interval",
+			"Path":       "/order/interval",
+			"Component":  "@/views/order/interval",
+			"MetaTitle":  "下单区间",
+			"KeepAlive":  false,
+			"MetaIcon":   "",
+			"Hidden":     false,
+			"ParentName": "order",
+		},
+		{
 			"Name":       "/order/detail",
 			"Path":       "/order/detail",
 			"Component":  "@/views/order/Detail",
