@@ -41,6 +41,7 @@ func sysBaseRouter(r *gin.RouterGroup) {
 		r.GET("/", apis.GoAdmin)
 	}
 	r.GET("/info", handler.Ping)
+	r.GET("/image/:type/:cid/:name", handler.ImageShow)
 }
 
 func sysStaticFileRouter(r *gin.RouterGroup) {

@@ -4,7 +4,6 @@ import (
 	"go-admin/app/company/models"
 	"go-admin/common/dto"
 	common "go-admin/common/models"
-	"strings"
 )
 
 type GoodsGetPageReq struct {
@@ -39,20 +38,23 @@ func (m *GoodsGetPageReq) GetNeedSearch() interface{} {
 	return *m
 }
 
+type GoodsStateReq struct {
+	Goods  []int `json:"goods" comment:"主键编码"` // 主键编码
+	Enable bool  `json:"enable"  comment:"开关"`
+}
 type GoodsInsertReq struct {
-	Id       int      `json:"-" comment:"主键编码"` // 主键编码
-	Layer    int      `json:"layer" comment:"排序"`
-	Enable   bool     `json:"enable" comment:"开关"`
-	Desc     string   `json:"desc" comment:"商品详情"`
-	Name     string   `json:"name" comment:"商品名称" binding:"required"`
-	Subtitle string   `json:"subtitle" comment:"副标题"`
-	Image    []string `json:"image" comment:"商品图片路径"`
-	Quota    int      `json:"quota" comment:"活动类型"`
-	VipSale  bool     `json:"vip_sale" comment:"会员价"`
-	Code     string   `json:"code" comment:"条形码"`
-	Tag      []int    `json:"tag" comment:"标签"`
-	Class    []int    `json:"class" comment:"分类"`
-	Specs    []Specs  `json:"specs" comment:"规格"`
+	Id       int    `form:"-" comment:"主键编码"` // 主键编码
+	Layer    int    `form:"layer"  comment:"排序"`
+	Enable   bool   `form:"enable"  comment:"开关"`
+	Desc     string `form:"desc"  comment:"商品详情"`
+	Name     string `form:"name"  comment:"商品名称" binding:"required"`
+	Subtitle string `form:"subtitle"  comment:"副标题"`
+	Quota    int    `form:"quota"  comment:"活动类型"`
+	VipSale  bool   `form:"vip_sale"  comment:"会员价"`
+	Code     string `form:"code" comment:"条形码"`
+	Tag      string `form:"tag" comment:"标签"`
+	Class    string `form:"class"  comment:"分类"`
+	Specs    string `form:"specs"  comment:"分类"`
 	common.ControlBy
 }
 
@@ -77,29 +79,30 @@ type GoodsInsertReq struct {
 	       }
 */
 type Specs struct {
-	Key       int64                  `json:"key"`
-	Name      string                 `json:"name" comment:"规格名称"`
-	Price     float64                `json:"price" comment:"售价"`
-	Layer     int                    `json:"layer"`
-	Enable    bool                   `json:"enable"`
-	Original  float64                `json:"original" comment:"原价"`
-	Inventory int                    `json:"inventory" comment:"库存"`
-	Unit      string                 `json:"unit" comment:"单位"`
-	Limit     int                    `json:"limit" comment:"起售量"`
-	Vip       map[string]interface{} `json:"vip" comment:"vip价格设置"`
+	Id        int                    `form:"id" `
+	Key       int64                  `form:"key"`
+	Name      string                 `form:"name" comment:"规格名称"`
+	Price     interface{}            `form:"price" comment:"售价"`
+	Layer     int                    `form:"layer"`
+	Enable    bool                   `form:"enable"`
+	Original  interface{}            `form:"original" comment:"原价"`
+	Inventory interface{}            `form:"inventory" comment:"库存"`
+	Unit      string                 `form:"unit" comment:"单位"`
+	Limit     interface{}            `form:"limit" comment:"起售量"`
+	Vip       map[string]interface{} `form:"vip" comment:"vip价格设置"`
 }
 
 type UpdateSpecs struct {
-	Id        int         `json:"id" `
-	Name      string      `json:"name" comment:"规格名称"`
-	Layer     int         `json:"layer"`
-	Enable    bool        `json:"enable"`
-	Price     float64     `json:"price" comment:"售价"`
-	Original  float64     `json:"original" comment:"原价"`
-	Inventory int         `json:"inventory" comment:"库存"`
-	Unit      string      `json:"unit" comment:"单位"`
-	Limit     int         `json:"limit" comment:"起售量"`
-	Vip       []UpdateVip `json:"vip" comment:"vip价格设置"`
+	Id        int         `form:"id" `
+	Name      string      `form:"name" comment:"规格名称"`
+	Layer     int         `form:"layer"`
+	Enable    bool        `form:"enable"`
+	Price     float64     `form:"price" comment:"售价"`
+	Original  float64     `form:"original" comment:"原价"`
+	Inventory int         `form:"inventory" comment:"库存"`
+	Unit      string      `form:"unit" comment:"单位"`
+	Limit     int         `form:"limit" comment:"起售量"`
+	Vip       []UpdateVip `form:"vip" comment:"vip价格设置"`
 }
 type UpdateVip struct {
 	Id     int     `json:"id" `
@@ -120,9 +123,6 @@ func (s *GoodsInsertReq) Generate(model *models.Goods) {
 
 	model.Name = s.Name
 	model.Subtitle = s.Subtitle
-	if len(s.Image) > 0 {
-		model.Image = strings.Join(s.Image, ",")
-	}
 	model.Quota = s.Quota
 	model.VipSale = s.VipSale
 	model.Code = s.Code
@@ -133,19 +133,19 @@ func (s *GoodsInsertReq) GetId() interface{} {
 }
 
 type GoodsUpdateReq struct {
-	Id       int           `uri:"id" comment:""` //
-	Layer    int           `json:"layer" comment:"排序"`
-	Enable   bool          `json:"enable" comment:"开关"`
-	Desc     string        `json:"desc" comment:"商品详情"`
-	Name     string        `json:"name" comment:"商品名称" binding:"required"`
-	Subtitle string        `json:"subtitle" comment:"副标题"`
-	Image    []string      `json:"image" comment:"商品图片路径"`
-	Quota    int           `json:"quota" comment:"是否限购"`
-	VipSale  bool          `json:"vip_sale" comment:"会员价"`
-	Code     string        `json:"code" comment:"条形码"`
-	Tag      []int         `json:"tag" comment:"标签"`
-	Class    []int         `json:"class" comment:"分类"`
-	Specs    []UpdateSpecs `json:"specs" comment:"规格"`
+	Id        int    `uri:"id" comment:""` //
+	Layer     int    `form:"layer"  comment:"排序"`
+	Enable    bool   `form:"enable"  comment:"开关"`
+	Desc      string `form:"desc"  comment:"商品详情"`
+	Name      string `form:"name"  comment:"商品名称" binding:"required"`
+	Subtitle  string `form:"subtitle"  comment:"副标题"`
+	Quota     int    `form:"quota"  comment:"活动类型"`
+	VipSale   bool   `form:"vip_sale"  comment:"会员价"`
+	Code      string `form:"code" comment:"条形码"`
+	Tag       string `form:"tag" comment:"标签"`
+	Class     string `form:"class"  comment:"分类"`
+	Specs     string `form:"specs"  comment:"规格"`
+	FileClear int    `form:"file_clear" comment:"是否清空照片"`
 	common.ControlBy
 }
 
@@ -159,9 +159,6 @@ func (s *GoodsUpdateReq) Generate(model *models.Goods) {
 	model.Desc = s.Desc
 	model.Name = s.Name
 	model.Subtitle = s.Subtitle
-	if len(s.Image) > 0 {
-		model.Image = strings.Join(s.Image, ",")
-	}
 	model.Quota = s.Quota
 	model.VipSale = s.VipSale
 	model.Code = s.Code

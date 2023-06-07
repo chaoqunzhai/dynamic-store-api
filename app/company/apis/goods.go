@@ -10,17 +10,18 @@ import (
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/utils"
 	"github.com/google/uuid"
-	customUser "go-admin/common/jwt/user"
-	"go-admin/config"
-	"go-admin/global"
-	"gorm.io/gorm"
-	"path"
-	"strings"
-
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
 	"go-admin/app/company/service/dto"
 	"go-admin/common/actions"
+	"go-admin/common/business"
+	customUser "go-admin/common/jwt/user"
+	"go-admin/global"
+	"gorm.io/gorm"
+	"os"
+	"strconv"
+	"strings"
+	"time"
 )
 
 type Goods struct {
@@ -135,7 +136,31 @@ func (e Goods) GetPage(c *gin.Context) {
 		return
 	}
 
-	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	result := make([]map[string]interface{}, 0)
+	for _, row := range list {
+		r := map[string]interface{}{
+			"id":     row.Id,
+			"name":   row.Name,
+			"enable": row.Enable,
+			"layer":  row.Layer,
+			"class": func() []string {
+				cache := make([]string, 0)
+				for _, cl := range row.Class {
+					cache = append(cache, cl.Name)
+				}
+				return cache
+			}(),
+			"image": func() string {
+				if row.Image == "" {
+					return ""
+				}
+				return business.GetGoodPathName(row.CId) + strings.Split(row.Image, ",")[0]
+			}(),
+			"created_at": row.CreatedAt,
+		}
+		result = append(result, r)
+	}
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
 // Get 获取Goods
@@ -159,6 +184,12 @@ func (e Goods) Get(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	var object models.Goods
 
 	p := actions.GetPermissionFromContext(c)
@@ -167,8 +198,108 @@ func (e Goods) Get(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("获取Goods失败，\r\n失败信息 %s", err.Error()))
 		return
 	}
+	goodsMap := map[string]interface{}{
+		"name":     object.Name,
+		"subtitle": object.Subtitle,
+		"desc":     object.Desc,
+		"tag": func() []int {
+			t := make([]int, 0)
+			for _, r := range object.Tag {
+				t = append(t, r.Id)
+			}
+			return t
+		}(),
+		"class": func() []int {
+			t := make([]int, 0)
+			for _, r := range object.Class {
+				t = append(t, r.Id)
+			}
+			return t
+		}(),
+		"vip_sale": object.VipSale,
+		"quota":    object.Quota,
+		"code":     object.Code,
+		"enable":   object.Enable,
+		"layer":    object.Layer,
+		"image": func() []string {
+			i := make([]string, 0)
+			if object.Image == "" {
+				return i
+			}
+			for _, im := range strings.Split(object.Image, ",") {
+				i = append(i,
+					business.GetGoodPathName(object.CId)+im)
+			}
+			return i
+		}(),
+	}
+	var specsList []models.GoodsSpecs
+	e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id = ? and c_id = ?", req.Id, userDto.CId).Find(&specsList)
+	specData := make([]interface{}, 0)
+	specVipData := make([]interface{}, 0)
 
-	e.OK(object, "查询成功")
+	for _, specs := range specsList {
+		now := time.Now().Unix()
+		specRow := map[string]interface{}{
+			"id":        specs.Id,
+			"key":       now,
+			"name":      specs.Name,
+			"price":     specs.Price,
+			"original":  specs.Original,
+			"inventory": specs.Inventory,
+			"limit":     specs.Limit,
+			"enable":    specs.Enable,
+			"layer":     specs.Layer,
+			"unit":      specs.Unit,
+		}
+		specData = append(specData, specRow)
+		vipMap := map[string]interface{}{
+			"key":    now,
+			"name":   specs.Name,
+			"price":  specs.Price,
+			"enable": specs.Enable,
+		}
+		var specVipList []models.GoodsVip
+		e.Orm.Model(&models.GoodsVip{}).Where("specs_id = ? and c_id = ?", specs.Id, userDto.CId).Find(&specVipList)
+
+		for _, vip := range specVipList {
+			vipKey := fmt.Sprintf("vip_%v", vip.GradeId)
+			vipMap[vipKey] = vip.CustomPrice
+		}
+		specVipData = append(specVipData, vipMap)
+
+	}
+
+	goodsMap["specs"] = specData
+	goodsMap["specsVip"] = specVipData
+	e.OK(goodsMap, "查询成功")
+}
+
+func (e Goods) UpdateState(c *gin.Context) {
+	req := dto.GoodsStateReq{}
+	s := service.Goods{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	for _, row := range req.Goods {
+		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?", row, userDto.CId).Updates(map[string]interface{}{
+			"enable": req.Enable,
+		})
+	}
+	e.OK("更新成功", "更新成功")
+	return
 }
 
 // Insert 创建Goods
@@ -186,12 +317,15 @@ func (e Goods) Insert(c *gin.Context) {
 	s := service.Goods{}
 	err := e.MakeContext(c).
 		MakeOrm().
-		Bind(&req, binding.JSON, nil).
 		MakeService(&s.Service).
 		Errors
 	if err != nil {
 		e.Logger.Error(err)
 		e.Error(500, err, err.Error())
+		return
+	}
+	if bindErr := c.ShouldBind(&req); bindErr != nil {
+		e.Error(500, bindErr, bindErr.Error())
 		return
 	}
 	// 设置创建人
@@ -209,11 +343,6 @@ func (e Goods) Insert(c *gin.Context) {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return
 	}
-	form, err := c.MultipartForm()
-	if err != nil {
-		e.Error(500, errors.New("图片获取失败"), "图片获取失败")
-		return
-	}
 
 	goodId, goodErr := s.Insert(userDto.CId, &req)
 	if goodErr != nil {
@@ -221,21 +350,25 @@ func (e Goods) Insert(c *gin.Context) {
 		return
 	}
 	//商品信息创建成功,才会保存客户的商品照片
-	goodsImagePath := path.Join(config.ExtConfig.ImageBase, global.GoodsPath,
-		fmt.Sprintf("%v", userDto.CId)) + "/"
-
-	// 获取所有图片
-	files := form.File["files"]
+	goodsImagePath := business.GetGoodPathName(fmt.Sprintf("%v", userDto.CId))
 	// 遍历所有图片
+	fileForm, fileErr := c.MultipartForm()
+	if fileErr != nil {
+		e.Error(500, nil, "请提交表单模式")
+		return
+	}
+	files := fileForm.File["files"]
 	for _, file := range files {
 		// 逐个存
 		guid := strings.Split(uuid.New().String(), "-")
-		filePath := goodsImagePath + guid[0] + utils.GetExt(file.Filename)
+		filePath := guid[0] + utils.GetExt(file.Filename)
+		saveFilePath := goodsImagePath + filePath
 		fileList := make([]string, 0)
-		if saveErr := c.SaveUploadedFile(file, filePath); saveErr != nil {
+		if saveErr := c.SaveUploadedFile(file, saveFilePath); saveErr == nil {
+			//只保留文件名称,防止透露服务器地址
 			fileList = append(fileList, filePath)
 		}
-		e.Orm.Model(&models.Goods{}).Where("id = ?", goodId).Updates(map[string]interface{}{
+		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?", goodId, userDto.CId).Updates(map[string]interface{}{
 			"image": strings.Join(fileList, ","),
 		})
 	}
@@ -259,12 +392,15 @@ func (e Goods) Update(c *gin.Context) {
 	s := service.Goods{}
 	err := e.MakeContext(c).
 		MakeOrm().
-		Bind(&req).
 		MakeService(&s.Service).
 		Errors
 	if err != nil {
 		e.Logger.Error(err)
 		e.Error(500, err, err.Error())
+		return
+	}
+	if bindErr := c.ShouldBind(&req); bindErr != nil {
+		e.Error(500, bindErr, bindErr.Error())
 		return
 	}
 	req.SetUpdateBy(user.GetUserId(c))
@@ -274,6 +410,10 @@ func (e Goods) Update(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	putUid := c.Param("id")
+	//手动设置下数据ID
+	uid, _ := strconv.Atoi(putUid)
+	req.Id = uid
 	var count int64
 	e.Orm.Model(&models.Goods{}).Where("id = ?", req.Id).Count(&count)
 	if count == 0 {
@@ -294,6 +434,49 @@ func (e Goods) Update(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("修改商品信息失败,%s", err.Error()))
 		return
 	}
+
+	if req.FileClear == 1 {
+		var goodsObject models.Goods
+		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?",
+			req.Id, userDto.CId).Limit(1).Find(&goodsObject)
+
+		if goodsObject.Image != "" {
+			for _, image := range strings.Split(goodsObject.Image, ",") {
+				os.Remove(business.GetGoodPathName(userDto.CId) + image)
+			}
+		}
+		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?",
+			req.Id, userDto.CId).Updates(map[string]interface{}{
+			"image": "",
+		})
+	} else {
+
+		//商品信息创建成功,才会保存客户的商品照片
+		goodsImagePath := business.GetGoodPathName(fmt.Sprintf("%v", userDto.CId))
+		// 遍历所有图片
+		fileForm, fileErr := c.MultipartForm()
+		if fileErr != nil {
+			e.Error(500, nil, "请提交表单模式")
+			return
+		}
+		files := fileForm.File["files"]
+		for _, file := range files {
+			// 逐个存
+			guid := strings.Split(uuid.New().String(), "-")
+			filePath := guid[0] + utils.GetExt(file.Filename)
+			saveFilePath := goodsImagePath + filePath
+			fileList := make([]string, 0)
+			if saveErr := c.SaveUploadedFile(file, saveFilePath); saveErr == nil {
+				//只保留文件名称,防止透露服务器地址
+				fileList = append(fileList, filePath)
+			}
+
+			e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?", req.Id, userDto.CId).Updates(map[string]interface{}{
+				"image": strings.Join(fileList, ","),
+			})
+		}
+	}
+
 	e.OK(req.GetId(), "修改成功")
 }
 
