@@ -434,17 +434,19 @@ func (e Goods) Update(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("修改商品信息失败,%s", err.Error()))
 		return
 	}
+	var goodsObject models.Goods
+	e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?",
+		req.Id, userDto.CId).Limit(1).Find(&goodsObject)
+	fileList := make([]string, 0)
 
+	if goodsObject.Image != "" {
+		fileList = strings.Split(goodsObject.Image, ",")
+	}
 	if req.FileClear == 1 {
-		var goodsObject models.Goods
-		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?",
-			req.Id, userDto.CId).Limit(1).Find(&goodsObject)
-
-		if goodsObject.Image != "" {
-			for _, image := range strings.Split(goodsObject.Image, ",") {
-				os.Remove(business.GetGoodPathName(userDto.CId) + image)
-			}
+		for _, image := range fileList {
+			_ = os.Remove(business.GetGoodPathName(userDto.CId) + image)
 		}
+
 		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?",
 			req.Id, userDto.CId).Updates(map[string]interface{}{
 			"image": "",
@@ -460,12 +462,12 @@ func (e Goods) Update(c *gin.Context) {
 			return
 		}
 		files := fileForm.File["files"]
+
 		for _, file := range files {
 			// 逐个存
 			guid := strings.Split(uuid.New().String(), "-")
 			filePath := guid[0] + utils.GetExt(file.Filename)
 			saveFilePath := goodsImagePath + filePath
-			fileList := make([]string, 0)
 			if saveErr := c.SaveUploadedFile(file, saveFilePath); saveErr == nil {
 				//只保留文件名称,防止透露服务器地址
 				fileList = append(fileList, filePath)
