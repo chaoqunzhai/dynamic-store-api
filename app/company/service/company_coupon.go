@@ -1,12 +1,14 @@
 package service
 
 import (
+	"database/sql"
 	"errors"
-	"go-admin/global"
-	"time"
-
+	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk/service"
+	"go-admin/global"
 	"gorm.io/gorm"
+	"strings"
+	"time"
 
 	"go-admin/app/company/models"
 	"go-admin/app/company/service/dto"
@@ -60,24 +62,37 @@ func (e *CompanyCoupon) Get(d *dto.CompanyCouponGetReq, p *actions.DataPermissio
 }
 
 // Insert 创建CompanyCoupon对象
-func (e *CompanyCoupon) Insert(cid int,c *dto.CompanyCouponInsertReq) error {
-    var err error
-    var data models.CompanyCoupon
-    c.Generate(&data)
-    data.CId = cid
+func (e *CompanyCoupon) Insert(cid int, c *dto.CompanyCouponInsertReq) error {
+	var err error
+	var data models.CompanyCoupon
+	c.Generate(&data)
+	data.CId = cid
 	//todo:时间处理
-    if c.StartTime != ""{
-		t, _ := time.Parse("2006-01-02 15:04:05", c.StartTime)
-		data.StartTime = t
-	}else {
-		data.StartTime = time.Now()
-	}
-    if c.EndTime != ""{
-		t, _ := time.Parse("2006-01-02 15:04:05", c.EndTime)
-		data.EndTime = t
-	}else {
-		t:=time.Now().AddDate(100,0,0)
-		data.EndTime = t
+	fmt.Println("expr", c.ExpireType)
+	if c.ExpireType == 1 {
+		if len(c.BetweenTime) != 2 {
+			return errors.New("请填入开始结束时间")
+		}
+		startTime := c.BetweenTime[0]
+		endTime := c.BetweenTime[1]
+		if startTime != "" {
+			startTime = strings.Replace(startTime, "T", " ", -1)
+			startTime = strings.Replace(startTime, "Z", "", -1)
+			t, _ := time.Parse("2006-01-02 15:04:05", startTime)
+			data.StartTime = sql.NullTime{
+				Time:  t,
+				Valid: true,
+			}
+		}
+		if endTime != "" {
+			endTime = strings.Replace(endTime, "T", " ", -1)
+			endTime = strings.Replace(endTime, "Z", "", -1)
+			t, _ := time.Parse("2006-01-02 15:04:05", endTime)
+			data.EndTime = sql.NullTime{
+				Time:  t,
+				Valid: true,
+			}
+		}
 	}
 
 	err = e.Orm.Create(&data).Error
@@ -90,22 +105,41 @@ func (e *CompanyCoupon) Insert(cid int,c *dto.CompanyCouponInsertReq) error {
 
 // Update 修改CompanyCoupon对象
 func (e *CompanyCoupon) Update(c *dto.CompanyCouponUpdateReq, p *actions.DataPermission) error {
-    var err error
-    var data = models.CompanyCoupon{}
-    e.Orm.Scopes(
-            actions.Permission(data.TableName(), p),
-        ).First(&data, c.GetId())
-    c.Generate(&data)
-
-    db := e.Orm.Save(&data)
-    if err = db.Error; err != nil {
-        e.Log.Errorf("CompanyCouponService Save error:%s \r\n", err)
-        return err
-    }
-    if db.RowsAffected == 0 {
-        return errors.New("无权更新该数据")
-    }
-    return nil
+	var err error
+	var data = models.CompanyCoupon{}
+	e.Orm.Scopes(
+		actions.Permission(data.TableName(), p),
+	).First(&data, c.GetId())
+	c.Generate(&data)
+	if c.ExpireType == 1 {
+		startTime := c.BetweenTime[0]
+		endTime := c.BetweenTime[1]
+		if startTime != "" {
+			startTime = strings.Replace(startTime, "T", " ", -1)
+			endTime = strings.Replace(endTime, "Z", "", -1)
+			t, _ := time.Parse("2006-01-02 15:04:05", startTime)
+			data.StartTime = sql.NullTime{
+				Time: t,
+			}
+		}
+		if endTime != "" {
+			endTime = strings.Replace(endTime, "T", " ", -1)
+			endTime = strings.Replace(endTime, "Z", "", -1)
+			t, _ := time.Parse("2006-01-02 15:04:05", endTime)
+			data.EndTime = sql.NullTime{
+				Time: t,
+			}
+		}
+	}
+	db := e.Orm.Save(&data)
+	if err = db.Error; err != nil {
+		e.Log.Errorf("CompanyCouponService Save error:%s \r\n", err)
+		return err
+	}
+	if db.RowsAffected == 0 {
+		return errors.New("无权更新该数据")
+	}
+	return nil
 }
 
 // Remove 删除CompanyCoupon
@@ -117,11 +151,11 @@ func (e *CompanyCoupon) Remove(d *dto.CompanyCouponDeleteReq, p *actions.DataPer
 			actions.Permission(data.TableName(), p),
 		).Delete(&data, d.GetId())
 	if err := db.Error; err != nil {
-        e.Log.Errorf("Service RemoveCompanyCoupon error:%s \r\n", err)
-        return err
-    }
-    if db.RowsAffected == 0 {
-        return errors.New("无权删除该数据")
-    }
+		e.Log.Errorf("Service RemoveCompanyCoupon error:%s \r\n", err)
+		return err
+	}
+	if db.RowsAffected == 0 {
+		return errors.New("无权删除该数据")
+	}
 	return nil
 }

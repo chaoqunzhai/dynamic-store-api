@@ -72,6 +72,7 @@ const (
 	ScanShopRecharge = 2 //用户充值
 	ScanShopUse      = 3 //用户消费
 	ScanShopRefund   = 4 //用户退款
+
 )
 
 func WeekIntToMsg(v int) string {

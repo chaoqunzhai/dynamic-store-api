@@ -56,16 +56,18 @@ func (CompanyRole) TableName() string {
 
 type Coupon struct {
 	BigBRichGlobal
-	Name      string    `json:"name" gorm:"size:50;comment:优惠卷名称"`
-	Type      int       `gorm:"type:tinyint(1);default:1;comment:类型"`
-	Range     int       `gorm:"type:tinyint(1);default:1;comment:使用范围"`
-	Money     float64   `gorm:"comment:优惠卷金额"`
-	Min       float64   `gorm:"comment:最低多少钱可以用"`
-	Max       float64   `gorm:"comment:满多少钱可以用"`
-	StartTime time.Time `gorm:"comment:开始使用时间"`
-	EndTime   time.Time `gorm:"comment:截止使用时间"`
-	Inventory int       `gorm:"comment:库存"`
-	Limit     int       `gorm:"comment:每个人限领次数"`
+	Name       string    `json:"name" gorm:"size:50;comment:优惠卷名称"`
+	Type       int       `json:"type" gorm:"type:tinyint(1);default:0;comment:类型,0:满减,1:折扣"`
+	Range      int       `gorm:"type:tinyint(1);default:2;comment:使用范围,0:指定商品,1:全场通用 2:全场"`
+	Reduce     float64   `gorm:"comment:优惠卷金额"`
+	Discount   float64   `gorm:"comment:折扣率"`
+	Threshold  float64   `gorm:"comment:满多少钱可以用"`
+	ExpireType int       `gorm:"type:tinyint(1);default:0;comment:到期类型,0:领取后生效，1:指定日期生效"`
+	ExpireDay  int       `gorm:"type:tinyint(1);default:1;comment:过期多少天"`
+	StartTime  time.Time `gorm:"comment:开始使用时间"`
+	EndTime    time.Time `gorm:"comment:截止使用时间"`
+	Inventory  int       `gorm:"comment:库存"`
+	Limit      int       `gorm:"comment:每个人限领次数"`
 }
 
 func (Coupon) TableName() string {

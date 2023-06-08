@@ -39,18 +39,18 @@ type CompanyCoupon struct {
 // @Router /api/v1/company-coupon [get]
 // @Security Bearer
 func (e CompanyCoupon) GetPage(c *gin.Context) {
-    req := dto.CompanyCouponGetPageReq{}
-    s := service.CompanyCoupon{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-   	if err != nil {
-   		e.Logger.Error(err)
-   		e.Error(500, err, err.Error())
-   		return
-   	}
+	req := dto.CompanyCouponGetPageReq{}
+	s := service.CompanyCoupon{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 
 	p := actions.GetPermissionFromContext(c)
 	list := make([]models.CompanyCoupon, 0)
@@ -59,10 +59,41 @@ func (e CompanyCoupon) GetPage(c *gin.Context) {
 	err = s.GetPage(&req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取CompanyCoupon失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
+	}
+	result := make([]map[string]interface{}, 0)
+
+	for _, row := range list {
+		r := map[string]interface{}{
+			"id":          row.Id,
+			"name":        row.Name,
+			"type":        row.Type,
+			"expire_type": row.ExpireType,
+			"expire_day":  row.ExpireDay,
+			"reduce":      row.Reduce,
+			"enable":      row.Enable,
+			"discount":    row.Discount,
+			"start_time": func() string {
+				if row.StartTime.Valid {
+					return row.StartTime.Time.Format("2006-01-02")
+				}
+				return ""
+			}(),
+			"end_time": func() string {
+				if row.EndTime.Valid {
+					return row.EndTime.Time.Format("2006-01-02")
+				}
+				return ""
+			}(),
+			"threshold":   row.Threshold,
+			"receive_num": 0,
+			"layer":       row.Layer,
+			"created_at":  row.CreatedAt,
+		}
+		result = append(result, r)
 	}
 
-	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
 // Get 获取CompanyCoupon
@@ -76,7 +107,7 @@ func (e CompanyCoupon) GetPage(c *gin.Context) {
 func (e CompanyCoupon) Get(c *gin.Context) {
 	req := dto.CompanyCouponGetReq{}
 	s := service.CompanyCoupon{}
-    err := e.MakeContext(c).
+	err := e.MakeContext(c).
 		MakeOrm().
 		Bind(&req).
 		MakeService(&s.Service).
@@ -92,10 +123,17 @@ func (e CompanyCoupon) Get(c *gin.Context) {
 	err = s.Get(&req, p, &object)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取CompanyCoupon失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
+	}
+	if object.StartTime.Valid {
+
+		object.Start = object.StartTime.Time.Format("2006-01-02")
+	}
+	if object.EndTime.Valid {
+		object.End = object.StartTime.Time.Format("2006-01-02")
 	}
 
-	e.OK( object, "查询成功")
+	e.OK(object, "查询成功")
 }
 
 // Insert 创建CompanyCoupon
@@ -109,18 +147,18 @@ func (e CompanyCoupon) Get(c *gin.Context) {
 // @Router /api/v1/company-coupon [post]
 // @Security Bearer
 func (e CompanyCoupon) Insert(c *gin.Context) {
-    req := dto.CompanyCouponInsertReq{}
-    s := service.CompanyCoupon{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+	req := dto.CompanyCouponInsertReq{}
+	s := service.CompanyCoupon{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {
 		e.Error(500, err, err.Error())
@@ -135,10 +173,10 @@ func (e CompanyCoupon) Insert(c *gin.Context) {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return
 	}
-	err = s.Insert( userDto.CId,&req)
+	err = s.Insert(userDto.CId, &req)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("创建优惠卷失败,%s", err.Error()))
-        return
+		return
 	}
 
 	e.OK(req.GetId(), "创建成功")
@@ -156,27 +194,27 @@ func (e CompanyCoupon) Insert(c *gin.Context) {
 // @Router /api/v1/company-coupon/{id} [put]
 // @Security Bearer
 func (e CompanyCoupon) Update(c *gin.Context) {
-    req := dto.CompanyCouponUpdateReq{}
-    s := service.CompanyCoupon{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+	req := dto.CompanyCouponUpdateReq{}
+	s := service.CompanyCoupon{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 	req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
 
 	err = s.Update(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("修改CompanyCoupon失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
-	e.OK( req.GetId(), "修改成功")
+	e.OK(req.GetId(), "修改成功")
 }
 
 // Delete 删除CompanyCoupon
@@ -188,18 +226,18 @@ func (e CompanyCoupon) Update(c *gin.Context) {
 // @Router /api/v1/company-coupon [delete]
 // @Security Bearer
 func (e CompanyCoupon) Delete(c *gin.Context) {
-    s := service.CompanyCoupon{}
-    req := dto.CompanyCouponDeleteReq{}
-    err := e.MakeContext(c).
-        MakeOrm().
-        Bind(&req).
-        MakeService(&s.Service).
-        Errors
-    if err != nil {
-        e.Logger.Error(err)
-        e.Error(500, err, err.Error())
-        return
-    }
+	s := service.CompanyCoupon{}
+	req := dto.CompanyCouponDeleteReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 
 	// req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
@@ -207,7 +245,7 @@ func (e CompanyCoupon) Delete(c *gin.Context) {
 	err = s.Remove(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除CompanyCoupon失败，\r\n失败信息 %s", err.Error()))
-        return
+		return
 	}
-	e.OK( req.GetId(), "删除成功")
+	e.OK(req.GetId(), "删除成功")
 }
