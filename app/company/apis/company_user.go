@@ -285,6 +285,10 @@ func (e Company) Offline(c *gin.Context) {
 	//必须只能更新 大B下的用户,防止随意根据用户ID更改信息
 	for _, row := range req.Ids {
 		var user sys.SysUser
+		//如果是自己的用户,不可操作
+		if row == userDto.UserId {
+			continue
+		}
 		e.Orm.Model(&sys.SysUser{}).Where("c_id = ? and user_id = ?", userDto.CId, row).Limit(1).Find(&user)
 		if user.UserId == 0 {
 			continue
@@ -293,7 +297,7 @@ func (e Company) Offline(c *gin.Context) {
 			"enable": false,
 			"status": global.SysUserDisable,
 		})
-
+		//删除角色和用户的关联
 		runSql := fmt.Sprintf("delete from company_role_user where user_id = %v", row)
 		e.Orm.Exec(runSql)
 

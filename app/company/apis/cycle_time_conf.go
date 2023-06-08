@@ -58,32 +58,40 @@ func (e CycleTimeConf) GetPage(c *gin.Context) {
 		return
 	}
 
-	result :=make([]map[string]interface{},0)
+	result := make([]map[string]interface{}, 0)
 
-	for _,row:=range list{
-		cnf:=map[string]interface{}{
-			"id":row.Id,
-			"enable":row.Enable,
-			"layer":row.Layer,
-			"created_at":row.CreatedAt,
+	for _, row := range list {
+		cnf := map[string]interface{}{
+			"id":         row.Id,
+			"type":       row.Type,
+			"start_time": row.StartTime,
+			"end_time":   row.EndTime,
+			"give_day":   row.GiveDay,
+			"give_time":  row.GiveTime,
+			"start_week": row.StartWeek,
+			"end_week":   row.EndWeek,
+			"enable":     row.Enable,
+			"layer":      row.Layer,
+			"created_at": row.CreatedAt,
 			"give_range": func() string {
 				if row.GiveDay == 0 {
-					return fmt.Sprintf("下单当天,%v",row.GiveTime)
+					return fmt.Sprintf("下单当天,%v", row.GiveTime)
 				}
-				return fmt.Sprintf("下单第%v天,%v",row.GiveDay,row.GiveTime)
+				return fmt.Sprintf("下单后 第%v天,%v", row.GiveDay, row.GiveTime)
 			}(),
 		}
 		switch row.Type {
 		case global.CyCleTimeDay:
-			cnf["type"] = "每天"
-			cnf["order_range"] = fmt.Sprintf("%v-%v",row.StartTime,row.EndTime)
+			cnf["type_cn"] = "每天"
+			cnf["order_range"] = fmt.Sprintf("%v-%v", row.StartTime, row.EndTime)
 		case global.CyCleTimeWeek:
-			cnf["type"] = "每周"
-			cnf["order_range"] = fmt.Sprintf("每周%v %v-每周%v %v",row.StartWeek,row.StartTime,
-				row.EndWeek,row.EndTime,
-				)
+			cnf["type_cn"] = "每周"
+
+			cnf["order_range"] = fmt.Sprintf("每周%v %v-每周%v %v", global.WeekIntToMsg(row.StartWeek), row.StartTime,
+				global.WeekIntToMsg(row.EndWeek), row.EndTime,
+			)
 		}
-		result = append(result,cnf)
+		result = append(result, cnf)
 
 	}
 	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
@@ -146,7 +154,7 @@ func (e CycleTimeConf) Insert(c *gin.Context) {
 		return
 	}
 	//特殊处理下
-	if req.EndTime == "24:00"{
+	if req.EndTime == "24:00" {
 		req.EndTime = "23:59"
 	}
 	// 设置创建人
@@ -159,17 +167,16 @@ func (e CycleTimeConf) Insert(c *gin.Context) {
 	var count int64
 
 	//时间不能重复,也就是start_time 和end_time 是不能存在相同的
-	whereSql :=""
+	whereSql := ""
 	switch req.Type {
 
 	case global.CyCleTimeDay:
-		whereSql =fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v'",
-			userDto.CId,true,global.CyCleTimeDay,req.StartTime,req.EndTime)
+		whereSql = fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v'",
+			userDto.CId, true, global.CyCleTimeDay, req.StartTime, req.EndTime)
 
 	case global.CyCleTimeWeek:
-		whereSql =fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v' and start_week = %v and end_week = %v",
-			userDto.CId,true,global.CyCleTimeWeek,req.StartTime,req.EndTime,req.StartWeek,req.EndWeek)
-
+		whereSql = fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v' and start_week = %v and end_week = %v",
+			userDto.CId, true, global.CyCleTimeWeek, req.StartTime, req.EndTime, req.StartWeek, req.EndWeek)
 
 	default:
 		e.Error(500, nil, "非法类型")
@@ -181,7 +188,7 @@ func (e CycleTimeConf) Insert(c *gin.Context) {
 		return
 	}
 
-	err = s.Insert(userDto.CId,&req)
+	err = s.Insert(userDto.CId, &req)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("时间区间创建失败,%s", err.Error()))
 		return
@@ -222,24 +229,24 @@ func (e CycleTimeConf) Update(c *gin.Context) {
 		return
 	}
 
-	whereSql :=""
+	whereSql := ""
 	var timeConf models.CycleTimeConf
 	switch req.Type {
 
 	case global.CyCleTimeDay:
 
-		whereSql =fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v'",
-			userDto.CId,true,global.CyCleTimeDay,req.StartTime,req.EndTime)
+		whereSql = fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v'",
+			userDto.CId, true, global.CyCleTimeDay, req.StartTime, req.EndTime)
 
 	case global.CyCleTimeWeek:
-		whereSql =fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v' and start_week = %v and end_week = %v",
-			userDto.CId,true,global.CyCleTimeWeek,req.StartTime,req.EndTime,req.StartWeek,req.EndWeek)
+		whereSql = fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v' and start_week = %v and end_week = %v",
+			userDto.CId, true, global.CyCleTimeWeek, req.StartTime, req.EndTime, req.StartWeek, req.EndWeek)
 	default:
 		e.Error(500, nil, "非法类型")
 		return
 	}
 	e.Orm.Model(&models.CycleTimeConf{}).Where(whereSql).Limit(1).Find(&timeConf)
-	if timeConf.Id >0 && timeConf.Id != req.Id {
+	if timeConf.Id > 0 && timeConf.Id != req.Id {
 		e.Error(500, nil, "时间不可重复")
 		return
 	}
