@@ -41,12 +41,15 @@ const (
 	OrderStartId = 1000
 	//待配送
 	OrderStatusWait = 1
+	//配送中
+	OrderStatusLoading = 2
+
 	//已配送
-	OrderStatusOk = 2
+	OrderStatusOk = 3
 	//退回
-	OrderStatusReturn = 3
+	OrderStatusReturn = 4
 	//退款
-	OrderStatusRefund = 4
+	OrderStatusRefund = 5
 
 	//分表的逻辑
 	SplitOrder                 = 1
@@ -75,6 +78,22 @@ const (
 
 )
 
+func OrderStatus(v int) string {
+	switch v {
+	case OrderStatusWait:
+		return "待配送"
+	case OrderStatusLoading:
+		return "配送中"
+	case OrderStatusOk:
+		return "已配送"
+	case OrderStatusReturn:
+		return "退回"
+	case OrderStatusRefund:
+		return "退款"
+
+	}
+	return ""
+}
 func WeekIntToMsg(v int) string {
 	switch v {
 	case 1:

@@ -14,7 +14,6 @@ import (
 	"go-admin/global"
 	"gorm.io/gorm"
 
-
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
 	"go-admin/app/company/service/dto"
@@ -24,8 +23,6 @@ import (
 type Orders struct {
 	api.Api
 }
-
-
 
 // GetPage 获取Orders列表
 // @Summary 获取Orders列表
@@ -67,13 +64,53 @@ func (e Orders) GetPage(c *gin.Context) {
 	list := make([]models.Orders, 0)
 	var count int64
 	req.CId = userDto.CId
-	err = s.GetPage(business.GetTableName(userDto.CId,e.Orm), &req, p, &list, &count)
+	err = s.GetPage(business.GetTableName(userDto.CId, e.Orm), &req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取订单失败,%s", err.Error()))
 		return
 	}
+	//统一查询商家shop_id
+	cacheShopId := make([]int, 0)
+	cacheDelivery := make([]int, 0)
+	for _, row := range list {
+		cacheDelivery = append(cacheDelivery, row.DeliveryId)
+		cacheShopId = append(cacheShopId, row.ShopId)
+	}
+	//查询到对象
+	cacheShopObject := make([]models2.Shop, 0)
+	e.Orm.Model(&models2.Shop{}).Select("name,id").Where("c_id = ? and id in ?",
+		userDto.CId, cacheShopId).Find(&cacheShopObject)
+	cacheDeliveryObject := make([]models2.CycleTimeConf, 0)
+	e.Orm.Model(&models2.CycleTimeConf{}).Select("give_time,give_day,id").Where("c_id = ? and id in ?",
+		userDto.CId, cacheDelivery).Find(&cacheDeliveryObject)
+	//保存为map
+	cacheShopMap := make(map[int]map[string]interface{}, 0)
+	for _, k := range cacheShopObject {
+		cacheShopMap[k.Id] = map[string]interface{}{
+			"name": k.Name,
+		}
+	}
+	cacheDeliveryMap := make(map[int]map[string]interface{}, 0)
+	for _, k := range cacheDeliveryObject {
+		cacheDeliveryMap[k.Id] = map[string]interface{}{
+			"name": k.GiveTime,
+		}
+	}
 
-	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	result := make([]map[string]interface{}, 0)
+	for _, row := range list {
+		r := map[string]interface{}{
+			"id":         row.Id,
+			"shop_name":  cacheShopMap[row.ShopId]["name"],
+			"cycle":      cacheDeliveryMap[row.DeliveryId]["name"],
+			"count":      row.Number,
+			"money":      row.Money,
+			"status":     global.OrderStatus(row.Status),
+			"created_at": row.CreatedAt,
+		}
+		result = append(result, r)
+	}
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
 // Get 获取Orders
@@ -105,7 +142,7 @@ func (e Orders) Get(c *gin.Context) {
 
 	var object models.Orders
 
-	orderTableName := business.GetTableName(userDto.CId,e.Orm)
+	orderTableName := business.GetTableName(userDto.CId, e.Orm)
 	orderErr := e.Orm.Table(orderTableName).First(&object, req.Id).Error
 	if orderErr != nil && errors.Is(orderErr, gorm.ErrRecordNotFound) {
 
@@ -173,7 +210,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	orderTableName := business.GetTableName(userDto.CId,e.Orm)
+	orderTableName := business.GetTableName(userDto.CId, e.Orm)
 	specsTable := business.OrderSpecsTableName(orderTableName)
 	orderExtend := business.OrderExtendTableName(orderTableName)
 	var shopObject models2.Shop
@@ -258,7 +295,7 @@ func (e Orders) ToolsOrders(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	orderTableName := business.GetTableName(userDto.CId,e.Orm)
+	orderTableName := business.GetTableName(userDto.CId, e.Orm)
 	specsTable := business.OrderSpecsTableName(orderTableName)
 	switch req.Type {
 	case global.OrderToolsActionStatus: //状态更新
@@ -267,6 +304,8 @@ func (e Orders) ToolsOrders(c *gin.Context) {
 		case global.OrderStatusOk:
 		case global.OrderStatusReturn:
 		case global.OrderStatusRefund:
+		case global.OrderStatusLoading:
+
 		default:
 			e.Error(500, nil, "状态非法")
 			return
@@ -345,7 +384,6 @@ func (e Orders) ValidTimeConf(c *gin.Context) {
 	return
 }
 
-
 // Insert 创建Orders
 // @Summary 创建Orders
 // @Description 创建Orders
@@ -388,7 +426,7 @@ func (e Orders) Insert(c *gin.Context) {
 	}
 	userId := user.GetUserId(c)
 	//todo:获取表名
-	orderTableName := business.GetTableName(userDto.CId,e.Orm)
+	orderTableName := business.GetTableName(userDto.CId, e.Orm)
 
 	var data models.Orders
 	data.Id = utils.GenUUID()
@@ -492,7 +530,7 @@ func (e Orders) Update(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	err = s.Update(business.GetTableName(userDto.CId,e.Orm), &req, p)
+	err = s.Update(business.GetTableName(userDto.CId, e.Orm), &req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("修改Orders失败，\r\n失败信息 %s", err.Error()))
 		return
@@ -529,7 +567,7 @@ func (e Orders) Delete(c *gin.Context) {
 	}
 	p := actions.GetPermissionFromContext(c)
 
-	err = s.Remove(business.GetTableName(userDto.CId,e.Orm), &req, p)
+	err = s.Remove(business.GetTableName(userDto.CId, e.Orm), &req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除Orders失败，\r\n失败信息 %s", err.Error()))
 		return
