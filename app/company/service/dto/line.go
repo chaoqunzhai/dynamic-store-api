@@ -12,7 +12,10 @@ type LineGetPageReq struct {
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:line" comment:"开关"`
 	CId            string `form:"cId"  search:"type:exact;column:c_id;table:line" comment:"大BID"`
 	Name           string `form:"name"  search:"type:contains;column:name;table:line" comment:"路线名称"`
-	DriverId       string `form:"driverId"  search:"type:exact;column:driver_id;table:line" comment:"关联司机"`
+	DriverId       string `form:"driver_id"  search:"type:exact;column:driver_id;table:line" comment:"关联司机"`
+	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:line" comment:"创建时间"`
+	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:line" comment:"创建时间"`
+
 	LineOrder
 }
 
@@ -22,7 +25,6 @@ type LineBindShopGetPageReq struct {
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:line" comment:"开关"`
 	Name           string `form:"name"  search:"type:contains;column:name;table:line" comment:"路线名称"`
 	DriverId       string `form:"driver_id"  search:"type:exact;column:driver_id;table:line" comment:"关联司机"`
-
 }
 
 func (m *LineBindShopGetPageReq) GetNeedSearch() interface{} {
@@ -30,16 +32,14 @@ func (m *LineBindShopGetPageReq) GetNeedSearch() interface{} {
 }
 
 type UpdateLineBindShopReq struct {
-	Id       int    `uri:"id" comment:"主键编码"` // 主键编码
-	Layer          int `form:"layer"`
-	Enable         bool `form:"enable"`
-	Address       string `form:"address" `
-	Desc string `form:"desc" `
-	Longitude float64     `json:"longitude" comment:""`
-	Latitude  float64     `json:"latitude" comment:""`
-
+	Id        int     `uri:"id" comment:"主键编码"` // 主键编码
+	Layer     int     `form:"layer"`
+	Enable    bool    `form:"enable"`
+	Address   string  `form:"address" `
+	Desc      string  `form:"desc" `
+	Longitude float64 `json:"longitude" comment:""`
+	Latitude  float64 `json:"latitude" comment:""`
 }
-
 
 type BindLineUserReq struct {
 	LineId int   `json:"line_id"`

@@ -37,8 +37,6 @@ const (
 	CouponTypeFd   = 1
 	CouponDiscount = 2
 
-	//订单ID开头
-	OrderStartId = 1000
 	//待配送
 	OrderStatusWait = 1
 	//配送中

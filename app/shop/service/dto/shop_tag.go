@@ -13,6 +13,8 @@ type ShopTagGetPageReq struct {
 	Desc           string `form:"desc"  search:"type:exact;column:desc;table:shop_tag" comment:"描述信息"`
 	CId            string `form:"cId"  search:"type:exact;column:c_id;table:shop_tag" comment:"大BID"`
 	Name           string `form:"name"  search:"type:exact;column:name;table:shop_tag" comment:"客户标签名称"`
+	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:shop_tag" comment:"创建时间"`
+	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:shop_tag" comment:"创建时间"`
 	ShopTagOrder
 }
 

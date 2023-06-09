@@ -12,6 +12,8 @@ type GoodsTagGetPageReq struct {
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:goods_tag" comment:"开关"`
 	CId            string `form:"cId"  search:"type:exact;column:c_id;table:goods_tag" comment:"大BID"`
 	Name           string `form:"name"  search:"type:contains;column:name;table:goods_tag" comment:"商品标签名称"`
+	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:goods_tag" comment:"创建时间"`
+	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:goods_tag" comment:"创建时间"`
 	GoodsTagOrder
 }
 

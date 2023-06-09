@@ -14,6 +14,8 @@ type DriverGetPageReq struct {
 	UserId         string `form:"userId"  search:"type:exact;column:user_id;table:driver" comment:"关联的用户ID"`
 	Name           string `form:"name"  search:"type:contains;column:name;table:driver" comment:"司机名称"`
 	Phone          string `form:"phone"  search:"type:contains;column:phone;table:driver" comment:"联系手机号"`
+	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:driver" comment:"创建时间"`
+	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:driver" comment:"创建时间"`
 	DriverOrder
 }
 

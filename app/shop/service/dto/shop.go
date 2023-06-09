@@ -9,13 +9,16 @@ import (
 type ShopGetPageReq struct {
 	dto.Pagination `search:"-"`
 	Layer          string `form:"layer"  search:"type:exact;column:layer;table:shop" comment:"排序"`
+	GradeId        string `form:"grade_id"  search:"type:exact;column:grade_id;table:shop" comment:"vip等级"`
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:shop" comment:"开关"`
 	CId            string `form:"cId"  search:"type:exact;column:c_id;table:shop" comment:"大BID"`
 	UserId         string `form:"userId"  search:"type:exact;column:user_id;table:shop" comment:"管理员ID"`
 	Name           string `form:"name"  search:"type:exact;column:name;table:shop" comment:"小B名称"`
 	Phone          string `form:"phone"  search:"type:contains;column:phone;table:shop" comment:"联系手机号"`
 	UserName       string `form:"userName"  search:"type:exact;column:user_name;table:shop" comment:"小B负责人名称"`
-	LineId         string `form:"lineId"  search:"type:exact;column:line_id;table:shop" comment:"归属配送路线"`
+	LineId         string `form:"line_id"  search:"type:exact;column:line_id;table:shop" comment:"归属配送路线"`
+	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:shop" comment:"创建时间"`
+	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:shop" comment:"创建时间"`
 	ShopOrder
 }
 
@@ -48,24 +51,24 @@ func (m *ShopGetPageReq) GetNeedSearch() interface{} {
 }
 
 type ShopInsertReq struct {
-	Id        int     `json:"-" comment:"主键编码"` // 主键编码
-	Layer     int     `json:"layer" comment:"排序"`
-	Enable    bool    `json:"enable" comment:"开关"`
-	Desc      string  `json:"desc" comment:"描述信息"`
-	UserId    int     `json:"user_id" comment:"管理员ID"`
-	Name      string  `json:"name" comment:"小B名称" binding:"required"`
-	Phone     string  `json:"phone" comment:"联系手机号" binding:"required"`
-	UserName  string  `json:"username" comment:"小B负责人名称" binding:"required"`
-	Address   string  `json:"address" comment:"小B收货地址" `
-	Longitude float64     `json:"longitude" comment:""`
-	Latitude  float64     `json:"latitude" comment:""`
-	Image     string  `json:"image" comment:"图片"`
-	LineId    int     `json:"line_id" comment:"归属配送路线"`
-	Amount    float64 `json:"amount" comment:"剩余金额"`
-	Integral  int     `json:"integral" comment:"可用积分"`
-	SalesmanPhone  string     `json:"salesman_phone" comment:"推荐人"`
-	Salesman  int     `json:"-" comment:"推荐人"`
-	Tags       []int   `json:"tags" comment:"客户标签"`
+	Id            int     `json:"-" comment:"主键编码"` // 主键编码
+	Layer         int     `json:"layer" comment:"排序"`
+	Enable        bool    `json:"enable" comment:"开关"`
+	Desc          string  `json:"desc" comment:"描述信息"`
+	UserId        int     `json:"user_id" comment:"管理员ID"`
+	Name          string  `json:"name" comment:"小B名称" binding:"required"`
+	Phone         string  `json:"phone" comment:"联系手机号" binding:"required"`
+	UserName      string  `json:"username" comment:"小B负责人名称" binding:"required"`
+	Address       string  `json:"address" comment:"小B收货地址" `
+	Longitude     float64 `json:"longitude" comment:""`
+	Latitude      float64 `json:"latitude" comment:""`
+	Image         string  `json:"image" comment:"图片"`
+	LineId        int     `json:"line_id" comment:"归属配送路线"`
+	Amount        float64 `json:"amount" comment:"剩余金额"`
+	Integral      int     `json:"integral" comment:"可用积分"`
+	SalesmanPhone string  `json:"salesman_phone" comment:"推荐人"`
+	Salesman      int     `json:"-" comment:"推荐人"`
+	Tags          []int   `json:"tags" comment:"客户标签"`
 	common.ControlBy
 }
 
@@ -97,40 +100,40 @@ func (s *ShopInsertReq) GetId() interface{} {
 
 type ShopIntegralReq struct {
 	ShopId int    `json:"shop_id" `
-	Value int    `json:"value" `
+	Value  int    `json:"value" `
 	Desc   string `json:"desc" `
-	Mode string `json:"mode"`
+	Mode   string `json:"mode"`
 }
 type ShopAmountReq struct {
 	ShopId int     `json:"shop_id" `
-	Value float64    `json:"value" `
+	Value  float64 `json:"value" `
 	Desc   string  `json:"desc" `
-	Mode string `json:"mode"`
+	Mode   string  `json:"mode"`
 }
 
 type ShopGradeReq struct {
-	ShopId int     `json:"shop_id" `
-	GradeId int    `json:"grade_id" `
+	ShopId  int `json:"shop_id" `
+	GradeId int `json:"grade_id" `
 }
 type ShopUpdateReq struct {
-	Id        int     `uri:"id" comment:"主键编码"` // 主键编码
-	Layer     int     `json:"layer" comment:"排序"`
-	Enable    bool    `json:"enable" comment:"开关"`
-	Desc      string  `json:"desc" comment:"描述信息"`
-	UserId    int     `json:"userId" comment:"管理员ID"`
-	Name      string  `json:"name" comment:"小B名称" binding:"required"`
-	Phone     string  `json:"phone" comment:"联系手机号" binding:"required"`
-	UserName  string  `json:"username" comment:"小B负责人名称" binding:"required"`
-	Address   string  `json:"address" comment:"小B收货地址"`
-	Longitude float64     `json:"longitude" comment:""`
-	Latitude  float64     `json:"latitude" comment:""`
-	Image     string  `json:"image" comment:"图片"`
-	LineId    int     `json:"line_id" comment:"归属配送路线"`
-	Amount    float64 `json:"amount" comment:"剩余金额"`
-	Integral  int     `json:"integral" comment:"可用积分"`
-	SalesmanPhone  string     `json:"salesman_phone" comment:"推荐人"`
-	Salesman  int     `json:"-" comment:"推荐人"`
-	Tags       []int   `json:"tags" comment:"客户标签"`
+	Id            int     `uri:"id" comment:"主键编码"` // 主键编码
+	Layer         int     `json:"layer" comment:"排序"`
+	Enable        bool    `json:"enable" comment:"开关"`
+	Desc          string  `json:"desc" comment:"描述信息"`
+	UserId        int     `json:"userId" comment:"管理员ID"`
+	Name          string  `json:"name" comment:"小B名称" binding:"required"`
+	Phone         string  `json:"phone" comment:"联系手机号" binding:"required"`
+	UserName      string  `json:"username" comment:"小B负责人名称" binding:"required"`
+	Address       string  `json:"address" comment:"小B收货地址"`
+	Longitude     float64 `json:"longitude" comment:""`
+	Latitude      float64 `json:"latitude" comment:""`
+	Image         string  `json:"image" comment:"图片"`
+	LineId        int     `json:"line_id" comment:"归属配送路线"`
+	Amount        float64 `json:"amount" comment:"剩余金额"`
+	Integral      int     `json:"integral" comment:"可用积分"`
+	SalesmanPhone string  `json:"salesman_phone" comment:"推荐人"`
+	Salesman      int     `json:"-" comment:"推荐人"`
+	Tags          []int   `json:"tags" comment:"客户标签"`
 	common.ControlBy
 }
 

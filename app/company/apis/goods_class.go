@@ -41,7 +41,7 @@ func (e GoodsClass) GetPage(c *gin.Context) {
 	s := service.GoodsClass{}
 	err := e.MakeContext(c).
 		MakeOrm().
-		Bind(&req, binding.JSON, nil).
+		Bind(&req).
 		MakeService(&s.Service).
 		Errors
 	if err != nil {

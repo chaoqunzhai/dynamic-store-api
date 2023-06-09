@@ -78,7 +78,7 @@ func (e Orders) GetPage(c *gin.Context) {
 	}
 	//查询到对象
 	cacheShopObject := make([]models2.Shop, 0)
-	e.Orm.Model(&models2.Shop{}).Select("name,id").Where("c_id = ? and id in ?",
+	e.Orm.Model(&models2.Shop{}).Select("name,id,phone").Where("c_id = ? and id in ?",
 		userDto.CId, cacheShopId).Find(&cacheShopObject)
 	cacheDeliveryObject := make([]models2.CycleTimeConf, 0)
 	e.Orm.Model(&models2.CycleTimeConf{}).Select("give_time,give_day,id").Where("c_id = ? and id in ?",
@@ -87,7 +87,8 @@ func (e Orders) GetPage(c *gin.Context) {
 	cacheShopMap := make(map[int]map[string]interface{}, 0)
 	for _, k := range cacheShopObject {
 		cacheShopMap[k.Id] = map[string]interface{}{
-			"name": k.Name,
+			"name":  k.Name,
+			"phone": k.Phone,
 		}
 	}
 	cacheDeliveryMap := make(map[int]map[string]interface{}, 0)
@@ -101,8 +102,8 @@ func (e Orders) GetPage(c *gin.Context) {
 	for _, row := range list {
 		r := map[string]interface{}{
 			"id":         row.Id,
-			"shop_name":  cacheShopMap[row.ShopId]["name"],
-			"cycle":      cacheDeliveryMap[row.DeliveryId]["name"],
+			"shop":       cacheShopMap[row.ShopId],
+			"cycle":      cacheDeliveryMap[row.DeliveryId],
 			"count":      row.Number,
 			"money":      row.Money,
 			"status":     global.OrderStatus(row.Status),

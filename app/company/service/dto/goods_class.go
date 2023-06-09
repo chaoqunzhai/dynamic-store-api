@@ -11,7 +11,9 @@ type GoodsClassGetPageReq struct {
 	Layer          string `form:"layer"  search:"type:exact;column:layer;table:goods_class" comment:"排序"`
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:goods_class" comment:"开关"`
 	CId            string `form:"cId"  search:"type:exact;column:c_id;table:goods_class" comment:"大BID"`
-	Name           string `form:"name"  search:"type:contains;column:name;table:goods_class" comment:"商品分类名称"`
+	Name           string `form:"name" uri:"name"  search:"type:contains;column:name;table:goods_class" comment:"商品分类名称"`
+	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:goods_class" comment:"创建时间"`
+	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:goods_class" comment:"创建时间"`
 	GoodsClassOrder
 }
 
