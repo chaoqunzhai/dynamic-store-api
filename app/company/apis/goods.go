@@ -141,6 +141,7 @@ func (e Goods) GetPage(c *gin.Context) {
 		r := map[string]interface{}{
 			"id":     row.Id,
 			"name":   row.Name,
+			"subtitle":row.Subtitle,
 			"enable": row.Enable,
 			"layer":  row.Layer,
 			"class": func() []string {

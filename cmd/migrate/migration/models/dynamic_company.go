@@ -87,3 +87,14 @@ type CompanyCnf struct {
 func (CompanyCnf) TableName() string {
 	return "company_cnf"
 }
+
+//todo:大B店铺设计类型保存
+
+type CompanyCategory struct {
+	BigBRichGlobal
+	Type int `gorm:"type:tinyint(1);default:1;comment:模板类型"`
+}
+
+func (CompanyCategory) TableName() string {
+	return "company_category"
+}

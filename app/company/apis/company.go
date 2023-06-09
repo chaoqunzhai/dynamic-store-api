@@ -163,6 +163,59 @@ func (e Company) Demo(c *gin.Context) {
 	return
 
 }
+func (e Company) SaveCategory(c *gin.Context) {
+	req:=CategoryReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var object models2.CompanyCategory
+
+	e.Orm.Model(&models2.CompanyCategory{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
+	object.Type = req.Type
+	object.CId = userDto.CId
+	object.Enable = true
+	e.Orm.Save(&object)
+	e.OK("","成功")
+	return
+
+}
+func (e Company) Category(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var object models2.CompanyCategory
+	result :=make(map[string]interface{},0)
+	e.Orm.Model(&models2.CompanyCategory{}).Where("c_id = ? and enable = ?",userDto.CId,true).Limit(1).Find(&object)
+	if object.Id > 0 {
+		result["type"] = object.Type
+	}else {
+		result["type"] = 1
+	}
+	e.OK(result,"successful")
+	return
+
+}
 func (e Company) Cnf(c *gin.Context) {
 	err := e.MakeContext(c).
 		MakeOrm().

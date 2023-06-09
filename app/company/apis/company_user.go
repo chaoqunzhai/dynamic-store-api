@@ -35,6 +35,9 @@ type UpdateReq struct {
 	Phone    string `json:"phone" comment:"手机号"`
 	PassWord string `json:"password" comment:"密码" binding:"required"`
 }
+type CategoryReq struct {
+	Type int `json:"type" binding:"required"`
+}
 type OfflineReq struct {
 	Ids []int `json:"ids" binding:"required"`
 }

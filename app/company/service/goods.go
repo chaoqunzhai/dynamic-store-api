@@ -26,14 +26,20 @@ func (e *Goods) GetPage(c *dto.GoodsGetPageReq, p *actions.DataPermission, list 
 	var err error
 	var data models.Goods
 
-	err = e.Orm.Model(&data).
+	query :=e.Orm.Model(&data).
 		Scopes(
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
 		).Order(global.OrderLayerKey).Preload("Class", func(tx *gorm.DB) *gorm.DB {
 		return tx.Select("id,name")
-	}).Find(list).Limit(-1).Offset(-1).
+	})
+
+	if c.Class != ""{
+		query = query.Joins("LEFT JOIN goods_mark_class ON goods.id = goods_mark_class.goods_id").Where("goods_mark_class.class_id in ?",
+			strings.Split(c.Class,","))
+	}
+	err = query.Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {
 		e.Log.Errorf("GoodsService GetPage error:%s \r\n", err)

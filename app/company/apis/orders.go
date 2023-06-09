@@ -98,6 +98,7 @@ func (e Orders) GetPage(c *gin.Context) {
 		}
 	}
 
+	fmt.Println("cacheShopMap",cacheShopMap)
 	result := make([]map[string]interface{}, 0)
 	for _, row := range list {
 		r := map[string]interface{}{

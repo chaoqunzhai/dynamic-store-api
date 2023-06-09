@@ -25,6 +25,10 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.GET("/cnf", api.Cnf)
 		//r.GET("/home", api.MonitorData)
 		r.GET("/home", api.Demo)
+
+		//大B商城模板配置
+		r.POST("/category",api.SaveCategory)
+		r.GET("/category",api.Category)
 	}
 	//大B用户管理
 	{

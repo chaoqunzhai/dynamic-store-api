@@ -13,6 +13,7 @@ type GoodsGetPageReq struct {
 	CId            string `form:"cId"  search:"type:exact;column:c_id;table:goods" comment:"大BID"`
 	Name           string `form:"name"  search:"type:contains;column:name;table:goods" comment:"商品名称"`
 	VipSale        string `form:"vipSale"  search:"type:exact;column:vip_sale;table:goods" comment:"会员价"`
+	Class string   `form:"class"  search:"-" comment:"分类"`
 	GoodsOrder
 }
 

@@ -21,7 +21,7 @@ type RichGlobal struct {
 	ControlBy
 	ModelTime
 	Layer  int    `gorm:"size:1;default:1;index;comment:排序"` //排序
-	Enable bool   `gorm:"comment:开关"`
+	Enable bool   `gorm:"default:true;comment:开关"`
 	Desc   string `gorm:"size:35;comment:描述信息"` //描述
 }
 
