@@ -17,7 +17,7 @@ func Initialization() {
 
 	fmt.Println("开始录入系统初始化配置")
 	dbs := sdk.Runtime.GetDb()
-	ComPanyCnf := []map[string]interface{}{
+	ComQuotaCnf := []map[string]interface{}{
 
 		{
 			"key":   "vip",
@@ -26,6 +26,14 @@ func Initialization() {
 		{
 			"key":   "role",
 			"value": global.CompanyMaxRole,
+		},
+		{
+			"key":   "good",
+			"value": global.CompanyMaxGoods,
+		},
+		{
+			"key":   "shop",
+			"value": global.CompanyMaxShop,
 		},
 		{
 			"key":   "good_class",
@@ -45,15 +53,16 @@ func Initialization() {
 		},
 	}
 	for _, db := range dbs {
-		for _, row := range ComPanyCnf {
-			var thisRow models.CompanyCnf
+		for _, row := range ComQuotaCnf {
+			var thisRow models.CompanyQuotaCnf
 			var count int64
-			if db.Model(&models.CompanyCnf{}).Where("`key` = ?", row["key"]).First(&thisRow).Count(&count); count > 0 {
+			if db.Model(&models.CompanyQuotaCnf{}).Where("`key` = ?", row["key"]).First(&thisRow).Count(&count); count > 0 {
 				continue
 			}
-			rows := &models.CompanyCnf{
+			Number, _ := strconv.Atoi(fmt.Sprintf("%v",row["value"]))
+			rows := &models.CompanyQuotaCnf{
 				Key:   fmt.Sprintf("%v", row["key"]),
-				Value: fmt.Sprintf("%v", row["value"]),
+				Number: Number,
 				BigBRichGlobal: models.BigBRichGlobal{
 					RichGlobal: models.RichGlobal{
 						Enable: true,

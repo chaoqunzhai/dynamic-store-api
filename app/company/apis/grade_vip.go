@@ -3,15 +3,13 @@ package apis
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin/binding"
-	"go-admin/common/business"
-	customUser "go-admin/common/jwt/user"
-	"strconv"
-
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
+	"go-admin/common/business"
+	customUser "go-admin/common/jwt/user"
 
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
@@ -130,7 +128,7 @@ func (e GradeVip) Insert(c *gin.Context) {
 	}
 	var countAll int64
 	CompanyCnf := business.GetCompanyCnf(userDto.CId, "vip", e.Orm)
-	MaxNumber, _ := strconv.Atoi(CompanyCnf["vip"])
+	MaxNumber := CompanyCnf["vip"]
 
 	if countAll > int64(MaxNumber) {
 		e.Error(500, errors.New(fmt.Sprintf("VIP最多只可创建%v个", MaxNumber)),

@@ -19,6 +19,7 @@ type GoodsSpecs struct {
 	Inventory int            `json:"inventory" gorm:"type:bigint(20);comment:库存"`
 	Unit      string         `json:"unit" gorm:"type:varchar(8);comment:单位"`
 	Limit     int            `json:"limit" gorm:"type:bigint(20);comment:起售量"`
+	Code string  `json:"code" gorm:"type:varchar(30);comment:规格名称"`
 	CreateBy  int            `json:"create_by" gorm:"index;comment:创建者"`
 	CreatedAt time.Time      `json:"created_at" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`

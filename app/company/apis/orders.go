@@ -355,7 +355,35 @@ func (e Orders) Times(c *gin.Context) {
 	var lists []models.CycleTimeConf
 	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and enable = ?", userDto.CId, true).Order(global.OrderLayerKey).Find(&lists)
 
-	e.PageOK(lists, len(lists), 1, -1, "successful")
+	result:=make([]map[string]interface{},0)
+	for _,row:=range lists {
+		m:=map[string]interface{}{
+			"id":row.Id,
+			"placing":"",
+			"give":"",
+		}
+		placing:=""
+		give:=""
+		if row.GiveDay == 0 {
+			give =  fmt.Sprintf("下单当天,%v", row.GiveTime)
+		}else {
+			give = 	fmt.Sprintf("下单后 第%v天,%v", row.GiveDay, row.GiveTime)
+		}
+		switch row.Type {
+		case global.CyCleTimeDay:
+			placing = fmt.Sprintf("每天%v-%v", row.StartTime, row.EndTime)
+		case global.CyCleTimeWeek:
+			placing = fmt.Sprintf("每周%v %v-每周%v %v", global.WeekIntToMsg(row.StartWeek), row.StartTime,
+				global.WeekIntToMsg(row.EndWeek), row.EndTime,
+			)
+		default:
+			continue
+		}
+		m["placing"] = placing
+		m["give"] = give
+		result = append(result,m)
+	}
+	e.PageOK(result, len(result), 1, -1, "successful")
 	return
 }
 func (e Orders) ValidTimeConf(c *gin.Context) {

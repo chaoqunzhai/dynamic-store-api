@@ -7,6 +7,7 @@ import (
 
 type CycleTimeConf struct {
 	BigBRichGlobal
+	Show bool `json:"show" gorm:"type:tinyint(1);comment:是否客户端展示"`
 	Type      int    `gorm:"type:tinyint(1);default:1;comment:类型,每天,每周"`
 	StartWeek int    `gorm:"type:tinyint(1);default:0;comment:类型为周,每周开始天"`
 	EndWeek   int    `gorm:"type:tinyint(1);default:0;comment:类型为周,每周结束天"`

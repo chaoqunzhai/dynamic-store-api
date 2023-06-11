@@ -21,7 +21,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type Goods struct {
@@ -36,11 +35,13 @@ type ClassData struct {
 
 type specsRow struct {
 	GoodsId   int     `json:"goods_id" `
+	Image string `json:"image" `
 	Money     float64 `json:"money" `
 	Unit      string  `json:"unit" `
 	Name      string  `json:"name" `
 	Inventory int     `json:"inventory" ` //库存
 }
+
 
 func (e Goods) ClassSpecs(c *gin.Context) {
 
@@ -63,6 +64,22 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 		return tx.Select("id", "name")
 	}).Find(&goods)
 
+	classId:=make([]int,0)
+	for _, row := range goods {
+		for _, class := range row.Class {
+			classId = append(classId,class.Id)
+		}
+
+	}
+	classRows:=make([]models.GoodsClass,0)
+	e.Orm.Model(&models.GoodsClass{}).Select("id,name").Where("id in ? and enable = ? and c_id = ?",classId,true,userDto.CId).Find(&classRows)
+	classResult:=make([]map[string]interface{},0)
+	for _,row:=range classRows {
+		classResult = append(classResult, map[string]interface{}{
+			"name":row.Name,
+			"id":row.Id,
+		})
+	}
 	result := make(map[int]ClassData, 0)
 	for _, row := range goods {
 
@@ -73,6 +90,12 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 		}
 		specData := specsRow{
 			GoodsId:   row.Id,
+			Image: func() string {
+				if row.Image != "" {
+					return strings.Split(row.Image,",")[0]
+				}
+				return ""
+			}(),
 			Money:     specsObject.Price,
 			Unit:      specsObject.Unit,
 			Name:      specsObject.Name,
@@ -93,7 +116,11 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 		}
 	}
 
-	e.OK(result, "successful")
+	resAll :=map[string]interface{}{
+		"class":classResult,
+		"specs":result,
+	}
+	e.OK(resAll, "successful")
 	return
 
 }
@@ -125,7 +152,11 @@ func (e Goods) GetPage(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	p := actions.GetPermissionFromContext(c)
 	list := make([]models.Goods, 0)
 	var count int64
@@ -136,6 +167,20 @@ func (e Goods) GetPage(c *gin.Context) {
 		return
 	}
 
+	goodsIds:=make([]string,0)
+	for _, row := range list {
+		goodsIds = append(goodsIds,fmt.Sprintf("%v",row.Id))
+	}
+	//统计商品卖了多少件
+	orderTable:=business.GetTableName(userDto.CId, e.Orm)
+	goodOrder:=make([]dto.GoodCountOrder,0)
+	e.Orm.Table(orderTable).Raw(fmt.Sprintf("select COUNT(*) as count,good_id from orders where good_id in (%v) and c_id = %v GROUP BY good_id",
+		strings.Join(goodsIds,","),userDto.CId)).Scan(&goodOrder)
+	goodOrderMap:=make(map[int]int64,0)
+	for _,row:=range goodOrder{
+		goodOrderMap[row.GoodId] = row.Count
+	}
+	//make数据
 	result := make([]map[string]interface{}, 0)
 	for _, row := range list {
 		r := map[string]interface{}{
@@ -151,13 +196,17 @@ func (e Goods) GetPage(c *gin.Context) {
 				}
 				return cache
 			}(),
+			"inventory":row.Inventory,
 			"image": func() string {
 				if row.Image == "" {
 					return ""
 				}
 				return business.GetGoodPathName(row.CId) + strings.Split(row.Image, ",")[0]
 			}(),
+			"sold":goodOrderMap[row.Id],
 			"created_at": row.CreatedAt,
+			//规格的价格从小到大
+			"money": row.Money,
 		}
 		result = append(result, r)
 	}
@@ -219,7 +268,6 @@ func (e Goods) Get(c *gin.Context) {
 		}(),
 		"vip_sale": object.VipSale,
 		"quota":    object.Quota,
-		"code":     object.Code,
 		"enable":   object.Enable,
 		"layer":    object.Layer,
 		"image": func() []string {
@@ -240,11 +288,12 @@ func (e Goods) Get(c *gin.Context) {
 	specVipData := make([]interface{}, 0)
 
 	for _, specs := range specsList {
-		now := time.Now().Unix()
+		now := utils.GetUUID()
 		specRow := map[string]interface{}{
 			"id":        specs.Id,
 			"key":       now,
 			"name":      specs.Name,
+			"code":specs.Code,
 			"price":     specs.Price,
 			"original":  specs.Original,
 			"inventory": specs.Inventory,
@@ -335,6 +384,14 @@ func (e Goods) Insert(c *gin.Context) {
 	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {
 		e.Error(500, err, err.Error())
+		return
+	}
+	var countAll int64
+	e.Orm.Model(&models.Goods{}).Where("c_id = ?", userDto.CId).Count(&countAll)
+	CompanyCnf := business.GetCompanyCnf(userDto.CId, "good", e.Orm)
+	MaxNumber:=CompanyCnf["good"]
+	if countAll > int64(MaxNumber) {
+		e.Error(500, errors.New(fmt.Sprintf("商品最多只可创建%v个", MaxNumber)), fmt.Sprintf("商品最多只可创建%v个", MaxNumber))
 		return
 	}
 

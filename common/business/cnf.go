@@ -7,30 +7,32 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]string {
-	defaultCnf := map[string]string{
-		"vip":        fmt.Sprintf("%v", global.CompanyVip),
-		"role":       fmt.Sprintf("%v", global.CompanyMaxRole),
-		"good_image": fmt.Sprintf("%v", global.CompanyMaxGoodsImage),
-		"good_class": fmt.Sprintf("%v", global.CompanyMaxGoodsClass),
-		"good_tag":   fmt.Sprintf("%v", global.CompanyMaxGoodsTag),
-		"shop_tag":   fmt.Sprintf("%v", global.CompanyUserTag),
+func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
+	defaultCnf := map[string]int{
+		"vip":        global.CompanyVip,
+		"role":       global.CompanyMaxRole,
+		"good_image": global.CompanyMaxGoodsImage,
+		"good_class": global.CompanyMaxGoodsClass,
+		"good_tag":   global.CompanyMaxGoodsTag,
+		"shop_tag":    global.CompanyUserTag,
+		"shop":   global.CompanyMaxShop,
+		"good":   global.CompanyMaxGoods,
 	}
-	var cnf []models.CompanyCnf
+	var cnf []models.CompanyQuotaCnf
 	var sql string
 	if key != "" {
 		sql = fmt.Sprintf("c_id = %v and enable = %v and key = %v", cid, true, key)
 	} else {
 		sql = fmt.Sprintf("c_id = %v and enable = %v", cid, true)
 	}
-	orm.Model(&models.CompanyCnf{}).Where(sql).Find(&cnf)
+	orm.Model(&models.CompanyQuotaCnf{}).Where(sql).Find(&cnf)
 	//没有进行特殊配置,那就都返回配置即可
 	if len(cnf) == 0 {
 		return defaultCnf
 	}
-	result := make(map[string]string, 0)
+	result := make(map[string]int, 0)
 	for _, row := range cnf {
-		result[row.Key] = row.Value
+		result[row.Key] = row.Number
 	}
 	if key != "" {
 		//如果DB没有配置一些特殊的配置,那就使用global的配置
@@ -46,8 +48,13 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]string {
 				v = global.CompanyMaxGoodsTag
 			case "shop_tag":
 				v = global.CompanyUserTag
+			case "good":
+				v = global.CompanyMaxGoods
+			case "shop":
+				v = global.CompanyMaxShop
+
 			}
-			result[key] = fmt.Sprintf("%v", v)
+			result[key] = v
 		}
 	}
 	return result

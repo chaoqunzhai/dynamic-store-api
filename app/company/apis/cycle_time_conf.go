@@ -70,7 +70,7 @@ func (e CycleTimeConf) GetPage(c *gin.Context) {
 			"give_time":  row.GiveTime,
 			"start_week": row.StartWeek,
 			"end_week":   row.EndWeek,
-			"enable":     row.Enable,
+			"show":     row.Show,
 			"layer":      row.Layer,
 			"created_at": row.CreatedAt,
 			"give_range": func() string {

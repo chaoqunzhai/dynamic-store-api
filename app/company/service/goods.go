@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go-admin/common/utils"
 	"go-admin/global"
 	"strconv"
 	"strings"
@@ -116,25 +117,35 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
 
 	specsList := make([]dto.Specs, 0)
 	marshErr := json.Unmarshal([]byte(c.Specs), &specsList)
-
+	//商品库存值,所以得规格相加
+	inventory:=0
 	//规格 + vip价格设置存在
+	moneyList:=make([]float64,0)
 	if len(specsList) > 0 && marshErr == nil {
 		for _, row := range specsList {
+			stock :=func() int {
 
+				n, _ := strconv.Atoi(fmt.Sprintf("%v", row.Inventory))
+				return n
+			}()
+			price:=func() float64 {
+
+				if row.Price == "" {
+					return 0
+				}
+				n, _ := strconv.ParseFloat(fmt.Sprintf("%v", row.Price), 64)
+				return n
+			}()
+			moneyList = append(moneyList,price)
+			inventory +=stock
 			specsModels := models.GoodsSpecs{
 				Name:    row.Name,
 				CId:     cid,
 				Enable:  row.Enable,
 				Layer:   row.Layer,
 				GoodsId: data.Id,
-				Price: func() float64 {
-
-					if row.Price == "" {
-						return 0
-					}
-					n, _ := strconv.ParseFloat(fmt.Sprintf("%v", row.Inventory), 64)
-					return n
-				}(),
+				Code: row.Code,
+				Price: price,
 				Original: func() float64 {
 
 					if row.Original == "" {
@@ -143,11 +154,7 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
 					n, _ := strconv.ParseFloat(fmt.Sprintf("%v", row.Original), 64)
 					return n
 				}(),
-				Inventory: func() int {
-
-					n, _ := strconv.Atoi(fmt.Sprintf("%v", row.Inventory))
-					return n
-				}(),
+				Inventory: stock,
 				Unit: row.Unit,
 				Limit: func() int {
 
@@ -199,6 +206,17 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
 		e.Log.Errorf("GoodsService Insert error:%s \r\n", err)
 		return 0, err
 	}
+
+	e.Orm.Model(&data).Where("id = ?",data.Id).Updates(map[string]interface{}{
+		"inventory":inventory,
+		"money": func() string {
+			if len(moneyList) > 0 {
+				min,max :=utils.MinAndMax(moneyList)
+				return fmt.Sprintf("¥%v-%v",min,max)
+			}
+			return ""
+		}(),
+	})
 	return data.Id, err
 }
 
@@ -225,27 +243,39 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 	}
 	specsList := make([]dto.Specs, 0)
 	marshErr := json.Unmarshal([]byte(c.Specs), &specsList)
+	//商品库存值,所以得规格相加
+	inventory:=0
+	moneyList:=make([]float64,0)
 	//规格更新
 	if len(specsList) > 0 && marshErr == nil {
 		for _, row := range specsList {
 			var specsRow models.GoodsSpecs
+			//获取库存量
+			stock:= func() int {
+				n, _ := strconv.Atoi(fmt.Sprintf("%v", row.Inventory))
+				return n
+			}()
+			price := func() float64 {
+
+				if row.Price == "" {
+					return 0
+				}
+				n, _ := strconv.ParseFloat(fmt.Sprintf("%v", row.Price), 64)
+				return n
+			}()
+			moneyList = append(moneyList,price)
+			inventory+=stock
 			if row.Id > 0 {
 				//就是一个规格资源的更新
 				e.Orm.Model(&models.GoodsSpecs{}).Where("id = ?", row.Id).Limit(1).Find(&specsRow)
 				if specsRow.Id == 0 {
 					continue
 				}
+				specsRow.Code = row.Code
 				specsRow.Name = row.Name
 				specsRow.Enable = row.Enable
 				specsRow.Layer = row.Layer
-				specsRow.Price = func() float64 {
-
-					if row.Price == "" {
-						return 0
-					}
-					n, _ := strconv.ParseFloat(fmt.Sprintf("%v", row.Inventory), 64)
-					return n
-				}()
+				specsRow.Price = price
 				specsRow.Original = func() float64 {
 
 					if row.Original == "" {
@@ -254,10 +284,7 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 					n, _ := strconv.ParseFloat(fmt.Sprintf("%v", row.Original), 64)
 					return n
 				}()
-				specsRow.Inventory = func() int {
-					n, _ := strconv.Atoi(fmt.Sprintf("%v", row.Inventory))
-					return n
-				}()
+				specsRow.Inventory = stock
 				specsRow.Unit = row.Unit
 				specsRow.Limit = func() int {
 					n, _ := strconv.Atoi(fmt.Sprintf("%v", row.Limit))
@@ -272,14 +299,8 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 					Enable:  row.Enable,
 					Layer:   row.Layer,
 					GoodsId: c.Id,
-					Price: func() float64 {
-
-						if row.Price == "" {
-							return 0
-						}
-						n, _ := strconv.ParseFloat(fmt.Sprintf("%v", row.Price), 64)
-						return n
-					}(),
+					Code: row.Code,
+					Price: price,
 					Original: func() float64 {
 
 						if row.Price == "" {
@@ -288,10 +309,7 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 						n, _ := strconv.ParseFloat(fmt.Sprintf("%v", row.Original), 64)
 						return n
 					}(),
-					Inventory: func() int {
-						n, _ := strconv.Atoi(fmt.Sprintf("%v", row.Inventory))
-						return n
-					}(),
+					Inventory: stock,
 					Unit: row.Unit,
 					Limit: func() int {
 						n, _ := strconv.Atoi(fmt.Sprintf("%v", row.Limit))
@@ -302,7 +320,6 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 				e.Orm.Create(&specsRow)
 			}
 			var vipEnable bool
-			fmt.Println("vip!!", row.Vip)
 			for k, v := range row.Vip {
 				if k == "enable" {
 					vipEnable = v.(bool)
@@ -349,6 +366,14 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 	} else {
 		fmt.Println("规格数据序列化失败", marshErr)
 	}
+	data.Money = func() string {
+		if len(moneyList) > 0 {
+			min,max :=utils.MinAndMax(moneyList)
+			return fmt.Sprintf("¥%v-%v",min,max)
+		}
+		return ""
+	}()
+	data.Inventory = inventory
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("GoodsService Save error:%s \r\n", err)

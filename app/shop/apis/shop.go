@@ -197,6 +197,15 @@ func (e Shop) Insert(c *gin.Context) {
 		return
 	}
 
+	var countAll int64
+	e.Orm.Model(&models.Shop{}).Where("c_id = ?", userDto.CId).Count(&countAll)
+	CompanyCnf := business.GetCompanyCnf(userDto.CId, "shop", e.Orm)
+	MaxNumber:=CompanyCnf["shop"]
+	if countAll > int64(MaxNumber) {
+		e.Error(500, errors.New(fmt.Sprintf("客户最多只可创建%v个", MaxNumber)), fmt.Sprintf("客户最多只可创建%v个", MaxNumber))
+		return
+	}
+
 	var count int64
 	e.Orm.Model(&models.Shop{}).Where("c_id = ? and name = ? ", userDto.CId, req.Name).Count(&count)
 	if count > 0 {

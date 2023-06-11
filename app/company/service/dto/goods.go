@@ -17,6 +17,10 @@ type GoodsGetPageReq struct {
 	GoodsOrder
 }
 
+type GoodCountOrder struct {
+	Count int64
+	GoodId int
+}
 type GoodsOrder struct {
 	Id        string `form:"idOrder"  search:"type:order;column:id;table:goods"`
 	CreateBy  string `form:"createByOrder"  search:"type:order;column:create_by;table:goods"`
@@ -81,11 +85,12 @@ type GoodsInsertReq struct {
 */
 type Specs struct {
 	Id        int                    `form:"id" `
-	Key       int64                  `form:"key"`
+	Key       interface{}                   `form:"key"`
 	Name      string                 `form:"name" comment:"规格名称"`
 	Price     interface{}            `form:"price" comment:"售价"`
 	Layer     int                    `form:"layer"`
 	Enable    bool                   `form:"enable"`
+	Code      string  `form:"code"`
 	Original  interface{}            `form:"original" comment:"原价"`
 	Inventory interface{}            `form:"inventory" comment:"库存"`
 	Unit      string                 `form:"unit" comment:"单位"`
@@ -126,7 +131,6 @@ func (s *GoodsInsertReq) Generate(model *models.Goods) {
 	model.Subtitle = s.Subtitle
 	model.Quota = s.Quota
 	model.VipSale = s.VipSale
-	model.Code = s.Code
 }
 
 func (s *GoodsInsertReq) GetId() interface{} {
@@ -162,7 +166,7 @@ func (s *GoodsUpdateReq) Generate(model *models.Goods) {
 	model.Subtitle = s.Subtitle
 	model.Quota = s.Quota
 	model.VipSale = s.VipSale
-	model.Code = s.Code
+
 }
 
 func (s *GoodsUpdateReq) GetId() interface{} {

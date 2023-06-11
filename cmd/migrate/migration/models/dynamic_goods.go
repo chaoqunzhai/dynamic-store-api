@@ -4,11 +4,12 @@ package models
 type Goods struct {
 	BigBRichGlobal
 	Name     string       `gorm:"size:35;comment:商品名称"`
-	Subtitle string       `gorm:"size:50;comment:副标题"`
+	Subtitle string       `gorm:"size:16;comment:副标题"`
 	Image    string       `gorm:"size:155;comment:商品图片路径"`
 	Quota    bool         `gorm:"comment:是否限购"`
 	VipSale  bool         `gorm:"comment:会员价"`
-	Code     string       `gorm:"size:50;comment:条形码"`
+	Inventory int  `gorm:"comment:库存"`
+	Money string  `gorm:"size:12;comment:价格区间"`
 	Tag      []GoodsTag   `gorm:"many2many:goods_mark_tag;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:tag_id;"`
 	Class    []GoodsClass `gorm:"many2many:goods_mark_class;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:class_id;"`
 	Desc     string       `gorm:"size:200;comment:商品详情"` //描述
@@ -28,6 +29,7 @@ type GoodsSpecs struct {
 	Inventory int     `gorm:"comment:库存"`
 	Unit      string  `gorm:"size:8;comment:单位"`
 	Limit     int     `gorm:"comment:起售量"`
+	Code      string `gorm:"size:30;comment:条形码"`
 }
 
 func (GoodsSpecs) TableName() string {

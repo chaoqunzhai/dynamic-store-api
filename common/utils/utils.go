@@ -27,7 +27,19 @@ func GenValidateCode(width int) string {
 	}
 	return sb.String()
 }
-
+func MinAndMax(values []float64) (float64, float64) {
+	min := values[0]   //assign the first element equal to min
+	max := values[0]  //assign the first element equal to max
+	for _, number := range values {
+		if number < min {
+			min = number
+		}
+		if number > max {
+			max = number
+		}
+	}
+	return min, max
+}
 // 获取当前周几
 func HasWeekNumber() int {
 	n := time.Now()

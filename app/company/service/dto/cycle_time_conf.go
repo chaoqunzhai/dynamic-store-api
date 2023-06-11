@@ -42,7 +42,7 @@ func (m *CycleTimeConfGetPageReq) GetNeedSearch() interface{} {
 type CycleTimeConfInsertReq struct {
 	Id     int    `json:"-" comment:"主键编码"` // 主键编码
 	Layer  int    `json:"layer" comment:"排序"`
-	Enable bool   `json:"enable" comment:"开关"`
+	Show bool   `json:"show" comment:"开关"`
 	Desc   string `json:"desc" comment:"描述信息"`
 
 	Type      int    `json:"type" comment:"类型,每天,每周"`
@@ -61,7 +61,7 @@ func (s *CycleTimeConfInsertReq) Generate(model *models.CycleTimeConf) {
 	}
 	model.CreateBy = s.CreateBy // 添加这而，需要记录是被谁创建的
 	model.Layer = s.Layer
-	model.Enable = s.Enable
+	model.Show = s.Show
 	model.Desc = s.Desc
 
 	model.Type = s.Type
@@ -83,7 +83,7 @@ func (s *CycleTimeConfInsertReq) GetId() interface{} {
 type CycleTimeConfUpdateReq struct {
 	Id     int    `uri:"id" comment:"主键编码"` // 主键编码
 	Layer  int    `json:"layer" comment:"排序"`
-	Enable bool   `json:"enable" comment:"开关"`
+	Show bool   `json:"show" comment:"开关"`
 	Desc   string `json:"desc" comment:"描述信息"`
 
 	Type      int    `json:"type" comment:"类型,每天,每周"`
@@ -102,7 +102,7 @@ func (s *CycleTimeConfUpdateReq) Generate(model *models.CycleTimeConf) {
 	}
 	model.UpdateBy = s.UpdateBy // 添加这而，需要记录是被谁更新的
 	model.Layer = s.Layer
-	model.Enable = s.Enable
+	model.Show = s.Show
 	model.Desc = s.Desc
 
 	model.Type = s.Type

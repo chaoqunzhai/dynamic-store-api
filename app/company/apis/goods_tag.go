@@ -3,15 +3,13 @@ package apis
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin/binding"
-	"go-admin/common/business"
-	customUser "go-admin/common/jwt/user"
-	"strconv"
-
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
+	"go-admin/common/business"
+	customUser "go-admin/common/jwt/user"
 
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
@@ -139,7 +137,7 @@ func (e GoodsTag) Insert(c *gin.Context) {
 	e.Orm.Model(&models.GoodsTag{}).Where("c_id = ?", userDto.CId).Count(&countAll)
 
 	CompanyCnf := business.GetCompanyCnf(userDto.CId, "good_tag", e.Orm)
-	MaxNumber, _ := strconv.Atoi(CompanyCnf["good_tag"])
+	MaxNumber := CompanyCnf["good_tag"]
 
 	if countAll > int64(MaxNumber) {
 		e.Error(500, errors.New(fmt.Sprintf("标签最多只可创建%v个", MaxNumber)), fmt.Sprintf("标签最多只可创建%v个", MaxNumber))

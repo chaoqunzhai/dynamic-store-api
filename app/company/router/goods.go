@@ -26,5 +26,7 @@ func registerGoodsRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewa
 		r.DELETE("", api.Delete)
 		//获取大B所有商品和分类的关联联系
 		r.GET("/class_specs", api.ClassSpecs)
+
+
 	}
 }

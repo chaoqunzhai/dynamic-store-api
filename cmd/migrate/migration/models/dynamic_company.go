@@ -77,15 +77,15 @@ func (Driver) TableName() string {
 
 // todo:大B配置表,一般用于配置一些限制,
 // 默认是读取global的配置,读取这个表配置,如果有使用配置表数据
-type CompanyCnf struct {
+type CompanyQuotaCnf struct {
 	BigBRichGlobal
-	Key         string `gorm:"size:20;comment:配置Key"`
-	Value       string `gorm:"size:20;comment:限制的Value"`
+	Key         string `gorm:"size:16;comment:配置Key"`
+	Number       int `gorm:"comment:限制次数"`
 	ExtendValue string `gorm:"size:20;comment:扩展的Value"`
 }
 
-func (CompanyCnf) TableName() string {
-	return "company_cnf"
+func (CompanyQuotaCnf) TableName() string {
+	return "company_quota_cnf"
 }
 
 //todo:大B店铺设计类型保存
