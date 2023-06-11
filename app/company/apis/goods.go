@@ -157,6 +157,20 @@ func (e Goods) GetPage(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+
+	listType:=c.Query("listType")
+	fmt.Println("listType",listType)
+
+	switch listType {
+	case "on_sale":
+		//在售中
+		req.Enable = "1"
+	case "off_sale":
+		//下架的
+		req.Enable = "0"
+	case "sold_out":
+		//售罄 ?
+	}
 	p := actions.GetPermissionFromContext(c)
 	list := make([]models.Goods, 0)
 	var count int64
