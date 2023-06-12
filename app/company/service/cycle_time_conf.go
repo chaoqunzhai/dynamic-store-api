@@ -2,7 +2,10 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk/service"
+	"go-admin/common/utils"
+	"go-admin/global"
 	"gorm.io/gorm"
 
 	"go-admin/app/company/models"
@@ -63,6 +66,7 @@ func (e *CycleTimeConf) Insert(cid int, c *dto.CycleTimeConfInsertReq) error {
 	c.Generate(&data)
 	data.CId = cid
 	data.Enable = true
+	data.Uid = utils.CreateCode()
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("CycleTimeConfService Insert error:%s \r\n", err)
@@ -78,6 +82,21 @@ func (e *CycleTimeConf) Update(c *dto.CycleTimeConfUpdateReq, p *actions.DataPer
 	e.Orm.Scopes(
 		actions.Permission(data.TableName(), p),
 	).First(&data, c.GetId())
+	//判断时间是否有变动,如果有变动更新uid标记
+	uidTag := false
+	if c.StartTime != data.StartTime || c.EndTime != data.EndTime {
+		uidTag = true
+	}
+	switch c.Type {
+	case global.CyCleTimeWeek:
+		if c.StartWeek != data.StartWeek || c.EndWeek != data.EndWeek {
+			uidTag = true
+		}
+	}
+	if uidTag {
+		data.Uid = utils.CreateCode()
+		fmt.Println("数据发生变更更新code")
+	}
 	c.Generate(&data)
 	data.Enable = true
 	db := e.Orm.Save(&data)

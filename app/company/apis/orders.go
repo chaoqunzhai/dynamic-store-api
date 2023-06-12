@@ -150,10 +150,10 @@ func (e Orders) Get(c *gin.Context) {
 	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?", object.ShopId, userDto.CId).Limit(1).Find(&shopRow)
 
 	result := map[string]interface{}{
-		"order_id":      object.Id,
-		"created_at":    object.CreatedAt,
-		"cycle_time":    object.CycleTime,
-		"cycle_str":     object.CycleStr,
+		"order_id":   object.Id,
+		"created_at": object.CreatedAt,
+		"cycle_time": object.CycleTime,
+		//"cycle_str":     object.CycleStr,
 		"pay":           global.GetPayStr(object.Pay),
 		"shop_name":     shopRow.Name,
 		"shop_username": shopRow.UserName,
@@ -238,7 +238,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		orderRow.Id = orderId
 		//代客下单,需要把配送周期保存，方便周期配送
 		orderRow.CycleTime = s.CalculateTime(DeliveryObject.GiveDay)
-		orderRow.CycleStr = DeliveryObject.GiveTime
+		//orderRow.CycleStr = DeliveryObject.GiveTime
 		orderRow.CreateBy = userDto.UserId
 
 		e.Orm.Table(orderExtend).Create(&models.OrderExtend{
@@ -400,14 +400,14 @@ func (e Orders) ValidTimeConf(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	timeConf, _, delivery_time, deliveryStr := s.ValidTimeConf(userDto.CId)
-	if !timeConf {
+	result := s.ValidTimeConf(userDto.CId)
+	if !result.Valid {
 		e.Error(500, errors.New("非下单时间段"), "非下单时间段")
 		return
 	}
 	e.OK(map[string]interface{}{
-		"time": delivery_time,
-		"str":  deliveryStr,
+		"time": result.CycleDay,
+		"str":  result.CycleStr,
 	}, "successful")
 	return
 }
@@ -454,8 +454,8 @@ func (e Orders) Insert(c *gin.Context) {
 	//根据下单的时间区间来自动匹配,
 	//1.查询这个时间段内是否配置了cycle_time_conf得值,如果创建了进行关联即可
 	//2.如果没有这个时间
-	timeConf, _, delivery_time, deliveryStr := s.ValidTimeConf(userDto.CId)
-	if !timeConf {
+	timeConfResult := s.ValidTimeConf(userDto.CId)
+	if !timeConfResult.Valid {
 		e.Error(500, errors.New("非下单时间段"), "非下单时间段")
 		return
 	}
@@ -514,8 +514,8 @@ func (e Orders) Insert(c *gin.Context) {
 	data.GoodsId = goodsObject.Id
 	data.GoodsName = goodsObject.Name
 	//todo:配送周期
-	data.CycleTime = delivery_time
-	data.CycleStr = deliveryStr
+	data.CycleTime = timeConfResult.CycleDay
+	//data.CycleStr = deliveryStr
 	data.CreateBy = userId
 	createErr := e.Orm.Table(orderTableName).Create(&data).Error
 	if createErr != nil {
@@ -579,6 +579,12 @@ func (e Orders) Insert(c *gin.Context) {
 		"number": goodsSoldNumber,
 		"money":  orderMoney,
 	})
+	//订单创建成功了,同时做一个周期列表数据得保存
+	cycleMode := models.OrderCycleList{
+		CId:  userDto.CId,
+		Name: timeConfResult.CycleDay.Format("2006-01-02"),
+		Uid:  timeConfResult.RandUid,
+	}
 	e.OK(req.GetId(), "创建成功")
 }
 

@@ -19,7 +19,6 @@ type Orders struct {
 	Pay       int          `gorm:"type:tinyint(1);default:0;index;comment:支付方式,0:线上,1:线下"`
 	PayStatus int          `gorm:"type:tinyint(1);default:0;index;comment:支付状态,0:未付款,1:已付款 2:线下付款，3:下线付款已收款"`
 	CycleTime models.XTime `json:"cycle_time" gorm:"type:date;comment:计算的配送时间"`
-	CycleStr  string       `json:"cycle_str" gorm:"index;size:14;comment:配送时间的文案"`
 	models.ModelTime
 	models.ControlBy
 }
@@ -84,4 +83,24 @@ func (OrderExtend) TableName(tableName string) string {
 
 func (e *OrderExtend) GetId() interface{} {
 	return e.Id
+}
+
+// todo:周期列表
+type OrderCycleList struct {
+	models.Model
+	CreatedAt models.XTime `json:"createdAt" gorm:"comment:创建时间"`
+	CId       int          `gorm:"index;comment:大BID"`
+	Name      string       `gorm:"size:12;comment:下单周期日期名称"`
+	Uid       string       `gorm:"type:varchar(4);comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
+	StartTime models.XTime `gorm:"comment:此周期,下单周期开始时间"`
+	EndTime   models.XTime `gorm:"comment:此周期,下单周期结束时间"`
+	CycleTime models.XTime `json:"cycle_time" gorm:"type:date;comment:计算的配送时间"`
+	CycleStr  string       `json:"cycle_str" gorm:"index;size:14;comment:配送时间的文案"`
+	SoldMoney float64      `gorm:"comment:销售总额"`
+	GoodsAll  float64      `gorm:"comment:商品总数"`
+	ShopCount int          `gorm:"type:tinyint(3);comment:客户总数"`
+}
+
+func (OrderCycleList) TableName() string {
+	return "order_cycle_list"
 }

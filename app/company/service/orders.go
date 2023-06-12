@@ -19,6 +19,14 @@ type Orders struct {
 	service.Service
 }
 
+type TimeConfResponse struct {
+	Valid    bool
+	ObjectId int
+	CycleDay models2.XTime
+	CycleStr string
+	RandUid  string
+}
+
 func (e *Orders) CalculateTime(day int) (delivery_time models2.XTime) {
 	//选择的天数，计算出配送周期
 
@@ -27,12 +35,15 @@ func (e *Orders) CalculateTime(day int) (delivery_time models2.XTime) {
 	x.Time = time.Date(newTime.Year(), newTime.Month(), newTime.Day(), 0, 0, 0, 0, time.Local)
 	return x
 }
-func (e *Orders) ValidTimeConf(cid int) (v bool, uid int, delivery_time models2.XTime, deliver_str string) {
+func (e *Orders) ValidTimeConf(cid int) (response *TimeConfResponse) {
 	var data models.CycleTimeConf
 	var count int64
+	response = &TimeConfResponse{}
 	e.Orm.Model(&data).Where("c_id = ?", cid).Count(&count)
 	if count == 0 {
-		return false, 0, models2.XTime{}, ""
+		response.Valid = false
+
+		return response
 	}
 	//todo:获取当前时间是周几,
 	thisWeek := utils.HasWeekNumber()
@@ -40,45 +51,41 @@ func (e *Orders) ValidTimeConf(cid int) (v bool, uid int, delivery_time models2.
 	//todo:查询是否配置了每天的时间,查询出大B配置的开始-结束 时间区间的值
 	var timeConfDay []models.CycleTimeConf
 	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and type = ?", cid, global.CyCleTimeDay).Find(&timeConfDay)
-	dayId := 0
-	deliverDay := 0
-	deliverStr := ""
 	for _, d := range timeConfDay {
 		//匹配到时间区间直接返回,时间配置的ID即可
+		//根据这个N+(deliverDay)=订单的配送时间
 		if utils.TimeCheckRange(d.StartTime, d.EndTime) {
-			dayId = d.Id
-			deliverStr = d.GiveTime
-			deliverDay = d.GiveDay
-		}
-	}
-	//根据这个N+(deliverDay)=订单的配送时间
-	if dayId > 0 {
+			response.Valid = true
+			response.RandUid = d.Uid
+			response.ObjectId = d.Id
+			response.CycleDay = e.CalculateTime(d.GiveDay)
+			response.CycleStr = d.GiveTime
+			记录开始时间
+			return
 
-		return true, dayId, e.CalculateTime(deliverDay), deliverStr
+		}
 	}
 
 	//todo:检测是否配置了每周的时间
 	var timeConfWeek []models.CycleTimeConf
 	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and type = ?", cid, global.CyCleTimeWeek).Find(&timeConfWeek)
-	weekId := 0
-	weekDeliverDay := 0
-	weekDeliverStr := ""
+
 	for _, w := range timeConfWeek {
 		//当前周在配置的周期中
 		if thisWeek >= w.StartWeek && thisWeek <= w.EndWeek {
 			if utils.TimeCheckRange(w.StartTime, w.EndTime) {
-				weekId = w.Id
-				weekDeliverDay = w.GiveDay
-				weekDeliverStr = w.GiveTime
+				response.Valid = true
+				response.RandUid = w.Uid
+				response.ObjectId = w.Id
+				response.CycleDay = e.CalculateTime(w.GiveDay)
+				response.CycleStr = w.GiveTime
+				//当前周几换算为时间 + (deliverDay)=订单的配送时间
+				return
 			}
 		}
 	}
-	//当前周几换算为时间 + (deliverDay)=订单的配送时间
-	if weekId > 0 {
-		return true, weekId, e.CalculateTime(weekDeliverDay), weekDeliverStr
-	}
 
-	return false, 0, models2.XTime{}, ""
+	return
 }
 
 // GetPage 获取Orders列表

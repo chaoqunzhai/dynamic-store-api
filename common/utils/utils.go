@@ -28,8 +28,8 @@ func GenValidateCode(width int) string {
 	return sb.String()
 }
 func MinAndMax(values []float64) (float64, float64) {
-	min := values[0]   //assign the first element equal to min
-	max := values[0]  //assign the first element equal to max
+	min := values[0] //assign the first element equal to min
+	max := values[0] //assign the first element equal to max
 	for _, number := range values {
 		if number < min {
 			min = number
@@ -40,6 +40,7 @@ func MinAndMax(values []float64) (float64, float64) {
 	}
 	return min, max
 }
+
 // 获取当前周几
 func HasWeekNumber() int {
 	n := time.Now()
@@ -201,4 +202,7 @@ func GenUUID() int {
 	number, _ := strconv.ParseInt(n, 10, 64)
 	//fmt.Printf("%v to %v\n",n,number)
 	return int(number)
+}
+func CreateCode() string {
+	return fmt.Sprintf("%04v", rand.New(rand.NewSource(time.Now().UnixNano())).Int31n(10000)) //这里面前面的04v是和后面的1000相对应的
 }
