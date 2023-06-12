@@ -18,6 +18,7 @@ func registerCycleTimeConfRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWT
 	api := apis.CycleTimeConf{}
 	r := v1.Group("/cycle-time-conf").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
+		r.GET("/cnf", api.TypeCnf)
 		r.GET("", api.GetPage)
 		r.GET("/:id", api.Get)
 		r.POST("", api.Insert)

@@ -21,6 +21,32 @@ type CycleTimeConf struct {
 	api.Api
 }
 
+func (e CycleTimeConf) TypeCnf(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	cnf := make(map[string]interface{}, 0)
+	var cycleObject models.CycleTimeConf
+	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id =? and enable = ? ", userDto.CId, true).Limit(1).Find(&cycleObject)
+	if cycleObject.Id == 0 {
+		cnf["type"] = false
+	} else {
+		cnf["type"] = cycleObject.Type
+	}
+	e.OK(cnf, "successful")
+	return
+}
+
 // GetPage 获取CycleTimeConf列表
 // @Summary 获取CycleTimeConf列表
 // @Description 获取CycleTimeConf列表
@@ -70,7 +96,7 @@ func (e CycleTimeConf) GetPage(c *gin.Context) {
 			"give_time":  row.GiveTime,
 			"start_week": row.StartWeek,
 			"end_week":   row.EndWeek,
-			"show":     row.Show,
+			"show":       row.Show,
 			"layer":      row.Layer,
 			"created_at": row.CreatedAt,
 			"give_range": func() string {
@@ -140,6 +166,7 @@ func (e CycleTimeConf) Get(c *gin.Context) {
 // @Success 200 {object} response.Response	"{"code": 200, "message": "添加成功"}"
 // @Router /api/v1/cycle-time-conf [post]
 // @Security Bearer
+// 模式只能存在一种,不可每天,每周混用
 func (e CycleTimeConf) Insert(c *gin.Context) {
 	req := dto.CycleTimeConfInsertReq{}
 	s := service.CycleTimeConf{}
@@ -165,6 +192,14 @@ func (e CycleTimeConf) Insert(c *gin.Context) {
 		return
 	}
 	var count int64
+
+	//周期必须相同
+	var cycleObject models.CycleTimeConf
+	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id =? and enable = ? ", userDto.CId, true).Limit(1).Find(&cycleObject)
+	if cycleObject.Id > 0 && cycleObject.Type != req.Type {
+		e.Error(500, errors.New("周期类型必须一致"), "周期类型必须一致")
+		return
+	}
 
 	//时间不能重复,也就是start_time 和end_time 是不能存在相同的
 	whereSql := ""

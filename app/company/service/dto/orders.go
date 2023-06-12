@@ -55,11 +55,12 @@ type OrdersInsertReq struct {
 	common.ControlBy
 }
 type OrderGoodsSpecs struct {
-	SpecsId int     `json:"specs_id" comment:"规格ID"`
-	Name    string  `json:"name" comment:"产品名称"`
-	Spec    string  `json:"spec" comment:"规格"`
-	Money   float64 `json:"money" comment:"金额"`
-	Number  int     `json:"number" comment:"数量"`
+	SpecsId   int     `json:"specs_id" comment:"规格ID"`
+	Name      string  `json:"name" comment:"产品名称"`
+	Unit      string  `json:"unit" comment:"单位`
+	Money     float64 `json:"money" comment:"金额"`
+	Number    int     `json:"number" comment:"数量"`
+	Inventory int     `json:"-" comment:"查询后规格实际的库存"`
 }
 
 func (s *OrdersInsertReq) Generate(model *models.Orders) {
@@ -67,7 +68,7 @@ func (s *OrdersInsertReq) Generate(model *models.Orders) {
 		model.Model = common.Model{Id: s.Id}
 	}
 	model.CreateBy = s.CreateBy // 添加这而，需要记录是被谁创建的
-	model.Layer = s.Layer
+
 	model.Enable = s.Enable
 
 	model.ShopId = s.ShopId
@@ -88,8 +89,7 @@ type ValetOrderReq struct {
 	Desc       string             `json:"desc"`
 }
 type valetOrderSpecs struct {
-	ClassId int           `json:"class_id"`
-	Specs   []*valetSpecs `json:"specs"`
+	Specs []*valetSpecs `json:"specs"`
 }
 type valetSpecs struct {
 	Id      int     `json:"id"`
@@ -122,7 +122,7 @@ func (s *OrdersUpdateReq) Generate(model *models.Orders) {
 		model.Model = common.Model{Id: s.Id}
 	}
 	model.UpdateBy = s.UpdateBy // 添加这而，需要记录是被谁更新的
-	model.Layer = s.Layer
+
 	model.Enable = s.Enable
 
 	model.ShopId = s.ShopId

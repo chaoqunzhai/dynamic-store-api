@@ -30,7 +30,7 @@ func (e *Orders) CalculateTime(day int) (delivery_time models2.XTime) {
 func (e *Orders) ValidTimeConf(cid int) (v bool, uid int, delivery_time models2.XTime, deliver_str string) {
 	var data models.CycleTimeConf
 	var count int64
-	e.Orm.Model(&data).Where("c_id = ? and enable = ?", cid, true).Count(&count)
+	e.Orm.Model(&data).Where("c_id = ?", cid).Count(&count)
 	if count == 0 {
 		return false, 0, models2.XTime{}, ""
 	}
@@ -39,7 +39,7 @@ func (e *Orders) ValidTimeConf(cid int) (v bool, uid int, delivery_time models2.
 
 	//todo:查询是否配置了每天的时间,查询出大B配置的开始-结束 时间区间的值
 	var timeConfDay []models.CycleTimeConf
-	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and enable = ? and type = ?", cid, true, global.CyCleTimeDay).Find(&timeConfDay)
+	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and type = ?", cid, global.CyCleTimeDay).Find(&timeConfDay)
 	dayId := 0
 	deliverDay := 0
 	deliverStr := ""
@@ -59,13 +59,13 @@ func (e *Orders) ValidTimeConf(cid int) (v bool, uid int, delivery_time models2.
 
 	//todo:检测是否配置了每周的时间
 	var timeConfWeek []models.CycleTimeConf
-	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and enable = ? and type = ?", cid, true, global.CyCleTimeWeek).Find(&timeConfWeek)
+	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and type = ?", cid, global.CyCleTimeWeek).Find(&timeConfWeek)
 	weekId := 0
 	weekDeliverDay := 0
 	weekDeliverStr := ""
 	for _, w := range timeConfWeek {
 		//当前周在配置的周期中
-		if thisWeek > w.StartWeek && thisWeek < w.EndWeek {
+		if thisWeek >= w.StartWeek && thisWeek <= w.EndWeek {
 			if utils.TimeCheckRange(w.StartTime, w.EndTime) {
 				weekId = w.Id
 				weekDeliverDay = w.GiveDay

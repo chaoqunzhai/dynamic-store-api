@@ -36,7 +36,7 @@ type ReportResult struct {
 }
 type reportGoods struct {
 	Id     int     `json:"id"`
-	LineId int     `json:"-"`
+	LineId int     `json:"line"`
 	Name   string  `json:"name"`
 	Image  string  `json:"image"`
 	Number int     `json:"number"`
@@ -90,7 +90,7 @@ func (e Orders) Index(c *gin.Context) {
 		return
 	}
 	//根据选择的日期 + 大B配置的自定义配送时间
-	orderTableName := business.GetTableName(userDto.CId,e.Orm)
+	orderTableName := business.GetTableName(userDto.CId, e.Orm)
 	//获取指定天数的订单的商家列表
 	//大B + 选择天数 + 待送 + 有用的单子 +
 	//只聚合查询出，哪些客户=哪些路线  哪些商品=商品的配送
@@ -156,24 +156,24 @@ func (e Orders) Index(c *gin.Context) {
 	cacheReportGoods := make(map[int]reportGoods, 0)
 	for _, row := range list {
 		//fmt.Println("商品ID", row.GoodId, "路线ID", row.LineId, "商品ID", row.GoodId)
-		goodsRow, ok := goodsMapData[row.GoodId]
+		goodsRow, ok := goodsMapData[row.GoodsId]
 		if !ok {
 			fmt.Println("订单中的商品不在统一数据中！")
 			continue
 		}
 		//todo:一样的商品做一个数量和价格的叠加
-		cacheGood, validOk := cacheGoods[row.GoodId]
+		cacheGood, validOk := cacheGoods[row.GoodsId]
 		if validOk {
 			cacheGood.Number += row.Number
 			cacheGood.Money += row.Money
-			cacheGoods[row.GoodId] = cacheGood
+			cacheGoods[row.GoodsId] = cacheGood
 		} else {
-			cacheGoods[row.GoodId] = GoodsRow{
+			cacheGoods[row.GoodsId] = GoodsRow{
 				Number: row.Number,
 				Money:  row.Money,
 			}
 		}
-		newCacheGoods, _ := cacheGoods[row.GoodId]
+		newCacheGoods, _ := cacheGoods[row.GoodsId]
 		report := reportGoods{
 			Id:     goodsRow.Id,
 			Name:   goodsRow.Name,
@@ -182,7 +182,7 @@ func (e Orders) Index(c *gin.Context) {
 			Money:  newCacheGoods.Money,
 			LineId: row.LineId,
 		}
-		cacheReportGoods[row.GoodId] = report
+		cacheReportGoods[row.GoodsId] = report
 	}
 	//fmt.Println("cache2", cacheReportGoods)
 

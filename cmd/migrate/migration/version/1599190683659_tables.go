@@ -50,6 +50,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.Company),
 			new(models.CompanyQuotaCnf),
 			new(models.CompanyCategory),
+			new(models.CompanyFreight),
 			new(models.CompanyRenewalTimeLog),
 			new(models.CompanyRole),
 			new(models.SplitTableMap),

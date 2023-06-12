@@ -18,8 +18,8 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 	api := apis.Orders{}
 	r := v1.Group("/orders").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
-		r.GET("", api.GetPage)
 
+		r.GET("", api.GetPage)
 		//todo:代客下单
 		r.POST("/valet_order", api.ValetOrder)
 		//不支持对订单数据的直接更新,因为是客户下单的

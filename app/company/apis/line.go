@@ -128,7 +128,7 @@ func (e Line) LineBindShopList(c *gin.Context) {
 	var list []models2.Shop
 	var count int64
 	p := actions.GetPermissionFromContext(c)
-	e.Orm.Model(&models2.Shop{}).Where("enable = ? and c_id = ? and line_id = ?", true, userDto.UserId, lineIdNumber).
+	e.Orm.Model(&models2.Shop{}).Where("enable = ? and c_id = ? and line_id = ?", true, userDto.CId, lineIdNumber).
 		Scopes(
 			cDto.MakeCondition(req.GetNeedSearch()),
 			cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),

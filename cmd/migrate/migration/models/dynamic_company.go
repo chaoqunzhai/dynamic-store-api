@@ -80,7 +80,7 @@ func (Driver) TableName() string {
 type CompanyQuotaCnf struct {
 	BigBRichGlobal
 	Key         string `gorm:"size:16;comment:配置Key"`
-	Number       int `gorm:"comment:限制次数"`
+	Number      int    `gorm:"comment:限制次数"`
 	ExtendValue string `gorm:"size:20;comment:扩展的Value"`
 }
 
@@ -97,4 +97,14 @@ type CompanyCategory struct {
 
 func (CompanyCategory) TableName() string {
 	return "company_category"
+}
+
+type CompanyFreight struct {
+	BigBRichGlobal
+	QuotaMoney   float64 `gorm:"comment:达到多少钱可以免运费"`
+	FreightMoney float64 `gorm:"comment:没有达到Quota,运费多少钱"`
+}
+
+func (CompanyFreight) TableName() string {
+	return "company_freight"
 }

@@ -57,11 +57,12 @@ func (e *CycleTimeConf) Get(d *dto.CycleTimeConfGetReq, p *actions.DataPermissio
 }
 
 // Insert 创建CycleTimeConf对象
-func (e *CycleTimeConf) Insert(cid int,c *dto.CycleTimeConfInsertReq) error {
+func (e *CycleTimeConf) Insert(cid int, c *dto.CycleTimeConfInsertReq) error {
 	var err error
 	var data models.CycleTimeConf
 	c.Generate(&data)
 	data.CId = cid
+	data.Enable = true
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("CycleTimeConfService Insert error:%s \r\n", err)
@@ -78,7 +79,7 @@ func (e *CycleTimeConf) Update(c *dto.CycleTimeConfUpdateReq, p *actions.DataPer
 		actions.Permission(data.TableName(), p),
 	).First(&data, c.GetId())
 	c.Generate(&data)
-
+	data.Enable = true
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("CycleTimeConfService Save error:%s \r\n", err)

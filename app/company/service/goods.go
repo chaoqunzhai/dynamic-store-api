@@ -27,7 +27,7 @@ func (e *Goods) GetPage(c *dto.GoodsGetPageReq, p *actions.DataPermission, list 
 	var err error
 	var data models.Goods
 
-	query :=e.Orm.Model(&data).
+	query := e.Orm.Model(&data).
 		Scopes(
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
@@ -36,9 +36,9 @@ func (e *Goods) GetPage(c *dto.GoodsGetPageReq, p *actions.DataPermission, list 
 		return tx.Select("id,name")
 	})
 
-	if c.Class != ""{
+	if c.Class != "" {
 		query = query.Joins("LEFT JOIN goods_mark_class ON goods.id = goods_mark_class.goods_id").Where("goods_mark_class.class_id in ?",
-			strings.Split(c.Class,","))
+			strings.Split(c.Class, ","))
 	}
 	err = query.Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
@@ -118,17 +118,17 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
 	specsList := make([]dto.Specs, 0)
 	marshErr := json.Unmarshal([]byte(c.Specs), &specsList)
 	//商品库存值,所以得规格相加
-	inventory:=0
+	inventory := 0
 	//规格 + vip价格设置存在
-	moneyList:=make([]float64,0)
+	moneyList := make([]float64, 0)
 	if len(specsList) > 0 && marshErr == nil {
 		for _, row := range specsList {
-			stock :=func() int {
+			stock := func() int {
 
 				n, _ := strconv.Atoi(fmt.Sprintf("%v", row.Inventory))
 				return n
 			}()
-			price:=func() float64 {
+			price := func() float64 {
 
 				if row.Price == "" {
 					return 0
@@ -136,16 +136,16 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
 				n, _ := strconv.ParseFloat(fmt.Sprintf("%v", row.Price), 64)
 				return n
 			}()
-			moneyList = append(moneyList,price)
-			inventory +=stock
+			moneyList = append(moneyList, price)
+			inventory += stock
 			specsModels := models.GoodsSpecs{
 				Name:    row.Name,
 				CId:     cid,
 				Enable:  row.Enable,
 				Layer:   row.Layer,
 				GoodsId: data.Id,
-				Code: row.Code,
-				Price: price,
+				Code:    row.Code,
+				Price:   price,
 				Original: func() float64 {
 
 					if row.Original == "" {
@@ -155,7 +155,7 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
 					return n
 				}(),
 				Inventory: stock,
-				Unit: row.Unit,
+				Unit:      row.Unit,
 				Limit: func() int {
 
 					n, _ := strconv.Atoi(fmt.Sprintf("%v", row.Limit))
@@ -207,12 +207,12 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
 		return 0, err
 	}
 
-	e.Orm.Model(&data).Where("id = ?",data.Id).Updates(map[string]interface{}{
-		"inventory":inventory,
+	e.Orm.Model(&data).Where("id = ?", data.Id).Updates(map[string]interface{}{
+		"inventory": inventory,
 		"money": func() string {
 			if len(moneyList) > 0 {
-				min,max :=utils.MinAndMax(moneyList)
-				return fmt.Sprintf("¥%v-%v",min,max)
+				min, max := utils.MinAndMax(moneyList)
+				return fmt.Sprintf("¥%v-%v", min, max)
 			}
 			return ""
 		}(),
@@ -244,14 +244,14 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 	specsList := make([]dto.Specs, 0)
 	marshErr := json.Unmarshal([]byte(c.Specs), &specsList)
 	//商品库存值,所以得规格相加
-	inventory:=0
-	moneyList:=make([]float64,0)
+	inventory := 0
+	moneyList := make([]float64, 0)
 	//规格更新
 	if len(specsList) > 0 && marshErr == nil {
 		for _, row := range specsList {
 			var specsRow models.GoodsSpecs
 			//获取库存量
-			stock:= func() int {
+			stock := func() int {
 				n, _ := strconv.Atoi(fmt.Sprintf("%v", row.Inventory))
 				return n
 			}()
@@ -263,8 +263,8 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 				n, _ := strconv.ParseFloat(fmt.Sprintf("%v", row.Price), 64)
 				return n
 			}()
-			moneyList = append(moneyList,price)
-			inventory+=stock
+			moneyList = append(moneyList, price)
+			inventory += stock
 			if row.Id > 0 {
 				//就是一个规格资源的更新
 				e.Orm.Model(&models.GoodsSpecs{}).Where("id = ?", row.Id).Limit(1).Find(&specsRow)
@@ -299,8 +299,8 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 					Enable:  row.Enable,
 					Layer:   row.Layer,
 					GoodsId: c.Id,
-					Code: row.Code,
-					Price: price,
+					Code:    row.Code,
+					Price:   price,
 					Original: func() float64 {
 
 						if row.Price == "" {
@@ -310,7 +310,7 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 						return n
 					}(),
 					Inventory: stock,
-					Unit: row.Unit,
+					Unit:      row.Unit,
 					Limit: func() int {
 						n, _ := strconv.Atoi(fmt.Sprintf("%v", row.Limit))
 						return n
@@ -368,8 +368,8 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 	}
 	data.Money = func() string {
 		if len(moneyList) > 0 {
-			min,max :=utils.MinAndMax(moneyList)
-			return fmt.Sprintf("¥%v-%v",min,max)
+			min, max := utils.MinAndMax(moneyList)
+			return fmt.Sprintf("¥%v-%v", min, max)
 		}
 		return ""
 	}()
@@ -405,8 +405,8 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq, p *actions.DataPermission) error {
 	for _, t := range d.Ids {
 		removeIds = append(removeIds, fmt.Sprintf("%v", t))
 	}
-	e.Orm.Model(&models.GoodsVip{}).Where("goods_id in ?", removeIds).Delete(&models.GoodsVip{})
-	e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id in ?", removeIds).Delete(&models.GoodsSpecs{})
+	e.Orm.Model(&models.GoodsVip{}).Where("goods_id in ?", removeIds).Unscoped().Delete(&models.GoodsVip{})
+	e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id in ?", removeIds).Unscoped().Delete(&models.GoodsSpecs{})
 	e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_tag` WHERE `goods_mark_tag`.`goods_id` IN (%v)", strings.Join(removeIds, ",")))
 	e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_class` WHERE `goods_mark_class`.`goods_id` IN (%v)", strings.Join(removeIds, ",")))
 	return nil
