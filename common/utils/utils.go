@@ -100,9 +100,23 @@ func ParInt(n float64) float64 {
 }
 
 // 数组去重
-func RemoveRepeatElement(list []string) (result []string) {
+func RemoveRepeatStr(list []string) (result []string) {
 	// 创建一个临时map用来存储数组元素
 	temp := make(map[string]bool)
+	for _, v := range list {
+		// 遍历数组元素，判断此元素是否已经存在map中
+		_, ok := temp[v]
+		if !ok {
+			temp[v] = true
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
+func RemoveRepeatInt(list []int) (result []int) {
+	// 创建一个临时map用来存储数组元素
+	temp := make(map[int]bool)
 	for _, v := range list {
 		// 遍历数组元素，判断此元素是否已经存在map中
 		_, ok := temp[v]

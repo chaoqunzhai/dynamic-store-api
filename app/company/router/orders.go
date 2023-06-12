@@ -27,7 +27,10 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 		//todo:订单状态更新,周期延后 等
 		r.PUT("/tools/:id", api.ToolsOrders)
 		//暂时不可进行订单删除
-		r.DELETE("", api.Delete)
+		//r.DELETE("", api.Delete)
+
+		//todo:获取下订单创建的周期列表
+		r.GET("/cycle_lists",api.OrderCycleList)
 	}
 
 	r2 := v1.Group("/orders").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole())
@@ -41,5 +44,6 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 
 		//todo:获取下单的时间配置
 		r2.GET("/times", api.Times)
+
 	}
 }

@@ -4,7 +4,7 @@ package models
 type Goods struct {
 	BigBRichGlobal
 	Name      string       `gorm:"size:30;comment:商品名称"`
-	Subtitle  string       `gorm:"size:16;comment:商品广告"`
+	Subtitle  string       `gorm:"size:20;comment:商品广告"`
 	Image     string       `gorm:"size:155;comment:商品图片路径"`
 	Quota     bool         `gorm:"comment:是否限购"`
 	VipSale   bool         `gorm:"comment:会员价"`

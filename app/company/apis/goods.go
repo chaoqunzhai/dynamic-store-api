@@ -180,21 +180,6 @@ func (e Goods) GetPage(c *gin.Context) {
 		return
 	}
 
-	goodsIds := make([]string, 0)
-	for _, row := range list {
-		goodsIds = append(goodsIds, fmt.Sprintf("%v", row.Id))
-	}
-	//统计商品卖了多少件
-	//orderTable := business.GetTableName(userDto.CId, e.Orm)
-	//goodOrderMap := make(map[int]int64, 0)
-	//if len(goodsIds) > 0 {
-	//	goodOrder := make([]dto.GoodCountOrder, 0)
-	//	e.Orm.Table(orderTable).Raw(fmt.Sprintf("select COUNT(*) as count,goods_id from orders where goods_id in (%v) and c_id = %v GROUP BY goods_id",
-	//		strings.Join(goodsIds, ","), userDto.CId)).Scan(&goodOrder)
-	//	for _, row := range goodOrder {
-	//		goodOrderMap[row.GoodId] = row.Count
-	//	}
-	//}
 	//make数据
 	result := make([]map[string]interface{}, 0)
 	for _, row := range list {

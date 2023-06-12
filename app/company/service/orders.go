@@ -22,18 +22,34 @@ type Orders struct {
 type TimeConfResponse struct {
 	Valid    bool
 	ObjectId int
-	CycleDay models2.XTime
+	CycleTime models2.XTime
 	CycleStr string
 	RandUid  string
+	StartTime models2.XTime
+	EndTime models2.XTime
 }
 
-func (e *Orders) CalculateTime(day int) (delivery_time models2.XTime) {
+func (e *Orders) CalculateTime(day int) (t models2.XTime) {
 	//选择的天数，计算出配送周期
 
 	newTime := time.Now().AddDate(0, 0, day)
 	x := models2.XTime{}
 	x.Time = time.Date(newTime.Year(), newTime.Month(), newTime.Day(), 0, 0, 0, 0, time.Local)
 	return x
+}
+//23:30 to 2023年06月12日23:30:30
+func (e *Orders) MakeTime(value string) (x models2.XTime) {
+	x = models2.XTime{}
+	timeDemo:=fmt.Sprintf("%v %v",
+		time.Now().Format("2006-01-02"),
+		value)
+	tt, err := time.ParseInLocation("2006-01-02 15:04", timeDemo, time.Local)
+	if err!=nil{
+		x.Time = time.Now()
+		return
+	}
+	x.Time = tt
+	return
 }
 func (e *Orders) ValidTimeConf(cid int) (response *TimeConfResponse) {
 	var data models.CycleTimeConf
@@ -58,9 +74,10 @@ func (e *Orders) ValidTimeConf(cid int) (response *TimeConfResponse) {
 			response.Valid = true
 			response.RandUid = d.Uid
 			response.ObjectId = d.Id
-			response.CycleDay = e.CalculateTime(d.GiveDay)
+			response.CycleTime = e.CalculateTime(d.GiveDay)
 			response.CycleStr = d.GiveTime
-			记录开始时间
+			response.StartTime = e.MakeTime(d.StartTime)
+			response.EndTime = e.MakeTime(d.EndTime)
 			return
 
 		}
@@ -77,8 +94,10 @@ func (e *Orders) ValidTimeConf(cid int) (response *TimeConfResponse) {
 				response.Valid = true
 				response.RandUid = w.Uid
 				response.ObjectId = w.Id
-				response.CycleDay = e.CalculateTime(w.GiveDay)
+				response.CycleTime = e.CalculateTime(w.GiveDay)
 				response.CycleStr = w.GiveTime
+				response.StartTime = e.MakeTime(w.StartTime)
+				response.EndTime = e.MakeTime(w.EndTime)
 				//当前周几换算为时间 + (deliverDay)=订单的配送时间
 				return
 			}
@@ -100,7 +119,7 @@ func (e *Orders) GetPage(tableName string, c *dto.OrdersGetPageReq, p *actions.D
 		Scopes(
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(tableName), p),
-		).
+		).Order(global.OrderTimeKey).
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {

@@ -42,15 +42,13 @@ func (m *OrdersGetPageReq) GetNeedSearch() interface{} {
 
 type OrdersInsertReq struct {
 	Id      int    `json:"-" comment:"主键编码"` // 主键编码
-	Layer   int    `json:"layer" comment:"排序"`
-	Enable  bool   `json:"enable" comment:"开关"`
+	//Layer   int    `json:"layer" comment:"排序"`
+	//Enable  bool   `json:"enable" comment:"开关"`
 	Desc    string `json:"desc" comment:"描述信息"`
 	ShopId  int    `json:"shop_id" comment:"关联客户"`
-	ClassId int    `json:"class_id"`
 	Status  int    `json:"status" comment:"配送状态"`
 	Number  int    `json:"number" comment:"下单数量"`
 	GoodsId int    `json:"goods_id"  comment:"商品ID"`
-	//Delivery int `json:"delivery" comment:"配送周期"`
 	GoodsSpecs []OrderGoodsSpecs `json:"goods_specs" comment:"商品规格"`
 	common.ControlBy
 }
@@ -69,7 +67,7 @@ func (s *OrdersInsertReq) Generate(model *models.Orders) {
 	}
 	model.CreateBy = s.CreateBy // 添加这而，需要记录是被谁创建的
 
-	model.Enable = s.Enable
+	model.Enable = true
 
 	model.ShopId = s.ShopId
 	model.Status = s.Status

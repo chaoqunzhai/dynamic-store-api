@@ -75,6 +75,7 @@ func (e Orders) GetPage(c *gin.Context) {
 	for _, row := range list {
 		cacheShopId = append(cacheShopId, row.ShopId)
 	}
+	cacheShopId = utils.RemoveRepeatInt(cacheShopId)
 	//查询到对象
 	cacheShopObject := make([]models2.Shop, 0)
 	e.Orm.Model(&models2.Shop{}).Select("name,id,phone").Where("c_id = ? and id in ?",
@@ -94,10 +95,16 @@ func (e Orders) GetPage(c *gin.Context) {
 			"id":   row.Id,
 			"shop": cacheShopMap[row.ShopId],
 			//下单周期
-			"cycle":      row.CreatedAt.Format("2006-01-02"),
+			"cycle_place":      row.CreatedAt.Format("2006-01-02"),
+			//配送周期
+			"cycle_give":row.CycleTime.Format("2006-01-02"),
+			"cycle_give_str":row.CycleStr,
 			"count":      row.Number,
 			"money":      row.Money,
+			"s":row.Status,
+			"p":row.PayStatus,
 			"status":     global.OrderStatus(row.Status),
+			"pay_status": global.OrderPayStatus(row.PayStatus),
 			"created_at": row.CreatedAt,
 		}
 		result = append(result, r)
@@ -180,6 +187,7 @@ func (e Orders) Get(c *gin.Context) {
 	e.OK(result, "查询成功")
 }
 
+//代客下单就没有时间的限制了
 func (e Orders) ValetOrder(c *gin.Context) {
 	req := dto.ValetOrderReq{}
 	s := service.Orders{}
@@ -238,7 +246,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		orderRow.Id = orderId
 		//代客下单,需要把配送周期保存，方便周期配送
 		orderRow.CycleTime = s.CalculateTime(DeliveryObject.GiveDay)
-		//orderRow.CycleStr = DeliveryObject.GiveTime
+		orderRow.CycleStr = DeliveryObject.GiveTime
 		orderRow.CreateBy = userDto.UserId
 
 		e.Orm.Table(orderExtend).Create(&models.OrderExtend{
@@ -275,6 +283,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			"number": goodsNumber,
 			"money":  orderMoney,
 		})
+		//代客下单也应该加入周期中
 	}
 	e.OK("", "successful")
 	return
@@ -334,6 +343,22 @@ func (e Orders) ToolsOrders(c *gin.Context) {
 	e.OK("", "successful")
 	return
 }
+
+
+func (e Orders) OrderCycleList(c *gin.Context) {
+	s := service.Orders{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+}
+
 func (e Orders) Times(c *gin.Context) {
 	s := service.Orders{}
 	err := e.MakeContext(c).
@@ -406,7 +431,7 @@ func (e Orders) ValidTimeConf(c *gin.Context) {
 		return
 	}
 	e.OK(map[string]interface{}{
-		"time": result.CycleDay,
+		"time": result.CycleTime,
 		"str":  result.CycleStr,
 	}, "successful")
 	return
@@ -496,7 +521,7 @@ func (e Orders) Insert(c *gin.Context) {
 	var shopObject models2.Shop
 	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ? and enable = ?", req.ShopId, userDto.CId, true).Limit(1).Find(&shopObject)
 	if shopObject.Id == 0 {
-		e.Error(500, errors.New("暂无商家"), "商家暂无路线")
+		e.Error(500, errors.New("暂无商家"), "暂无商家")
 		return
 	}
 	if shopObject.LineId == 0 {
@@ -508,14 +533,19 @@ func (e Orders) Insert(c *gin.Context) {
 	//线路
 	var lineObject models2.Line
 	e.Orm.Model(&models2.Line{}).Where("id = ? and c_id = ? and enable = ?", shopObject.LineId, userDto.CId, true).Limit(1).Find(&lineObject)
+
+	if lineObject.Id == 0 {
+		e.Error(500, errors.New("商家暂无路线"), "商家暂无路线")
+		return
+	}
 	data.Line = lineObject.Name
 	data.LineId = lineObject.Id
 	//商品
 	data.GoodsId = goodsObject.Id
 	data.GoodsName = goodsObject.Name
 	//todo:配送周期
-	data.CycleTime = timeConfResult.CycleDay
-	//data.CycleStr = deliveryStr
+	data.CycleTime = timeConfResult.CycleTime
+	data.CycleStr = timeConfResult.CycleStr
 	data.CreateBy = userId
 	createErr := e.Orm.Table(orderTableName).Create(&data).Error
 	if createErr != nil {
@@ -580,11 +610,38 @@ func (e Orders) Insert(c *gin.Context) {
 		"money":  orderMoney,
 	})
 	//订单创建成功了,同时做一个周期列表数据得保存
-	cycleMode := models.OrderCycleList{
-		CId:  userDto.CId,
-		Name: timeConfResult.CycleDay.Format("2006-01-02"),
-		Uid:  timeConfResult.RandUid,
+	CycleName:=timeConfResult.CycleTime.Format("2006-01-02")
+	var cycleObject models.OrderCycleList
+	e.Orm.Model(&models.OrderCycleList{}).Where("c_id = ? and name = ? and uid = ?",
+		userDto.CId,CycleName, timeConfResult.RandUid).Limit(1).Find(&cycleObject)
+
+	//周期订单数据更新更新
+	SoldMoney :=cycleObject.SoldMoney
+	SoldMoney+= orderMoney
+	GoodsAll:=cycleObject.GoodsAll
+	GoodsAll+=goodsSoldNumber
+
+	//如果没有这个周期,那就进行创建
+	if cycleObject.Id == 0 {
+		cycleMode := models.OrderCycleList{
+			CId:  userDto.CId,
+			Name: CycleName,
+			Uid:  timeConfResult.RandUid,
+			StartTime: timeConfResult.StartTime,
+			EndTime: timeConfResult.EndTime,
+			CycleTime:timeConfResult.CycleTime,
+			CycleStr:timeConfResult.CycleStr,
+			SoldMoney: SoldMoney,
+			GoodsAll: GoodsAll,
+		}
+		e.Orm.Create(&cycleMode)
+	}else {
+		e.Orm.Model(&models.OrderCycleList{}).Where("id = ?",cycleObject.Id).Updates(map[string]interface{}{
+			"sold_money":SoldMoney,
+			"goods_all":GoodsAll,
+		})
 	}
+
 	e.OK(req.GetId(), "创建成功")
 }
 

@@ -13,12 +13,13 @@ type Orders struct {
 	LineId    int          `json:"line_id" gorm:"type:bigint;comment:线路ID"`
 	Line      string       `json:"line" gorm:"index;size:16;comment:路线名称"`
 	GoodsId   int          `gorm:"index;comment:商品表ID"`
-	Status    int          `json:"status" gorm:"type:bigint;comment:配送状态"`
+	Status    int          `json:"status" gorm:"type:bigint;default:1;comment:配送状态"`
 	Money     float64      `json:"money" gorm:"type:double;comment:下单总金额"`
 	Number    int          `json:"number" gorm:"type:bigint;comment:下单产品数量"`
 	Pay       int          `gorm:"type:tinyint(1);default:0;index;comment:支付方式,0:线上,1:线下"`
-	PayStatus int          `gorm:"type:tinyint(1);default:0;index;comment:支付状态,0:未付款,1:已付款 2:线下付款，3:下线付款已收款"`
+	PayStatus int          `gorm:"type:tinyint(1);default:1;index;comment:支付状态,0:未付款,1:已付款 2:线下付款，3:下线付款已收款"`
 	CycleTime models.XTime `json:"cycle_time" gorm:"type:date;comment:计算的配送时间"`
+	CycleStr string       `json:"cycle_str" gorm:"index;size:16;comment:配送周期文案"`
 	models.ModelTime
 	models.ControlBy
 }
@@ -97,7 +98,7 @@ type OrderCycleList struct {
 	CycleTime models.XTime `json:"cycle_time" gorm:"type:date;comment:计算的配送时间"`
 	CycleStr  string       `json:"cycle_str" gorm:"index;size:14;comment:配送时间的文案"`
 	SoldMoney float64      `gorm:"comment:销售总额"`
-	GoodsAll  float64      `gorm:"comment:商品总数"`
+	GoodsAll  int      `gorm:"comment:商品总数"`
 	ShopCount int          `gorm:"type:tinyint(3);comment:客户总数"`
 }
 

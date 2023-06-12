@@ -27,7 +27,7 @@ const (
 	CompanyUserTag       = 30 //大B最多可以设置客户标签个数
 
 	OrderLayerKey = "layer desc"
-
+	OrderTimeKey = "created_at desc"
 	UserNumberAdd    = "add"    //增加
 	UserNumberReduce = "reduce" //减少
 	UserNumberSet    = "set"    //设置
@@ -38,6 +38,15 @@ const (
 
 	CouponTypeFd   = 1
 	CouponDiscount = 2
+
+	//未付款
+	OrderPayStatusDefault = 1
+	//已付款
+	OrderPayStatusSuccess = 2
+	//开始线下付款
+	OrderPayStatusOfflineDefault = 3
+	//下线付款已收款
+	OrderPayStatusOfflineSuccess = 4
 
 	//待配送
 	OrderStatusWait = 1
@@ -78,6 +87,20 @@ const (
 
 )
 
+func OrderPayStatus(v int) string {
+	switch v {
+	case OrderPayStatusDefault:
+		return "未付款"
+	case OrderPayStatusSuccess:
+		return "已付款"
+	case OrderPayStatusOfflineDefault:
+		return "线下付款"
+	case OrderPayStatusOfflineSuccess:
+		return "下线付款已收款"
+
+	}
+	return ""
+}
 func OrderStatus(v int) string {
 	switch v {
 	case OrderStatusWait:

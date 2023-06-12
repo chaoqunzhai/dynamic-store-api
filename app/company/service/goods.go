@@ -405,6 +405,7 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq, p *actions.DataPermission) error {
 	for _, t := range d.Ids {
 		removeIds = append(removeIds, fmt.Sprintf("%v", t))
 	}
+	//商品删除了关联的一些配置都删除
 	e.Orm.Model(&models.GoodsVip{}).Where("goods_id in ?", removeIds).Unscoped().Delete(&models.GoodsVip{})
 	e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id in ?", removeIds).Unscoped().Delete(&models.GoodsSpecs{})
 	e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_tag` WHERE `goods_mark_tag`.`goods_id` IN (%v)", strings.Join(removeIds, ",")))
