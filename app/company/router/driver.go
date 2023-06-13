@@ -20,6 +20,7 @@ func registerDriverRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 	{
 		r.GET("", api.GetPage)
 		r.GET("/:id", api.Get)
+		r.GET("/mini",api.MiniApi)
 		r.POST("", api.Insert)
 		r.PUT("/:id", api.Update)
 		r.DELETE("", api.Delete)

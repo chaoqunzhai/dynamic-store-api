@@ -14,6 +14,7 @@ import (
 	"go-admin/global"
 	"gorm.io/gorm"
 	"strings"
+	"time"
 
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
@@ -356,7 +357,31 @@ func (e Orders) OrderCycleList(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	//获取所有的周期列表
+	datalist:=make([]models.OrderCycleList,0)
+	e.Orm.Model(&models.OrderCycleList{}).Select("name,uid,id,start_time,end_time,cycle_time,cycle_str").Where(
+		"c_id = ?",userDto.CId).Order(global.OrderTimeKey).Find(&datalist)
 
+	result:=make([]map[string]interface{},0)
+	for _,row:=range datalist{
+		result = append(result, map[string]interface{}{
+			"id":row.Id,
+			"name":row.Name,
+			"uid":row.Uid,
+			"cycle_time":row.CycleTime.Format("2006-01-02"),
+			"cycle_str":row.CycleStr,
+			"start_time":row.StartTime.Format("15:04"),
+			"end_time":row.EndTime.Format("15:04"),
+		})
+	}
+	e.OK(result,"successful")
+
+	return
 }
 
 func (e Orders) Times(c *gin.Context) {
@@ -610,10 +635,10 @@ func (e Orders) Insert(c *gin.Context) {
 		"money":  orderMoney,
 	})
 	//订单创建成功了,同时做一个周期列表数据得保存
-	CycleName:=timeConfResult.CycleTime.Format("2006-01-02")
+	orderCreateName:=time.Now().Format("2006-01-02")
 	var cycleObject models.OrderCycleList
 	e.Orm.Model(&models.OrderCycleList{}).Where("c_id = ? and name = ? and uid = ?",
-		userDto.CId,CycleName, timeConfResult.RandUid).Limit(1).Find(&cycleObject)
+		userDto.CId,orderCreateName, timeConfResult.RandUid).Limit(1).Find(&cycleObject)
 
 	//周期订单数据更新更新
 	SoldMoney :=cycleObject.SoldMoney
@@ -625,7 +650,7 @@ func (e Orders) Insert(c *gin.Context) {
 	if cycleObject.Id == 0 {
 		cycleMode := models.OrderCycleList{
 			CId:  userDto.CId,
-			Name: CycleName,
+			Name: orderCreateName,
 			Uid:  timeConfResult.RandUid,
 			StartTime: timeConfResult.StartTime,
 			EndTime: timeConfResult.EndTime,

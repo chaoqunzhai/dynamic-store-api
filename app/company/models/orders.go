@@ -91,7 +91,7 @@ type OrderCycleList struct {
 	models.Model
 	CreatedAt models.XTime `json:"createdAt" gorm:"comment:创建时间"`
 	CId       int          `gorm:"index;comment:大BID"`
-	Name      string       `gorm:"size:12;comment:下单周期日期名称"`
+	Name      string       `gorm:"size:12;comment:当前下单周期日期名称"`
 	Uid       string       `gorm:"type:varchar(4);comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
 	StartTime models.XTime `gorm:"comment:此周期,下单周期开始时间"`
 	EndTime   models.XTime `gorm:"comment:此周期,下单周期结束时间"`

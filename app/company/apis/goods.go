@@ -124,6 +124,33 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 
 }
 
+func (e Goods) MiniApi(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	datalist:=make([]models.Goods,0)
+	e.Orm.Model(&models.Goods{}).Select("id,name").Where("c_id = ? and enable = ?",userDto.CId,true).Order(global.OrderLayerKey).Find(&datalist)
+
+	result:=make([]map[string]interface{},0)
+	for _,row:=range datalist{
+		result = append(result, map[string]interface{}{
+			"id":row.Id,
+			"name":row.Name,
+		})
+	}
+	e.OK(result,"successful")
+	return
+}
 // GetPage 获取Goods列表
 // @Summary 获取Goods列表
 // @Description 获取Goods列表

@@ -21,6 +21,37 @@ type CycleTimeConf struct {
 	api.Api
 }
 
+
+func (e CycleTimeConf) Switch(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	switchType:=c.Param("type")
+	fmt.Println("switchType",switchType)
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	switch switchType {
+	case "1","2":
+	default:
+		e.Error(500, nil,"非法类型")
+		return
+	}
+	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ?",userDto.CId).Updates(map[string]interface{}{
+		"type":switchType,
+		"update_by":userDto.UserId,
+	})
+	e.OK("切换成功","successful")
+	return
+
+}
 func (e CycleTimeConf) TypeCnf(c *gin.Context) {
 	err := e.MakeContext(c).
 		MakeOrm().

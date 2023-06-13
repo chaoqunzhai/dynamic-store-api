@@ -19,6 +19,7 @@ func registerLineRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewar
 	r := v1.Group("/line").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
 		r.GET("",  api.GetPage)
+		r.GET("/mini",api.MiniApi)
 		r.GET("/:id", api.Get)
 		r.POST("", api.Insert)
 		r.PUT("/:id",  api.Update)

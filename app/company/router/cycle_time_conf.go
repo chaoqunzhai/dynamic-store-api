@@ -23,6 +23,7 @@ func registerCycleTimeConfRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWT
 		r.GET("/:id", api.Get)
 		r.POST("", api.Insert)
 		r.PUT("/:id", api.Update)
+		r.POST("/switch/:type",api.Switch)
 		r.DELETE("", api.Delete)
 	}
 }

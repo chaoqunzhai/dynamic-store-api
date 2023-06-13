@@ -19,6 +19,7 @@ func registerGoodsRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewa
 	r := v1.Group("/goods").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
 		r.GET("", api.GetPage)
+		r.GET("/mini",api.MiniApi)
 		r.GET("/:id", api.Get)
 		r.POST("", api.Insert)
 		r.POST("/state", api.UpdateState)

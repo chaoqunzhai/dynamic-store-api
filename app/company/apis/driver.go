@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin/binding"
 	customUser "go-admin/common/jwt/user"
+	"go-admin/global"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -20,7 +21,33 @@ import (
 type Driver struct {
 	api.Api
 }
+func (e Driver) MiniApi(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	datalist:=make([]models.Driver,0)
+	e.Orm.Model(&models.Driver{}).Select("id,name").Where("c_id = ?",userDto.CId).Order(global.OrderLayerKey).Find(&datalist)
 
+	result:=make([]map[string]interface{},0)
+	for _,row:=range datalist{
+		result = append(result, map[string]interface{}{
+			"id":row.Id,
+			"name":row.Name,
+		})
+	}
+	e.OK(result,"successful")
+	return
+}
 // GetPage 获取Driver列表
 // @Summary 获取Driver列表
 // @Description 获取Driver列表
