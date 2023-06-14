@@ -81,7 +81,7 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 	}
 	result := make(map[int]ClassData, 0)
 	for _, row := range goods {
-
+		//只返回有规格的数据
 		var specsObject models.GoodsSpecs
 		e.Orm.Model(&models.GoodsSpecs{}).Where("c_id = ? and enable = ? and goods_id = ?", userDto.CId, true, row.Id).Limit(1).Find(&specsObject)
 		if specsObject.Id == 0 {
@@ -138,19 +138,20 @@ func (e Goods) MiniApi(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	datalist:=make([]models.Goods,0)
-	e.Orm.Model(&models.Goods{}).Select("id,name").Where("c_id = ? and enable = ?",userDto.CId,true).Order(global.OrderLayerKey).Find(&datalist)
+	datalist := make([]models.Goods, 0)
+	e.Orm.Model(&models.Goods{}).Select("id,name").Where("c_id = ? and enable = ?", userDto.CId, true).Order(global.OrderLayerKey).Find(&datalist)
 
-	result:=make([]map[string]interface{},0)
-	for _,row:=range datalist{
+	result := make([]map[string]interface{}, 0)
+	for _, row := range datalist {
 		result = append(result, map[string]interface{}{
-			"id":row.Id,
-			"name":row.Name,
+			"id":   row.Id,
+			"name": row.Name,
 		})
 	}
-	e.OK(result,"successful")
+	e.OK(result, "successful")
 	return
 }
+
 // GetPage 获取Goods列表
 // @Summary 获取Goods列表
 // @Description 获取Goods列表
