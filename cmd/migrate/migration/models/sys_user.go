@@ -1,7 +1,6 @@
 package models
 
 import (
-	"go-admin/common/utils"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -41,7 +40,7 @@ func (e *SysUser) Encrypt() (err error) {
 
 	var hash []byte
 	//同时生成他的邀请码
-	e.InvitationCode = utils.GenValidateCode(6)
+	//e.InvitationCode = utils.GenValidateCode(6)
 	if hash, err = bcrypt.GenerateFromPassword([]byte(e.Password), bcrypt.DefaultCost); err != nil {
 		return
 	} else {

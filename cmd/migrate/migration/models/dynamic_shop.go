@@ -9,9 +9,8 @@ import (
 // 1.字段名称Id 组合
 // 2.必须增加index索引
 
-
 // todo:小B商家信息,也就是客户
-//费用,积分是给小B的
+// 费用,积分是给小B的
 type Shop struct {
 	BigBRichGlobal
 	UserId    int     `gorm:"index;comment:管理员ID"`
@@ -22,15 +21,15 @@ type Shop struct {
 	Longitude float64 //经度
 	Latitude  float64 //纬度
 	Image     string  `gorm:"size:80;comment:图片"`
-	Salesman int `json:"salesman" gorm:"index;comment:推荐人"`
+	Salesman  int     `json:"salesman" gorm:"index;comment:业务员ID"`
 	//给小B打标签
-	Tag      []ShopTag `json:"tag" gorm:"many2many:shop_mark_tag;foreignKey:id;joinForeignKey:shop_id;references:id;joinReferences:tag_id;"`
-	LineId   int       `gorm:"index;comment:归属配送路线"`
-	Amount   float64   `gorm:"comment:剩余金额"`
-	Integral int       `gorm:"comment:可用积分"`
-	GradeId   int    `gorm:"index;comment:会员等级"`
-	Platform  string `json:"platform" gorm:"size:10;comment:注册来源"`
-	SuggestId int    `gorm:"index;comment:推荐人ID"`
+	Tag       []ShopTag `json:"tag" gorm:"many2many:shop_mark_tag;foreignKey:id;joinForeignKey:shop_id;references:id;joinReferences:tag_id;"`
+	LineId    int       `gorm:"index;comment:归属配送路线"`
+	Amount    float64   `gorm:"comment:剩余金额"`
+	Integral  int       `gorm:"comment:可用积分"`
+	GradeId   int       `gorm:"index;comment:会员等级"`
+	Platform  string    `json:"platform" gorm:"size:10;comment:注册来源"`
+	SuggestId int       `gorm:"index;comment:推荐人ID"`
 }
 
 func (Shop) TableName() string {
@@ -59,36 +58,35 @@ func (ShopRechargeLog) TableName() string {
 // todo:小B余额变动明细
 type ShopBalanceLog struct {
 	Model
-	CId  int            `gorm:"index;comment:大B"`
+	CId       int            `gorm:"index;comment:大B"`
 	CreateBy  int            `json:"createBy" gorm:"index;comment:创建者"`
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
 	ShopId    int            `gorm:"index;comment:小BID"`
-	Action string `json:"action" gorm:"type:varchar(10);comment:操作"`
+	Action    string         `json:"action" gorm:"type:varchar(10);comment:操作"`
 	Money     float64        `gorm:"comment:变动金额"`
 	Scene     string         ` gorm:"size:30;comment:变动场景"`
-	Desc string   ` gorm:"size:50;comment:描述/说明"`
-	Type int `gorm:"type:tinyint(1);default:1;index;comment:操作类型"`
+	Desc      string         ` gorm:"size:50;comment:描述/说明"`
+	Type      int            `gorm:"type:tinyint(1);default:1;index;comment:操作类型"`
 }
 
 func (ShopBalanceLog) TableName() string {
 	return "shop_balance_log"
 }
 
-
-//todo:积分变动的明细
+// todo:积分变动的明细
 type ShopIntegralLog struct {
 	Model
-	CId  int            `gorm:"index;comment:大B"`
+	CId       int            `gorm:"index;comment:大B"`
 	CreateBy  int            `json:"createBy" gorm:"index;comment:创建者"`
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
-	Action string `json:"action" gorm:"type:varchar(10);comment:操作"`
+	Action    string         `json:"action" gorm:"type:varchar(10);comment:操作"`
 	ShopId    int            `gorm:"index;comment:小BID"`
-	Number     float64        `gorm:"comment:积分变动数值"`
+	Number    float64        `gorm:"comment:积分变动数值"`
 	Scene     string         ` gorm:"size:30;comment:变动场景"`
-	Desc string   ` gorm:"size:50;comment:描述/说明"`
-	Type int `gorm:"type:tinyint(1);default:1;index;comment:操作类型"`
+	Desc      string         ` gorm:"size:50;comment:描述/说明"`
+	Type      int            `gorm:"type:tinyint(1);default:1;index;comment:操作类型"`
 }
 
 func (ShopIntegralLog) TableName() string {
@@ -99,7 +97,7 @@ func (ShopIntegralLog) TableName() string {
 // 专门用来数据统计
 type ShopOrderRecord struct {
 	Model
-	CId  int            `gorm:"index;comment:大B"`
+	CId       int            `gorm:"index;comment:大B"`
 	CreateBy  int            `json:"createBy" gorm:"index;comment:创建者"`
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
@@ -116,7 +114,7 @@ func (ShopOrderRecord) TableName() string {
 // todo:每次订单统计关联的具体订单
 type ShopOrderBindRecord struct {
 	Model
-	CId  int            `gorm:"index;comment:大B"`
+	CId       int            `gorm:"index;comment:大B"`
 	CreateBy  int            `json:"createBy" gorm:"index;comment:创建者"`
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`

@@ -27,8 +27,8 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.GET("/home", api.Demo)
 
 		//大B商城模板配置
-		r.POST("/category",api.SaveCategory)
-		r.GET("/category",api.Category)
+		r.POST("/category", api.SaveCategory)
+		r.GET("/category", api.Category)
 	}
 	//大B用户管理
 	{
@@ -40,6 +40,9 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.POST("/user/offline", api.Offline)
 		//增加用户
 		r.POST("/user/add", api.CreateUser)
+
+		r.GET("/user/mini", api.MiniList)
+		r.POST("/user/code", api.MakeCode)
 	}
 	//只有超管有权限
 	r2 := v1.Group("/company").Use(authMiddleware.MiddlewareFunc()).

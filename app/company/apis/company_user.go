@@ -9,6 +9,7 @@ import (
 	sys "go-admin/app/admin/models"
 	"go-admin/app/company/models"
 	"go-admin/common/dto"
+	"go-admin/common/utils"
 	"go-admin/global"
 	"golang.org/x/crypto/bcrypt"
 	"strings"
@@ -38,6 +39,9 @@ type UpdateReq struct {
 type CategoryReq struct {
 	Type int `json:"type" binding:"required"`
 }
+type MakeCodeUser struct {
+	Ids []int `json:"ids" binding:"required"`
+}
 type OfflineReq struct {
 	Ids []int `json:"ids" binding:"required"`
 }
@@ -49,6 +53,63 @@ type RoleUserRow struct {
 	RoleId   int    `json:"role_id"`
 	UserId   int    `json:"user_id"`
 	RoleName string `json:"role_name"`
+}
+
+// todo:创建推广码
+func (e Company) MakeCode(c *gin.Context) {
+	req := MakeCodeUser{}
+	err := e.MakeContext(c).
+		Bind(&req, binding.JSON, nil).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	InvitationCode := utils.GenValidateCode(6)
+
+	e.Orm.Model(&sys.SysUser{}).Where("c_id = ? and enable = ? and user_id in ?",
+		userDto.CId, true, req.Ids).Updates(map[string]interface{}{
+		"invitation_code": InvitationCode,
+	})
+
+	e.OK("", "successful")
+	return
+}
+
+// 查询业务员的信息
+func (e Company) MiniList(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	datalist := make([]sys.SysUser, 0)
+	e.Orm.Model(&sys.SysUser{}).Select("user_id,username").Where("c_id = ? and enable = ? and invitation_code IS NOT NULL ",
+		userDto.CId, true).Find(&datalist)
+	result := make([]map[string]interface{}, 0)
+	for _, row := range datalist {
+		result = append(result, map[string]interface{}{
+			"id":   row.UserId,
+			"name": row.Username,
+		})
+	}
+	e.OK(result, "successful")
+	return
 }
 
 func (e Company) List(c *gin.Context) {
