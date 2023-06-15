@@ -211,6 +211,9 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
 		"inventory": inventory,
 		"money": func() string {
 			if len(moneyList) > 0 {
+				if len(moneyList) == 1 {
+					return fmt.Sprintf("¥%v", moneyList[0])
+				}
 				min, max := utils.MinAndMax(moneyList)
 				return fmt.Sprintf("¥%v-%v", min, max)
 			}
@@ -368,9 +371,13 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 	}
 	data.Money = func() string {
 		if len(moneyList) > 0 {
+			if len(moneyList) == 1 {
+				return fmt.Sprintf("¥%v", moneyList[0])
+			}
 			min, max := utils.MinAndMax(moneyList)
 			return fmt.Sprintf("¥%v-%v", min, max)
 		}
+
 		return ""
 	}()
 	data.Inventory = inventory

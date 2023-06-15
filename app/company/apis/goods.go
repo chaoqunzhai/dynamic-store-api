@@ -34,12 +34,15 @@ type ClassData struct {
 }
 
 type specsRow struct {
-	GoodsId   int     `json:"goods_id" `
-	Image     string  `json:"image" `
-	Money     float64 `json:"money" `
-	Unit      string  `json:"unit" `
-	Name      string  `json:"name" `
-	Inventory int     `json:"inventory" ` //库存
+	GoodsId    int     `json:"goods_id" `
+	GoodsName  string  `json:"goods_name"`
+	GoodsPrice string  `json:"goods_price"`
+	GoodsStore int     `json:"goods_store"`
+	Image      string  `json:"image" `
+	Money      float64 `json:"money" `
+	Unit       string  `json:"unit" `
+	Name       string  `json:"name" `
+	Inventory  int     `json:"inventory" ` //库存
 }
 
 func (e Goods) ClassSpecs(c *gin.Context) {
@@ -58,7 +61,8 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 		return
 	}
 	var goods []models.Goods
-	e.Orm.Model(&models.Goods{}).Where("c_id = ? and enable = ?", userDto.CId, true).
+	e.Orm.Model(&models.Goods{}).Select("id,name,c_id,image,inventory,money").Where(
+		"c_id = ? and enable = ?", userDto.CId, true).
 		Order(global.OrderLayerKey).Preload("Class", func(tx *gorm.DB) *gorm.DB {
 		return tx.Select("id", "name")
 	}).Find(&goods)
@@ -90,15 +94,18 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 		specData := specsRow{
 			GoodsId: row.Id,
 			Image: func() string {
-				if row.Image != "" {
-					return strings.Split(row.Image, ",")[0]
+				if row.Image == "" {
+					return ""
 				}
-				return ""
+				return business.GetGoodPathName(row.CId) + strings.Split(row.Image, ",")[0]
 			}(),
-			Money:     specsObject.Price,
-			Unit:      specsObject.Unit,
-			Name:      specsObject.Name,
-			Inventory: specsObject.Inventory,
+			GoodsName:  row.Name,
+			GoodsPrice: row.Money,
+			GoodsStore: row.Inventory,
+			Money:      specsObject.Price,
+			Unit:       specsObject.Unit,
+			Name:       specsObject.Name,
+			Inventory:  specsObject.Inventory,
 		}
 		for _, class := range row.Class {
 			data, ok := result[class.Id]
