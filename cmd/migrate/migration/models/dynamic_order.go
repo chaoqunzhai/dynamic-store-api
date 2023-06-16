@@ -31,6 +31,7 @@ type Orders struct {
 	UpdatedAt time.Time `json:"updatedAt" gorm:"comment:最后更新时间"`
 	CId       int       `gorm:"index;comment:大BID"`
 	Enable    bool      `gorm:"comment:开关"`
+	ClassId   int       `json:"class_id" gorm:"type:bigint;comment:分类ID"`
 	GoodsId   int       `gorm:"index;comment:商品ID"`
 	GoodsName string    `json:"goods_name" gorm:"size:35;comment:商品名称+广告"`
 	ShopId    int       `gorm:"index;comment:关联客户"`

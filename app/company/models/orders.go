@@ -9,6 +9,7 @@ type Orders struct {
 	Enable    bool         `json:"enable" gorm:"type:tinyint(1);comment:开关"`
 	GoodsName string       `json:"goods_name" gorm:"size:35;comment:商品名称+广告"`
 	CId       int          `json:"c_id" gorm:"type:bigint;comment:大BID"`
+	ClassId   string       `json:"class_id" gorm:"type:bigint;comment:分类ID"`
 	ShopId    int          `json:"shop_id" gorm:"type:bigint;comment:关联客户"`
 	LineId    int          `json:"line_id" gorm:"type:bigint;comment:线路ID"`
 	Line      string       `json:"line" gorm:"index;size:16;comment:路线名称"`

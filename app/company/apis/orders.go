@@ -211,7 +211,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	specsTable := business.OrderSpecsTableName(orderTableName)
 	orderExtend := business.OrderExtendTableName(orderTableName)
 	var shopObject models2.Shop
-	e.Orm.Model(&models2.Shop{}).Where("id = ? and enable =? and c_id = ?", req.ShopId, true, userDto.CId).Limit(1).Find(&shopObject)
+	e.Orm.Model(&models2.Shop{}).Where("id = ? and enable =? and c_id = ?", req.Shop, true, userDto.CId).Limit(1).Find(&shopObject)
 	if shopObject.Id == 0 {
 		e.Error(500, errors.New("商户不存在"), "商户不存在")
 		return
@@ -221,7 +221,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		return
 	}
 	var DeliveryObject models.CycleTimeConf
-	e.Orm.Model(&models2.CycleTimeConf{}).Where("id = ? and enable =? and c_id = ?", req.DeliveryId, true, userDto.CId).Limit(1).Find(&DeliveryObject)
+	e.Orm.Model(&models2.CycleTimeConf{}).Where("id = ? and enable =? and c_id = ?", req.Cycle, true, userDto.CId).Limit(1).Find(&DeliveryObject)
 	if DeliveryObject.Id == 0 {
 		e.Error(500, nil, "时间区间不存在")
 		return
@@ -233,16 +233,17 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	var DriverObject models2.Driver
 	e.Orm.Model(&models2.Driver{}).Where("id = ? and c_id = ? and enable = ?", lineObject.DriverId, userDto.CId, true).Limit(1).Find(&DriverObject)
 	driverName := DriverObject.Name
-	for _, good := range req.Goods {
+	for classId, goodsList := range req.Goods {
 
 		orderRow := &models.Orders{
-			Enable: true,
-			ShopId: req.ShopId,
-			Line:   lineName,
-			LineId: lineObject.Id,
-			CId:    userDto.CId,
+			Enable:  true,
+			ShopId:  req.Shop,
+			Line:    lineName,
+			LineId:  lineObject.Id,
+			CId:     userDto.CId,
+			ClassId: classId,
 		}
-
+		//
 		orderId := utils.GenUUID()
 		orderRow.Id = orderId
 		//代客下单,需要把配送周期保存，方便周期配送
@@ -250,6 +251,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		orderRow.CycleStr = DeliveryObject.GiveTime
 		orderRow.CycleUid = DeliveryObject.Uid
 		orderRow.CreateBy = userDto.UserId
+		orderRow.GoodsId = goodsList[0].GoodsId
 
 		e.Orm.Table(orderExtend).Create(&models.OrderExtend{
 			OrderId: orderRow.Id,
@@ -258,34 +260,51 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			Source:  1,
 		})
 
-		e.Orm.Table(orderTableName).Create(orderRow)
 		var orderMoney float64
 		var goodsNumber int
-		for _, spec := range good.Specs {
-			orderMoney += spec.Money
+		var goodsName string
+		specsOrderId := make([]int, 0)
+		for _, spec := range goodsList {
+			//如果下单的次数>库存的值，那就是非法数据 直接跳出
+			var goodsSpecs models.GoodsSpecs
+			e.Orm.Model(&models.GoodsSpecs{}).Where("id = ? and c_id = ?", spec.Id, userDto.CId).Limit(1).Find(&goodsSpecs)
+			if goodsSpecs.Id == 0 {
+				continue
+			}
+			if spec.Number > goodsSpecs.Inventory {
+				continue
+			}
+
+			orderMoney += spec.Price
 			goodsNumber += spec.Number
+
+			e.Orm.Model(&models.GoodsSpecs{}).Where("id = ? and c_id =?", spec.Id, userDto.CId).Updates(map[string]interface{}{
+				"inventory": goodsSpecs.Inventory - spec.Number,
+			})
+
 			specRow := &models.OrderSpecs{
-				//SpecsName: spec.,
-				Number:  spec.Number,
-				Money:   spec.Money,
-				OrderId: orderRow.Id,
+				Number:    spec.Number,
+				Money:     spec.Price,
+				Unit:      spec.Unit,
+				SpecsName: goodsSpecs.Name,
 			}
 			var goodsObject models2.Goods
 			e.Orm.Model(&models2.Goods{}).Where("id = ? and c_id = ? and enable = ?", spec.GoodsId, userDto.CId, true).Limit(1).Find(&goodsObject)
 			if goodsObject.Id == 0 {
 				continue
 			}
-			e.Orm.Table(orderTableName).Where("id = ?", orderRow.Id).Updates(map[string]interface{}{
-				"good_id":    spec.GoodsId,
-				"goods_name": goodsObject.Name,
-			})
+			goodsName = goodsObject.Name
 			e.Orm.Table(specsTable).Create(specRow)
+			specsOrderId = append(specsOrderId, specRow.Id)
 		}
-		e.Orm.Table(orderTableName).Where("id = ?", orderId).Updates(map[string]interface{}{
-			"number": goodsNumber,
-			"money":  orderMoney,
+		orderRow.Number = goodsNumber
+		orderRow.Money = orderMoney
+		orderRow.GoodsName = goodsName
+		e.Orm.Table(orderTableName).Create(orderRow)
+		e.Orm.Table(specsTable).Where("id in ?", specsOrderId).Updates(map[string]interface{}{
+			"order_id": orderRow.Id,
 		})
-		//代客下单也应该加入周期中
+
 	}
 	e.OK("", "successful")
 	return
@@ -602,6 +621,7 @@ func (e Orders) Insert(c *gin.Context) {
 	e.Orm.Table(orderExtend).Create(&models.OrderExtend{
 		OrderId: data.Id,
 		Desc:    req.Desc,
+		Source:  0,
 		Driver:  DriverObject.Name,
 		Phone:   DriverObject.Phone,
 	})

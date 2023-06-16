@@ -41,14 +41,14 @@ func (m *OrdersGetPageReq) GetNeedSearch() interface{} {
 }
 
 type OrdersInsertReq struct {
-	Id      int    `json:"-" comment:"主键编码"` // 主键编码
+	Id int `json:"-" comment:"主键编码"` // 主键编码
 	//Layer   int    `json:"layer" comment:"排序"`
 	//Enable  bool   `json:"enable" comment:"开关"`
-	Desc    string `json:"desc" comment:"描述信息"`
-	ShopId  int    `json:"shop_id" comment:"关联客户"`
-	Status  int    `json:"status" comment:"配送状态"`
-	Number  int    `json:"number" comment:"下单数量"`
-	GoodsId int    `json:"goods_id"  comment:"商品ID"`
+	Desc       string            `json:"desc" comment:"描述信息"`
+	ShopId     int               `json:"shop_id" comment:"关联客户"`
+	Status     int               `json:"status" comment:"配送状态"`
+	Number     int               `json:"number" comment:"下单数量"`
+	GoodsId    int               `json:"goods_id"  comment:"商品ID"`
 	GoodsSpecs []OrderGoodsSpecs `json:"goods_specs" comment:"商品规格"`
 	common.ControlBy
 }
@@ -81,18 +81,16 @@ func (s *OrdersInsertReq) GetId() interface{} {
 }
 
 type ValetOrderReq struct {
-	ShopId     int                `json:"shop_id"`
-	DeliveryId int                `json:"delivery_id"` //代客下单,只需要获取选择的时间段就行
-	Goods      []*valetOrderSpecs `json:"goods"`
-	Desc       string             `json:"desc"`
-}
-type valetOrderSpecs struct {
-	Specs []*valetSpecs `json:"specs"`
+	Shop  int                     `json:"shop"`
+	Cycle int                     `json:"cycle"` //代客下单,只需要获取选择的时间段就行
+	Goods map[string][]valetSpecs `json:"goods"`
+	Desc  string                  `json:"desc"`
 }
 type valetSpecs struct {
 	Id      int     `json:"id"`
 	Number  int     `json:"number"`
-	Money   float64 `json:"money"`
+	Price   float64 `json:"price"`
+	Unit    string  `json:"unit"`
 	GoodsId int     `json:"goods_id"`
 }
 type ToolsOrdersUpdateReq struct {
