@@ -18,7 +18,7 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 	api := apis.Orders{}
 	r := v1.Group("/orders").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
-
+		//todo:订单列表
 		r.GET("", api.GetPage)
 		//todo:代客下单
 		r.POST("/valet_order", api.ValetOrder)
@@ -26,9 +26,8 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 		//todo:订单状态更新,周期延后 等
 		r.PUT("/tools/:id", api.ToolsOrders)
 
-
 		//todo:获取下订单创建的周期列表和配送列表
-		r.GET("/cycle_lists",api.OrderCycleList)
+		r.GET("/cycle_lists", api.OrderCycleList)
 	}
 
 	r2 := v1.Group("/orders").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole())

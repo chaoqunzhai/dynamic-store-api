@@ -59,9 +59,9 @@ func Initialization() {
 			if db.Model(&models.CompanyQuotaCnf{}).Where("`key` = ?", row["key"]).First(&thisRow).Count(&count); count > 0 {
 				continue
 			}
-			Number, _ := strconv.Atoi(fmt.Sprintf("%v",row["value"]))
+			Number, _ := strconv.Atoi(fmt.Sprintf("%v", row["value"]))
 			rows := &models.CompanyQuotaCnf{
-				Key:   fmt.Sprintf("%v", row["key"]),
+				Key:    fmt.Sprintf("%v", row["key"]),
 				Number: Number,
 				BigBRichGlobal: models.BigBRichGlobal{
 					RichGlobal: models.RichGlobal{
@@ -332,6 +332,16 @@ func Initialization() {
 			"Path":       "/order/detail",
 			"Component":  "@/views/order/Detail",
 			"MetaTitle":  "订单详情",
+			"KeepAlive":  false,
+			"MetaIcon":   "",
+			"Hidden":     true,
+			"ParentName": "order",
+		},
+		{
+			"Name":       "/order/shop/orders",
+			"Path":       "/order/shop/orders",
+			"Component":  "@/views/order/ShopOrderDetail",
+			"MetaTitle":  "更多记录",
 			"KeepAlive":  false,
 			"MetaIcon":   "",
 			"Hidden":     true,

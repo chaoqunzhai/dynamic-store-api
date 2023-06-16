@@ -87,13 +87,14 @@ func (e Orders) GetPage(c *gin.Context) {
 		cacheShopMap[k.Id] = map[string]interface{}{
 			"name":  k.Name,
 			"phone": k.Phone,
+			"id":    k.Id,
 		}
 	}
 
 	result := make([]map[string]interface{}, 0)
 	for _, row := range list {
 		r := map[string]interface{}{
-			"id":   row.Id,
+			"id":   fmt.Sprintf("%v", row.Id),
 			"shop": cacheShopMap[row.ShopId],
 			//下单周期
 			"cycle_place": row.CreatedAt.Format("2006-01-02"),
