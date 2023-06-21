@@ -22,7 +22,8 @@ type Orders struct {
 	CycleTime models.XTime `json:"cycle_time" gorm:"type:date;comment:计算的配送时间"`
 	CycleStr  string       `json:"cycle_str" gorm:"index;size:16;comment:配送周期文案"`
 	CycleUid  string       `gorm:"type:varchar(4);index;comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
-	models.ModelTime
+	CreatedAt models.XTime `json:"created_at" gorm:"comment:创建时间"`
+	UpdatedAt models.XTime `json:"updated_at" gorm:"comment:最后更新时间"`
 	models.ControlBy
 }
 

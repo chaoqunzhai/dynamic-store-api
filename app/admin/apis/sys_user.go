@@ -402,14 +402,8 @@ func (e SysUser) GetProfile(c *gin.Context) {
 	}, "查询成功")
 }
 
-// GetInfo
-// @Summary 获取个人信息
-// @Description 获取JSON
-// @Tags 个人中心
-// @Success 200 {object} response.Response "{"code": 200, "data": [...]}"
-// @Router /api/v1/getinfo [get]
-// @Security Bearer
 func (e SysUser) GetInfo(c *gin.Context) {
+
 	req := dto.SysUserById{}
 	s := service.SysUser{}
 	r := service.SysRole{}
@@ -423,6 +417,7 @@ func (e SysUser) GetInfo(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+
 	p := actions.GetPermissionFromContext(c)
 	var roles = make([]string, 1)
 	roles[0] = user.GetRoleName(c)
@@ -437,14 +432,7 @@ func (e SysUser) GetInfo(c *gin.Context) {
 	}
 	mp["buttons"] = buttons
 	mp["permissions"] = permissions
-	//if user.GetRoleName(c) == "admin" || user.GetRoleName(c) == "系统管理员" {
-	//	mp["permissions"] = permissions
-	//	mp["buttons"] = buttons
-	//} else {
-	//	list, _ := r.GetById(user.GetRoleId(c))
-	//	mp["permissions"] = list
-	//	mp["buttons"] = list
-	//}
+
 	sysUser := models.SysUser{}
 	req.Id = user.GetUserId(c)
 	err = s.Get(&req, p, &sysUser)
