@@ -15,6 +15,8 @@ type OrdersGetPageReq struct {
 	Status         string `form:"status"  search:"type:exact;column:status;table:orders" comment:"配送状态"`
 	Number         string `form:"number"  search:"type:exact;column:number;table:orders" comment:"下单数量"`
 	Delivery       string `form:"delivery"  search:"type:exact;column:delivery;table:orders" comment:"配送周期"`
+	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:orders" comment:"创建时间"`
+	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:orders" comment:"创建时间"`
 	OrdersOrder
 }
 

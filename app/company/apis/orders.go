@@ -106,7 +106,7 @@ func (e Orders) GetPage(c *gin.Context) {
 			"s":              row.Status,
 			"p":              row.PayStatus,
 			"status":         global.OrderStatus(row.Status),
-			"pay_status":     global.OrderPayStatus(row.PayStatus),
+			"pay_status":     global.GetOrderPayStatus(row.PayStatus),
 			"created_at":     row.CreatedAt,
 		}
 		result = append(result, r)
@@ -160,10 +160,12 @@ func (e Orders) Get(c *gin.Context) {
 
 	result := map[string]interface{}{
 		"order_id":   object.Id,
-		"created_at": object.CreatedAt,
-		"cycle_time": object.CycleTime,
-		//"cycle_str":     object.CycleStr,
-		"pay":           global.GetPayStr(object.Pay),
+		"created_at": object.CreatedAt.Format("2006-01-02 15:04:05"),
+		"cycle_time": object.CycleTime.Format("2006-01-02"),
+		"cycle_str":     object.CycleStr,
+		"pay":           global.GetPayTypeStr(object.Pay),
+		"pay_status_str": global.GetOrderPayStatus(object.PayStatus),
+		"pay_status":object.PayStatus,
 		"shop_name":     shopRow.Name,
 		"shop_username": shopRow.UserName,
 		"shop_phone":    shopRow.Phone,
@@ -178,9 +180,11 @@ func (e Orders) Get(c *gin.Context) {
 	specsList := make([]map[string]interface{}, 0)
 	for _, row := range orderSpecs {
 		ss := map[string]interface{}{
+			"id":row.Id,
 			"name":   row.SpecsName,
-			"spec":   row.Unit,
-			"status": row.Status,
+			"created_at": row.CreatedAt.Format("2006-01-02 15:04:05"),
+			"specs":   fmt.Sprintf("%v%v",row.Number,row.Unit),
+			"status": global.OrderStatus(row.Status),
 			"money":  row.Money,
 		}
 		specsList = append(specsList, ss)

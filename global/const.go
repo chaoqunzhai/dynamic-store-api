@@ -40,25 +40,25 @@ const (
 	CouponDiscount = 2
 
 	//未付款
-	OrderPayStatusDefault = 1
+	OrderPayStatusDefault = 0
 	//已付款
-	OrderPayStatusSuccess = 2
+	OrderPayStatusSuccess = 1
 	//开始线下付款
-	OrderPayStatusOfflineDefault = 3
+	OrderPayStatusOfflineDefault = 2
 	//下线付款已收款
-	OrderPayStatusOfflineSuccess = 4
+	OrderPayStatusOfflineSuccess = 3
 
 	//待配送
-	OrderStatusWait = 1
+	OrderStatusWait = 0
 	//配送中
-	OrderStatusLoading = 2
+	OrderStatusLoading = 1
 
 	//已配送
-	OrderStatusOk = 3
+	OrderStatusOk = 2
 	//退回
-	OrderStatusReturn = 4
+	OrderStatusReturn = 3
 	//退款
-	OrderStatusRefund = 5
+	OrderStatusRefund = 4
 
 	//分表的逻辑
 	SplitOrder                 = 1
@@ -73,9 +73,11 @@ const (
 	//每周
 	CyCleTimeWeek = 2
 	//支付方式
-	PayWechat  = 1 //微信支付
-	PayAmount  = 2 //余额支付
-	PayCollect = 3 //到付
+	PayWechat  = 0 //微信支付
+	PayAmount  = 1 //余额支付
+	PayCollect = 2 //到付
+
+	//支付状态
 
 	OrderToolsActionStatus   = 1
 	OrderToolsActionDelivery = 2
@@ -87,7 +89,7 @@ const (
 
 )
 
-func OrderPayStatus(v int) string {
+func GetOrderPayStatus(v int) string {
 	switch v {
 	case OrderPayStatusDefault:
 		return "未付款"
@@ -99,7 +101,7 @@ func OrderPayStatus(v int) string {
 		return "下线付款已收款"
 
 	}
-	return ""
+	return "未知"
 }
 func OrderStatus(v int) string {
 	switch v {
@@ -115,7 +117,7 @@ func OrderStatus(v int) string {
 		return "退款"
 
 	}
-	return ""
+	return "未知"
 }
 func WeekIntToMsg(v int) string {
 	switch v {
@@ -135,7 +137,7 @@ func WeekIntToMsg(v int) string {
 		return "日"
 
 	}
-	return ""
+	return "未知"
 }
 func GetScanStr(v int) string {
 	switch v {
@@ -150,7 +152,7 @@ func GetScanStr(v int) string {
 
 	}
 
-	return ""
+	return "未知"
 
 }
 func GetCouponType(v int) string {
@@ -161,10 +163,11 @@ func GetCouponType(v int) string {
 		return "折扣卷"
 	}
 
-	return ""
+	return "未知"
 
 }
-func GetPayStr(v int) string {
+
+func GetPayTypeStr(v int) string {
 	switch v {
 	case PayWechat:
 		return "微信支付"
@@ -174,7 +177,7 @@ func GetPayStr(v int) string {
 		return "到付"
 
 	}
-	return ""
+	return "未支付"
 }
 func GetCouponStr(v int) string {
 
@@ -187,5 +190,5 @@ func GetCouponStr(v int) string {
 		return "指定分类"
 
 	}
-	return ""
+	return "未知"
 }

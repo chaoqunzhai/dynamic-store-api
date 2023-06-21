@@ -37,11 +37,11 @@ type Orders struct {
 	ShopId    int       `gorm:"index;comment:关联客户"`
 	Line      string    `gorm:"index;size:16;comment:路线名称"`
 	LineId    int       `json:"line_id" gorm:"type:bigint;comment:线路ID"`
-	Status    int       `gorm:"type:tinyint(1);default:1;index;comment:配送状态"`
+	Status    int       `gorm:"type:tinyint(1);default:0;index;comment:配送状态,0:待配送,1:配送中,2:已配送,3:退回,4:退款"`
 	Money     float64   `gorm:"comment:下单费用"`
 	Number    int       `gorm:"comment:下单数量"`
 	Pay       int       `gorm:"type:tinyint(1);default:0;index;comment:支付方式,0:线上,1:线下"`
-	PayStatus int       `gorm:"type:tinyint(1);default:1;index;comment:支付状态,0:未付款,1:已付款 2:线下付款，3:下线付款已收款"`
+	PayStatus int        `gorm:"type:tinyint(1);default:0;index;comment:支付状态,0:未付款,1:已付款 2:线下付款，3:下线付款已收款"`
 	CycleTime time.Time `json:"cycle_time" gorm:"type:date;comment:下单时计算的配送时间"`
 	CycleStr  string    `json:"cycle_str" gorm:"index;size:14;comment:配送周期文案"`
 	CycleUid  string    `gorm:"type:varchar(4);index;comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
