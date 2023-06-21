@@ -76,6 +76,7 @@ func Initialization() {
 		}
 	}
 	//抽成默认配置
+	//需要注意,如果有一个菜单下有children,那这个菜单需要有一个layer来声明出场顺序
 	Menus := []map[string]interface{}{
 		{
 			"Name":       "statistics",
@@ -97,7 +98,38 @@ func Initialization() {
 			"MetaIcon":   "Icons.setting",
 			"Hidden":     false,
 			"ParentName": "",
+			"Layer":      91,
+		},
+		{
+			"Name":       "/setting/manage",
+			"Path":       "/setting/manage",
+			"Component":  "",
+			"MetaTitle":  "管理员",
+			"KeepAlive":  false,
+			"MetaIcon":   "",
+			"Hidden":     false,
+			"ParentName": "setting",
 			"Layer":      90,
+		},
+		{
+			"Name":       "/setting/manage/user/index",
+			"Path":       "/setting/manage/user/index",
+			"Component":  "@/views/setting/manage/user/Index",
+			"MetaTitle":  "员工列表",
+			"KeepAlive":  false,
+			"MetaIcon":   "",
+			"Hidden":     false,
+			"ParentName": "/setting/manage",
+		},
+		{
+			"Name":       "/setting/manage/role/index",
+			"Path":       "/setting/manage/role/index",
+			"Component":  "@/views/setting/manage/role/Index",
+			"MetaTitle":  "角色管理",
+			"KeepAlive":  false,
+			"MetaIcon":   "",
+			"Hidden":     false,
+			"ParentName": "/setting/manage",
 		},
 		{
 			"Name":       "store",
@@ -324,7 +356,7 @@ func Initialization() {
 			"Name":       "/order/interval",
 			"Path":       "/order/interval",
 			"Component":  "@/views/order/interval/index",
-			"MetaTitle":  "下单区间",
+			"MetaTitle":  "周期配置",
 			"KeepAlive":  false,
 			"MetaIcon":   "",
 			"Hidden":     false,
@@ -465,12 +497,23 @@ func Initialization() {
 		{
 			"Name":       "/user/index",
 			"Path":       "/user/index",
+			"Component":  "",
+			"MetaTitle":  "客户管理列表",
+			"KeepAlive":  false,
+			"MetaIcon":   "Icons.user",
+			"Hidden":     false,
+			"ParentName": "user",
+			"Layer":      80,
+		},
+		{
+			"Name":       "/user/list",
+			"Path":       "/user/list",
 			"Component":  "@/views/user/Index",
 			"MetaTitle":  "客户列表",
 			"KeepAlive":  false,
 			"MetaIcon":   "",
 			"Hidden":     false,
-			"ParentName": "user",
+			"ParentName": "/user/index",
 		},
 		{
 			"Name":       "/user/tag/index",
@@ -480,7 +523,7 @@ func Initialization() {
 			"KeepAlive":  false,
 			"MetaIcon":   "",
 			"Hidden":     false,
-			"ParentName": "user",
+			"ParentName": "/user/index",
 		},
 		{
 			"Name":       "/user/tag/create",
@@ -490,7 +533,7 @@ func Initialization() {
 			"KeepAlive":  false,
 			"MetaIcon":   "",
 			"Hidden":     true,
-			"ParentName": "user",
+			"ParentName": "/user/index",
 		},
 		{
 			"Name":       "/user/tag/update",
@@ -500,7 +543,7 @@ func Initialization() {
 			"KeepAlive":  false,
 			"MetaIcon":   "",
 			"Hidden":     true,
-			"ParentName": "user",
+			"ParentName": "/user/index",
 		},
 		{
 			"Name":       "/user/grade/index",
@@ -510,7 +553,7 @@ func Initialization() {
 			"KeepAlive":  false,
 			"MetaIcon":   "",
 			"Hidden":     false,
-			"ParentName": "user",
+			"ParentName": "/user/index",
 		},
 		{
 			"Name":       "/user/grade/create",
@@ -520,7 +563,7 @@ func Initialization() {
 			"KeepAlive":  false,
 			"MetaIcon":   "",
 			"Hidden":     true,
-			"ParentName": "user",
+			"ParentName": "/user/index",
 		},
 		{
 			"Name":       "/user/grade/update",
@@ -530,7 +573,28 @@ func Initialization() {
 			"KeepAlive":  false,
 			"MetaIcon":   "",
 			"Hidden":     true,
+			"ParentName": "/user/index",
+		},
+		{
+			"Name":       "/user/salesman",
+			"Path":       "/user/salesman",
+			"Component":  "",
+			"MetaTitle":  "业务员管理",
+			"KeepAlive":  false,
+			"MetaIcon":   "",
+			"Hidden":     false,
 			"ParentName": "user",
+			"Layer":      79,
+		},
+		{
+			"Name":       "/user/salesman/index",
+			"Path":       "/user/salesman/index",
+			"Component":  "",
+			"MetaTitle":  "业务员列表",
+			"KeepAlive":  false,
+			"MetaIcon":   "",
+			"Hidden":     false,
+			"ParentName": "/user/salesman",
 		},
 		{
 			"Name":       "/user/balance",
@@ -541,6 +605,7 @@ func Initialization() {
 			"MetaIcon":   "",
 			"Hidden":     false,
 			"ParentName": "user",
+			"Layer":      78,
 		},
 		{
 			"Name":       "/user/recharge/index",
@@ -572,37 +637,6 @@ func Initialization() {
 			"Hidden":     false,
 			"ParentName": "/user/balance",
 		},
-		{
-			"Name":       "manage",
-			"Path":       "manage",
-			"Component":  "",
-			"MetaTitle":  "管理员",
-			"KeepAlive":  false,
-			"MetaIcon":   "",
-			"Hidden":     false,
-			"ParentName": "",
-			"Layer":      91,
-		},
-		{
-			"Name":       "/manage/user/index",
-			"Path":       "/manage/user/index",
-			"Component":  "@/views/manage/user/Index",
-			"MetaTitle":  "用户列表",
-			"KeepAlive":  false,
-			"MetaIcon":   "",
-			"Hidden":     false,
-			"ParentName": "manage",
-		},
-		{
-			"Name":       "/manage/role/index",
-			"Path":       "/manage/role/index",
-			"Component":  "@/views/manage/role/Index",
-			"MetaTitle":  "角色管理",
-			"KeepAlive":  false,
-			"MetaIcon":   "",
-			"Hidden":     false,
-			"ParentName": "manage",
-		},
 	}
 	for _, db := range dbs {
 
@@ -622,6 +656,7 @@ func Initialization() {
 					if parentRow.Id == 0 {
 						continue
 					}
+					fmt.Println("更新",row["Name"],"的父节点是",ParentName,"id是",parentRow.Id)
 					db.Model(&models.DyNamicMenu{}).Where("name = ?",
 						row["Name"]).Update("parent_id", parentRow.Id)
 				}

@@ -510,7 +510,8 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 		rolesMap["permissionList"] = make([]string, 0)
 	case global.RoleCompany:
 		//大B,这里的菜单最好还是跟超管的区分的
-		rolesMap["permissionList"] = r.GetCustomById(user.GetUserId(c))
+		//大B,默认一定是没有权限的
+		rolesMap["permissionList"] = r.GetCustomAdmin(user.GetUserId(c))
 	case global.RoleCompanyUser:
 		rolesMap["permissionList"] = r.GetCustomById(user.GetUserId(c))
 	default:

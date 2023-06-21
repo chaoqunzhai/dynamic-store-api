@@ -77,6 +77,11 @@ func MakeCondition(q interface{}) func(db *gorm.DB) *gorm.DB {
 
 func Paginate(pageSize, pageIndex int) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
+		//不进行分页,返回所有数据
+		if pageSize == -1 {
+			fmt.Println("返回所有数据")
+			return db
+		}
 		offset := (pageIndex - 1) * pageSize
 		if offset < 0 {
 			offset = 0
