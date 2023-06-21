@@ -17,17 +17,18 @@ const (
 	SysUserSuccess = 2
 
 	//大B资源限制
-	CompanyVip           = 6  //大B最多可以设置6个VIP
-	CompanyMaxRole       = 10 //大B最多可以设置10个角色
-	CompanyMaxGoods =  100 //大B最多可以创建50个商品
-	CompanyMaxShop = 30 //大B最多可以创建30个客户
-	CompanyMaxGoodsClass = 20 //大B最多可以设置分类个数
-	CompanyMaxGoodsTag   = 20 //大B最多可以设置标签个数
-	CompanyMaxGoodsImage = 4  //大B最多可以设置单个商品做多6张图片
-	CompanyUserTag       = 30 //大B最多可以设置客户标签个数
+	CompanyVip           = 6   //大B最多可以设置6个VIP
+	CompanyLine          = 3   //大B最多只能有3个路线
+	CompanyMaxRole       = 10  //大B最多可以设置10个角色
+	CompanyMaxGoods      = 100 //大B最多可以创建50个商品
+	CompanyMaxShop       = 30  //大B最多可以创建30个客户
+	CompanyMaxGoodsClass = 20  //大B最多可以设置分类个数
+	CompanyMaxGoodsTag   = 20  //大B最多可以设置标签个数
+	CompanyMaxGoodsImage = 4   //大B最多可以设置单个商品做多6张图片
+	CompanyUserTag       = 30  //大B最多可以设置客户标签个数
 
-	OrderLayerKey = "layer desc"
-	OrderTimeKey = "created_at desc"
+	OrderLayerKey    = "layer desc"
+	OrderTimeKey     = "created_at desc"
 	UserNumberAdd    = "add"    //增加
 	UserNumberReduce = "reduce" //减少
 	UserNumberSet    = "set"    //设置

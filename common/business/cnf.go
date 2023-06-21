@@ -9,14 +9,15 @@ import (
 
 func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 	defaultCnf := map[string]int{
+		"line":       global.CompanyLine,
 		"vip":        global.CompanyVip,
 		"role":       global.CompanyMaxRole,
 		"good_image": global.CompanyMaxGoodsImage,
 		"good_class": global.CompanyMaxGoodsClass,
 		"good_tag":   global.CompanyMaxGoodsTag,
-		"shop_tag":    global.CompanyUserTag,
-		"shop":   global.CompanyMaxShop,
-		"good":   global.CompanyMaxGoods,
+		"shop_tag":   global.CompanyUserTag,
+		"shop":       global.CompanyMaxShop,
+		"good":       global.CompanyMaxGoods,
 	}
 	var cnf []models.CompanyQuotaCnf
 	var sql string
@@ -52,6 +53,8 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 				v = global.CompanyMaxGoods
 			case "shop":
 				v = global.CompanyMaxShop
+			case "line":
+				v = global.CompanyLine
 
 			}
 			result[key] = v
