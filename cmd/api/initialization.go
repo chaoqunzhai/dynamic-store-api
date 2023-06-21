@@ -18,7 +18,10 @@ func Initialization() {
 	fmt.Println("开始录入系统初始化配置")
 	dbs := sdk.Runtime.GetDb()
 	ComQuotaCnf := []map[string]interface{}{
-
+		{
+			"key":   "line",
+			"value": global.CompanyLine,
+		},
 		{
 			"key":   "vip",
 			"value": global.CompanyVip,

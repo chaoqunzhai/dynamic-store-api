@@ -111,6 +111,12 @@ func PermissionCompanyRole() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+		//如果是超管直接返回即可
+		if p.DataScope == global.RoleSuper {
+			c.Set(PermissionKey, p)
+			c.Next()
+			return
+		}
 		//是否过期校验
 		var companyObject models.Company
 		if p.CId == 0 {
@@ -180,11 +186,10 @@ func Permission(tableName string, p *DataPermission) func(db *gorm.DB) *gorm.DB 
 		if !config.ApplicationConfig.EnableDP {
 			return db
 		}
-		fmt.Println("p.dataScope", p.DataScope, p.CId)
+		//fmt.Println("p.dataScope", p.DataScope, p.CId)
 
 		switch p.DataScope {
 		case global.RoleSuper:
-			fmt.Println("RoleSuper")
 			return db
 		case global.RoleCompany:
 

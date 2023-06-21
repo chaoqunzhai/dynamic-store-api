@@ -23,7 +23,7 @@ sql_mode=ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_EN
 
 ```
 ## 构建上传
-sudo CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o dynamic  && scp -P 26622 -i ~/.ssh/id_rsa -r dynamic chaoqun@101.34.28.185:/home/chaoqun
+sudo CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o dynamic  && scp -P 26622 -i ~/.ssh/id_rsa -r dynamic root@152.136.36.253:/home/chaoqun
 ## 基础功能
 * 用户注册/登录/注销
 * 菜单管理
