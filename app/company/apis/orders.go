@@ -310,6 +310,29 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	e.OK("", "successful")
 	return
 }
+
+func (e Orders) ShopOrderList(c *gin.Context) {
+	req := dto.ToolsOrdersUpdateReq{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto = userDto
+	shopId := c.Param("id")
+	fmt.Println("商家", shopId)
+	e.OK("", "successful")
+	return
+}
 func (e Orders) ToolsOrders(c *gin.Context) {
 	req := dto.ToolsOrdersUpdateReq{}
 	err := e.MakeContext(c).
