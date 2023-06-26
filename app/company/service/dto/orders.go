@@ -102,6 +102,9 @@ type ToolsOrdersUpdateReq struct {
 	Desc     string `json:"desc"`
 	Delivery int    `json:"delivery"`
 }
+type ShopOrder struct {
+	dto.Pagination `search:"-"`
+}
 type OrdersUpdateReq struct {
 	Id     int     `uri:"id" comment:"主键编码"` // 主键编码
 	Layer  int     `json:"layer" comment:"排序"`

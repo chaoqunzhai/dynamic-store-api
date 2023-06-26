@@ -159,17 +159,17 @@ func (e Orders) Get(c *gin.Context) {
 	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?", object.ShopId, userDto.CId).Limit(1).Find(&shopRow)
 
 	result := map[string]interface{}{
-		"order_id":   object.Id,
-		"created_at": object.CreatedAt.Format("2006-01-02 15:04:05"),
-		"cycle_time": object.CycleTime.Format("2006-01-02"),
-		"cycle_str":     object.CycleStr,
-		"pay":           global.GetPayTypeStr(object.Pay),
+		"order_id":       object.Id,
+		"created_at":     object.CreatedAt.Format("2006-01-02 15:04:05"),
+		"cycle_time":     object.CycleTime.Format("2006-01-02"),
+		"cycle_str":      object.CycleStr,
+		"pay":            global.GetPayTypeStr(object.Pay),
 		"pay_status_str": global.GetOrderPayStatus(object.PayStatus),
-		"pay_status":object.PayStatus,
-		"shop_name":     shopRow.Name,
-		"shop_username": shopRow.UserName,
-		"shop_phone":    shopRow.Phone,
-		"shop_address":  shopRow.Address,
+		"pay_status":     object.PayStatus,
+		"shop_name":      shopRow.Name,
+		"shop_username":  shopRow.UserName,
+		"shop_phone":     shopRow.Phone,
+		"shop_address":   shopRow.Address,
 	}
 	var orderSpecs []models.OrderSpecs
 	//是一个分表的名称
@@ -180,12 +180,12 @@ func (e Orders) Get(c *gin.Context) {
 	specsList := make([]map[string]interface{}, 0)
 	for _, row := range orderSpecs {
 		ss := map[string]interface{}{
-			"id":row.Id,
-			"name":   row.SpecsName,
+			"id":         row.Id,
+			"name":       row.SpecsName,
 			"created_at": row.CreatedAt.Format("2006-01-02 15:04:05"),
-			"specs":   fmt.Sprintf("%v%v",row.Number,row.Unit),
-			"status": global.OrderStatus(row.Status),
-			"money":  row.Money,
+			"specs":      fmt.Sprintf("%v%v", row.Number, row.Unit),
+			"status":     global.OrderStatus(row.Status),
+			"money":      row.Money,
 		}
 		specsList = append(specsList, ss)
 	}
@@ -316,7 +316,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 }
 
 func (e Orders) ShopOrderList(c *gin.Context) {
-	req := dto.ToolsOrdersUpdateReq{}
+	req := dto.ShopOrder{}
 	err := e.MakeContext(c).
 		Bind(&req).
 		MakeOrm().
@@ -334,7 +334,9 @@ func (e Orders) ShopOrderList(c *gin.Context) {
 	userDto = userDto
 	shopId := c.Param("id")
 	fmt.Println("商家", shopId)
-	e.OK("", "successful")
+	result := make([]map[string]interface{}, 0)
+	var count int64
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 	return
 }
 func (e Orders) ToolsOrders(c *gin.Context) {
