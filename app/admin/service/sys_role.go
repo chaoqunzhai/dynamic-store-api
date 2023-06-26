@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"go-admin/common/utils"
 	"strings"
 
 	"github.com/go-admin-team/go-admin-core/sdk/config"
@@ -359,6 +360,20 @@ type RoleRow struct {
 }
 type RoleMenu struct {
 	MenuId string
+}
+
+func (e *SysRole) GetCustomAdmin(userId int) []string{
+
+	var list []models2.DyNamicMenu
+	e.Orm.Model(&models2.DyNamicMenu{}).Select("path,role").Where("enable = ?",true).Find(&list)
+	perms :=make([]string,0)
+	for _,row:=range list{
+		role:=strings.Split(row.Role,",")
+		if utils.IsArray("company",role){
+			perms = append(perms,row.Path)
+		}
+	}
+	return perms
 }
 //获取这个用户关联的自定义菜单权限列表
 func (e *SysRole) GetCustomById(userId int) []string{

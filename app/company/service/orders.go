@@ -117,6 +117,7 @@ func (e *Orders) GetPage(tableName string, c *dto.OrdersGetPageReq, p *actions.D
 	}
 	err = e.Orm.Table(tableName).Where(whereSQL).
 		Scopes(
+			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(tableName), p),
 		).Order(global.OrderTimeKey).
