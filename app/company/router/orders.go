@@ -28,6 +28,9 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 
 		//todo:获取下订单创建的周期列表和配送列表
 		r.GET("/cycle_lists", api.OrderCycleList)
+
+		//todo:获取商家的所有订单
+		r.GET("/shop/:shopId", api.ShopOrderList)
 	}
 
 	r2 := v1.Group("/orders").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole())

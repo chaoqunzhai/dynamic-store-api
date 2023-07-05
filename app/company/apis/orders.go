@@ -425,6 +425,28 @@ func (e Orders) OrderCycleList(c *gin.Context) {
 	return
 }
 
+
+func (e Orders) ShopOrderList(c *gin.Context) {
+	s := service.Orders{}
+	req:=dto.OrdersShopGetPageReq{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	shopId:=c.Param("shopId")
+	fmt.Println("商家ID",shopId)
+	result:=make([]map[string]interface{},0)
+	var count int64
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	return
+}
+
 func (e Orders) Times(c *gin.Context) {
 	s := service.Orders{}
 	err := e.MakeContext(c).

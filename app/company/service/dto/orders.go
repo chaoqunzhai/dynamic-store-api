@@ -42,6 +42,17 @@ func (m *OrdersGetPageReq) GetNeedSearch() interface{} {
 	return *m
 }
 
+
+type OrdersShopGetPageReq struct {
+	dto.Pagination `search:"-"`
+
+}
+
+func (m *OrdersShopGetPageReq) GetNeedSearch() interface{} {
+	return *m
+}
+
+
 type OrdersInsertReq struct {
 	Id int `json:"-" comment:"主键编码"` // 主键编码
 	//Layer   int    `json:"layer" comment:"排序"`
