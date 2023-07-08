@@ -1,6 +1,9 @@
 package global
 
 const (
+	StdOut          = "./logs/info.log"
+	StdError        = "./logs/error.log"
+
 	//商品目录
 	GoodsPath       = "goods"
 	SysName         = "动创云订货配送"
