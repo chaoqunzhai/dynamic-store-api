@@ -105,6 +105,7 @@ type valetSpecs struct {
 	Price   float64 `json:"price"`
 	Unit    string  `json:"unit"`
 	GoodsId int     `json:"goods_id"`
+	GoodsName string `json:"goods_name"`
 }
 type ToolsOrdersUpdateReq struct {
 	Id       int    `uri:"id" comment:"主键编码"` // 主键编码

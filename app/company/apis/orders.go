@@ -181,6 +181,7 @@ func (e Orders) Get(c *gin.Context) {
 	for _, row := range orderSpecs {
 		ss := map[string]interface{}{
 			"id":         row.Id,
+			"goods_name": row.GoodsName,
 			"name":       row.SpecsName,
 			"created_at": row.CreatedAt.Format("2006-01-02 15:04:05"),
 			"specs":      fmt.Sprintf("%v%v", row.Number, row.Unit),
@@ -256,7 +257,6 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		orderRow.CycleStr = DeliveryObject.GiveTime
 		orderRow.CycleUid = DeliveryObject.Uid
 		orderRow.CreateBy = userDto.UserId
-		orderRow.GoodsId = goodsList[0].GoodsId
 
 		e.Orm.Table(orderExtend).Create(&models.OrderExtend{
 			OrderId: orderRow.Id,
@@ -267,7 +267,6 @@ func (e Orders) ValetOrder(c *gin.Context) {
 
 		var orderMoney float64
 		var goodsNumber int
-		var goodsName string
 		specsOrderId := make([]int, 0)
 		for _, spec := range goodsList {
 			//如果下单的次数>库存的值，那就是非法数据 直接跳出
@@ -292,19 +291,20 @@ func (e Orders) ValetOrder(c *gin.Context) {
 				Money:     spec.Price,
 				Unit:      spec.Unit,
 				SpecsName: goodsSpecs.Name,
+				GoodsName: spec.GoodsName,
+				GoodsId: spec.GoodsId,
 			}
 			var goodsObject models2.Goods
 			e.Orm.Model(&models2.Goods{}).Where("id = ? and c_id = ? and enable = ?", spec.GoodsId, userDto.CId, true).Limit(1).Find(&goodsObject)
 			if goodsObject.Id == 0 {
 				continue
 			}
-			goodsName = goodsObject.Name
+
 			e.Orm.Table(specsTable).Create(specRow)
 			specsOrderId = append(specsOrderId, specRow.Id)
 		}
 		orderRow.Number = goodsNumber
 		orderRow.Money = orderMoney
-		orderRow.GoodsName = goodsName
 		e.Orm.Table(orderTableName).Create(orderRow)
 		e.Orm.Table(specsTable).Where("id in ?", specsOrderId).Updates(map[string]interface{}{
 			"order_id": orderRow.Id,
@@ -629,9 +629,6 @@ func (e Orders) Insert(c *gin.Context) {
 	}
 	data.Line = lineObject.Name
 	data.LineId = lineObject.Id
-	//商品
-	data.GoodsId = goodsObject.Id
-	data.GoodsName = goodsObject.Name
 	//todo:配送周期
 	data.CycleTime = timeConfResult.CycleTime
 	data.CycleStr = timeConfResult.CycleStr

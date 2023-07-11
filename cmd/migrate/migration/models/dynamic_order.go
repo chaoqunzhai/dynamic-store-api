@@ -32,8 +32,6 @@ type Orders struct {
 	CId       int       `gorm:"index;comment:大BID"`
 	Enable    bool      `gorm:"comment:开关"`
 	ClassId   int       `json:"class_id" gorm:"type:bigint;comment:分类ID"`
-	GoodsId   int       `gorm:"index;comment:商品ID"`
-	GoodsName string    `json:"goods_name" gorm:"size:35;comment:商品名称+广告"`
 	ShopId    int       `gorm:"index;comment:关联客户"`
 	Line      string    `gorm:"index;size:16;comment:路线名称"`
 	LineId    int       `json:"line_id" gorm:"type:bigint;comment:线路ID"`
@@ -54,6 +52,8 @@ func (Orders) TableName() string {
 // todo:订单规格
 type OrderSpecs struct {
 	Model
+	GoodsName string       `json:"goods_name" gorm:"size:35;comment:商品名称+广告"`
+	GoodsId   int       `gorm:"index;comment:商品ID"`
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
 	OrderId   int            `gorm:"index;comment:关联订单ID"`

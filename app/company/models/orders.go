@@ -7,13 +7,11 @@ import (
 type Orders struct {
 	models.Model
 	Enable    bool         `json:"enable" gorm:"type:tinyint(1);comment:开关"`
-	GoodsName string       `json:"goods_name" gorm:"size:35;comment:商品名称+广告"`
 	CId       int          `json:"c_id" gorm:"type:bigint;comment:大BID"`
 	ClassId   string       `json:"class_id" gorm:"type:bigint;comment:分类ID"`
 	ShopId    int          `json:"shop_id" gorm:"type:bigint;comment:关联客户"`
 	LineId    int          `json:"line_id" gorm:"type:bigint;comment:线路ID"`
 	Line      string       `json:"line" gorm:"index;size:16;comment:路线名称"`
-	GoodsId   int          `gorm:"index;comment:商品表ID"`
 	Status    int          `json:"status" gorm:"type:bigint;default:1;comment:配送状态"`
 	Money     float64      `json:"money" gorm:"type:double;comment:下单总金额"`
 	Number    int          `json:"number" gorm:"type:bigint;comment:下单产品数量"`
@@ -38,11 +36,12 @@ func (Orders) TableName(tableName string) string {
 func (e *Orders) GetId() interface{} {
 	return e.Id
 }
-
+//订单规格
 type OrderSpecs struct {
 	models.Model
-
 	OrderId   int           `json:"orderId" gorm:"type:bigint(20);comment:关联订单ID"`
+	GoodsName string       `json:"goods_name" gorm:"size:35;comment:商品名称+广告"`
+	GoodsId   int          `gorm:"index;comment:商品表ID"`
 	SpecsName string        `gorm:"size:30;comment:规格名称"`
 	Unit      string        `json:"unit" gorm:"type:varchar(8);comment:单位"`
 	Status    int           `json:"status" gorm:"type:bigint(20);comment:配送状态"`

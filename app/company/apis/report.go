@@ -152,38 +152,38 @@ func (e Orders) Index(c *gin.Context) {
 	e.Orm.Table(orderTableName).Select("number,good_id,line_id,money").Where("c_id = ? and enable = ? and delivery_time = ? and status =? ", userDto.CId, true, req.Day, global.OrderStatusWait).Find(&list)
 
 	//todo:商品聚合计算
-	cacheGoods := make(map[int]GoodsRow, 0)
+	//cacheGoods := make(map[int]GoodsRow, 0)
 	cacheReportGoods := make(map[int]reportGoods, 0)
-	for _, row := range list {
+	//for _, row := range list {
 		//fmt.Println("商品ID", row.GoodId, "路线ID", row.LineId, "商品ID", row.GoodId)
-		goodsRow, ok := goodsMapData[row.GoodsId]
-		if !ok {
-			fmt.Println("订单中的商品不在统一数据中！")
-			continue
-		}
-		//todo:一样的商品做一个数量和价格的叠加
-		cacheGood, validOk := cacheGoods[row.GoodsId]
-		if validOk {
-			cacheGood.Number += row.Number
-			cacheGood.Money += row.Money
-			cacheGoods[row.GoodsId] = cacheGood
-		} else {
-			cacheGoods[row.GoodsId] = GoodsRow{
-				Number: row.Number,
-				Money:  row.Money,
-			}
-		}
-		newCacheGoods, _ := cacheGoods[row.GoodsId]
-		report := reportGoods{
-			Id:     goodsRow.Id,
-			Name:   goodsRow.Name,
-			Image:  goodsRow.Image,
-			Number: newCacheGoods.Number,
-			Money:  newCacheGoods.Money,
-			LineId: row.LineId,
-		}
-		cacheReportGoods[row.GoodsId] = report
-	}
+		//goodsRow, ok := goodsMapData[row.GoodsId]
+		//if !ok {
+		//	fmt.Println("订单中的商品不在统一数据中！")
+		//	continue
+		//}
+		////todo:一样的商品做一个数量和价格的叠加
+		//cacheGood, validOk := cacheGoods[row.GoodsId]
+		//if validOk {
+		//	cacheGood.Number += row.Number
+		//	cacheGood.Money += row.Money
+		//	cacheGoods[row.GoodsId] = cacheGood
+		//} else {
+		//	cacheGoods[row.GoodsId] = GoodsRow{
+		//		Number: row.Number,
+		//		Money:  row.Money,
+		//	}
+		//}
+		//newCacheGoods, _ := cacheGoods[row.GoodsId]
+		//report := reportGoods{
+		//	Id:     goodsRow.Id,
+		//	Name:   goodsRow.Name,
+		//	Image:  goodsRow.Image,
+		//	Number: newCacheGoods.Number,
+		//	Money:  newCacheGoods.Money,
+		//	LineId: row.LineId,
+		//}
+		//cacheReportGoods[row.GoodsId] = report
+	//}
 	//fmt.Println("cache2", cacheReportGoods)
 
 	result := make([]ReportResult, 0)
