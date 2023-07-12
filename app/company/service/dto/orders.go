@@ -166,3 +166,8 @@ type OrdersDeleteReq struct {
 func (s *OrdersDeleteReq) GetId() interface{} {
 	return s.Ids
 }
+
+type OrderSpecsRow struct {
+	Number int `json:"number"`
+
+}

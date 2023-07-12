@@ -61,23 +61,30 @@ func (e Orders) GetPage(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	//查询是否进行了分表
+	orderTableName := business.GetTableName(userDto.CId, e.Orm)
+
 
 	p := actions.GetPermissionFromContext(c)
 	list := make([]models.Orders, 0)
 	var count int64
 	req.CId = userDto.CId
-	err = s.GetPage(business.GetTableName(userDto.CId, e.Orm), &req, p, &list, &count)
+	err = s.GetPage(orderTableName, &req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取订单失败,%s", err.Error()))
 		return
 	}
 	//统一查询商家shop_id
 	cacheShopId := make([]int, 0)
+	//统一查询订单关联的规格
+	cacheOrderId:=make([]int,0)
 	for _, row := range list {
 		cacheShopId = append(cacheShopId, row.ShopId)
+		cacheOrderId = append(cacheOrderId,row.Id)
 	}
 	cacheShopId = utils.RemoveRepeatInt(cacheShopId)
-	//查询到对象
+
+	//查询客户信息
 	cacheShopObject := make([]models2.Shop, 0)
 	e.Orm.Model(&models2.Shop{}).Select("name,id,phone").Where("c_id = ? and id in ?",
 		userDto.CId, cacheShopId).Find(&cacheShopObject)
@@ -90,9 +97,41 @@ func (e Orders) GetPage(c *gin.Context) {
 			"id":    k.Id,
 		}
 	}
+	//查询订单关联的规格信息
+	var orderSpecs []models.OrderSpecs
+	//是一个分表的名称
+	specsTable := business.OrderSpecsTableName(orderTableName)
+
+	e.Orm.Table(specsTable).Select("order_id,goods_name,number").Where("order_id in ?",cacheOrderId).Find(&orderSpecs)
+
+	//缓存订单关联的商品
+	orderSpecsMap := make(map[int]map[string]dto.OrderSpecsRow, 0)
+	for _, k := range orderSpecs {
+		rows,ok:=orderSpecsMap[k.OrderId]
+		fmt.Println("ok",ok,rows)
+		if !ok {
+			specsMap:=make(map[string]dto.OrderSpecsRow,0)
+
+			specsMap[k.GoodsName] = dto.OrderSpecsRow{
+				Number: k.Number,
+			}
+			orderSpecsMap[k.OrderId] = specsMap
+
+		}else {
+			parentDat := rows[k.GoodsName]
+			parentDat.Number +=k.Number
+			rows[k.GoodsName] = parentDat
+
+
+			orderSpecsMap[k.OrderId] = rows
+		}
+	}
+
 
 	result := make([]map[string]interface{}, 0)
 	for _, row := range list {
+
+		specsDataMap :=orderSpecsMap[row.Id]
 		r := map[string]interface{}{
 			"id":   fmt.Sprintf("%v", row.Id),
 			"shop": cacheShopMap[row.ShopId],
@@ -108,6 +147,7 @@ func (e Orders) GetPage(c *gin.Context) {
 			"status":         global.OrderStatus(row.Status),
 			"pay_status":     global.GetOrderPayStatus(row.PayStatus),
 			"created_at":     row.CreatedAt,
+			"goods":specsDataMap,
 		}
 		result = append(result, r)
 	}

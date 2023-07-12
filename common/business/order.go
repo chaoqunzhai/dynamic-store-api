@@ -17,7 +17,7 @@ func GetTableName(cid int, orm *gorm.DB) string {
 	//先在split分表中查询
 
 	var splitRow models2.SplitTableMap
-	orm.Model(&models2.SplitTableMap{}).Where("c_id = ? and enable = ? and type = ?", cid, true, global.SplitOrder).Limit(1).Find(&splitRow)
+	orm.Model(&models2.SplitTableMap{}).Select("name,id").Where("c_id = ? and enable = ? and type = ?", cid, true, global.SplitOrder).Limit(1).Find(&splitRow)
 
 	tableName := ""
 	if splitRow.Id > 0 {
