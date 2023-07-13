@@ -13,8 +13,9 @@ import (
 )
 
 var (
-	routerNoCheckRole = make([]func(*gin.RouterGroup), 0)
-	routerCheckRole   = make([]func(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware), 0)
+	routerNoCheckRole    = make([]func(*gin.RouterGroup), 0)
+	routerNoPubCheckRole = make([]func(*gin.RouterGroup), 0)
+	routerCheckRole      = make([]func(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware), 0)
 )
 
 // InitRouter 路由初始化
@@ -60,6 +61,10 @@ func noCheckRoleRouter(r *gin.Engine) {
 
 	for _, f := range routerNoCheckRole {
 		f(v)
+	}
+	v2 := r.Group("/weapp/")
+	for _, f := range routerNoPubCheckRole {
+		f(v2)
 	}
 }
 
