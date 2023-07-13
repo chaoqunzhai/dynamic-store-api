@@ -1,6 +1,5 @@
 package router
 
-
 import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/gin-gonic/gin"
@@ -57,7 +56,7 @@ func InitBusinessRouter(r *gin.Engine, authMiddleware *jwt.GinJWTMiddleware) *gi
 // noCheckRoleRouter 无需认证的路由
 func noCheckRoleRouter(r *gin.Engine) {
 	// 可根据业务需求来设置接口版本
-	v := r.Group("/api/v1")
+	v := r.Group("/company/api/v1")
 
 	for _, f := range routerNoCheckRole {
 		f(v)
@@ -67,7 +66,7 @@ func noCheckRoleRouter(r *gin.Engine) {
 // checkRoleRouter 需要认证的路由
 func checkRoleRouter(r *gin.Engine, authMiddleware *jwtauth.GinJWTMiddleware) {
 	// 可根据业务需求来设置接口版本
-	v := r.Group("/api/v1")
+	v := r.Group("/company/api/v1")
 
 	for _, f := range routerCheckRole {
 		f(v, authMiddleware)
