@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
+	"github.com/go-admin-team/go-admin-core/sdk/pkg/captcha"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 	"go-admin/config"
 	"io/ioutil"
@@ -83,10 +84,10 @@ func (e Lib) Config(c *gin.Context) {
       {
         "iconPath": "icondiy icon-system-category",
         "selectedIconPath": "icondiy icon-system-category-selected",
-        "text": "商品分类",
+        "text": "商品",
         "link": {
           "name": "SHOP_CATEGORY",
-          "title": "商品分类",
+          "title": "商品",
           "wap_url": "/pages/goods/category",
           "parent": "MALL_LINK"
         },
@@ -118,43 +119,6 @@ func (e Lib) Config(c *gin.Context) {
           ],
           "iconColorDeg": 0
         }
-      },
-      {
-        "iconPath": "icondiy icon-system-broadcast-fill",
-        "selectedIconPath": "icondiy icon-system-loader-fill",
-        "text": "发现",
-        "link": {
-          "name": "SHOPPING_ARTICLE",
-          "title": "文章",
-          "wap_url": "/pages_tool/article/list",
-          "parent": "MALL_LINK"
-        },
-        "iconClass": "",
-        "icon_type": "icon",
-        "selected_style": {
-          "fontSize": 100,
-          "iconBgColor": [],
-          "iconBgColorDeg": 0,
-          "iconBgImg": "",
-          "bgRadius": 0,
-          "iconColor": [
-            "#F4391c"
-          ],
-          "iconColorDeg": 0
-        },
-        "style": {
-          "fontSize": 100,
-          "iconBgColor": [],
-          "iconBgColorDeg": 0,
-          "iconBgImg": "",
-          "bgRadius": 0,
-          "iconColor": [
-            "#000000"
-          ],
-          "iconColorDeg": 0
-        },
-        "selected_icon_type": "icon",
-        "id": "82adnuqpb6w"
       },
       {
         "iconPath": "icondiy icon-system-cart",
@@ -286,7 +250,7 @@ func (e Lib) Config(c *gin.Context) {
     "article": "public/static/img/default_img/article.png"
   },
   "copyright": {
-    "icp": "晋ICP备16001360号",
+    "icp": "备案号: 222222",
     "gov_record": "",
     "gov_url": "",
     "market_supervision_url": "",
@@ -299,7 +263,7 @@ func (e Lib) Config(c *gin.Context) {
     "site_id": 1,
     "site_domain": "",
     "site_name": "动创云订货软件",
-    "logo": "upload/1/common/images/20230303/20230303041637167783139795186.png",
+    "logo": "../static/logo.png",
     "seo_title": "",
     "seo_keywords": "动创云订货软件",
     "seo_description": "动创云订货软件",
@@ -310,7 +274,7 @@ func (e Lib) Config(c *gin.Context) {
   "servicer": {
     "h5": {
       "type": "dongchuangyun",
-      "wxwork_url": "https://dongchuangyun.com/,
+      "wxwork_url": "https://dongchuangyun.com/",
       "third_url": "https://dongchuangyun.com/"
     },
     "weapp": {
@@ -331,12 +295,17 @@ func (e Lib) Config(c *gin.Context) {
   }
 }`
 	row := make(map[string]interface{}, 0)
-	json.Unmarshal([]byte(dat), &row)
+	marErr:=json.Unmarshal([]byte(dat), &row)
+	fmt.Println("marErr",marErr)
 	e.OK(row, "successful")
 	return
 }
 
+type DiyInfoRequest struct {
+	Name      string     `form:"name" comment:"视角名称"`      //显示名称
+}
 func (e Lib) DiyInfo(c *gin.Context) {
+	req :=DiyInfoRequest{}
 	err := e.MakeContext(c).
 		MakeOrm().
 		Errors
@@ -345,11 +314,27 @@ func (e Lib) DiyInfo(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	dat := `{
+	if bindErr := c.ShouldBind(&req); bindErr != nil {
+		e.Error(500, bindErr, bindErr.Error())
+		return
+	}
+	MemDat := `{
+	  "id": 49,
+	  "site_id": 1,
+	  "name": "DIY_VIEW_MEMBER_INDEX",
+	  "title": "会员中心",
+	  "template_id": 55,
+	  "template_item_id": 123,
+	  "type": "DIY_VIEW_MEMBER_INDEX",
+	  "type_name": "会员中心",
+	  "value": "{\"global\":{\"title\":\"\\u4f1a\\u5458\\u4e2d\\u5fc3\",\"pageBgColor\":\"#F8F8F8\",\"topNavColor\":\"#FFFFFF\",\"topNavBg\":true,\"navBarSwitch\":true,\"navStyle\":1,\"textNavColor\":\"#333333\",\"topNavImg\":\"\",\"moreLink\":{\"name\":\"\"},\"openBottomNav\":true,\"textImgPosLink\":\"center\",\"mpCollect\":false,\"popWindow\":{\"imageUrl\":\"\",\"count\":-1,\"show\":0,\"link\":{\"name\":\"\"},\"imgWidth\":\"\",\"imgHeight\":\"\"},\"bgUrl\":\"\",\"imgWidth\":\"\",\"imgHeight\":\"\",\"template\":{\"pageBgColor\":\"\",\"textColor\":\"#303133\",\"componentBgColor\":\"\",\"componentAngle\":\"round\",\"topAroundRadius\":0,\"bottomAroundRadius\":0,\"elementBgColor\":\"\",\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":0,\"both\":0}}},\"value\":[{\"style\":4,\"theme\":\"default\",\"bgColorStart\":\"#FF7230\",\"bgColorEnd\":\"#FF1544\",\"gradientAngle\":\"129\",\"infoMargin\":15,\"id\":\"1tkaoxbhavj4\",\"addonName\":\"\",\"componentName\":\"MemberInfo\",\"componentTitle\":\"\\u4f1a\\u5458\\u4fe1\\u606f\",\"isDelete\":0,\"pageBgColor\":\"\",\"textColor\":\"#303133\",\"componentBgColor\":\"\",\"topAroundRadius\":0,\"bottomAroundRadius\":0,\"elementBgColor\":\"\",\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":0,\"both\":0}},{\"style\":\"style-12\",\"styleName\":\"\\u98ce\\u683c12\",\"text\":\"\\u6211\\u7684\\u8ba2\\u5355\",\"link\":{\"name\":\"\"},\"fontSize\":17,\"fontWeight\":\"bold\",\"subTitle\":{\"fontSize\":14,\"text\":\"\",\"isElementShow\":true,\"color\":\"#999999\",\"bgColor\":\"#303133\"},\"more\":{\"text\":\"\\u5168\\u90e8\\u8ba2\\u5355\",\"link\":{\"name\":\"ALL_ORDER\",\"title\":\"\\u5168\\u90e8\\u8ba2\\u5355\",\"wap_url\":\"\\/pages\\/order\\/list\",\"parent\":\"MALL_LINK\"},\"isShow\":true,\"isElementShow\":true,\"color\":\"#999999\"},\"id\":\"2txcvx3d5u6\",\"addonName\":\"\",\"componentName\":\"Text\",\"componentTitle\":\"\\u6807\\u9898\",\"isDelete\":0,\"pageBgColor\":\"\",\"textColor\":\"#303133\",\"componentBgColor\":\"#FFFFFF\",\"componentAngle\":\"round\",\"topAroundRadius\":9,\"bottomAroundRadius\":0,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":15,\"bottom\":0,\"both\":15}},{\"color\":\"#EEEEEE\",\"borderStyle\":\"solid\",\"id\":\"3hsh2st470e0\",\"addonName\":\"\",\"componentName\":\"HorzLine\",\"componentTitle\":\"\\u8f85\\u52a9\\u7ebf\",\"isDelete\":0,\"pageBgColor\":\"\",\"topAroundRadius\":0,\"bottomAroundRadius\":0,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":0,\"both\":20}},{\"icon\":{\"waitPay\":{\"title\":\"\\u5f85\\u4ed8\\u6b3e\",\"icon\":\"icondiy icon-system-daifukuan2\",\"style\":{\"bgRadius\":0,\"fontSize\":65,\"iconBgColor\":[],\"iconBgColorDeg\":0,\"iconBgImg\":\"\",\"iconColor\":[\"#fa9c8e\",\"#F4391c\"],\"iconColorDeg\":0}},\"waitSend\":{\"title\":\"\\u5f85\\u53d1\\u8d27\",\"icon\":\"icondiy icon-system-daifahuo2\",\"style\":{\"bgRadius\":0,\"fontSize\":65,\"iconBgColor\":[],\"iconBgColorDeg\":0,\"iconBgImg\":\"\",\"iconColor\":[\"#fa9c8e\",\"#F4391c\"],\"iconColorDeg\":0}},\"waitConfirm\":{\"title\":\"\\u5f85\\u6536\\u8d27\",\"icon\":\"icondiy icon-system-daishouhuo2\",\"style\":{\"bgRadius\":0,\"fontSize\":65,\"iconBgColor\":[],\"iconBgColorDeg\":0,\"iconBgImg\":\"\",\"iconColor\":[\"#fa9c8e\",\"#F4391c\"],\"iconColorDeg\":0}},\"waitUse\":{\"title\":\"\\u5f85\\u4f7f\\u7528\",\"icon\":\"icondiy icon-system-daishiyong2\",\"style\":{\"bgRadius\":0,\"fontSize\":65,\"iconBgColor\":[],\"iconBgColorDeg\":0,\"iconBgImg\":\"\",\"iconColor\":[\"#fa9c8e\",\"#F4391c\"],\"iconColorDeg\":0}},\"refunding\":{\"title\":\"\\u552e\\u540e\",\"icon\":\"icondiy icon-system-shuhou2\",\"style\":{\"bgRadius\":0,\"fontSize\":65,\"iconBgColor\":[],\"iconBgColorDeg\":0,\"iconBgImg\":\"\",\"iconColor\":[\"#fa9c8e\",\"#F4391c\"],\"iconColorDeg\":0}}},\"style\":1,\"id\":\"51h05xpcanw0\",\"addonName\":\"\",\"componentName\":\"MemberMyOrder\",\"componentTitle\":\"\\u6211\\u7684\\u8ba2\\u5355\",\"isDelete\":0,\"pageBgColor\":\"\",\"textColor\":\"#303133\",\"componentBgColor\":\"#FFFFFF\",\"componentAngle\":\"round\",\"topAroundRadius\":0,\"bottomAroundRadius\":9,\"elementBgColor\":\"\",\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":0,\"both\":15}},{\"style\":\"style-12\",\"styleName\":\"\\u98ce\\u683c12\",\"text\":\"\\u5e38\\u7528\\u5de5\\u5177\",\"link\":{\"name\":\"\"},\"fontSize\":17,\"fontWeight\":\"bold\",\"subTitle\":{\"fontSize\":14,\"text\":\"\",\"isElementShow\":true,\"color\":\"#999999\",\"bgColor\":\"#303133\"},\"more\":{\"text\":\"\",\"link\":{\"name\":\"\"},\"isShow\":0,\"isElementShow\":true,\"color\":\"#999999\"},\"id\":\"405rb6vv3rq0\",\"addonName\":\"\",\"componentName\":\"Text\",\"componentTitle\":\"\\u6807\\u9898\",\"isDelete\":0,\"pageBgColor\":\"\",\"textColor\":\"#303133\",\"componentBgColor\":\"#FFFFFF\",\"componentAngle\":\"round\",\"topAroundRadius\":9,\"bottomAroundRadius\":0,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":15,\"bottom\":0,\"both\":15}},{\"mode\":\"graphic\",\"type\":\"img\",\"showStyle\":\"fixed\",\"ornament\":{\"type\":\"default\",\"color\":\"#EDEDED\"},\"rowCount\":4,\"pageCount\":2,\"carousel\":{\"type\":\"circle\",\"color\":\"#FFFFFF\"},\"imageSize\":30,\"aroundRadius\":0,\"font\":{\"size\":13,\"weight\":\"normal\",\"color\":\"#303133\"},\"list\":[{\"title\":\"\\u4e2a\\u4eba\\u8d44\\u6599\",\"imageUrl\":\"..\\/..\\/static\\/member\\/default_person.png\",\"iconType\":\"img\",\"style\":{\"fontSize\":\"60\",\"iconBgColor\":[],\"iconBgColorDeg\":0,\"iconBgImg\":\"\",\"bgRadius\":0,\"iconColor\":[\"#000000\"],\"iconColorDeg\":0},\"link\":{\"name\":\"MEMBER_INFO\",\"title\":\"\\u4e2a\\u4eba\\u8d44\\u6599\",\"wap_url\":\"\\/pages_tool\\/member\\/info\",\"parent\":\"MALL_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"icon\":\"\",\"id\":\"10rhv0x6phhc0\"},{\"title\":\"\\u6536\\u8d27\\u5730\\u5740\",\"imageUrl\":\"..\\/..\\/static\\/member\\/default_address.png\",\"iconType\":\"img\",\"style\":{\"fontSize\":\"60\",\"iconBgColor\":[],\"iconBgColorDeg\":0,\"iconBgImg\":\"\",\"bgRadius\":0,\"iconColor\":[\"#000000\"],\"iconColorDeg\":0},\"link\":{\"name\":\"SHIPPING_ADDRESS\",\"title\":\"\\u6536\\u8d27\\u5730\\u5740\",\"wap_url\":\"\\/pages_tool\\/member\\/address\",\"parent\":\"MALL_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"icon\":\"\",\"id\":\"1n8gycn6xqe80\"},{\"title\":\"\\u6211\\u7684\\u5173\\u6ce8\",\"imageUrl\":\"..\\/..\\/static\\/member\\/default_like.png\",\"iconType\":\"img\",\"style\":{\"fontSize\":\"60\",\"iconBgColor\":[],\"iconBgColorDeg\":0,\"iconBgImg\":\"\",\"bgRadius\":0,\"iconColor\":[\"#000000\"],\"iconColorDeg\":0},\"link\":{\"name\":\"ATTENTION\",\"title\":\"\\u6211\\u7684\\u5173\\u6ce8\",\"wap_url\":\"\\/pages_tool\\/member\\/collection\",\"parent\":\"MALL_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"icon\":\"\",\"id\":\"cnamoch6cvk0\"},{\"title\":\"\\u6211\\u7684\\u8db3\\u8ff9\",\"imageUrl\":\"..\\/..\\/static\\/member\\/default_toot.png\",\"iconType\":\"img\",\"style\":{\"fontSize\":\"60\",\"iconBgColor\":[],\"iconBgColorDeg\":0,\"iconBgImg\":\"\",\"bgRadius\":0,\"iconColor\":[\"#000000\"],\"iconColorDeg\":0},\"link\":{\"name\":\"FOOTPRINT\",\"title\":\"\\u6211\\u7684\\u8db3\\u8ff9\",\"wap_url\":\"\\/pages_tool\\/member\\/footprint\",\"parent\":\"MALL_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"icon\":\"\",\"id\":\"drf3hi3slo00\"},{\"title\":\"\\u8d26\\u6237\\u5217\\u8868\",\"imageUrl\":\"..\\/..\\/static\\/member\\/default_cash.png\",\"iconType\":\"img\",\"style\":\"\",\"link\":{\"name\":\"ACCOUNT\",\"title\":\"\\u8d26\\u6237\\u5217\\u8868\",\"wap_url\":\"\\/pages_tool\\/member\\/account\",\"parent\":\"MALL_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"iconfont\":{\"value\":\"\",\"color\":\"\"},\"id\":\"1l4axfhbayqo0\"},{\"title\":\"\\u4f18\\u60e0\\u5238\",\"imageUrl\":\"..\\/..\\/static\\/member\\/default_discount.png\",\"iconType\":\"img\",\"style\":\"\",\"link\":{\"name\":\"COUPON\",\"title\":\"\\u4f18\\u60e0\\u5238\",\"wap_url\":\"\\/pages_tool\\/member\\/coupon\",\"parent\":\"MALL_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"iconfont\":{\"value\":\"\",\"color\":\"\"},\"id\":\"1tnu0vihrnq80\"},{\"title\":\"\\u7b7e\\u5230\",\"imageUrl\":\"..\\/..\\/static\\/member\\/default_sign.png\",\"iconType\":\"img\",\"style\":\"\",\"link\":{\"name\":\"SIGN_IN\",\"title\":\"\\u7b7e\\u5230\",\"wap_url\":\"\\/pages_tool\\/member\\/signin\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"iconfont\":{\"value\":\"\",\"color\":\"\"},\"id\":\"hodjcxowf8g0\"},{\"title\":\"\\u6211\\u7684\\u62fc\\u5355\",\"imageUrl\":\"..\\/..\\/static\\/member\\/default_store.png\",\"iconType\":\"img\",\"style\":\"\",\"link\":{\"name\":\"MY_PINTUAN\",\"title\":\"\\u6211\\u7684\\u62fc\\u56e2\",\"wap_url\":\"\\/pages_promotion\\/pintuan\\/my_spell\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"iconfont\":{\"value\":\"\",\"color\":\"\"},\"id\":\"uoarcfsleio0\"},{\"title\":\"\\u79ef\\u5206\\u5151\\u6362\",\"imageUrl\":\"..\\/..\\/static\\/member\\/default_point_recond.png\",\"iconType\":\"img\",\"style\":\"\",\"link\":{\"name\":\"INTEGRAL_CONVERSION\",\"title\":\"\\u79ef\\u5206\\u5151\\u6362\",\"wap_url\":\"\\/pages_promotion\\/point\\/order_list\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"iconfont\":{\"value\":\"\",\"color\":\"\"},\"id\":\"rnyw8xo5rdc0\"},{\"title\":\"\\u5206\\u9500\\u4e2d\\u5fc3\",\"imageUrl\":\"..\\/..\\/static\\/member\\/default_fenxiao.png\",\"iconType\":\"img\",\"style\":\"\",\"link\":{\"name\":\"DISTRIBUTION_CENTRE\",\"title\":\"\\u5206\\u9500\\u4e2d\\u5fc3\",\"wap_url\":\"\\/pages_promotion\\/fenxiao\\/index\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"iconfont\":{\"value\":\"\",\"color\":\"\"},\"id\":\"yevac1grnlc0\"},{\"title\":\"\\u6211\\u7684\\u780d\\u4ef7\",\"imageUrl\":\"..\\/..\\/static\\/member\\/default_bargain.png\",\"iconType\":\"img\",\"style\":\"\",\"link\":{\"name\":\"MY_BARGAIN\",\"title\":\"\\u6211\\u7684\\u780d\\u4ef7\",\"wap_url\":\"\\/pages_promotion\\/bargain\\/my_bargain\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"iconfont\":{\"value\":\"\",\"color\":\"\"},\"id\":\"13uz22sbag000\"},{\"title\":\"\\u9080\\u8bf7\\u6709\\u793c\",\"imageUrl\":\"..\\/..\\/static\\/member\\/default_memberrecommend.png\",\"iconType\":\"img\",\"style\":\"\",\"link\":{\"name\":\"MEMBER_RECOMMEND\",\"title\":\"\\u9080\\u8bf7\\u6709\\u793c\",\"wap_url\":\"\\/pages_tool\\/member\\/invite_friends\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"iconfont\":{\"value\":\"\",\"color\":\"\"},\"id\":\"1h34nmfisge80\"},{\"title\":\"\\u6211\\u7684\\u9884\\u552e\",\"imageUrl\":\"..\\/..\\/static\\/member\\/my_presale.png\",\"iconType\":\"img\",\"style\":\"\",\"link\":{\"name\":\"PRESALE\",\"title\":\"\\u6211\\u7684\\u9884\\u552e\",\"wap_url\":\"\\/pages_promotion\\/presale\\/order_list\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"iconfont\":{\"value\":\"\",\"color\":\"\"},\"id\":\"1a3cqyziwqdc0\"},{\"title\":\"\\u6211\\u7684\\u793c\\u54c1\\u5361\",\"imageUrl\":\"..\\/..\\/static\\/member\\/my_giftcard.png\",\"iconType\":\"img\",\"style\":\"\",\"link\":{\"name\":\"GIFTCARD\",\"title\":\"\\u6211\\u7684\\u793c\\u54c1\\u5361\",\"wap_url\":\"\\/pages_promotion\\/giftcard\\/member\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"iconfont\":{\"value\":\"\",\"color\":\"\"},\"id\":\"1es42rgg2mhs0\"},{\"title\":\"\\u597d\\u53cb\\u74dc\\u5206\\u5238\",\"imageUrl\":\"..\\/..\\/static\\/member\\/my_divideticket.png\",\"iconType\":\"img\",\"style\":\"\",\"link\":{\"name\":\"DIVIDETICKET\",\"title\":\"\\u6211\\u7684\\u597d\\u53cb\\u74dc\\u5206\\u5238\",\"wap_url\":\"\\/pages_promotion\\/divideticket\\/my_guafen\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"iconfont\":{\"value\":\"\",\"color\":\"\"},\"id\":\"14rxg7u5yu2k0\"},{\"title\":\"\\u62fc\\u56e2\\u8fd4\\u5229\",\"imageUrl\":\"..\\/..\\/static\\/member\\/my_pinfan.png\",\"iconType\":\"img\",\"style\":\"\",\"link\":{\"name\":\"PINFAN\",\"title\":\"\\u6211\\u7684\\u62fc\\u56e2\\u8fd4\\u5229\",\"wap_url\":\"\\/pages_promotion\\/pinfan\\/my_rebate\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"iconfont\":{\"value\":\"\",\"color\":\"\"},\"id\":\"20eeayo377xc0\"},{\"title\":\"\\u88c2\\u53d8\\u7ea2\\u5305\",\"imageUrl\":\"..\\/..\\/static\\/member\\/my_hongbao.png\",\"iconType\":\"img\",\"style\":\"\",\"link\":{\"name\":\"HONGBAO\",\"title\":\"\\u6211\\u7684\\u88c2\\u53d8\\u7ea2\\u5305\",\"wap_url\":\"\\/pages_tool\\/hongbao\\/my_hongbao\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"iconfont\":{\"value\":\"\",\"color\":\"\"},\"id\":\"nbthjkdt5c00\"},{\"title\":\"\\u76f2\\u76d2\",\"imageUrl\":\"..\\/..\\/static\\/member\\/my_box.png\",\"iconType\":\"img\",\"style\":\"\",\"link\":{\"name\":\"BLINDBOX\",\"title\":\"\\u6211\\u7684\\u76f2\\u76d2\",\"wap_url\":\"\\/pages_promotion\\/blindbox\\/my_box\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"iconfont\":{\"value\":\"\",\"color\":\"\"},\"id\":\"1i61b1fdeasg0\"},{\"title\":\"\\u6838\\u9500\\u53f0\",\"icon\":\"\",\"imageUrl\":\"..\\/..\\/static\\/member\\/hexiao.png\",\"iconType\":\"img\",\"style\":{\"fontSize\":\"60\",\"iconBgColor\":[],\"iconBgColorDeg\":0,\"iconBgImg\":\"\",\"bgRadius\":0,\"iconColor\":[\"#000000\"],\"iconColorDeg\":0},\"link\":{\"name\":\"VERIFICATION_PLATFORM\",\"title\":\"\\u6838\\u9500\\u53f0\",\"wap_url\":\"\\/pages_tool\\/verification\\/index\",\"parent\":\"MALL_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"12ktkqu49q680\",\"imgWidth\":\"60\",\"imgHeight\":\"60\"}],\"id\":\"5ywbzsnigpw0\",\"addonName\":\"\",\"componentName\":\"GraphicNav\",\"componentTitle\":\"\\u56fe\\u6587\\u5bfc\\u822a\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"#FFFFFF\",\"componentAngle\":\"round\",\"topAroundRadius\":0,\"bottomAroundRadius\":9,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":0,\"both\":15}}]}",
+	  "is_default": 1
+	}`
+	IndexDat := `{
     "id": 37,
     "site_id": 1,
     "name": "DIY_VIEW_INDEX",
-    "title": "时尚简约商城",
+    "title": "动创云易订货",
     "template_id": 52,
     "template_item_id": 116,
     "type": "DIY_VIEW_INDEX",
@@ -357,10 +342,20 @@ func (e Lib) DiyInfo(c *gin.Context) {
     "value": "{\"global\":{\"title\":\"\\u65f6\\u5c1a\\u7b80\\u7ea6\\u5546\\u57ce\",\"pageBgColor\":\"#F6F9FF\",\"topNavColor\":\"#FFFFFF\",\"topNavBg\":true,\"navBarSwitch\":true,\"navStyle\":1,\"textNavColor\":\"#333333\",\"topNavImg\":\"\",\"moreLink\":{\"name\":\"\"},\"openBottomNav\":true,\"textImgPosLink\":\"center\",\"mpCollect\":false,\"popWindow\":{\"imageUrl\":\"\",\"count\":-1,\"show\":0,\"link\":{\"name\":\"\"},\"imgWidth\":\"\",\"imgHeight\":\"\"},\"bgUrl\":\"addon\\/diy_default1\\/bg.png\",\"imgWidth\":\"2250\",\"imgHeight\":\"1110\",\"template\":{\"pageBgColor\":\"\",\"textColor\":\"#303133\",\"componentBgColor\":\"\",\"componentAngle\":\"round\",\"topAroundRadius\":0,\"bottomAroundRadius\":0,\"elementBgColor\":\"\",\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":0,\"both\":12}}},\"value\":[{\"id\":\"1ufba32yuxz4\",\"addonName\":\"\",\"componentName\":\"Search\",\"componentTitle\":\"\\u641c\\u7d22\\u6846\",\"isDelete\":0,\"topAroundRadius\":0,\"bottomAroundRadius\":0,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":10,\"bottom\":10,\"both\":12},\"title\":\"\\u8bf7\\u8f93\\u5165\\u641c\\u7d22\\u5173\\u952e\\u8bcd\",\"textAlign\":\"left\",\"borderType\":2,\"searchImg\":\"\",\"searchStyle\":1,\"searchLink\":{\"name\":\"\"},\"pageBgColor\":\"\",\"textColor\":\"#303133\",\"componentBgColor\":\"\",\"elementBgColor\":\"#F6F9FF\",\"iconType\":\"img\",\"icon\":\"\",\"style\":{\"fontSize\":\"60\",\"iconBgColor\":[],\"iconBgColorDeg\":0,\"iconBgImg\":\"\",\"bgRadius\":0,\"iconColor\":[\"#000000\"],\"iconColorDeg\":0},\"imageUrl\":\"\",\"positionWay\":\"static\"},{\"id\":\"3tzix3re8wo0\",\"list\":[{\"link\":{\"name\":\"\"},\"imageUrl\":\"addon\\/diy_default1\\/banner.png\",\"imgWidth\":\"750\",\"imgHeight\":\"320\",\"id\":\"1iy3xvq2ngf40\",\"imageMode\":\"scaleToFill\"}],\"indicatorIsShow\":true,\"indicatorColor\":\"#ffffff\",\"carouselStyle\":\"circle\",\"indicatorLocation\":\"center\",\"addonName\":\"\",\"componentName\":\"ImageAds\",\"componentTitle\":\"\\u56fe\\u7247\\u5e7f\\u544a\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"\",\"componentAngle\":\"round\",\"topAroundRadius\":10,\"bottomAroundRadius\":10,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":12,\"both\":12}},{\"id\":\"42xi3odl9m60\",\"mode\":\"graphic\",\"type\":\"img\",\"showStyle\":\"fixed\",\"ornament\":{\"type\":\"default\",\"color\":\"#EDEDED\"},\"rowCount\":5,\"pageCount\":2,\"carousel\":{\"type\":\"circle\",\"color\":\"#FFFFFF\"},\"imageSize\":40,\"aroundRadius\":25,\"font\":{\"size\":14,\"weight\":\"normal\",\"color\":\"#303133\"},\"list\":[{\"title\":\"\\u56e2\\u8d2d\",\"icon\":\"icondiy icon-system-groupbuy-nav\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#FF9F3E\",\"#FF4116\"],\"iconBgColorDeg\":90,\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"GROUPBUY_PREFECTURE\",\"title\":\"\\u56e2\\u8d2d\\u4e13\\u533a\",\"wap_url\":\"\\/pages_promotion\\/groupbuy\\/list\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"ycafod7gfgg0\"},{\"title\":\"\\u62fc\\u56e2\",\"icon\":\"icondiy icon-system-pintuan-nav\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#58BCFF\",\"#1379FF\"],\"iconBgColorDeg\":90,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"PINTUAN_PREFECTURE\",\"title\":\"\\u62fc\\u56e2\\u4e13\\u533a\",\"wap_url\":\"\\/pages_promotion\\/pintuan\\/list\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"wnlf5ak6u8g0\"},{\"title\":\"\\u79d2\\u6740\",\"icon\":\"icondiy icon-system-seckill-time\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#FFCC26\",\"#FF9F29\"],\"iconBgColorDeg\":90,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"SECKILL_PREFECTURE\",\"title\":\"\\u79d2\\u6740\\u4e13\\u533a\",\"wap_url\":\"\\/pages_promotion\\/seckill\\/list\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":true,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83288\",\"bgColorEnd\":\"#FE3523\"},\"id\":\"lpg2grtvmxo0\"},{\"title\":\" \\u79ef\\u5206\",\"icon\":\"icondiy icon-system-point-nav\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#02CC96\",\"#43EEC9\"],\"iconBgColorDeg\":90,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"INTEGRAL_STORE\",\"title\":\"\\u79ef\\u5206\\u5546\\u57ce\",\"wap_url\":\"\\/pages_promotion\\/point\\/list\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"1jfs721gome8\"},{\"title\":\"\\u4e13\\u9898\\u6d3b\\u52a8\",\"icon\":\"icondiy icon-system-topic-nav\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#BE79FF\",\"#7B00FF\"],\"iconBgColorDeg\":0,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"THEMATIC_ACTIVITIES_LIST\",\"title\":\"\\u4e13\\u9898\\u6d3b\\u52a8\\u5217\\u8868\",\"wap_url\":\"\\/pages_promotion\\/topics\\/list\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"1grejh3c8fwg0\"},{\"title\":\"\\u780d\\u4ef7\",\"icon\":\"icondiy icon-system-bargain-nav\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#5BBDFF\",\"#2E87FD\"],\"iconBgColorDeg\":90,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"BARGAIN_PREFECTURE\",\"title\":\"\\u780d\\u4ef7\\u4e13\\u533a\",\"wap_url\":\"\\/pages_promotion\\/bargain\\/list\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"ycpsnfbaf800\"},{\"title\":\"\\u9886\\u5238\",\"icon\":\"icondiy icon-system-get-coupon\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#BE79FF\",\"#7B00FF\"],\"iconBgColorDeg\":90,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"COUPON_PREFECTURE\",\"title\":\"\\u4f18\\u60e0\\u5238\\u4e13\\u533a\",\"wap_url\":\"\\/pages_tool\\/goods\\/coupon\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"17dcs7xstz400\"},{\"title\":\"\\u6587\\u7ae0\",\"icon\":\"icondiy icon-system-article-nav\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#FF8052\",\"#FF4830\"],\"iconBgColorDeg\":0,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"SHOPPING_ARTICLE\",\"title\":\"\\u6587\\u7ae0\",\"wap_url\":\"\\/pages_tool\\/article\\/list\",\"parent\":\"MALL_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"hg8450mb0hc0\"},{\"title\":\"\\u516c\\u544a\",\"icon\":\"icondiy icon-system-notice-nav\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#FFCC26\",\"#FF9F29\"],\"iconBgColorDeg\":90,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"SHOPPING_NOTICE\",\"title\":\"\\u516c\\u544a\",\"wap_url\":\"\\/pages_tool\\/notice\\/list\",\"parent\":\"MALL_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"1cg964qu9f9c0\"},{\"title\":\"\\u5e2e\\u52a9\",\"icon\":\"icondiy icon-system-help\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#02CC96\",\"#43EEC9\"],\"iconBgColorDeg\":90,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"SHOPPING_HELP\",\"title\":\"\\u5e2e\\u52a9\",\"wap_url\":\"\\/pages_tool\\/help\\/list\",\"parent\":\"MALL_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"1v4budp7jav40\"}],\"addonName\":\"\",\"componentName\":\"GraphicNav\",\"componentTitle\":\"\\u56fe\\u6587\\u5bfc\\u822a\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"#FFFFFF\",\"componentAngle\":\"round\",\"topAroundRadius\":10,\"bottomAroundRadius\":10,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":12,\"both\":12}},{\"id\":\"3mkl85oxpdi0\",\"list\":[{\"link\":{\"name\":\"\"},\"imageUrl\":\"addon\\/diy_default1\\/mf_left.png\",\"imgWidth\":\"338\",\"imgHeight\":\"450\",\"previewWidth\":163.5,\"previewHeight\":\"227.68px\",\"imageMode\":\"scaleToFill\"},{\"imageUrl\":\"addon\\/diy_default1\\/mf_right1.png\",\"link\":{\"name\":\"\"},\"imgWidth\":\"354\",\"imgHeight\":\"220\",\"previewWidth\":163.5,\"previewHeight\":\"108.84px\",\"imageMode\":\"scaleToFill\"},{\"imageUrl\":\"addon\\/diy_default1\\/mf_right2.png\",\"imgWidth\":\"354\",\"imgHeight\":\"220\",\"previewWidth\":163.5,\"previewHeight\":\"108.84px\",\"link\":{\"name\":\"\"},\"imageMode\":\"scaleToFill\"}],\"mode\":\"row1-lt-of2-rt\",\"imageGap\":10,\"addonName\":\"\",\"componentName\":\"RubikCube\",\"componentTitle\":\"\\u9b54\\u65b9\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"\",\"componentAngle\":\"round\",\"topAroundRadius\":10,\"bottomAroundRadius\":10,\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":12,\"both\":12}},{\"id\":\"1dbtc1ir8by8\",\"style\":\"style-16\",\"subTitle\":{\"fontSize\":14,\"text\":\"\\u8d85\\u7ea7\\u4f18\\u60e0\",\"isElementShow\":true,\"color\":\"#FFFFFF\",\"bgColor\":\"#FF9F29\",\"icon\":\"icondiy icon-system-coupon\",\"fontWeight\":\"bold\"},\"link\":{\"name\":\"COUPON_PREFECTURE\",\"title\":\"\\u4f18\\u60e0\\u5238\\u4e13\\u533a\",\"wap_url\":\"\\/pages_tool\\/goods\\/coupon\",\"parent\":\"MARKETING_LINK\"},\"fontSize\":16,\"styleName\":\"\\u98ce\\u683c16\",\"fontWeight\":\"bold\",\"more\":{\"text\":\"\",\"link\":{\"name\":\"COUPON_PREFECTURE\",\"title\":\"\\u4f18\\u60e0\\u5238\\u4e13\\u533a\",\"wap_url\":\"\\/pages_tool\\/goods\\/coupon\",\"parent\":\"MARKETING_LINK\"},\"isShow\":true,\"isElementShow\":true,\"color\":\"#999999\"},\"text\":\"\\u4f18\\u60e0\\u4e13\\u533a\",\"addonName\":\"\",\"componentName\":\"Text\",\"componentTitle\":\"\\u6807\\u9898\",\"isDelete\":0,\"pageBgColor\":\"\",\"textColor\":\"#303133\",\"componentBgColor\":\"#FFFFFF\",\"componentAngle\":\"round\",\"topAroundRadius\":10,\"bottomAroundRadius\":0,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":0,\"both\":12}},{\"id\":\"534dml7c3ww0\",\"style\":\"6\",\"sources\":\"initial\",\"styleName\":\"\\u98ce\\u683c\\u516d\",\"couponIds\":[],\"count\":6,\"previewList\":[],\"nameColor\":\"#303133\",\"moneyColor\":\"#FF0000\",\"limitColor\":\"#303133\",\"btnStyle\":{\"textColor\":\"#FFFFFF\",\"bgColor\":\"#303133\",\"text\":\"\\u9886\\u53d6\",\"aroundRadius\":20,\"isBgColor\":true,\"isAroundRadius\":true},\"bgColor\":\"\",\"isName\":true,\"couponBgColor\":\"#FFFFFF\",\"couponBgUrl\":\"\",\"couponType\":\"color\",\"ifNeedBg\":true,\"addonName\":\"coupon\",\"componentName\":\"Coupon\",\"componentTitle\":\"\\u4f18\\u60e0\\u5238\",\"isDelete\":0,\"pageBgColor\":\"\",\"topAroundRadius\":0,\"bottomAroundRadius\":0,\"elementBgColor\":\"\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":0,\"both\":12}},{\"id\":\"792ss9lts9s0\",\"height\":10,\"addonName\":\"\",\"componentName\":\"HorzBlank\",\"componentTitle\":\"\\u8f85\\u52a9\\u7a7a\\u767d\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"#FFFFFF\",\"componentAngle\":\"round\",\"topAroundRadius\":0,\"bottomAroundRadius\":0,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":10,\"both\":12}},{\"id\":\"6vpb6jqadcc0\",\"style\":\"style-1\",\"sources\":\"initial\",\"count\":3,\"goodsId\":[],\"ornament\":{\"type\":\"default\",\"color\":\"#EDEDED\"},\"nameLineMode\":\"single\",\"template\":\"row1-of1\",\"goodsMarginType\":\"default\",\"goodsMarginNum\":10,\"btnStyle\":{\"text\":\"\\u53bb\\u79d2\\u6740\",\"textColor\":\"#FFFFFF\",\"theme\":\"default\",\"aroundRadius\":25,\"control\":true,\"support\":true,\"bgColorStart\":\"#FF7B1D\",\"bgColorEnd\":\"#FF1544\"},\"imgAroundRadius\":10,\"saleStyle\":{\"color\":\"#999CA7\",\"control\":true,\"support\":true},\"progressStyle\":{\"control\":true,\"support\":true,\"currColor\":\"#FDBE6C\",\"bgColor\":\"#FCECD7\"},\"titleStyle\":{\"backgroundImage\":\"addon\\/seckill\\/component\\/view\\/seckill\\/img\\/style_title_3_bg.png\",\"isShow\":true,\"leftStyle\":\"img\",\"leftImg\":\"addon\\/seckill\\/component\\/view\\/seckill\\/img\\/style_title_3_name.png\",\"style\":\"style-3\",\"styleName\":\"\\u98ce\\u683c3\",\"leftText\":\"\\u9650\\u65f6\\u79d2\\u6740\",\"fontSize\":16,\"fontWeight\":true,\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#FA6400\",\"bgColorEnd\":\"#FF287A\",\"more\":\"\\u66f4\\u591a\",\"moreColor\":\"#FFFFFF\",\"moreFontSize\":12,\"moreSupport\":true,\"timeBgColor\":\"\",\"timeImageUrl\":\"\",\"colonColor\":\"#FFFFFF\",\"numBgColorStart\":\"#FFFFFF\",\"numBgColorEnd\":\"#FFFFFF\",\"numTextColor\":\"#FD3B54\"},\"slideMode\":\"scroll\",\"theme\":\"default\",\"priceStyle\":{\"mainColor\":\"#FF1745\",\"mainControl\":true,\"lineColor\":\"#999CA7\",\"lineControl\":true,\"lineSupport\":true},\"goodsNameStyle\":{\"color\":\"#303133\",\"control\":true,\"fontWeight\":false},\"addonName\":\"seckill\",\"componentName\":\"Seckill\",\"componentTitle\":\"\\u79d2\\u6740\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"\",\"componentAngle\":\"round\",\"topAroundRadius\":10,\"bottomAroundRadius\":10,\"elementBgColor\":\"#FFFFFF\",\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":12,\"both\":12}},{\"id\":\"2ebfwvttwntw\",\"style\":\"style-1\",\"sources\":\"initial\",\"count\":6,\"goodsId\":[],\"ornament\":{\"type\":\"default\",\"color\":\"#EDEDED\"},\"nameLineMode\":\"single\",\"template\":\"horizontal-slide\",\"goodsMarginType\":\"default\",\"goodsMarginNum\":10,\"btnStyle\":{\"text\":\"\\u53bb\\u62fc\\u56e2\",\"textColor\":\"#FFFFFF\",\"theme\":\"default\",\"aroundRadius\":25,\"control\":false,\"support\":false,\"bgColorStart\":\"#FF1544\",\"bgColorEnd\":\"#FF1544\"},\"imgAroundRadius\":10,\"saleStyle\":{\"color\":\"#FF1544\",\"control\":false,\"support\":false},\"groupStyle\":{\"color\":\"#FFFFFF\",\"control\":true,\"support\":true,\"bgColorStart\":\"#FA2379\",\"bgColorEnd\":\"#FF4F61\"},\"priceStyle\":{\"mainColor\":\"#FF1544\",\"mainControl\":true,\"lineColor\":\"#999CA7\",\"lineControl\":true,\"lineSupport\":true},\"slideMode\":\"scroll\",\"theme\":\"default\",\"goodsNameStyle\":{\"color\":\"#303133\",\"control\":true,\"fontWeight\":false},\"titleStyle\":{\"bgColorStart\":\"#9884E3\",\"bgColorEnd\":\"#68B5F0\",\"isShow\":true,\"leftStyle\":\"img\",\"leftImg\":\"addon\\/pintuan\\/component\\/view\\/pintuan\\/img\\/style_2_title.png\",\"style\":\"style-2\",\"styleName\":\"\\u98ce\\u683c2\",\"leftText\":\"\\u8d85\\u503c\\u62fc\\u56e2\",\"fontSize\":16,\"fontWeight\":true,\"textColor\":\"#888888\",\"more\":\"\\u66f4\\u591a\",\"moreColor\":\"#FFFFFF\",\"moreFontSize\":12,\"backgroundImage\":\"\"},\"addonName\":\"pintuan\",\"componentName\":\"Pintuan\",\"componentTitle\":\"\\u62fc\\u56e2\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"#FFFFFF\",\"componentAngle\":\"round\",\"topAroundRadius\":0,\"bottomAroundRadius\":10,\"elementBgColor\":\"\",\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":12,\"both\":12}},{\"id\":\"9vv5m3n3bsg\",\"style\":\"style-1\",\"sources\":\"initial\",\"count\":6,\"goodsId\":[],\"ornament\":{\"type\":\"default\",\"color\":\"#EDEDED\"},\"nameLineMode\":\"single\",\"template\":\"horizontal-slide\",\"goodsMarginType\":\"default\",\"goodsMarginNum\":10,\"btnStyle\":{\"text\":\"\\u7acb\\u5373\\u62a2\\u8d2d\",\"textColor\":\"#FFFFFF\",\"theme\":\"default\",\"aroundRadius\":25,\"control\":false,\"support\":false,\"bgColorStart\":\"#FF7B1D\",\"bgColorEnd\":\"#FF1544\"},\"imgAroundRadius\":5,\"saleStyle\":{\"color\":\"#FFFFFF\",\"control\":true,\"support\":true},\"slideMode\":\"scroll\",\"theme\":\"default\",\"goodsNameStyle\":{\"color\":\"#303133\",\"control\":true,\"fontWeight\":false},\"priceStyle\":{\"mainColor\":\"#FF1745\",\"mainControl\":true,\"lineColor\":\"#999CA7\",\"lineControl\":true,\"lineSupport\":true},\"titleStyle\":{\"bgColorStart\":\"#FF209E\",\"bgColorEnd\":\"#B620E0\",\"isShow\":true,\"leftStyle\":\"img\",\"leftImg\":\"addon\\/bargain\\/component\\/view\\/bargain\\/img\\/row1_of1_style_2_name.png\",\"style\":\"style-1\",\"styleName\":\"\\u98ce\\u683c1\",\"leftText\":\"\\u75af\\u72c2\\u780d\\u4ef7\",\"fontSize\":16,\"fontWeight\":true,\"textColor\":\"#FFFFFF\",\"more\":\"\\u66f4\\u591a\",\"moreColor\":\"#FFFFFF\",\"moreFontSize\":12,\"backgroundImage\":\"addon\\/bargain\\/component\\/view\\/bargain\\/img\\/row1_of1_style_2_bg.png\"},\"addonName\":\"bargain\",\"componentName\":\"Bargain\",\"componentTitle\":\"\\u780d\\u4ef7\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"#FFFFFF\",\"componentAngle\":\"round\",\"topAroundRadius\":0,\"bottomAroundRadius\":10,\"elementBgColor\":\"\",\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":12,\"both\":12}},{\"id\":\"4f7eqfqy07s0\",\"list\":[{\"link\":{\"name\":\"\"},\"imageUrl\":\"addon\\/diy_default1\\/gg.png\",\"imgWidth\":\"702\",\"imgHeight\":\"252\",\"id\":\"1z94aaav9klc0\",\"imageMode\":\"scaleToFill\"}],\"indicatorIsShow\":true,\"indicatorColor\":\"#ffffff\",\"carouselStyle\":\"circle\",\"indicatorLocation\":\"center\",\"addonName\":\"\",\"componentName\":\"ImageAds\",\"componentTitle\":\"\\u56fe\\u7247\\u5e7f\\u544a\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"\",\"componentAngle\":\"round\",\"topAroundRadius\":10,\"bottomAroundRadius\":10,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":12,\"both\":12}},{\"style\":\"style-2\",\"ornament\":{\"type\":\"default\",\"color\":\"#EDEDED\"},\"template\":\"row1-of2\",\"goodsMarginType\":\"default\",\"goodsMarginNum\":10,\"count\":6,\"sortWay\":\"default\",\"nameLineMode\":\"single\",\"imgAroundRadius\":0,\"slideMode\":\"scroll\",\"theme\":\"default\",\"btnStyle\":{\"fontWeight\":false,\"padding\":0,\"cartEvent\":\"detail\",\"text\":\"\\u8d2d\\u4e70\",\"textColor\":\"#FFFFFF\",\"theme\":\"default\",\"aroundRadius\":25,\"control\":true,\"support\":true,\"bgColor\":\"#FF6A00\",\"style\":\"button\",\"iconDiy\":{\"iconType\":\"icon\",\"icon\":\"\",\"style\":{\"fontSize\":\"60\",\"iconBgColor\":[],\"iconBgColorDeg\":0,\"iconBgImg\":\"\",\"bgRadius\":0,\"iconColor\":[\"#000000\"],\"iconColorDeg\":0}}},\"tag\":{\"text\":\"\\u9690\\u85cf\",\"value\":\"hidden\"},\"goodsNameStyle\":{\"color\":\"#303133\",\"control\":true,\"fontWeight\":false},\"saleStyle\":{\"color\":\"#999CA7\",\"control\":false,\"support\":true},\"priceStyle\":{\"mainColor\":\"#FF6A00\",\"mainControl\":true,\"lineColor\":\"#999CA7\",\"lineControl\":false,\"lineSupport\":true},\"list\":[{\"title\":\"\\u70ed\\u5356\",\"desc\":\"\\u70ed\\u5356\\u63a8\\u8350\",\"sources\":\"diy\",\"categoryId\":0,\"categoryName\":\"\\u8bf7\\u9009\\u62e9\",\"goodsId\":[\"172\",\"171\",\"170\",\"169\",\"168\",\"167\",\"105\",\"104\"]},{\"title\":\"\\u65b0\\u54c1\",\"desc\":\"\\u65b0\\u54c1\\u63a8\\u8350\",\"sources\":\"category\",\"categoryId\":\"63\",\"categoryName\":\"\\u7bb1\\u5305\\u978b\\u9970\",\"goodsId\":[]},{\"title\":\"\\u7cbe\\u54c1\",\"desc\":\"\\u7cbe\\u54c1\\u63a8\\u8350\",\"sources\":\"category\",\"categoryId\":\"1\",\"categoryName\":\"\\u5bb6\\u7528\\u7535\\u5668\",\"goodsId\":[]},{\"title\":\"\\u4fc3\\u9500\",\"desc\":\"\\u4fc3\\u9500\\u63a8\\u8350\",\"sources\":\"category\",\"categoryId\":\"4\",\"categoryName\":\"\\u7f8e\\u5986\\u4e2a\\u62a4\",\"goodsId\":[]}],\"id\":\"kcvtt9kl7jk\",\"addonName\":\"\",\"componentName\":\"ManyGoodsList\",\"componentTitle\":\"\\u591a\\u5546\\u54c1\\u7ec4\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"\",\"componentAngle\":\"round\",\"topAroundRadius\":0,\"bottomAroundRadius\":0,\"elementBgColor\":\"#FFFFFF\",\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":0,\"both\":12},\"headStyle\":{\"titleColor\":\"#303133\"}}]}",
     "is_default": 1
   }`
-	row := make(map[string]interface{}, 0)
-	json.Unmarshal([]byte(dat), &row)
-	e.OK(row, "successful")
-	return
+
+	switch req.Name {
+	case "DIY_VIEW_MEMBER_INDEX":
+		row := make(map[string]interface{}, 0)
+		json.Unmarshal([]byte(MemDat), &row)
+		e.OK(row, "successful")
+		return
+	default:
+		row := make(map[string]interface{}, 0)
+		json.Unmarshal([]byte(IndexDat), &row)
+		e.OK(row, "successful")
+		return
+		
+	}
 }
 
 func (e Lib) ShopImage(c *gin.Context) {
@@ -374,7 +369,7 @@ func (e Lib) ShopImage(c *gin.Context) {
 	}
 
 	imageName := c.Param("path")
-	fmt.Println("imageName", imageName)
+
 	pathFile := path.Join(config.ExtConfig.ImageBase, "demo", imageName)
 
 	file, _ := ioutil.ReadFile(pathFile)
@@ -551,6 +546,44 @@ func (e Lib) Goodssku(c *gin.Context) {
 	return
 }
 
+
+func (e Lib) OrderNum(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	e.OK("", "successful")
+	return
+}
+func (e Lib) Captcha(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	id, b64s, err := captcha.DriverDigitFunc()
+	if err != nil {
+		e.Logger.Errorf("DriverDigitFunc error, %s", err.Error())
+		e.Error(500, err, "验证码获取失败")
+		return
+	}
+	e.Custom(gin.H{
+		"code": 200,
+		"data": map[string]string{
+			"id":id,
+			"img":b64s,
+		},
+		"msg":  "success",
+	})
+
+}
 func (e Lib) CouponList(c *gin.Context) {
 	err := e.MakeContext(c).
 		MakeOrm().

@@ -21,6 +21,8 @@ func registerNoRouter(v1 *gin.RouterGroup) {
 		r.GET("/register/config", api.RegisterCnf)
 		r.GET("/config/getCaptchaConfig", api.GetCaptchaConfig)
 		r.POST("/coupon/typelists", api.CouponList)
+		r.POST("/captcha",api.Captcha)
+		r.POST("/order/num",api.OrderNum)
 
 	}
 }
