@@ -284,7 +284,7 @@ func (e Lib) Config(c *gin.Context) {
     },
     "pc": {
       "type": "third",
-      "third_url": "http://www.baidu.com"
+      "third_url": "https://dongchuangyun.com"
     },
     "aliapp": {
       "type": "none"
@@ -295,17 +295,18 @@ func (e Lib) Config(c *gin.Context) {
   }
 }`
 	row := make(map[string]interface{}, 0)
-	marErr:=json.Unmarshal([]byte(dat), &row)
-	fmt.Println("marErr",marErr)
+	marErr := json.Unmarshal([]byte(dat), &row)
+	fmt.Println("marErr", marErr)
 	e.OK(row, "successful")
 	return
 }
 
 type DiyInfoRequest struct {
-	Name      string     `form:"name" comment:"视角名称"`      //显示名称
+	Name string `form:"name" comment:"视角名称"` //显示名称
 }
+
 func (e Lib) DiyInfo(c *gin.Context) {
-	req :=DiyInfoRequest{}
+	req := DiyInfoRequest{}
 	err := e.MakeContext(c).
 		MakeOrm().
 		Errors
@@ -342,6 +343,18 @@ func (e Lib) DiyInfo(c *gin.Context) {
     "value": "{\"global\":{\"title\":\"\\u65f6\\u5c1a\\u7b80\\u7ea6\\u5546\\u57ce\",\"pageBgColor\":\"#F6F9FF\",\"topNavColor\":\"#FFFFFF\",\"topNavBg\":true,\"navBarSwitch\":true,\"navStyle\":1,\"textNavColor\":\"#333333\",\"topNavImg\":\"\",\"moreLink\":{\"name\":\"\"},\"openBottomNav\":true,\"textImgPosLink\":\"center\",\"mpCollect\":false,\"popWindow\":{\"imageUrl\":\"\",\"count\":-1,\"show\":0,\"link\":{\"name\":\"\"},\"imgWidth\":\"\",\"imgHeight\":\"\"},\"bgUrl\":\"addon\\/diy_default1\\/bg.png\",\"imgWidth\":\"2250\",\"imgHeight\":\"1110\",\"template\":{\"pageBgColor\":\"\",\"textColor\":\"#303133\",\"componentBgColor\":\"\",\"componentAngle\":\"round\",\"topAroundRadius\":0,\"bottomAroundRadius\":0,\"elementBgColor\":\"\",\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":0,\"both\":12}}},\"value\":[{\"id\":\"1ufba32yuxz4\",\"addonName\":\"\",\"componentName\":\"Search\",\"componentTitle\":\"\\u641c\\u7d22\\u6846\",\"isDelete\":0,\"topAroundRadius\":0,\"bottomAroundRadius\":0,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":10,\"bottom\":10,\"both\":12},\"title\":\"\\u8bf7\\u8f93\\u5165\\u641c\\u7d22\\u5173\\u952e\\u8bcd\",\"textAlign\":\"left\",\"borderType\":2,\"searchImg\":\"\",\"searchStyle\":1,\"searchLink\":{\"name\":\"\"},\"pageBgColor\":\"\",\"textColor\":\"#303133\",\"componentBgColor\":\"\",\"elementBgColor\":\"#F6F9FF\",\"iconType\":\"img\",\"icon\":\"\",\"style\":{\"fontSize\":\"60\",\"iconBgColor\":[],\"iconBgColorDeg\":0,\"iconBgImg\":\"\",\"bgRadius\":0,\"iconColor\":[\"#000000\"],\"iconColorDeg\":0},\"imageUrl\":\"\",\"positionWay\":\"static\"},{\"id\":\"3tzix3re8wo0\",\"list\":[{\"link\":{\"name\":\"\"},\"imageUrl\":\"addon\\/diy_default1\\/banner.png\",\"imgWidth\":\"750\",\"imgHeight\":\"320\",\"id\":\"1iy3xvq2ngf40\",\"imageMode\":\"scaleToFill\"}],\"indicatorIsShow\":true,\"indicatorColor\":\"#ffffff\",\"carouselStyle\":\"circle\",\"indicatorLocation\":\"center\",\"addonName\":\"\",\"componentName\":\"ImageAds\",\"componentTitle\":\"\\u56fe\\u7247\\u5e7f\\u544a\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"\",\"componentAngle\":\"round\",\"topAroundRadius\":10,\"bottomAroundRadius\":10,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":12,\"both\":12}},{\"id\":\"42xi3odl9m60\",\"mode\":\"graphic\",\"type\":\"img\",\"showStyle\":\"fixed\",\"ornament\":{\"type\":\"default\",\"color\":\"#EDEDED\"},\"rowCount\":5,\"pageCount\":2,\"carousel\":{\"type\":\"circle\",\"color\":\"#FFFFFF\"},\"imageSize\":40,\"aroundRadius\":25,\"font\":{\"size\":14,\"weight\":\"normal\",\"color\":\"#303133\"},\"list\":[{\"title\":\"\\u56e2\\u8d2d\",\"icon\":\"icondiy icon-system-groupbuy-nav\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#FF9F3E\",\"#FF4116\"],\"iconBgColorDeg\":90,\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"GROUPBUY_PREFECTURE\",\"title\":\"\\u56e2\\u8d2d\\u4e13\\u533a\",\"wap_url\":\"\\/pages_promotion\\/groupbuy\\/list\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"ycafod7gfgg0\"},{\"title\":\"\\u62fc\\u56e2\",\"icon\":\"icondiy icon-system-pintuan-nav\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#58BCFF\",\"#1379FF\"],\"iconBgColorDeg\":90,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"PINTUAN_PREFECTURE\",\"title\":\"\\u62fc\\u56e2\\u4e13\\u533a\",\"wap_url\":\"\\/pages_promotion\\/pintuan\\/list\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"wnlf5ak6u8g0\"},{\"title\":\"\\u79d2\\u6740\",\"icon\":\"icondiy icon-system-seckill-time\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#FFCC26\",\"#FF9F29\"],\"iconBgColorDeg\":90,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"SECKILL_PREFECTURE\",\"title\":\"\\u79d2\\u6740\\u4e13\\u533a\",\"wap_url\":\"\\/pages_promotion\\/seckill\\/list\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":true,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83288\",\"bgColorEnd\":\"#FE3523\"},\"id\":\"lpg2grtvmxo0\"},{\"title\":\" \\u79ef\\u5206\",\"icon\":\"icondiy icon-system-point-nav\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#02CC96\",\"#43EEC9\"],\"iconBgColorDeg\":90,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"INTEGRAL_STORE\",\"title\":\"\\u79ef\\u5206\\u5546\\u57ce\",\"wap_url\":\"\\/pages_promotion\\/point\\/list\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"1jfs721gome8\"},{\"title\":\"\\u4e13\\u9898\\u6d3b\\u52a8\",\"icon\":\"icondiy icon-system-topic-nav\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#BE79FF\",\"#7B00FF\"],\"iconBgColorDeg\":0,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"THEMATIC_ACTIVITIES_LIST\",\"title\":\"\\u4e13\\u9898\\u6d3b\\u52a8\\u5217\\u8868\",\"wap_url\":\"\\/pages_promotion\\/topics\\/list\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"1grejh3c8fwg0\"},{\"title\":\"\\u780d\\u4ef7\",\"icon\":\"icondiy icon-system-bargain-nav\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#5BBDFF\",\"#2E87FD\"],\"iconBgColorDeg\":90,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"BARGAIN_PREFECTURE\",\"title\":\"\\u780d\\u4ef7\\u4e13\\u533a\",\"wap_url\":\"\\/pages_promotion\\/bargain\\/list\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"ycpsnfbaf800\"},{\"title\":\"\\u9886\\u5238\",\"icon\":\"icondiy icon-system-get-coupon\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#BE79FF\",\"#7B00FF\"],\"iconBgColorDeg\":90,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"COUPON_PREFECTURE\",\"title\":\"\\u4f18\\u60e0\\u5238\\u4e13\\u533a\",\"wap_url\":\"\\/pages_tool\\/goods\\/coupon\",\"parent\":\"MARKETING_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"17dcs7xstz400\"},{\"title\":\"\\u6587\\u7ae0\",\"icon\":\"icondiy icon-system-article-nav\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#FF8052\",\"#FF4830\"],\"iconBgColorDeg\":0,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"SHOPPING_ARTICLE\",\"title\":\"\\u6587\\u7ae0\",\"wap_url\":\"\\/pages_tool\\/article\\/list\",\"parent\":\"MALL_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"hg8450mb0hc0\"},{\"title\":\"\\u516c\\u544a\",\"icon\":\"icondiy icon-system-notice-nav\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#FFCC26\",\"#FF9F29\"],\"iconBgColorDeg\":90,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"SHOPPING_NOTICE\",\"title\":\"\\u516c\\u544a\",\"wap_url\":\"\\/pages_tool\\/notice\\/list\",\"parent\":\"MALL_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"1cg964qu9f9c0\"},{\"title\":\"\\u5e2e\\u52a9\",\"icon\":\"icondiy icon-system-help\",\"imageUrl\":\"\",\"iconType\":\"icon\",\"style\":{\"fontSize\":50,\"iconBgColor\":[\"#02CC96\",\"#43EEC9\"],\"iconBgColorDeg\":90,\"iconBgImg\":\"public\\/static\\/ext\\/diyview\\/img\\/icon_bg\\/bg_06.png\",\"bgRadius\":50,\"iconColor\":[\"#FFFFFF\"],\"iconColorDeg\":0},\"link\":{\"name\":\"SHOPPING_HELP\",\"title\":\"\\u5e2e\\u52a9\",\"wap_url\":\"\\/pages_tool\\/help\\/list\",\"parent\":\"MALL_LINK\"},\"label\":{\"control\":false,\"text\":\"\\u70ed\\u95e8\",\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#F83287\",\"bgColorEnd\":\"#FE3423\"},\"id\":\"1v4budp7jav40\"}],\"addonName\":\"\",\"componentName\":\"GraphicNav\",\"componentTitle\":\"\\u56fe\\u6587\\u5bfc\\u822a\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"#FFFFFF\",\"componentAngle\":\"round\",\"topAroundRadius\":10,\"bottomAroundRadius\":10,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":12,\"both\":12}},{\"id\":\"3mkl85oxpdi0\",\"list\":[{\"link\":{\"name\":\"\"},\"imageUrl\":\"addon\\/diy_default1\\/mf_left.png\",\"imgWidth\":\"338\",\"imgHeight\":\"450\",\"previewWidth\":163.5,\"previewHeight\":\"227.68px\",\"imageMode\":\"scaleToFill\"},{\"imageUrl\":\"addon\\/diy_default1\\/mf_right1.png\",\"link\":{\"name\":\"\"},\"imgWidth\":\"354\",\"imgHeight\":\"220\",\"previewWidth\":163.5,\"previewHeight\":\"108.84px\",\"imageMode\":\"scaleToFill\"},{\"imageUrl\":\"addon\\/diy_default1\\/mf_right2.png\",\"imgWidth\":\"354\",\"imgHeight\":\"220\",\"previewWidth\":163.5,\"previewHeight\":\"108.84px\",\"link\":{\"name\":\"\"},\"imageMode\":\"scaleToFill\"}],\"mode\":\"row1-lt-of2-rt\",\"imageGap\":10,\"addonName\":\"\",\"componentName\":\"RubikCube\",\"componentTitle\":\"\\u9b54\\u65b9\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"\",\"componentAngle\":\"round\",\"topAroundRadius\":10,\"bottomAroundRadius\":10,\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":12,\"both\":12}},{\"id\":\"1dbtc1ir8by8\",\"style\":\"style-16\",\"subTitle\":{\"fontSize\":14,\"text\":\"\\u8d85\\u7ea7\\u4f18\\u60e0\",\"isElementShow\":true,\"color\":\"#FFFFFF\",\"bgColor\":\"#FF9F29\",\"icon\":\"icondiy icon-system-coupon\",\"fontWeight\":\"bold\"},\"link\":{\"name\":\"COUPON_PREFECTURE\",\"title\":\"\\u4f18\\u60e0\\u5238\\u4e13\\u533a\",\"wap_url\":\"\\/pages_tool\\/goods\\/coupon\",\"parent\":\"MARKETING_LINK\"},\"fontSize\":16,\"styleName\":\"\\u98ce\\u683c16\",\"fontWeight\":\"bold\",\"more\":{\"text\":\"\",\"link\":{\"name\":\"COUPON_PREFECTURE\",\"title\":\"\\u4f18\\u60e0\\u5238\\u4e13\\u533a\",\"wap_url\":\"\\/pages_tool\\/goods\\/coupon\",\"parent\":\"MARKETING_LINK\"},\"isShow\":true,\"isElementShow\":true,\"color\":\"#999999\"},\"text\":\"\\u4f18\\u60e0\\u4e13\\u533a\",\"addonName\":\"\",\"componentName\":\"Text\",\"componentTitle\":\"\\u6807\\u9898\",\"isDelete\":0,\"pageBgColor\":\"\",\"textColor\":\"#303133\",\"componentBgColor\":\"#FFFFFF\",\"componentAngle\":\"round\",\"topAroundRadius\":10,\"bottomAroundRadius\":0,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":0,\"both\":12}},{\"id\":\"534dml7c3ww0\",\"style\":\"6\",\"sources\":\"initial\",\"styleName\":\"\\u98ce\\u683c\\u516d\",\"couponIds\":[],\"count\":6,\"previewList\":[],\"nameColor\":\"#303133\",\"moneyColor\":\"#FF0000\",\"limitColor\":\"#303133\",\"btnStyle\":{\"textColor\":\"#FFFFFF\",\"bgColor\":\"#303133\",\"text\":\"\\u9886\\u53d6\",\"aroundRadius\":20,\"isBgColor\":true,\"isAroundRadius\":true},\"bgColor\":\"\",\"isName\":true,\"couponBgColor\":\"#FFFFFF\",\"couponBgUrl\":\"\",\"couponType\":\"color\",\"ifNeedBg\":true,\"addonName\":\"coupon\",\"componentName\":\"Coupon\",\"componentTitle\":\"\\u4f18\\u60e0\\u5238\",\"isDelete\":0,\"pageBgColor\":\"\",\"topAroundRadius\":0,\"bottomAroundRadius\":0,\"elementBgColor\":\"\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":0,\"both\":12}},{\"id\":\"792ss9lts9s0\",\"height\":10,\"addonName\":\"\",\"componentName\":\"HorzBlank\",\"componentTitle\":\"\\u8f85\\u52a9\\u7a7a\\u767d\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"#FFFFFF\",\"componentAngle\":\"round\",\"topAroundRadius\":0,\"bottomAroundRadius\":0,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":10,\"both\":12}},{\"id\":\"6vpb6jqadcc0\",\"style\":\"style-1\",\"sources\":\"initial\",\"count\":3,\"goodsId\":[],\"ornament\":{\"type\":\"default\",\"color\":\"#EDEDED\"},\"nameLineMode\":\"single\",\"template\":\"row1-of1\",\"goodsMarginType\":\"default\",\"goodsMarginNum\":10,\"btnStyle\":{\"text\":\"\\u53bb\\u79d2\\u6740\",\"textColor\":\"#FFFFFF\",\"theme\":\"default\",\"aroundRadius\":25,\"control\":true,\"support\":true,\"bgColorStart\":\"#FF7B1D\",\"bgColorEnd\":\"#FF1544\"},\"imgAroundRadius\":10,\"saleStyle\":{\"color\":\"#999CA7\",\"control\":true,\"support\":true},\"progressStyle\":{\"control\":true,\"support\":true,\"currColor\":\"#FDBE6C\",\"bgColor\":\"#FCECD7\"},\"titleStyle\":{\"backgroundImage\":\"addon\\/seckill\\/component\\/view\\/seckill\\/img\\/style_title_3_bg.png\",\"isShow\":true,\"leftStyle\":\"img\",\"leftImg\":\"addon\\/seckill\\/component\\/view\\/seckill\\/img\\/style_title_3_name.png\",\"style\":\"style-3\",\"styleName\":\"\\u98ce\\u683c3\",\"leftText\":\"\\u9650\\u65f6\\u79d2\\u6740\",\"fontSize\":16,\"fontWeight\":true,\"textColor\":\"#FFFFFF\",\"bgColorStart\":\"#FA6400\",\"bgColorEnd\":\"#FF287A\",\"more\":\"\\u66f4\\u591a\",\"moreColor\":\"#FFFFFF\",\"moreFontSize\":12,\"moreSupport\":true,\"timeBgColor\":\"\",\"timeImageUrl\":\"\",\"colonColor\":\"#FFFFFF\",\"numBgColorStart\":\"#FFFFFF\",\"numBgColorEnd\":\"#FFFFFF\",\"numTextColor\":\"#FD3B54\"},\"slideMode\":\"scroll\",\"theme\":\"default\",\"priceStyle\":{\"mainColor\":\"#FF1745\",\"mainControl\":true,\"lineColor\":\"#999CA7\",\"lineControl\":true,\"lineSupport\":true},\"goodsNameStyle\":{\"color\":\"#303133\",\"control\":true,\"fontWeight\":false},\"addonName\":\"seckill\",\"componentName\":\"Seckill\",\"componentTitle\":\"\\u79d2\\u6740\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"\",\"componentAngle\":\"round\",\"topAroundRadius\":10,\"bottomAroundRadius\":10,\"elementBgColor\":\"#FFFFFF\",\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":12,\"both\":12}},{\"id\":\"2ebfwvttwntw\",\"style\":\"style-1\",\"sources\":\"initial\",\"count\":6,\"goodsId\":[],\"ornament\":{\"type\":\"default\",\"color\":\"#EDEDED\"},\"nameLineMode\":\"single\",\"template\":\"horizontal-slide\",\"goodsMarginType\":\"default\",\"goodsMarginNum\":10,\"btnStyle\":{\"text\":\"\\u53bb\\u62fc\\u56e2\",\"textColor\":\"#FFFFFF\",\"theme\":\"default\",\"aroundRadius\":25,\"control\":false,\"support\":false,\"bgColorStart\":\"#FF1544\",\"bgColorEnd\":\"#FF1544\"},\"imgAroundRadius\":10,\"saleStyle\":{\"color\":\"#FF1544\",\"control\":false,\"support\":false},\"groupStyle\":{\"color\":\"#FFFFFF\",\"control\":true,\"support\":true,\"bgColorStart\":\"#FA2379\",\"bgColorEnd\":\"#FF4F61\"},\"priceStyle\":{\"mainColor\":\"#FF1544\",\"mainControl\":true,\"lineColor\":\"#999CA7\",\"lineControl\":true,\"lineSupport\":true},\"slideMode\":\"scroll\",\"theme\":\"default\",\"goodsNameStyle\":{\"color\":\"#303133\",\"control\":true,\"fontWeight\":false},\"titleStyle\":{\"bgColorStart\":\"#9884E3\",\"bgColorEnd\":\"#68B5F0\",\"isShow\":true,\"leftStyle\":\"img\",\"leftImg\":\"addon\\/pintuan\\/component\\/view\\/pintuan\\/img\\/style_2_title.png\",\"style\":\"style-2\",\"styleName\":\"\\u98ce\\u683c2\",\"leftText\":\"\\u8d85\\u503c\\u62fc\\u56e2\",\"fontSize\":16,\"fontWeight\":true,\"textColor\":\"#888888\",\"more\":\"\\u66f4\\u591a\",\"moreColor\":\"#FFFFFF\",\"moreFontSize\":12,\"backgroundImage\":\"\"},\"addonName\":\"pintuan\",\"componentName\":\"Pintuan\",\"componentTitle\":\"\\u62fc\\u56e2\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"#FFFFFF\",\"componentAngle\":\"round\",\"topAroundRadius\":0,\"bottomAroundRadius\":10,\"elementBgColor\":\"\",\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":12,\"both\":12}},{\"id\":\"9vv5m3n3bsg\",\"style\":\"style-1\",\"sources\":\"initial\",\"count\":6,\"goodsId\":[],\"ornament\":{\"type\":\"default\",\"color\":\"#EDEDED\"},\"nameLineMode\":\"single\",\"template\":\"horizontal-slide\",\"goodsMarginType\":\"default\",\"goodsMarginNum\":10,\"btnStyle\":{\"text\":\"\\u7acb\\u5373\\u62a2\\u8d2d\",\"textColor\":\"#FFFFFF\",\"theme\":\"default\",\"aroundRadius\":25,\"control\":false,\"support\":false,\"bgColorStart\":\"#FF7B1D\",\"bgColorEnd\":\"#FF1544\"},\"imgAroundRadius\":5,\"saleStyle\":{\"color\":\"#FFFFFF\",\"control\":true,\"support\":true},\"slideMode\":\"scroll\",\"theme\":\"default\",\"goodsNameStyle\":{\"color\":\"#303133\",\"control\":true,\"fontWeight\":false},\"priceStyle\":{\"mainColor\":\"#FF1745\",\"mainControl\":true,\"lineColor\":\"#999CA7\",\"lineControl\":true,\"lineSupport\":true},\"titleStyle\":{\"bgColorStart\":\"#FF209E\",\"bgColorEnd\":\"#B620E0\",\"isShow\":true,\"leftStyle\":\"img\",\"leftImg\":\"addon\\/bargain\\/component\\/view\\/bargain\\/img\\/row1_of1_style_2_name.png\",\"style\":\"style-1\",\"styleName\":\"\\u98ce\\u683c1\",\"leftText\":\"\\u75af\\u72c2\\u780d\\u4ef7\",\"fontSize\":16,\"fontWeight\":true,\"textColor\":\"#FFFFFF\",\"more\":\"\\u66f4\\u591a\",\"moreColor\":\"#FFFFFF\",\"moreFontSize\":12,\"backgroundImage\":\"addon\\/bargain\\/component\\/view\\/bargain\\/img\\/row1_of1_style_2_bg.png\"},\"addonName\":\"bargain\",\"componentName\":\"Bargain\",\"componentTitle\":\"\\u780d\\u4ef7\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"#FFFFFF\",\"componentAngle\":\"round\",\"topAroundRadius\":0,\"bottomAroundRadius\":10,\"elementBgColor\":\"\",\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":12,\"both\":12}},{\"id\":\"4f7eqfqy07s0\",\"list\":[{\"link\":{\"name\":\"\"},\"imageUrl\":\"addon\\/diy_default1\\/gg.png\",\"imgWidth\":\"702\",\"imgHeight\":\"252\",\"id\":\"1z94aaav9klc0\",\"imageMode\":\"scaleToFill\"}],\"indicatorIsShow\":true,\"indicatorColor\":\"#ffffff\",\"carouselStyle\":\"circle\",\"indicatorLocation\":\"center\",\"addonName\":\"\",\"componentName\":\"ImageAds\",\"componentTitle\":\"\\u56fe\\u7247\\u5e7f\\u544a\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"\",\"componentAngle\":\"round\",\"topAroundRadius\":10,\"bottomAroundRadius\":10,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":12,\"both\":12}},{\"style\":\"style-2\",\"ornament\":{\"type\":\"default\",\"color\":\"#EDEDED\"},\"template\":\"row1-of2\",\"goodsMarginType\":\"default\",\"goodsMarginNum\":10,\"count\":6,\"sortWay\":\"default\",\"nameLineMode\":\"single\",\"imgAroundRadius\":0,\"slideMode\":\"scroll\",\"theme\":\"default\",\"btnStyle\":{\"fontWeight\":false,\"padding\":0,\"cartEvent\":\"detail\",\"text\":\"\\u8d2d\\u4e70\",\"textColor\":\"#FFFFFF\",\"theme\":\"default\",\"aroundRadius\":25,\"control\":true,\"support\":true,\"bgColor\":\"#FF6A00\",\"style\":\"button\",\"iconDiy\":{\"iconType\":\"icon\",\"icon\":\"\",\"style\":{\"fontSize\":\"60\",\"iconBgColor\":[],\"iconBgColorDeg\":0,\"iconBgImg\":\"\",\"bgRadius\":0,\"iconColor\":[\"#000000\"],\"iconColorDeg\":0}}},\"tag\":{\"text\":\"\\u9690\\u85cf\",\"value\":\"hidden\"},\"goodsNameStyle\":{\"color\":\"#303133\",\"control\":true,\"fontWeight\":false},\"saleStyle\":{\"color\":\"#999CA7\",\"control\":false,\"support\":true},\"priceStyle\":{\"mainColor\":\"#FF6A00\",\"mainControl\":true,\"lineColor\":\"#999CA7\",\"lineControl\":false,\"lineSupport\":true},\"list\":[{\"title\":\"\\u70ed\\u5356\",\"desc\":\"\\u70ed\\u5356\\u63a8\\u8350\",\"sources\":\"diy\",\"categoryId\":0,\"categoryName\":\"\\u8bf7\\u9009\\u62e9\",\"goodsId\":[\"172\",\"171\",\"170\",\"169\",\"168\",\"167\",\"105\",\"104\"]},{\"title\":\"\\u65b0\\u54c1\",\"desc\":\"\\u65b0\\u54c1\\u63a8\\u8350\",\"sources\":\"category\",\"categoryId\":\"63\",\"categoryName\":\"\\u7bb1\\u5305\\u978b\\u9970\",\"goodsId\":[]},{\"title\":\"\\u7cbe\\u54c1\",\"desc\":\"\\u7cbe\\u54c1\\u63a8\\u8350\",\"sources\":\"category\",\"categoryId\":\"1\",\"categoryName\":\"\\u5bb6\\u7528\\u7535\\u5668\",\"goodsId\":[]},{\"title\":\"\\u4fc3\\u9500\",\"desc\":\"\\u4fc3\\u9500\\u63a8\\u8350\",\"sources\":\"category\",\"categoryId\":\"4\",\"categoryName\":\"\\u7f8e\\u5986\\u4e2a\\u62a4\",\"goodsId\":[]}],\"id\":\"kcvtt9kl7jk\",\"addonName\":\"\",\"componentName\":\"ManyGoodsList\",\"componentTitle\":\"\\u591a\\u5546\\u54c1\\u7ec4\",\"isDelete\":0,\"pageBgColor\":\"\",\"componentBgColor\":\"\",\"componentAngle\":\"round\",\"topAroundRadius\":0,\"bottomAroundRadius\":0,\"elementBgColor\":\"#FFFFFF\",\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":0,\"both\":12},\"headStyle\":{\"titleColor\":\"#303133\"}}]}",
     "is_default": 1
   }`
+	GoodsDat := `{
+  "id": 2,
+  "site_id": 1,
+  "name": "DIY_VIEW_GOODS_CATEGORY",
+  "title": "商品分类",
+  "template_id": 55,
+  "template_item_id": 122,
+  "type": "DIY_VIEW_GOODS_CATEGORY",
+  "type_name": "商品分类",
+  "value": "{\"global\":{\"title\":\"\\u5546\\u54c1\\u5206\\u7c7b\",\"pageBgColor\":\"#FFFFFF\",\"topNavColor\":\"#FFFFFF\",\"topNavBg\":false,\"navBarSwitch\":true,\"textNavColor\":\"#333333\",\"topNavImg\":\"\",\"moreLink\":{\"name\":\"\"},\"openBottomNav\":true,\"navStyle\":1,\"textImgPosLink\":\"left\",\"mpCollect\":false,\"popWindow\":{\"imageUrl\":\"\",\"count\":-1,\"show\":0,\"link\":{\"name\":\"\"},\"imgWidth\":\"\",\"imgHeight\":\"\"},\"bgUrl\":\"\",\"imgWidth\":\"\",\"imgHeight\":\"\",\"template\":{\"pageBgColor\":\"\",\"textColor\":\"#303133\",\"componentBgColor\":\"\",\"componentAngle\":\"round\",\"topAroundRadius\":0,\"bottomAroundRadius\":0,\"elementBgColor\":\"\",\"elementAngle\":\"round\",\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":{\"top\":0,\"bottom\":0,\"both\":0}}},\"value\":[{\"level\":\"2\",\"template\":\"2\",\"quickBuy\":1,\"search\":1,\"addonName\":\"\",\"componentName\":\"GoodsCategory\",\"componentTitle\":\"\\u5546\\u54c1\\u5206\\u7c7b\",\"isDelete\":1,\"topAroundRadius\":0,\"bottomAroundRadius\":0,\"topElementAroundRadius\":0,\"bottomElementAroundRadius\":0,\"margin\":[],\"goodsLevel\":1,\"loadType\":\"part\"}]}",
+  "is_default": 1
+}`
 
 	switch req.Name {
 	case "DIY_VIEW_MEMBER_INDEX":
@@ -349,12 +362,17 @@ func (e Lib) DiyInfo(c *gin.Context) {
 		json.Unmarshal([]byte(MemDat), &row)
 		e.OK(row, "successful")
 		return
+	case "DIY_VIEW_GOODS_CATEGORY":
+		row := make(map[string]interface{}, 0)
+		err2 := json.Unmarshal([]byte(GoodsDat), &row)
+		fmt.Println("err2", err2)
+		e.OK(row, "successful")
 	default:
 		row := make(map[string]interface{}, 0)
 		json.Unmarshal([]byte(IndexDat), &row)
 		e.OK(row, "successful")
 		return
-		
+
 	}
 }
 
@@ -375,6 +393,737 @@ func (e Lib) ShopImage(c *gin.Context) {
 	file, _ := ioutil.ReadFile(pathFile)
 	_, _ = c.Writer.WriteString(string(file))
 
+}
+
+func (e Lib) GoodsRecommend(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	data := `{
+  "page_count": 13,
+  "count": 121,
+  "list": [
+    {
+      "is_consume_discount": 0,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "market_price_show": 1,
+      "sale_show": 1,
+      "goods_id": 172,
+      "sku_id": 269,
+      "sku_name": "德国施华蔻|健康护理单人套餐 ",
+      "price": "2409.00",
+      "market_price": "0.00",
+      "discount_price": "2409.00",
+      "stock": 9988,
+      "sale_num": 4,
+      "goods_name": "德国施华蔻|健康护理单人套餐",
+      "promotion_type": 0,
+      "goods_image": "upload/1/common/images/20220929/20220929041943166443958305848.jpg",
+      "unit": "",
+      "label_name": "",
+      "sku_image": "upload/1/common/images/20220929/20220929041943166443958305848.jpg",
+      "is_virtual": 1
+    },
+    {
+      "is_consume_discount": 0,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "market_price_show": 1,
+      "sale_show": 1,
+      "goods_id": 171,
+      "sku_id": 268,
+      "sku_name": "特权女神染发 ",
+      "price": "799.00",
+      "market_price": "0.00",
+      "discount_price": "799.00",
+      "stock": 576,
+      "sale_num": 6,
+      "goods_name": "特权女神染发",
+      "promotion_type": 0,
+      "goods_image": "upload/1/common/images/20220929/20220929041404166443924407445.jpg",
+      "unit": "",
+      "label_name": "",
+      "sku_image": "upload/1/common/images/20220929/20220929041404166443924407445.jpg",
+      "is_virtual": 1
+    },
+    {
+      "is_consume_discount": 0,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "market_price_show": 1,
+      "sale_show": 1,
+      "goods_id": 170,
+      "sku_id": 267,
+      "sku_name": "特权男士精剪 ",
+      "price": "61.00",
+      "market_price": "0.00",
+      "discount_price": "61.00",
+      "stock": 998,
+      "sale_num": 4,
+      "goods_name": "特权男士精剪",
+      "promotion_type": 0,
+      "goods_image": "upload/1/common/images/20220929/20220929041404166443924400744.jpg",
+      "unit": "",
+      "label_name": "",
+      "sku_image": "upload/1/common/images/20220929/20220929041404166443924400744.jpg",
+      "is_virtual": 1
+    },
+    {
+      "is_consume_discount": 0,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "market_price_show": 1,
+      "sale_show": 1,
+      "goods_id": 169,
+      "sku_id": 266,
+      "sku_name": "针灸理疗 ",
+      "price": "59.00",
+      "market_price": "0.00",
+      "discount_price": "59.00",
+      "stock": 997,
+      "sale_num": 234,
+      "goods_name": "针灸理疗",
+      "promotion_type": 0,
+      "goods_image": "upload/1/common/images/20220929/20220929040011166443841158628.jpg",
+      "unit": "",
+      "label_name": "",
+      "sku_image": "upload/1/common/images/20220929/20220929040011166443841158628.jpg",
+      "is_virtual": 1
+    },
+    {
+      "is_consume_discount": 0,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "market_price_show": 1,
+      "sale_show": 1,
+      "goods_id": 168,
+      "sku_id": 265,
+      "sku_name": "颈椎/富贵包/肩周-轻度/重度 ",
+      "price": "396.00",
+      "market_price": "0.00",
+      "discount_price": "396.00",
+      "stock": 996,
+      "sale_num": 4,
+      "goods_name": "颈椎/富贵包/肩周-轻度/重度",
+      "promotion_type": 0,
+      "goods_image": "upload/1/common/images/20220929/20220929035047166443784743275.jpg",
+      "unit": "",
+      "label_name": "",
+      "sku_image": "upload/1/common/images/20220929/20220929035047166443784743275.jpg",
+      "is_virtual": 1
+    },
+    {
+      "is_consume_discount": 0,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "market_price_show": 1,
+      "sale_show": 1,
+      "goods_id": 167,
+      "sku_id": 264,
+      "sku_name": "特色头疗（轻度/重度） ",
+      "price": "198.00",
+      "market_price": "0.00",
+      "discount_price": "198.00",
+      "stock": 990,
+      "sale_num": 10,
+      "goods_name": "特色头疗（轻度/重度）",
+      "promotion_type": 0,
+      "goods_image": "upload/1/common/images/20220929/20220929034419166443745931626.jpg",
+      "unit": "",
+      "label_name": "",
+      "sku_image": "upload/1/common/images/20220929/20220929034419166443745931626.jpg",
+      "is_virtual": 1
+    },
+    {
+      "is_consume_discount": 0,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "market_price_show": 1,
+      "sale_show": 1,
+      "goods_id": 165,
+      "sku_id": 262,
+      "sku_name": "自定义款式美甲 ",
+      "price": "188.00",
+      "market_price": "0.00",
+      "discount_price": "188.00",
+      "stock": 986,
+      "sale_num": 115,
+      "goods_name": "自定义款式美甲",
+      "promotion_type": 0,
+      "goods_image": "upload/1/common/images/20220929/20220929031905166443594506751.jpg",
+      "unit": "",
+      "label_name": "",
+      "sku_image": "upload/1/common/images/20220929/20220929031905166443594506751.jpg",
+      "is_virtual": 1
+    },
+    {
+      "is_consume_discount": 0,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "market_price_show": 1,
+      "sale_show": 1,
+      "goods_id": 164,
+      "sku_id": 261,
+      "sku_name": "嫁接睫毛美睫空气扁毛超软柔软哑光水貂毛单根0.15双尖眼睫 ",
+      "price": "298.00",
+      "market_price": "0.00",
+      "discount_price": "298.00",
+      "stock": 996,
+      "sale_num": 3,
+      "goods_name": "嫁接睫毛美睫空气扁毛超软柔软哑光水貂毛单根0.15双尖眼睫",
+      "promotion_type": 0,
+      "goods_image": "upload/1/common/images/20220929/20220929030428166443506803264.jpg",
+      "unit": "",
+      "label_name": "",
+      "sku_image": "upload/1/common/images/20220929/20220929030428166443506803264.jpg",
+      "is_virtual": 1
+    },
+    {
+      "is_consume_discount": 1,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "market_price_show": 1,
+      "sale_show": 1,
+      "goods_id": 115,
+      "sku_id": 129,
+      "sku_name": "宝宝餐盘硅胶 ",
+      "price": "38.00",
+      "market_price": "0.00",
+      "discount_price": "38.00",
+      "stock": 0,
+      "sale_num": 61,
+      "goods_name": "宝宝餐盘硅胶",
+      "promotion_type": 0,
+      "goods_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220723/20220723050255165856697590842.jpg",
+      "unit": "",
+      "label_name": "",
+      "sku_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220723/20220723050255165856697590842.jpg",
+      "is_virtual": 0
+    },
+    {
+      "is_consume_discount": 1,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "market_price_show": 1,
+      "sale_show": 1,
+      "goods_id": 114,
+      "sku_id": 128,
+      "sku_name": "DJI 大疆 悟 Inspire 2 四轴航拍飞行器变形无人机航拍器 高清影视航拍无人机 大疆无人机官方旗舰店 ",
+      "price": "21998.00",
+      "market_price": "35000.00",
+      "discount_price": "21998.00",
+      "stock": 42,
+      "sale_num": 47,
+      "goods_name": "DJI 大疆 悟 Inspire 2 四轴航拍飞行器变形无人机航拍器 高清影视航拍无人机 大疆无人机官方旗舰店",
+      "promotion_type": 0,
+      "goods_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220723/20220723045819165856669960451.jpg,https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220723/20220723045819165856669968619.jpg,https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220723/20220723045819165856669964325.jpg,https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220723/20220723045819165856669974035.jpg",
+      "unit": "",
+      "label_name": "特卖",
+      "sku_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220723/20220723045819165856669960451.jpg",
+      "is_virtual": 0
+    }
+  ],
+  "config": {
+    "title": "猜你喜欢",
+    "supportPage": [
+      "goods_detail",
+      "cart",
+      "collect",
+      "pay",
+      "order_detail",
+      "super_member",
+      "guafen",
+      "fenxiao_level"
+    ],
+    "sources": "sort",
+    "goodsIds": [],
+    "fontWeight": false,
+    "padding": 10,
+    "cartEvent": "detail",
+    "text": "购买",
+    "textColor": "#FFFFFF",
+    "theme": "default",
+    "aroundRadius": 25,
+    "control": true,
+    "bgColor": "#FF6A00",
+    "style": "button",
+    "iconDiy": {
+      "iconType": "icon",
+      "icon": "",
+      "style=": {
+        "fontSize": "60",
+        "iconBgColor": [],
+        "iconBgColorDeg": 0,
+        "iconBgImg": "",
+        "bgRadius": 0,
+        "iconColor": [
+          "#000000"
+        ],
+        "iconColorDeg": 0
+      }
+    },
+    "add_cart_switch": 0
+  }
+}`
+	row := make(map[string]interface{}, 0)
+	json.Unmarshal([]byte(data), &row)
+	e.OK(row, "successful")
+	return
+}
+func (e Lib) GoodsskuPage(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	data := `{
+  "page_count": 2,
+  "count": 11,
+  "list": [
+    {
+      "is_consume_discount": 1,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "goods_id": 21,
+      "sort": 0,
+      "sku_id": 24,
+      "sku_name": "华为智慧屏 SE65 MEMC迅晰流畅 65英寸超薄 ",
+      "price": "2699.00",
+      "market_price": "0.00",
+      "discount_price": "2699.00",
+      "stock": 989,
+      "sale_num": 9,
+      "sale_sort": "9.000",
+      "sku_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722045842165848032286569.jpg",
+      "goods_name": "华为智慧屏 SE65 MEMC迅晰流畅 65英寸超薄",
+      "site_id": 1,
+      "is_free_shipping": 1,
+      "introduction": "",
+      "promotion_type": 0,
+      "goods_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722045842165848032286569.jpg",
+      "promotion_addon": "",
+      "is_virtual": 0,
+      "goods_spec_format": "",
+      "recommend_way": 0,
+      "max_buy": 0,
+      "min_buy": 0,
+      "unit": "",
+      "is_limit": 0,
+      "limit_type": 1,
+      "label_name": "",
+      "stock_show": 1,
+      "sale_show": 1,
+      "market_price_show": 1,
+      "barrage_show": 1,
+      "sale_channel": "all",
+      "sale_store": "all"
+    },
+    {
+      "is_consume_discount": 1,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "goods_id": 20,
+      "sort": 0,
+      "sku_id": 23,
+      "sku_name": "小米电视 Redmi A75 2022款 ",
+      "price": "2999.00",
+      "market_price": "0.00",
+      "discount_price": "2999.00",
+      "stock": 997,
+      "sale_num": 3,
+      "sale_sort": "3.000",
+      "sku_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722044201165847932170021.jpg",
+      "goods_name": "小米电视 Redmi A75 2022款",
+      "site_id": 1,
+      "is_free_shipping": 1,
+      "introduction": "",
+      "promotion_type": 0,
+      "goods_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722044201165847932170021.jpg",
+      "promotion_addon": "",
+      "is_virtual": 0,
+      "goods_spec_format": "",
+      "recommend_way": 0,
+      "max_buy": 0,
+      "min_buy": 0,
+      "unit": "",
+      "is_limit": 0,
+      "limit_type": 1,
+      "label_name": "",
+      "stock_show": 1,
+      "sale_show": 1,
+      "market_price_show": 1,
+      "barrage_show": 1,
+      "sale_channel": "all",
+      "sale_store": "all"
+    },
+    {
+      "is_consume_discount": 1,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "goods_id": 19,
+      "sort": 0,
+      "sku_id": 22,
+      "sku_name": "康佳（KONKA）178升双门小冰箱 ",
+      "price": "1099.00",
+      "market_price": "0.00",
+      "discount_price": "1099.00",
+      "stock": 998,
+      "sale_num": 2,
+      "sale_sort": "2.000",
+      "sku_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220723/20220723020502165855630296044.jpg",
+      "goods_name": "康佳（KONKA）178升双门小冰箱",
+      "site_id": 1,
+      "is_free_shipping": 1,
+      "introduction": "",
+      "promotion_type": 0,
+      "goods_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220723/20220723020502165855630296044.jpg,https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220723/20220723020503165855630311696.jpg",
+      "promotion_addon": "",
+      "is_virtual": 0,
+      "goods_spec_format": "",
+      "recommend_way": 0,
+      "max_buy": 0,
+      "min_buy": 0,
+      "unit": "",
+      "is_limit": 0,
+      "limit_type": 1,
+      "label_name": "",
+      "stock_show": 1,
+      "sale_show": 1,
+      "market_price_show": 1,
+      "barrage_show": 1,
+      "sale_channel": "all",
+      "sale_store": "all"
+    },
+    {
+      "is_consume_discount": 1,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "goods_id": 17,
+      "sort": 0,
+      "sku_id": 20,
+      "sku_name": "海尔（Haier）电热水器电家用储水式小型 ",
+      "price": "999.00",
+      "market_price": "0.00",
+      "discount_price": "999.00",
+      "stock": 1000,
+      "sale_num": 0,
+      "sale_sort": "0.000",
+      "sku_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722043253165847877324584.jpg",
+      "goods_name": "海尔（Haier）电热水器电家用储水式小型",
+      "site_id": 1,
+      "is_free_shipping": 1,
+      "introduction": "",
+      "promotion_type": 0,
+      "goods_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722043253165847877324584.jpg",
+      "promotion_addon": "{\"seckill\":\"1\",\"pintuan\":\"3\"}",
+      "is_virtual": 0,
+      "goods_spec_format": "",
+      "recommend_way": 0,
+      "max_buy": 0,
+      "min_buy": 0,
+      "unit": "",
+      "is_limit": 0,
+      "limit_type": 1,
+      "label_name": "",
+      "stock_show": 1,
+      "sale_show": 1,
+      "market_price_show": 1,
+      "barrage_show": 1,
+      "sale_channel": "all",
+      "sale_store": "all"
+    },
+    {
+      "is_consume_discount": 1,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "goods_id": 15,
+      "sort": 0,
+      "sku_id": 18,
+      "sku_name": "九阳（Joyoung）4L容量0涂层电饭煲电饭锅智能预约 ",
+      "price": "599.00",
+      "market_price": "0.00",
+      "discount_price": "599.00",
+      "stock": 994,
+      "sale_num": 6,
+      "sale_sort": "6.000",
+      "sku_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722042222165847814286652.jpg",
+      "goods_name": "九阳（Joyoung）4L容量0涂层电饭煲电饭锅智能预约",
+      "site_id": 1,
+      "is_free_shipping": 1,
+      "introduction": "",
+      "promotion_type": 0,
+      "goods_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722042222165847814286652.jpg",
+      "promotion_addon": "{\"pintuan\":\"1\",\"seckill\":\"2\"}",
+      "is_virtual": 0,
+      "goods_spec_format": "",
+      "recommend_way": 0,
+      "max_buy": 0,
+      "min_buy": 0,
+      "unit": "",
+      "is_limit": 0,
+      "limit_type": 1,
+      "label_name": "",
+      "stock_show": 1,
+      "sale_show": 1,
+      "market_price_show": 1,
+      "barrage_show": 1,
+      "sale_channel": "all",
+      "sale_store": "all"
+    },
+    {
+      "is_consume_discount": 1,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "goods_id": 12,
+      "sort": 0,
+      "sku_id": 14,
+      "sku_name": "九阳（Joyoung）养生壶迷你玻璃花茶壶 基础款",
+      "price": "89.00",
+      "market_price": "128.00",
+      "discount_price": "89.00",
+      "stock": 95,
+      "sale_num": 17,
+      "sale_sort": "13.000",
+      "sku_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722041030165847743040538.jpg",
+      "goods_name": "九阳（Joyoung）养生壶迷你玻璃花茶壶",
+      "site_id": 1,
+      "is_free_shipping": 1,
+      "introduction": "",
+      "promotion_type": 0,
+      "goods_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722041030165847743040538.jpg",
+      "promotion_addon": "{\"pintuan\":\"2\",\"seckill\":\"3\"}",
+      "is_virtual": 1,
+      "goods_spec_format": "[{\"spec_id\":-457,\"spec_name\":\"颜色\",\"value\":[{\"spec_id\":-457,\"spec_name\":\"颜色\",\"spec_value_id\":-917,\"spec_value_name\":\"基础款\",\"image\":\"https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722041030165847743040538.jpg\"},{\"spec_id\":-457,\"spec_name\":\"颜色\",\"spec_value_id\":-1221,\"spec_value_name\":\"升级款\",\"image\":\"https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722041030165847743040538.jpg\"}]}]",
+      "recommend_way": 0,
+      "max_buy": 0,
+      "min_buy": 0,
+      "unit": "",
+      "is_limit": 0,
+      "limit_type": 1,
+      "label_name": "",
+      "stock_show": 0,
+      "sale_show": 0,
+      "market_price_show": 0,
+      "barrage_show": 0,
+      "sale_channel": "all",
+      "sale_store": "all"
+    },
+    {
+      "is_consume_discount": 1,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "goods_id": 10,
+      "sort": 0,
+      "sku_id": 12,
+      "sku_name": "德尔玛（Deerma）DX700 家用手持吸尘器 ",
+      "price": "159.00",
+      "market_price": "0.00",
+      "discount_price": "159.00",
+      "stock": 996,
+      "sale_num": 3,
+      "sale_sort": "3.000",
+      "sku_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722040720165847724074735.jpg",
+      "goods_name": "德尔玛（Deerma）DX700 家用手持吸尘器",
+      "site_id": 1,
+      "is_free_shipping": 1,
+      "introduction": "",
+      "promotion_type": 0,
+      "goods_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722040720165847724074735.jpg",
+      "promotion_addon": "",
+      "is_virtual": 0,
+      "goods_spec_format": "",
+      "recommend_way": 0,
+      "max_buy": 0,
+      "min_buy": 0,
+      "unit": "",
+      "is_limit": 0,
+      "limit_type": 1,
+      "label_name": "",
+      "stock_show": 1,
+      "sale_show": 1,
+      "market_price_show": 1,
+      "barrage_show": 1,
+      "sale_channel": "all",
+      "sale_store": "all"
+    },
+    {
+      "is_consume_discount": 1,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "goods_id": 7,
+      "sort": 0,
+      "sku_id": 8,
+      "sku_name": "小米除螨仪家用手持除螨机 有线除螨仪",
+      "price": "199.00",
+      "market_price": "299.00",
+      "discount_price": "199.00",
+      "stock": 1000,
+      "sale_num": 4,
+      "sale_sort": "2.000",
+      "sku_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722035414165847645499562.jpg",
+      "goods_name": "小米除螨仪家用手持除螨机",
+      "site_id": 1,
+      "is_free_shipping": 1,
+      "introduction": "",
+      "promotion_type": 0,
+      "goods_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722035414165847645499562.jpg",
+      "promotion_addon": "",
+      "is_virtual": 0,
+      "goods_spec_format": "[{\"spec_id\":-732,\"spec_name\":\"颜色\",\"value\":[{\"spec_id\":-732,\"spec_name\":\"颜色\",\"spec_value_id\":-1152,\"spec_value_name\":\"有线除螨仪\",\"image\":\"\"},{\"spec_id\":-732,\"spec_name\":\"颜色\",\"spec_value_id\":-1126,\"spec_value_name\":\"无线除满意\",\"image\":\"\"}]}]",
+      "recommend_way": 0,
+      "max_buy": 0,
+      "min_buy": 0,
+      "unit": "",
+      "is_limit": 0,
+      "limit_type": 1,
+      "label_name": "",
+      "stock_show": 1,
+      "sale_show": 1,
+      "market_price_show": 1,
+      "barrage_show": 1,
+      "sale_channel": "all",
+      "sale_store": "all"
+    },
+    {
+      "is_consume_discount": 1,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "goods_id": 5,
+      "sort": 0,
+      "sku_id": 6,
+      "sku_name": "海尔（Haier）新品纤美9公斤家用全自动滚筒洗衣机纤薄大容量 ",
+      "price": "4999.00",
+      "market_price": "0.00",
+      "discount_price": "4999.00",
+      "stock": 999,
+      "sale_num": 1,
+      "sale_sort": "1.000",
+      "sku_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722034247165847576773889.jpg",
+      "goods_name": "海尔（Haier）新品纤美9公斤家用全自动滚筒洗衣机纤薄大容量",
+      "site_id": 1,
+      "is_free_shipping": 1,
+      "introduction": "",
+      "promotion_type": 0,
+      "goods_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722034247165847576773889.jpg",
+      "promotion_addon": "",
+      "is_virtual": 0,
+      "goods_spec_format": "",
+      "recommend_way": 0,
+      "max_buy": 0,
+      "min_buy": 0,
+      "unit": "",
+      "is_limit": 0,
+      "limit_type": 1,
+      "label_name": "",
+      "stock_show": 1,
+      "sale_show": 1,
+      "market_price_show": 1,
+      "barrage_show": 1,
+      "sale_channel": "all",
+      "sale_store": "all"
+    },
+    {
+      "is_consume_discount": 1,
+      "discount_config": 0,
+      "discount_method": "",
+      "member_price": "",
+      "goods_id": 4,
+      "sort": 0,
+      "sku_id": 4,
+      "sku_name": "海尔洗衣机全自动滚筒袪味空气洗变频直驱双喷淋节能家用 9公斤",
+      "price": "3699.00",
+      "market_price": "0.00",
+      "discount_price": "3699.00",
+      "stock": 998,
+      "sale_num": 101,
+      "sale_sort": "101.000",
+      "sku_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722033703165847542364036.jpg",
+      "goods_name": "海尔洗衣机全自动滚筒袪味空气洗变频直驱双喷淋节能家用",
+      "site_id": 1,
+      "is_free_shipping": 1,
+      "introduction": "",
+      "promotion_type": 0,
+      "goods_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722033703165847542364036.jpg",
+      "promotion_addon": "",
+      "is_virtual": 0,
+      "goods_spec_format": "[{\"spec_id\":-665,\"spec_name\":\"系列\",\"value\":[{\"spec_id\":-665,\"spec_name\":\"系列\",\"spec_value_id\":-807,\"spec_value_name\":\"9公斤\",\"image\":\"https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722033703165847542364036.jpg\"},{\"spec_id\":-665,\"spec_name\":\"系列\",\"spec_value_id\":-1392,\"spec_value_name\":\"10公斤\",\"image\":\"https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722033703165847542364036.jpg\"}]}]",
+      "recommend_way": 0,
+      "max_buy": 0,
+      "min_buy": 0,
+      "unit": "",
+      "is_limit": 0,
+      "limit_type": 1,
+      "label_name": "",
+      "stock_show": 1,
+      "sale_show": 1,
+      "market_price_show": 1,
+      "barrage_show": 1,
+      "sale_channel": "all",
+      "sale_store": "all"
+    }
+  ],
+  "config": {
+    "fontWeight": false,
+    "padding": 10,
+    "cartEvent": "detail",
+    "text": "购买",
+    "textColor": "#FFFFFF",
+    "theme": "default",
+    "aroundRadius": 25,
+    "control": true,
+    "bgColor": "#FF6A00",
+    "style": "button",
+    "iconDiy": {
+      "iconType": "icon",
+      "icon": "",
+      "style=": {
+        "fontSize": "60",
+        "iconBgColor": [],
+        "iconBgColorDeg": 0,
+        "iconBgImg": "",
+        "bgRadius": 0,
+        "iconColor": [
+          "#000000"
+        ],
+        "iconColorDeg": 0
+      }
+    }
+  }
+}`
+	row := make(map[string]interface{}, 0)
+	json.Unmarshal([]byte(data), &row)
+	e.OK(row, "successful")
+	return
 }
 func (e Lib) Goodssku(c *gin.Context) {
 	err := e.MakeContext(c).
@@ -546,7 +1295,6 @@ func (e Lib) Goodssku(c *gin.Context) {
 	return
 }
 
-
 func (e Lib) OrderNum(c *gin.Context) {
 	err := e.MakeContext(c).
 		MakeOrm().
@@ -577,10 +1325,10 @@ func (e Lib) Captcha(c *gin.Context) {
 	e.Custom(gin.H{
 		"code": 200,
 		"data": map[string]string{
-			"id":id,
-			"img":b64s,
+			"id":  id,
+			"img": b64s,
 		},
-		"msg":  "success",
+		"msg": "success",
 	})
 
 }
