@@ -244,10 +244,10 @@ func (e Lib) Config(c *gin.Context) {
     "form": 1
   },
   "default_img": {
-    "goods": "public/static/img/default_img/square.png",
-    "head": "public/static/img/default_img/head.png",
-    "store": "public/static/img/default_img/square.png",
-    "article": "public/static/img/default_img/article.png"
+    "goods": "",
+    "head": "",
+    "store": "",
+    "article": ""
   },
   "copyright": {
     "icp": "备案号: 222222",
@@ -395,6 +395,234 @@ func (e Lib) ShopImage(c *gin.Context) {
 
 }
 
+
+func (e Lib) GoodsModifyclicks(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	e.OK("", "successful")
+	return
+}
+
+
+func (e Lib) GoodsbrandPage(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	data := `{
+  "page_count": 1,
+  "count": 1,
+  "list": [
+    {
+      "brand_id": 7,
+      "brand_name": "1231",
+      "brand_initial": "",
+      "image_url": "upload/1/common/images/20230314/20230314054802167878728251944.png"
+    }
+  ]
+}`
+	row := make(map[string]interface{}, 0)
+	json.Unmarshal([]byte(data), &row)
+	e.OK(row, "successful")
+	return
+}
+func (e Lib) HotSearchWords(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	e.OK(map[string]string{
+		"words":"华为,小米",
+	}, "successful")
+	return
+}
+func (e Lib) GoodsDetail(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	data := `{
+  "goods_sku_detail": {
+    "goods_id": 21,
+    "sku_id": 24,
+    "qr_id": 0,
+    "goods_name": "华为智慧屏 SE65 MEMC迅晰流畅 65英寸超薄",
+    "sku_name": "华为智慧屏 SE65 MEMC迅晰流畅 65英寸超薄 ",
+    "sku_spec_format": "",
+    "price": "2699.00",
+    "market_price": "0.00",
+    "discount_price": "2699.00",
+    "promotion_type": 0,
+    "start_time": 0,
+    "end_time": 0,
+    "stock": 989,
+    "click_num": 120,
+    "sale_num": 9,
+    "collect_num": 0,
+    "sku_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722045842165848032286569.jpg",
+    "sku_images": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722045842165848032286569.jpg",
+    "goods_content": "<p><img src=\"https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722045842165848032296459.jpg\"/></p>",
+    "goods_state": 1,
+    "is_free_shipping": 1,
+    "goods_spec_format": null,
+    "goods_attr_format": "[]",
+    "introduction": "",
+    "unit": "",
+    "video_url": "",
+    "is_virtual": 0,
+    "goods_service_ids": "",
+    "max_buy": 0,
+    "min_buy": 0,
+    "is_limit": 0,
+    "limit_type": 1,
+    "support_trade_type": "express,store,local",
+    "goods_image": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722045842165848032286569.jpg",
+    "keywords": "",
+    "stock_show": 1,
+    "sale_show": 1,
+    "market_price_show": 1,
+    "barrage_show": 1,
+    "evaluate": 0,
+    "goods_class": 1,
+    "sale_store": "all",
+    "sale_channel": "all",
+    "label_name": "",
+    "category_id": ",1,7,",
+    "purchased_num": 0,
+    "goods_promotion": [],
+    "fenxiao_detail": "",
+    "coupon_list": [
+      {
+        "count": 1000,
+        "lead_count": 14,
+        "coupon_type_id": 1,
+        "type_id": 1,
+        "type": "reward",
+        "site_id": 1,
+        "coupon_name": "优惠券",
+        "money": "20.00",
+        "discount": "0.00",
+        "max_fetch": 1,
+        "at_least": "100.00",
+        "end_time": 1674463181,
+        "validity_type": 2,
+        "fixed_term": 10,
+        "goods_type": 1,
+        "discount_limit": "0.00"
+      },
+      {
+        "count": 10000,
+        "lead_count": 4,
+        "coupon_type_id": 3,
+        "type_id": 3,
+        "type": "reward",
+        "site_id": 1,
+        "coupon_name": "优惠券",
+        "money": "1.00",
+        "discount": "0.00",
+        "max_fetch": 1,
+        "at_least": "10.00",
+        "end_time": 1674463249,
+        "validity_type": 2,
+        "fixed_term": 10,
+        "goods_type": 1,
+        "discount_limit": "0.00"
+      },
+      {
+        "count": 1000,
+        "lead_count": 50,
+        "coupon_type_id": 2,
+        "type_id": 2,
+        "type": "discount",
+        "site_id": 1,
+        "coupon_name": "优惠券",
+        "money": "0.00",
+        "discount": "8.00",
+        "max_fetch": 1,
+        "at_least": "150.00",
+        "end_time": 1674463222,
+        "validity_type": 2,
+        "fixed_term": 10,
+        "goods_type": 1,
+        "discount_limit": "50.00"
+      }
+    ],
+    "bundling_list": [],
+    "manjian": null,
+    "sku_images_list": [
+      {
+        "pic_path": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722045842165848032286569.jpg",
+        "pic_spec": "800*800"
+      }
+    ],
+    "sku_image_list": [
+      {
+        "pic_path": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722045842165848032286569.jpg",
+        "pic_spec": "800*800"
+      }
+    ],
+    "goods_image_list": [
+      {
+        "pic_path": "https://b2c-v5-yanshi.oss-cn-hangzhou.aliyuncs.com/upload/1/common/images/20220722/20220722045842165848032286569.jpg",
+        "pic_spec": "800*800"
+      }
+    ],
+    "goods_service": [],
+    "config": {
+      "nav_bar_switch": "1",
+      "introduction_color": "#303133"
+    },
+    "express_type": {
+      "express": {
+        "name": "物流配送",
+        "icon": "iconwuliu",
+        "desc": "支持物流配送的商品在购买后将会通过快递的方式进行配送，可在订单中查看物流信息"
+      },
+      "store": {
+        "name": "门店自提",
+        "icon": "icondianpu",
+        "desc": "支持门店自提的商品在购买后用户可自行到下单时所选择的自提点进行提货"
+      },
+      "local": {
+        "name": "同城配送",
+        "icon": "iconwaimaifuwu",
+        "desc": "支持同城配送的商品在购买后平台将安排配送人员配送到用户指定的收货地点"
+      }
+    },
+    "is_collect": "",
+    "evaluate_config": {
+      "evaluate_status": "1",
+      "evaluate_show": "1",
+      "evaluate_audit": "1"
+    },
+    "evaluate_list": [],
+    "evaluate_count": 0
+  }
+}`
+	row := make(map[string]interface{}, 0)
+	json.Unmarshal([]byte(data), &row)
+	e.OK(row, "successful")
+	return
+}
 func (e Lib) GoodsRecommend(c *gin.Context) {
 	err := e.MakeContext(c).
 		MakeOrm().

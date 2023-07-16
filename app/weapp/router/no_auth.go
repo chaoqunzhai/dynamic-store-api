@@ -15,7 +15,7 @@ func registerNoRouter(v1 *gin.RouterGroup) {
 	r := v1.Group("")
 	{
 		//客户端配置
-		r.GET("/config/init", api.Config)
+		r.GET("/config/init/:siteId", api.Config)
 		//不同菜单 不同的内容
 		r.POST("/diyview/info", api.DiyInfo)
 		r.POST("/goodssku/components", api.Goodssku)
@@ -30,6 +30,14 @@ func registerNoRouter(v1 *gin.RouterGroup) {
 		r.POST("/goodssku/page", api.GoodsskuPage)
 		//猜你喜欢
 		r.POST("/goodssku/recommend", api.GoodsRecommend)
+		//商品详情
+		r.POST("/goodssku/detail", api.GoodsDetail)
+		//
+		r.POST("/goods/modifyclicks",api.GoodsModifyclicks)
+		//热门搜索
+		r.GET("/goods/hotSearchWords",api.HotSearchWords)
+		//
+		r.POST("/goodsbrand/page",api.GoodsbrandPage)
 	}
 }
 
