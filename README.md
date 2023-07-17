@@ -1,4 +1,4 @@
-# 动创云订货管理平台后端API
+# 动创云订货管理平台后端[PC端,超管|大B]API
 ## 超管
 admin
 dynamic!@#eos
