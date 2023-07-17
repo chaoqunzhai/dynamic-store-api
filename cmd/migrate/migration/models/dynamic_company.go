@@ -1,5 +1,6 @@
 package models
 
+//大B的业务信息
 import "time"
 
 // todo:大B信息
@@ -19,21 +20,6 @@ type Company struct {
 
 func (Company) TableName() string {
 	return "company"
-}
-
-// todo:大B续费信息
-type CompanyRenewalTimeLog struct {
-	Model
-	ModelTime
-	CreateBy       int       `json:"create_by" gorm:"index;comment:创建者"`
-	CId            int       `json:"-" gorm:"index;comment:公司(大B)ID"`
-	Money          float64   `json:"money" gorm:"comment:续费金额"`
-	Desc           string    `json:"desc" gorm:"size:50;comment:描述信息"`
-	ExpirationTime time.Time `json:"expiration_time" gorm:"comment:续费到期时间"`
-}
-
-func (CompanyRenewalTimeLog) TableName() string {
-	return "company_renewal_time_log"
 }
 
 // todo:大B设置的VIP等级
@@ -75,21 +61,7 @@ func (Driver) TableName() string {
 	return "driver"
 }
 
-// todo:大B配置表,一般用于配置一些限制,
-// 默认是读取global的配置,读取这个表配置,如果有使用配置表数据
-type CompanyQuotaCnf struct {
-	BigBRichGlobal
-	Key         string `gorm:"size:16;comment:配置Key"`
-	Number      int    `gorm:"comment:限制次数"`
-	ExtendValue string `gorm:"size:20;comment:扩展的Value"`
-}
-
-func (CompanyQuotaCnf) TableName() string {
-	return "company_quota_cnf"
-}
-
-//todo:大B店铺设计类型保存
-
+// todo:大B店铺设计类型保存
 type CompanyCategory struct {
 	BigBRichGlobal
 	Type int `gorm:"type:tinyint(1);default:1;comment:模板类型"`
@@ -97,6 +69,16 @@ type CompanyCategory struct {
 
 func (CompanyCategory) TableName() string {
 	return "company_category"
+}
+
+// todo:大B物流配送方式
+type CompanyExpress struct {
+	BigBRichGlobal
+	Type int `gorm:"type:tinyint(1);default:1;comment:模板类型"`
+}
+
+func (CompanyExpress) TableName() string {
+	return "company_express"
 }
 
 type CompanyFreight struct {

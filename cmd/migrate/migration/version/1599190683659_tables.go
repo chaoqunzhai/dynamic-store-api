@@ -48,13 +48,21 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.ShopTag),
 			new(models.ExtendUser),
 			new(models.Company),
-			new(models.CompanyQuotaCnf),
 			new(models.CompanyCategory),
 			new(models.CompanyFreight),
-			new(models.CompanyRenewalTimeLog),
 			new(models.CompanyRole),
+			//大B配置
+			new(models.CompanyWeAppCnf),
+			new(models.CompanyRegisterCnf),
+			new(models.CompanyWeAppCnf),
+			new(models.CompanyQuotaCnf),
+			new(models.CompanyEmsQuotaCnf),
+			new(models.CompanyEmsQuotaCnfLog),
+			new(models.CompanyRenewalTimeLog),
+
 			new(models.SplitTableMap),
 			new(models.GradeVip),
+			//商品
 			new(models.Shop),
 			new(models.ShopRechargeLog),
 			new(models.ShopBalanceLog),
@@ -64,6 +72,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.Coupon),
 
 			new(models.CycleTimeConf),
+			//订单
 			new(models.Orders),
 			new(models.OrderSpecs),
 			new(models.OrderExtend),

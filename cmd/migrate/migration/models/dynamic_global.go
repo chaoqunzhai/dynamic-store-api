@@ -25,7 +25,7 @@ type RichGlobal struct {
 	Desc   string `gorm:"size:35;comment:描述信息"` //描述
 }
 
-// todo: 大B下小B的公共函数
+// todo: 包含大BID的公共函数
 type BigBRichGlobal struct {
 	RichGlobal
 	CId int `gorm:"index;comment:大BID"`

@@ -1,8 +1,8 @@
 package global
 
 const (
-	StdOut          = "./logs/info.log"
-	StdError        = "./logs/error.log"
+	StdOut   = "./logs/info.log"
+	StdError = "./logs/error.log"
 
 	//商品目录
 	GoodsPath       = "goods"
@@ -90,7 +90,9 @@ const (
 	ScanShopRecharge = 2 //用户充值
 	ScanShopUse      = 3 //用户消费
 	ScanShopRefund   = 4 //用户退款
-
+	ExpressSelf      = 1 //门店自提
+	ExpressLocal     = 2 //同城配送
+	ExpressLogistics = 3 //物流配送
 )
 
 func GetOrderPayStatus(v int) string {
