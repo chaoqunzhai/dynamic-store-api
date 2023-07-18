@@ -60,7 +60,9 @@ settings:
       orderRandom: "hfWUxQiqPx"
       openId: "o5TLF5YfLbL97r50xA157B9GOR3k"
   cache:
-    memory: ''
+    redis:
+      addr: 127.0.0.1:6379
+      password: dcyRedis@2023
   queue:
     memory:
       poolSize: 100

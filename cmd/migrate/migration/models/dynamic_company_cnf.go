@@ -8,12 +8,12 @@ import "time"
 type CompanyWeAppCnf struct {
 	BigBRichGlobal
 	AppId        string `json:"app_id" gorm:"size:20;comment:小程序的appid"`
-	Secret       string `json:"secret" gorm:"size:35;comment:私钥"`
+	Secret       string `json:"secret" gorm:"size:35;comment:小程序AppSecret"`
 	MchID        string `json:"mch_id" gorm:"size:10;comment:商户号"`
-	MchKey       string `json:"mch_key" gorm:"size:10;comment:商户APIv3密钥"`
+	MchKey       string `json:"mch_key" gorm:"size:10;comment:商户APIKEY密钥"`
 	SerialNumber string `json:"serial_number" gorm:"size:50;comment:证书序列号"`
-	PrivateKey   string `json:"private_key" gorm:"size:50;comment:商户私钥文件路径"`
-	Certificate  string `json:"certificate" gorm:"size:50;comment:平台证书文件路径"`
+	CertPem      string `json:"cert_pem" gorm:"size:100;comment:证书文件cert"`
+	KeyPem       string `json:"key_pem" gorm:"size:100;comment:证书文件key"`
 }
 
 func (CompanyWeAppCnf) TableName() string {
