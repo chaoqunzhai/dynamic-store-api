@@ -12,6 +12,7 @@ var ExtConfig Extend
 type Extend struct {
 	Work        string `json:"work"`
 	AMap        AMap
+	Redis       Redis  `json:"redis"`
 	FyPayClient FyPayClient   `json:"fyPayClient"`
 	WxLeader    WxLeaderLogin `json:"wxLeader"`
 	WxUser      WxUserLogin   `json:"wxUser"`
@@ -23,6 +24,11 @@ type Extend struct {
 	Influx      Influx        `json:"influx"`
 	Callback    string        `json:"callback"`
 	Harbor      Harbor        `json:"harbor"`
+}
+type Redis struct {
+	Ip       string `json:"ip"`
+	Port     string `json:"port"`
+	Password string `json:"password"`
 }
 type FyPayClient struct {
 	Inscd       string `json:"inscd"`

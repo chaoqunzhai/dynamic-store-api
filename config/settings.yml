@@ -32,26 +32,18 @@ settings:
     # sqlserver: sqlserver://用户名:密码@地址?database=数据库名
     driver: mysql
     # 数据库连接字符串 mysql 缺省信息 charset=utf8&parseTime=True&loc=Local&timeout=1000ms
-    source: root:root123456@tcp(127.0.0.1:3306)/dynamic?charset=utf8&parseTime=True&loc=Local&timeout=8000ms
-#    source: root:@tcp(127.0.0.1:3306)/dynamic?charset=utf8&parseTime=True&loc=Local&timeout=8000ms
+#    source: root:root123456@tcp(127.0.0.1:3306)/dynamic?charset=utf8&parseTime=True&loc=Local&timeout=8000ms
+    source: root:@tcp(127.0.0.1:3306)/dynamic?charset=utf8&parseTime=True&loc=Local&timeout=8000ms
   gen:
     # 代码生成读取的数据库名称
     dbname: dynamic
     # 代码生成是使用前端代码存放位置，需要指定到src文件夹，相对路径
     frontpath: ../go-admin-ui/src
   extend: # 扩展项使用说明
-    work: "/data/universe/"
-    domain: "http://localhost:8099"
-    imageBase: "image" #所有照片的基础目录
-    wxLeader: #帮主端
-      appid: "wx9e7c2f2a95287bc8"
-      secret: "ea44bdfcbd19e235429eb53fa4070dd1"
-    wxUser: #客户端
-      appid: "wxed881f27a48289ed"
-      secret: "bf26c5fed126b3bd384d8572331706d4"
-    wxOfficial: #公众号
-      appid: "wx5aa90ff822a6c59b"
-      secret: "b50e5094497df0203f390761c0e4a542"
+    redis:
+      ip: "152.136.36.253"
+      port: "26379"
+      password: "dcyTestRedis@2023"
     fyPayClient: #客户端支付
       inscd: "08K0054880" #机构号
       payDomain: "https://spay-mc.fuioupay.com/wxPreCreate"

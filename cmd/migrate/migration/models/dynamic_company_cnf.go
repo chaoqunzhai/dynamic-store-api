@@ -4,32 +4,7 @@ package models
 
 import "time"
 
-// 大B的小程序信息配置表
-type CompanyWeAppCnf struct {
-	BigBRichGlobal
-	AppId        string `json:"app_id" gorm:"size:20;comment:小程序的appid"`
-	Secret       string `json:"secret" gorm:"size:35;comment:私钥"`
-	MchID        string `json:"mch_id" gorm:"size:10;comment:商户号"`
-	MchKey       string `json:"mch_key" gorm:"size:10;comment:商户APIv3密钥"`
-	SerialNumber string `json:"serial_number" gorm:"size:50;comment:证书序列号"`
-	PrivateKey   string `json:"private_key" gorm:"size:50;comment:商户私钥文件路径"`
-	Certificate  string `json:"certificate" gorm:"size:50;comment:平台证书文件路径"`
-}
 
-func (CompanyWeAppCnf) TableName() string {
-	return "company_weapp_cnf"
-}
-
-// 大B的小程序注册登录方式
-type CompanyRegisterCnf struct {
-	BigBRichGlobal
-	Login    string `json:"login" gorm:"size:30;comment:登录方式"`
-	Register string `json:"register" gorm:"size:30;comment:注册方式"`
-}
-
-func (CompanyRegisterCnf) TableName() string {
-	return "company_register_cnf"
-}
 
 // todo:大B续费信息
 type CompanyRenewalTimeLog struct {

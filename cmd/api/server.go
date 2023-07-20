@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+	"go-admin/common/redis_db"
 	"log"
 	"net/http"
 	"os"
@@ -97,6 +98,7 @@ func run() error {
 
 	}()
 	Initialization()
+	redis_db.RedisConn()
 	if apiCheck {
 		var routers = sdk.Runtime.GetRouter()
 		q := sdk.Runtime.GetMemoryQueue("")
