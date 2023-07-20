@@ -51,8 +51,6 @@ settings:
       mchntcd:  "0007910F5902365"
       orderRandom: "hfWUxQiqPx"
       openId: "o5TLF5YfLbL97r50xA157B9GOR3k"
-  cache:
-    memory: ''
   queue:
     memory:
       poolSize: 100
