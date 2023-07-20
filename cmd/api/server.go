@@ -98,6 +98,7 @@ func run() error {
 
 	}()
 	Initialization()
+	InitializationWeApp()
 	redis_db.RedisConn()
 	if apiCheck {
 		var routers = sdk.Runtime.GetRouter()

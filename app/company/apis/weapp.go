@@ -5,11 +5,13 @@
 package apis
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"go-admin/app/company/models"
 	"go-admin/app/company/service/dto"
+	models2 "go-admin/cmd/migrate/migration/models"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/common/redis_db"
 	"go-admin/global"
@@ -164,4 +166,89 @@ func (e WeApp)UpdateLoginList(c *gin.Context)  {
 
 	e.OK("","successful")
 	return
+}
+
+
+func (e WeApp)Navbar(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	//查询是否有特殊配置
+
+	navList :=make([]models2.WeAppGlobalNavCnf,0)
+	e.Orm.Model(&models2.WeAppGlobalNavCnf{}).Where("enable = true").Find(&navList)
+
+	result:=make([]models2.WeAppGlobalNavCnf,0)
+	for _,row:=range navList{
+		var object models2.CompanyNavCnf
+		e.Orm.Model(&models2.CompanyNavCnf{}).Where("c_id = ? and g_id = ?",userDto.CId,row.Id).Limit(1).Find(&object)
+
+		if object.Id > 0 {
+			row.UserEnable = object.Enable
+
+		}else {
+			row.UserEnable = row.Enable
+		}
+		result = append(result,row)
+
+	}
+
+
+	//如果没有特殊配置
+	e.OK(result,"successful")
+	return
+}
+
+func (e WeApp)UpdateNavbar(c *gin.Context)  {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	navList :=make([]models2.WeAppGlobalNavCnf,0)
+	e.Orm.Model(&models2.WeAppGlobalNavCnf{}).Where("enable = true").Find(&navList)
+
+	navLibMap:=make(map[string]interface{},0)
+	_=json.Unmarshal([]byte(dto.NavLib),&navLibMap)
+	for _,row:=range navList{
+		var object models2.CompanyNavCnf
+		e.Orm.Model(&models2.CompanyNavCnf{}).Where("c_id = ? and g_id = ?",userDto.CId,row.Id).Limit(1).Find(&object)
+
+		if object.Id > 0 {
+			//配置了并且是关闭的,那就返回吧
+			if !object.Enable{
+				continue
+			}
+		}
+		navLibMap["iconPath"] = row.IconPath
+		navLibMap["selectedIconPath"] = row.SelectedIconPath
+		navLibMap["text"] = row.Text
+		navLibMap["iconClass"] = row.IconClass
+		navLibMap["link"] = map[string]interface{}{
+			"name":row.Name,
+			"title":row.Text,
+			"wap_url":row.WapUrl,
+			"parent":"MALL_LINK",
+		}
+
+	}
+
 }

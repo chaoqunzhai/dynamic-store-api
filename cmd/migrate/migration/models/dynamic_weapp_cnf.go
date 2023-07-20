@@ -1,7 +1,22 @@
 package models
 
 //todo:大B的商场H5|小程序配置
+//配置的菜单表
 
+type WeAppGlobalNavCnf struct {
+	Model
+	Enable bool  `json:"-" gorm:"type:tinyint(1);default:1;"`
+	UserEnable bool `gorm:"-"` //只是用来渲染,不做创建字段
+	IconPath string `gorm:"size:50;"`
+	SelectedIconPath  string `gorm:"size:50;"`
+	Text string `gorm:"size:50;"`
+	Name string `gorm:"size:50;"`
+	WapUrl string `gorm:"size:50;"`
+	IconClass string `gorm:"size:50;"`
+}
+func (WeAppGlobalNavCnf) TableName() string {
+	return "weapp_global_nav_cnf"
+}
 // todo:大B店铺设计类型保存
 type CompanyCategory struct {
 	BigBRichGlobal
@@ -38,6 +53,16 @@ type CompanyRegisterCnf struct {
 func (CompanyRegisterCnf) TableName() string {
 	return "company_register_cnf"
 }
+//大B底栏菜单配置
+type CompanyNavCnf struct {
+	BigBMiniGlobal
+	GId int `gorm:"index;type:tinyint(1);comment:关联的菜单配置ID"`
+
+}
+
+func (CompanyNavCnf) TableName() string {
+	return "company_nav_cnf"
+}
 
 // 小程序个人中心,快捷导航配置
 type WeAppQuickTools struct {
@@ -48,10 +73,10 @@ type WeAppQuickTools struct {
 }
 
 func (WeAppQuickTools) TableName() string {
-	return "we_app_quick_tools"
+	return "weapp_quick_tools"
 }
 
-// 大B和快照导航关联的配置
+// 大B和导航关联的配置
 type CompanyQuickTools struct {
 	Model
 	Cid     int `gorm:"index;comment:关联的大BID"`

@@ -13,6 +13,53 @@ import (
 	"strconv"
 )
 
+
+func InitializationWeApp()  {
+	dbs := sdk.Runtime.GetDb()
+	diyBottomNav := []map[string]interface{}{
+		{
+			"icon_path":"icondiy icon-system-home",
+			"selected_icon_path":"icondiy icon-system-home-selected",
+			"text":"主页",
+			"name":"INDEX",
+			"wap_url":"/pages/index/index",
+			"icon_class":"icon-system-home",
+		},
+		{
+			"icon_path":"icondiy icon-system-category",
+			"selected_icon_path":"icondiy icon-system-category-selected",
+			"text":"商品",
+			"name":"SHOP_CATEGORY",
+			"wap_url":"/pages/goods/category",
+			"icon_class":"icon-system-category",
+		},
+		{
+			"icon_path":"icondiy icon-system-cart",
+			"selected_icon_path":"icondiy icon-system-cart-selected",
+			"text":"购物车",
+			"name":"SHOPPING_TROLLEY",
+			"wap_url":"/pages/goods/cart",
+			"icon_class":"icon-system-cart",
+		},
+		{
+			"icon_path":"icondiy icon-system-my",
+			"selected_icon_path":"icondiy icon-system-my-selected",
+			"text":"我的",
+			"name":"MEMBER_CENTER",
+			"wap_url":"/pages/member/index",
+			"icon_class":"icon-system-my",
+		},
+	}
+	for _, db := range dbs {
+		for _, row := range diyBottomNav {
+			var count int64
+			if db.Model(&models.WeAppGlobalNavCnf{}).Where("name = ?", row["name"]).Count(&count); count > 0 {
+				continue
+			}
+			db.Model(&models.WeAppGlobalNavCnf{}).Create(&row)
+		}
+	}
+}
 func Initialization() {
 
 	fmt.Println("开始录入系统初始化配置")

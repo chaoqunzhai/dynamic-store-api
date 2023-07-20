@@ -8,6 +8,7 @@ package global
 const  (
 	LoginStr = "username,mobile,wechat"
 	RegisterStr = "username,mobile"
+
 )
 
 func LoginCnfToCh(v string) string {
