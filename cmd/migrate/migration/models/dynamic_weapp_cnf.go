@@ -66,19 +66,45 @@ func (CompanyNavCnf) TableName() string {
 	return "company_nav_cnf"
 }
 
+//	{
+//	               "title": "邀请有礼",
+//	               "imageUrl": "../../static/member/default_memberrecommend.png",
+//	               "iconType": "img",
+//	               "style": "",
+//	               "link": {
+//	                   "name": "MEMBER_RECOMMEND",
+//	                   "title": "邀请有礼",
+//	                   "wap_url": "/pages_tool/member/invite_friends",
+//	                   "parent": "MARKETING_LINK"
+//	               },
+//	               "label": {
+//	                   "control": false,
+//	                   "text": "热门",
+//	                   "textColor": "#FFFFFF",
+//	                   "bgColorStart": "#F83287",
+//	                   "bgColorEnd": "#FE3423"
+//	               },
+//	               "iconfont": {
+//	                   "value": "",
+//	                   "color": ""
+//	               },
+//	               "id": "1h34nmfisge80"
+//	           },
+//
 // 小程序个人中心,快捷导航配置
 type WeAppQuickTools struct {
-	RichGlobal
-	Name string `json:"name"  gorm:"size:30;comment:导航名称"`
-	Icon string `json:"icon" gorm:"size:30;comment:图片路径"`
-	Url  string `json:"url" gorm:"size:30;comment:跳转路径"`
+	Model
+	Name     string `json:"name"  gorm:"size:30;comment:名称"`
+	Enable   bool   `json:"-" gorm:"type:tinyint(1);default:1;comment:是否开启"`
+	ImageUrl string `json:"image_url" gorm:"size:30;comment:图片路径"`
+	WapUrl   string `gorm:"size:50;" json:"wap_url"`
 }
 
 func (WeAppQuickTools) TableName() string {
 	return "weapp_quick_tools"
 }
 
-// 大B和导航关联的配置
+// 大B和快捷导航配置关联配置
 type CompanyQuickTools struct {
 	Model
 	Cid     int `gorm:"index;comment:关联的大BID"`
