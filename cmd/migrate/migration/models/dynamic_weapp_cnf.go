@@ -5,18 +5,20 @@ package models
 
 type WeAppGlobalNavCnf struct {
 	Model
-	Enable bool  `json:"-" gorm:"type:tinyint(1);default:1;"`
-	UserEnable bool `gorm:"-"` //只是用来渲染,不做创建字段
-	IconPath string `gorm:"size:50;"`
-	SelectedIconPath  string `gorm:"size:50;"`
-	Text string `gorm:"size:50;"`
-	Name string `gorm:"size:50;"`
-	WapUrl string `gorm:"size:50;"`
-	IconClass string `gorm:"size:50;"`
+	Enable           bool   `json:"-" gorm:"type:tinyint(1);default:1;"`
+	UserEnable       bool   `gorm:"-" json:"user_enable"` //只是用来渲染,不做创建字段
+	IconPath         string `gorm:"size:50;" json:"icon_path"`
+	SelectedIconPath string `gorm:"size:50;" json:"selected_icon_path"`
+	Text             string `gorm:"size:50;" json:"text"`
+	Name             string `gorm:"size:50;" json:"name"`
+	WapUrl           string `gorm:"size:50;" json:"wap_url"`
+	IconClass        string `gorm:"size:50;" json:"icon_class"`
 }
+
 func (WeAppGlobalNavCnf) TableName() string {
 	return "weapp_global_nav_cnf"
 }
+
 // todo:大B店铺设计类型保存
 type CompanyCategory struct {
 	BigBRichGlobal
@@ -46,18 +48,18 @@ func (CompanyWeAppCnf) TableName() string {
 // 大B小程序注册登录方式
 type CompanyRegisterCnf struct {
 	BigBRichGlobal
-	Type int `json:"type" gorm:"type:tinyint(1);comment:类型"` //0:登录  1:注册
-	Value    string `json:"login" gorm:"size:12;comment:登录方式"` //username,mobile,wechat 代表用户名,手机号,微信
+	Type  int    `json:"type" gorm:"type:tinyint(1);comment:类型"` //0:登录  1:注册
+	Value string `json:"login" gorm:"size:12;comment:登录方式"`      //username,mobile,wechat 代表用户名,手机号,微信
 }
 
 func (CompanyRegisterCnf) TableName() string {
 	return "company_register_cnf"
 }
-//大B底栏菜单配置
+
+// 大B底栏菜单配置
 type CompanyNavCnf struct {
 	BigBMiniGlobal
 	GId int `gorm:"index;type:tinyint(1);comment:关联的菜单配置ID"`
-
 }
 
 func (CompanyNavCnf) TableName() string {

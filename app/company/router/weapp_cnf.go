@@ -1,4 +1,5 @@
-/**
+/*
+*
 @Author: chaoqun
 * @Date: 2023/7/20 22:31
 */
@@ -15,6 +16,7 @@ import (
 func init() {
 	routerCheckRole = append(routerCheckRole, registerWeAppCnfRouter)
 }
+
 //对大B小程序配置,那就只有超管有这个权限
 
 // registerOrdersRouter
@@ -22,9 +24,10 @@ func registerWeAppCnfRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddl
 	api := apis.WeApp{}
 	r := v1.Group("/weappp/conf").Use(authMiddleware.MiddlewareFunc()).Use(actions.PermissionSuperRole())
 	{
-		//todo:登录列表
+
+		//todo:登录列表,暂时关闭
 		r.GET("/login", api.LoginList)
-		//todo:修改登录方式
+		//todo:修改登录方式,暂时关闭
 		r.POST("/login", api.UpdateLoginList)
 
 		//todo:底栏菜单配置
@@ -37,4 +40,3 @@ func registerWeAppCnfRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddl
 	}
 
 }
-

@@ -16,17 +16,17 @@ func Marsh(data string) (m map[string]interface{}, err error) {
 
 // 获取小B注册规则配置
 func GetRegisterConf(siteId string) (val map[string]interface{}, err error) {
-	RedisCli.Do(Ctx, "select", global.SmallBLoginCnf)
+	RedisCli.Do(Ctx, "select", global.SmallBLoginCnfDB)
 	res, err := RedisCli.Get(Ctx, siteId).Result()
 
 	return Marsh(res)
 }
 
 // 通过手机号获取验证码
-func GetPhoneCode(T string,phone string) (val string, err error) {
+func GetPhoneCode(T string, phone string) (val string, err error) {
 
-	phoneKey := fmt.Sprintf("%v_%v",T,phone)
-	RedisCli.Do(Ctx, "select", global.PhoneMobileCode)
+	phoneKey := fmt.Sprintf("%v_%v", T, phone)
+	RedisCli.Do(Ctx, "select", global.PhoneMobileCodeDB)
 
 	return RedisCli.Get(Ctx, phoneKey).Result()
 
