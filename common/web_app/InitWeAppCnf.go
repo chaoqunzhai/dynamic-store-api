@@ -1,13 +1,17 @@
-package redis_db
+package web_app
 
 import (
+	"encoding/json"
 	"go-admin/cmd/migrate/migration/models"
+	"go-admin/common/redis_db"
+	"gorm.io/gorm"
 )
 
 type MakeWeAppInitConf struct {
 	BottomNav []interface{}
 	Company   models.Company
 	CId       int
+	Orm *gorm.DB
 }
 
 type StyleTheme struct {
@@ -158,7 +162,7 @@ func (m *MakeWeAppInitConf) addonExist() map[string]interface{} {
 	}
 }
 
-func (m *MakeWeAppInitConf) LoadRedis() map[string]interface{} {
+func (m *MakeWeAppInitConf) SetLoadRedis() map[string]interface{} {
 
 	diyBottomNav := m.bottomNav()
 
@@ -178,14 +182,61 @@ func (m *MakeWeAppInitConf) LoadRedis() map[string]interface{} {
 		},
 	}
 
-	SetConfigInit(m.CId, dat)
+	redis_db.SetConfigInit(m.CId, dat)
 	return dat
 
 }
-func NewMakeWeAppInitConf() *MakeWeAppInitConf {
+func (m *MakeWeAppInitConf)SearchRun()  {
+	var companyObject models.Company
+	m.Orm.Model(&models.Company{}).Where("id = ?", m.CId).Limit(1).Find(&companyObject)
+	m.Company = companyObject
+	//首次进来,那就进行一次数据的初始化
+	navList := make([]models.WeAppGlobalNavCnf, 0)
+	m.Orm.Model(&models.WeAppGlobalNavCnf{}).Where("enable = true").Find(&navList)
+
+	navListData := make([]interface{}, 0)
+	for _, row := range navList {
+		var object models.CompanyNavCnf
+		m.Orm.Model(&models.CompanyNavCnf{}).Where("c_id = ? and g_id = ?", m.CId, row.Id).Limit(1).Find(&object)
+
+		if object.Id > 0 {
+			//配置了并且是关闭的,那就返回吧
+			if !object.Enable {
+				continue
+			}
+		}
+		navLibMap := make(map[string]interface{}, 0)
+		_ = json.Unmarshal([]byte(NavDefine), &navLibMap)
+		navLibMap["iconPath"] = row.IconPath
+		navLibMap["selectedIconPath"] = row.SelectedIconPath
+		navLibMap["text"] = row.Text
+		navLibMap["iconClass"] = row.IconClass
+		navLibMap["link"] = map[string]interface{}{
+			"name":    row.Name,
+			"title":   row.Text,
+			"wap_url": row.WapUrl,
+			"parent":  "MALL_LINK",
+		}
+		navListData = append(navListData, navLibMap)
+	}
+
+	m.BottomNav = navListData
+
+	return
+}
+func NewMakeWeAppInitConf(siteId int,orm *gorm.DB) *MakeWeAppInitConf {
 	m := &MakeWeAppInitConf{
 		BottomNav: make([]interface{}, 0),
+		CId: siteId,
+		Orm: orm,
 	}
 
 	return m
+}
+//查询DB中的配置,查询到的数据写入到redis中
+func SearchAndLoadData(siteId int,orm *gorm.DB) map[string]interface{} {
+	makeCnf := NewMakeWeAppInitConf(siteId,orm)
+	makeCnf.SearchRun()
+	return makeCnf.SetLoadRedis()
+
 }

@@ -40,3 +40,17 @@ type CompanyNavCnf struct {
 func (CompanyNavCnf) TableName() string {
 	return "company_nav_cnf"
 }
+
+
+type CompanyQuickTools struct {
+	models.Model
+	Enable    bool
+	QuickId int `gorm:"index;comment:关联的导航配置"`
+	CId       int            `gorm:"index;comment:大B"`
+	CreatedAt time.Time      `json:"created_at" gorm:"comment:创建时间"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
+}
+
+func (CompanyQuickTools) TableName() string {
+	return "company_quick_tools"
+}

@@ -59,6 +59,33 @@ func InitializationWeApp()  {
 			db.Model(&models.WeAppGlobalNavCnf{}).Create(&row)
 		}
 	}
+	diyTools:=[]map[string]interface{}{
+		{
+			"name":"个人资料",
+			"image_url":"../../static/member/default_person.png",
+			"wap_url":"/pages_tool/member/info",
+		},
+		{
+			"name":"收货地址",
+			"image_url":"../../static/member/default_address.png",
+			"wap_url":"/pages_tool/member/address",
+		},
+		{
+			"name":"优惠卷",
+			"image_url":"../../static/member/default_discount.png",
+			"wap_url":"/pages_tool/member/coupon",
+		},
+	}
+
+	for _, db := range dbs {
+		for _, row := range diyTools {
+			var count int64
+			if db.Model(&models.WeAppQuickTools{}).Where("name = ?", row["name"]).Count(&count); count > 0 {
+				continue
+			}
+			db.Model(&models.WeAppQuickTools{}).Create(&row)
+		}
+	}
 }
 func Initialization() {
 

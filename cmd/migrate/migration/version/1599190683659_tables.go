@@ -83,6 +83,9 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			//小程序配置
 			new(models.WeAppGlobalNavCnf),
 			new(models.CompanyNavCnf),
+			new(models.WeAppQuickTools),
+			new(models.CompanyQuickTools),
+
 		)
 		if err != nil {
 			return err

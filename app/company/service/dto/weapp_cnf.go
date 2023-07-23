@@ -17,41 +17,8 @@ type UpdateNav struct {
 	Enable bool `json:"enable" comment:"开关"`
 }
 
-var NavLib = `{
-        "iconPath": "icondiy icon-system-home",
-        "selectedIconPath": "icondiy icon-system-home-selected",
-        "text": "主页",
-        "link": {
-          "name": "INDEX",
-          "title": "主页",
-          "wap_url": "/pages/index/index",
-          "parent": "MALL_LINK"
-        },
-        "imgWidth": "40",
-        "imgHeight": "40",
-        "iconClass": "icon-system-home",
-        "icon_type": "icon",
-        "selected_icon_type": "icon",
-        "style": {
-          "fontSize": 100,
-          "iconBgColor": [],
-          "iconBgColorDeg": 0,
-          "iconBgImg": "",
-          "bgRadius": 0,
-          "iconColor": [
-            "#000000"
-          ],
-          "iconColorDeg": 0
-        },
-        "selected_style": {
-          "fontSize": 100,
-          "iconBgColor": [],
-          "iconBgColorDeg": 0,
-          "iconBgImg": "",
-          "bgRadius": 0,
-          "iconColor": [
-            "#F4391c"
-          ],
-          "iconColorDeg": 0
-        }
-      }`
+type UpdateQuick struct {
+	QuickId  int  `json:"quick_id"` //菜单ID
+	CId    int  `json:"c_id"`   //大B
+	Enable bool `json:"enable" comment:"开关"`
+}

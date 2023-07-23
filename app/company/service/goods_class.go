@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"go-admin/global"
 
 	"github.com/go-admin-team/go-admin-core/sdk/service"
@@ -22,7 +21,7 @@ type GoodsClass struct {
 func (e *GoodsClass) GetPage(c *dto.GoodsClassGetPageReq, p *actions.DataPermission, list *[]models.GoodsClass, count *int64) error {
 	var err error
 	var data models.GoodsClass
-	fmt.Println("查询商品分类的名称", c.Name)
+	//fmt.Println("查询商品分类的名称", c.Name)
 	err = e.Orm.Model(&data).
 		Scopes(
 			cDto.MakeCondition(c.GetNeedSearch()),

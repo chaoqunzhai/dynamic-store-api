@@ -67,6 +67,7 @@ func (GoodsSales) TableName() string {
 type GoodsClass struct {
 	BigBRichGlobal
 	Name string `gorm:"index;size:8;comment:商品分类名称"`
+	Image string `gorm:"size:60;comment:商品分类图片路径"`
 }
 
 func (GoodsClass) TableName() string {

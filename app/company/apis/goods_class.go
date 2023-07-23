@@ -10,6 +10,7 @@ import (
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 	"go-admin/common/business"
 	customUser "go-admin/common/jwt/user"
+	"go-admin/common/web_app"
 
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
@@ -155,6 +156,12 @@ func (e GoodsClass) Insert(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("创建分类失败,%s", err.Error()))
 		return
 	}
+	//分类创建成功后,是需要操作Redis的,把新的数据Load进去
+	goodsTree:=web_app.MakeWeAppGoodsTree{
+		CId: userDto.CId,
+		Orm: e.Orm,
+	}
+	goodsTree.SearchRun()
 
 	e.OK(req.GetId(), "创建成功")
 }
@@ -210,6 +217,12 @@ func (e GoodsClass) Update(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("分类修改失败,%s", err.Error()))
 		return
 	}
+	//分类创建成功后,是需要操作Redis的,把新的数据Load进去
+	goodsTree:=web_app.MakeWeAppGoodsTree{
+		CId: userDto.CId,
+		Orm: e.Orm,
+	}
+	goodsTree.SearchRun()
 	e.OK(req.GetId(), "修改成功")
 }
 
@@ -234,7 +247,11 @@ func (e GoodsClass) Delete(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	p := actions.GetPermissionFromContext(c)
 	newIds := make([]int, 0)
 	for _, t := range req.Ids {
@@ -254,5 +271,11 @@ func (e GoodsClass) Delete(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("删除分类失败,%s", err.Error()))
 		return
 	}
+	//分类创建成功后,是需要操作Redis的,把新的数据Load进去
+	goodsTree:=web_app.MakeWeAppGoodsTree{
+		CId: userDto.CId,
+		Orm: e.Orm,
+	}
+	goodsTree.SearchRun()
 	e.OK(req.GetId(), "删除成功")
 }

@@ -36,7 +36,9 @@ func registerWeAppCnfRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddl
 		r.POST("/navbar", api.UpdateNavbar)
 
 		//todo:个人中心配置工具集合列表
+		r.GET("/quick", api.Quick)
 
+		r.POST("/quick", api.UpdateQuick)
 	}
 
 }

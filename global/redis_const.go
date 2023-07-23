@@ -10,11 +10,11 @@ const (
 	//小B首页
 	SmallBIndexDB //3
 	//商品分类
-	SmallBCategotyDB //4
+	SmallBCategoryDB //4
 	//购物车
 	SmallBCartDB // 5
 	//个人中心工具
-	SmallBToolsDB //6
+	SmallBMemberToolsDB //6
 	//要设置的比预期长点
 	PhoneMobileDbTimeOut = 130
 
@@ -23,4 +23,7 @@ const (
 
 	SmallBLoginKey  = "login_"
 	SmallBConfigKey = "cnf_"
+
+	SmallBMemberToolsKey = "member_"
+	SmallBCategoryKey = "category_"
 )

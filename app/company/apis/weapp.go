@@ -6,7 +6,6 @@
 package apis
 
 import (
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"go-admin/app/company/models"
@@ -15,6 +14,7 @@ import (
 	cDto "go-admin/common/dto"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/common/redis_db"
+	"go-admin/common/web_app"
 	"go-admin/global"
 	"strings"
 	"time"
@@ -170,6 +170,7 @@ func (e WeApp) UpdateLoginList(c *gin.Context) {
 func (e WeApp) Navbar(c *gin.Context) {
 	req := dto.CompanyGetPageReq{}
 	err := e.MakeContext(c).
+		Bind(&req).
 		MakeOrm().
 		Errors
 	if err != nil {
@@ -213,7 +214,6 @@ func (e WeApp) Navbar(c *gin.Context) {
 		result = append(result, row)
 	}
 
-	//如果没有特殊配置
 	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 	return
 }
@@ -255,40 +255,149 @@ func (e WeApp) UpdateNavbar(c *gin.Context) {
 		CompanyNavCnf.Enable = req.Enable
 		e.Orm.Save(&CompanyNavCnf)
 	}
-	navList := make([]models2.WeAppGlobalNavCnf, 0)
-	e.Orm.Model(&models2.WeAppGlobalNavCnf{}).Where("enable = true").Find(&navList)
 
-	navListData := make([]interface{}, 0)
+	web_app.SearchAndLoadData(req.CId,e.Orm)
+	e.OK("", "successful")
+	return
+}
+
+func (e WeApp) Quick(c *gin.Context) {
+	req := dto.CompanyGetPageReq{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	var data models.Company
+	list := make([]models.Company, 0)
+	var count int64
+	//获取所有的大B
+	err = e.Orm.Model(&data).
+		Scopes(
+			cDto.MakeCondition(req.GetNeedSearch()),
+			cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
+		).Order(global.OrderLayerKey).
+		Find(&list).Limit(-1).Offset(-1).
+		Count(&count).Error
+	navList := make([]models2.WeAppQuickTools, 0)
+	e.Orm.Model(&models2.WeAppQuickTools{}).Where("enable = true").Find(&navList)
+
+	result := make([]interface{}, 0)
+	for _, row := range list {
+
+		navCnf := make([]interface{}, 0)
+		for _, nav := range navList {
+			var object models.CompanyQuickTools
+			e.Orm.Model(&models.CompanyQuickTools{}).Where("c_id = ? and quick_id = ?", row.Id, nav.Id).Limit(1).Find(&object)
+
+			if object.Id > 0 {
+				nav.UserEnable = object.Enable
+
+			} else {
+				nav.UserEnable = row.Enable
+			}
+			navCnf = append(navCnf, nav)
+		}
+		row.NavList = navCnf
+		result = append(result, row)
+	}
+
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	return
+
+}
+
+
+func (e WeApp) UpdateQuick(c *gin.Context) {
+	req := dto.UpdateQuick{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	var companyObject models2.Company
+	e.Orm.Model(&models2.Company{}).Where("id = ?", req.CId).Limit(1).Find(&companyObject)
+	if companyObject.Id == 0 {
+		e.Error(500, nil, "不存在")
+		return
+	}
+	var count int64
+	e.Orm.Model(&models2.WeAppQuickTools{}).Where("id = ?", req.QuickId).Count(&count)
+	if count == 0 {
+		e.Error(500, nil, "不存在")
+		return
+	}
+	var CompanyNavCnf models.CompanyQuickTools
+	e.Orm.Model(&models.CompanyQuickTools{}).Where("quick_id = ? and c_id = ?", req.QuickId, req.CId).Limit(1).Find(&CompanyNavCnf)
+	if CompanyNavCnf.Id == 0 {
+		rr := models.CompanyQuickTools{
+			Enable: req.Enable,
+			CId:    req.CId,
+			QuickId:    req.QuickId,
+		}
+
+		e.Orm.Create(&rr)
+	} else {
+		CompanyNavCnf.Enable = req.Enable
+		e.Orm.Save(&CompanyNavCnf)
+	}
+	navList := make([]models2.WeAppQuickTools, 0)
+	e.Orm.Model(&models2.WeAppQuickTools{}).Where("enable = true").Find(&navList)
+
+
+	quickToolsData := make([]interface{}, 0)
 	for _, row := range navList {
-		var object models.CompanyNavCnf
-		e.Orm.Model(&models.CompanyNavCnf{}).Where("c_id = ? and g_id = ?", req.CId, row.Id).Limit(1).Find(&object)
-
+		var object models.CompanyQuickTools
+		e.Orm.Model(&models.CompanyQuickTools{}).Where("c_id = ? and quick_id = ?", req.CId, row.Id).Limit(1).Find(&object)
 		if object.Id > 0 {
 			//配置了并且是关闭的,那就返回吧
 			if !object.Enable {
 				continue
 			}
 		}
-		navLibMap := make(map[string]interface{}, 0)
-		_ = json.Unmarshal([]byte(dto.NavLib), &navLibMap)
-		navLibMap["iconPath"] = row.IconPath
-		navLibMap["selectedIconPath"] = row.SelectedIconPath
-		navLibMap["text"] = row.Text
-		navLibMap["iconClass"] = row.IconClass
-		navLibMap["link"] = map[string]interface{}{
-			"name":    row.Name,
-			"title":   row.Text,
-			"wap_url": row.WapUrl,
-			"parent":  "MALL_LINK",
+		//大部分都是一些后期需要加的配置,先保存默认
+		quickRow:=map[string]interface{}{
+			"title":row.Name,
+			"imageUrl":row.ImageUrl,
+			"iconType":"img",
+			"style":map[string]interface{}{
+				"fontSize":"60",
+				"iconBgColorDeg":0,
+				"iconBgImg":"",
+				"bgRadius":0,
+				"iconColor":[]string{	"#000000"},
+				"iconColorDeg":0,
+			},
+			"link":map[string]interface{}{
+				"name":row.Name,
+				"title":row.Name,
+				"wap_url":row.WapUrl,
+				"parent":"MALL_LINK",
+			},
+			"label":map[string]interface{}{
+				"control":false,
+				"text":"热门",
+				"textColor":"#FFFFFF",
+				"bgColorStart":"#F83287",
+				"bgColorEnd":"#FE3423",
+			},
+			"icon":"",
 		}
-		navListData = append(navListData, navLibMap)
+		quickToolsData = append(quickToolsData,quickRow)
 	}
-	makeCnf := redis_db.NewMakeWeAppInitConf()
-	makeCnf.Company = companyObject
-	makeCnf.BottomNav = navListData
-	makeCnf.CId = req.CId
+	makeCnf := web_app.NewMakeWeAppQuickTools(req.CId)
+
+	makeCnf.ToolsData = quickToolsData
 	makeCnf.LoadRedis()
 
 	e.OK("", "successful")
-	return
 }
