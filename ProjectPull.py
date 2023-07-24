@@ -1,8 +1,14 @@
 import os
 import sys
 
-BASE_PATH = "/Users/zhaichaoqun/workspace/goProjects/src/"
-WEAPP_PATH = "/Users/zhaichaoqun/workspace/wechat/"
+PROJECT = os.environ.get('PROJECT')
+
+if PROJECT == "home":
+    BASE_PATH = "/Users/zhaichaoqun/workspace/goProjects/src/"
+    WEAPP_PATH = "/Users/zhaichaoqun/workspace/vueProjects/"
+else:
+    BASE_PATH = "/Users/zhaichaoqun/workspace/goProjects/src/"
+    WEAPP_PATH = "/Users/zhaichaoqun/workspace/wechat/"
 projectList = [
     {
         "name": "universe",
