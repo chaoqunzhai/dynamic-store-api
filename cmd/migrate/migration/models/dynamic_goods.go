@@ -4,7 +4,7 @@ package models
 type Goods struct {
 	BigBRichGlobal
 	Name      string       `gorm:"size:30;comment:商品名称"`
-	Subtitle  string       `gorm:"size:20;comment:商品广告"`
+	Subtitle  string       `gorm:"size:8;comment:商品广告"`
 	Image     string       `gorm:"size:155;comment:商品图片路径"`
 	Quota     bool         `gorm:"comment:是否限购"`
 	VipSale   bool         `gorm:"comment:会员价"`
@@ -66,7 +66,7 @@ func (GoodsSales) TableName() string {
 // todo:商品分类
 type GoodsClass struct {
 	BigBRichGlobal
-	Name string `gorm:"index;size:8;comment:商品分类名称"`
+	Name  string `gorm:"index;size:8;comment:商品分类名称"`
 	Image string `gorm:"size:60;comment:商品分类图片路径"`
 }
 
