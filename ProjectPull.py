@@ -1,17 +1,18 @@
 import os
 import sys
+
 BASE_PATH = "/Users/zhaichaoqun/workspace/goProjects/src/"
 WEAPP_PATH = "/Users/zhaichaoqun/workspace/wechat/"
 projectList = [
     {
-        "name":"universe",
-        "desc":"宇宙帮",
-        "list":[
+        "name": "universe",
+        "desc": "宇宙帮",
+        "list": [
             {
-                "name":"universe-app",
-                "desc":"宇宙帮-客户端小程序项目",
-                "url":"https://github.com/chaoqunzhai/universe-app",
-                "path":os.path.join(WEAPP_PATH,"universe-app"),
+                "name": "universe-app",
+                "desc": "宇宙帮-客户端小程序项目",
+                "url": "https://github.com/chaoqunzhai/universe-app",
+                "path": os.path.join(WEAPP_PATH, "universe-app"),
             },
             {
                 "name": "universe-leader-app",
@@ -65,21 +66,75 @@ projectList = [
     },
 ]
 
+def pullUniverse():
+    for ject in projectList:
+        if ject.get("name") != "universe": continue
 
-for ject in projectList:
-    print("开始下载[",ject.get("name"),"] 描述",ject.get("desc"))
-    for row in ject.get("list"):
-        print("=================>>子项目[", row.get("name"), "] 描述",row.get("desc"))
-        os.chdir(row.get("path"))
-        gitPull = "git pull"
-        os.system(gitPull)
+        print("开始下载[", ject.get("name"), "] 描述", ject.get("desc"))
+        for row in ject.get("list"):
+            print("=================>>子项目[", row.get("name"), "] 描述", row.get("desc"))
+            os.chdir(row.get("path"))
+            gitPull = "git pull"
+            os.system(gitPull)
 
-commit = sys.argv[0]
-for ject in projectList:
-    print("开始提交[",ject.get("name"),"] 描述",ject.get("desc"))
-    for row in ject.get("list"):
-        print("=================>>子项目[", row.get("name"), "] 描述",row.get("desc"))
-        os.chdir(row.get("path"))
-        gitPush = "git add . && git commit -m " + "'" + commit + "'"
-        os.system(gitPush)
-        os.system("git push origin main")
+
+def pullDynamic():
+    for ject in projectList:
+        if ject.get("name") != "dynamic": continue
+        print("开始下载[", ject.get("name"), "] 描述", ject.get("desc"))
+        for row in ject.get("list"):
+            print("=================>>子项目[", row.get("name"), "] 描述", row.get("desc"))
+            os.chdir(row.get("path"))
+            gitPull = "git pull"
+            os.system(gitPull)
+
+
+def commitUniverse(commit):
+    for ject in projectList:
+        if ject.get("name") != "universe": continue
+        print("开始提交[", ject.get("name"), "] 描述", ject.get("desc"))
+        for row in ject.get("list"):
+            print("=================>>子项目[", row.get("name"), "] 描述", row.get("desc"))
+            os.chdir(row.get("path"))
+            gitPush = "git add . && git commit -m " + "'" + commit + "'"
+            os.system(gitPush)
+            os.system("git push origin main")
+
+
+def commitDynamic(commit):
+    for ject in projectList:
+        if ject.get("name") != "dynamic": continue
+        print("开始提交[", ject.get("name"), "] 描述", ject.get("desc"))
+        for row in ject.get("list"):
+            print("=================>>子项目[", row.get("name"), "] 描述", row.get("desc"))
+            os.chdir(row.get("path"))
+            gitPush = "git add . && git commit -m " + "'" + commit + "'"
+            os.system(gitPush)
+            os.system("git push origin main")
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 4:
+        raise "参数缺少"
+
+    projectName = sys.argv[1]
+    action = sys.argv[2]
+    commit = sys.argv[3]
+
+    if action == "pull":
+        if projectName == "all":
+            pullUniverse()
+            pullDynamic()
+        elif projectName == "u":
+            pullUniverse()
+        elif projectName == "d":
+            pullDynamic()
+    else:
+        action = "push"
+        if projectName == "all":
+            commitUniverse(commit)
+            commitDynamic(commit)
+        elif projectName == "u":
+            commitUniverse(commit)
+        elif projectName == "d":
+            commitDynamic(commit)
