@@ -2,7 +2,7 @@ import os
 import sys
 
 PROJECT = os.environ.get('PROJECT')
-
+print("PROJECT",PROJECT)
 if PROJECT == "home":
     BASE_PATH = "/Users/zhaichaoqun/workspace/goProjects/src/"
     WEAPP_PATH = "/Users/zhaichaoqun/workspace/vueProjects/"
