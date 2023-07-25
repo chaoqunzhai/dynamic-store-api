@@ -13,12 +13,12 @@ type GoodsGetPageReq struct {
 	CId            string `form:"cId"  search:"type:exact;column:c_id;table:goods" comment:"大BID"`
 	Name           string `form:"name"  search:"type:contains;column:name;table:goods" comment:"商品名称"`
 	VipSale        string `form:"vipSale"  search:"type:exact;column:vip_sale;table:goods" comment:"会员价"`
-	Class string   `form:"class"  search:"-" comment:"分类"`
+	Class          string `form:"class"  search:"-" comment:"分类"`
 	GoodsOrder
 }
 
 type GoodCountOrder struct {
-	Count int64
+	Count  int64
 	GoodId int
 }
 type GoodsOrder struct {
@@ -85,12 +85,12 @@ type GoodsInsertReq struct {
 */
 type Specs struct {
 	Id        int                    `form:"id" `
-	Key       interface{}                   `form:"key"`
+	Key       interface{}            `form:"key"`
 	Name      string                 `form:"name" comment:"规格名称"`
 	Price     interface{}            `form:"price" comment:"售价"`
 	Layer     int                    `form:"layer"`
 	Enable    bool                   `form:"enable"`
-	Code      string  `form:"code"`
+	Code      string                 `form:"code"`
 	Original  interface{}            `form:"original" comment:"原价"`
 	Inventory interface{}            `form:"inventory" comment:"库存"`
 	Unit      string                 `form:"unit" comment:"单位"`
@@ -151,6 +151,7 @@ type GoodsUpdateReq struct {
 	Class     string `form:"class"  comment:"分类"`
 	Specs     string `form:"specs"  comment:"规格"`
 	FileClear int    `form:"file_clear" comment:"是否清空照片"`
+	BaseFiles string `form:"base_files" comment:"原有图片"`
 	common.ControlBy
 }
 

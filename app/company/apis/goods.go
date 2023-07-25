@@ -16,6 +16,7 @@ import (
 	"go-admin/common/actions"
 	"go-admin/common/business"
 	customUser "go-admin/common/jwt/user"
+	utils2 "go-admin/common/utils"
 	"go-admin/global"
 	"gorm.io/gorm"
 	"os"
@@ -532,14 +533,14 @@ func (e Goods) Update(c *gin.Context) {
 		req.Id, userDto.CId).Limit(1).Find(&goodsObject)
 	fileList := make([]string, 0)
 
+	baseFileList := make([]string, 0)
 	if goodsObject.Image != "" {
-		fileList = strings.Split(goodsObject.Image, ",")
+		baseFileList = strings.Split(goodsObject.Image, ",")
 	}
 	if req.FileClear == 1 {
 		for _, image := range fileList {
 			_ = os.Remove(business.GetGoodPathName(userDto.CId) + image)
 		}
-
 		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?",
 			req.Id, userDto.CId).Updates(map[string]interface{}{
 			"image": "",
@@ -555,7 +556,18 @@ func (e Goods) Update(c *gin.Context) {
 			return
 		}
 		files := fileForm.File["files"]
-
+		//处理下路径
+		if req.BaseFiles != "" {
+			for _, baseFile := range strings.Split(req.BaseFiles, ",") {
+				ll := strings.Split(baseFile, "/")
+				fileList = append(fileList, ll[len(ll)-1])
+			}
+		}
+		//前段更新了,进行文件内容的比对 baseFileList 和 fileList 比对，如果不一样是需要进行删除的
+		diffList := utils2.Difference(baseFileList, fileList)
+		for _, image := range diffList {
+			_ = os.Remove(business.GetGoodPathName(userDto.CId) + image)
+		}
 		for _, file := range files {
 			// 逐个存
 			guid := strings.Split(uuid.New().String(), "-")
@@ -564,12 +576,13 @@ func (e Goods) Update(c *gin.Context) {
 			if saveErr := c.SaveUploadedFile(file, saveFilePath); saveErr == nil {
 				//只保留文件名称,防止透露服务器地址
 				fileList = append(fileList, filePath)
-			}
 
-			e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?", req.Id, userDto.CId).Updates(map[string]interface{}{
-				"image": strings.Join(fileList, ","),
-			})
+			}
 		}
+		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?", req.Id, userDto.CId).Updates(map[string]interface{}{
+			"image": strings.Join(fileList, ","),
+		})
+
 	}
 
 	e.OK(req.GetId(), "修改成功")

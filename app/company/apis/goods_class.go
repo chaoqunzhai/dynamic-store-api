@@ -157,7 +157,7 @@ func (e GoodsClass) Insert(c *gin.Context) {
 		return
 	}
 	//分类创建成功后,是需要操作Redis的,把新的数据Load进去
-	goodsTree:=web_app.MakeWeAppGoodsTree{
+	goodsTree := web_app.MakeWeAppGoodsTree{
 		CId: userDto.CId,
 		Orm: e.Orm,
 	}
@@ -218,7 +218,7 @@ func (e GoodsClass) Update(c *gin.Context) {
 		return
 	}
 	//分类创建成功后,是需要操作Redis的,把新的数据Load进去
-	goodsTree:=web_app.MakeWeAppGoodsTree{
+	goodsTree := web_app.MakeWeAppGoodsTree{
 		CId: userDto.CId,
 		Orm: e.Orm,
 	}
@@ -272,7 +272,7 @@ func (e GoodsClass) Delete(c *gin.Context) {
 		return
 	}
 	//分类创建成功后,是需要操作Redis的,把新的数据Load进去
-	goodsTree:=web_app.MakeWeAppGoodsTree{
+	goodsTree := web_app.MakeWeAppGoodsTree{
 		CId: userDto.CId,
 		Orm: e.Orm,
 	}
