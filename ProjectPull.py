@@ -45,7 +45,7 @@ projectList = [
         "desc": "动创云订货软件",
         "list": [
             {
-                "name": "universe-app",
+                "name": "dynamic-app",
                 "desc": "动创云-客户端订货项目",
                 "url": "https://github.com/chaoqunzhai/dynamic-app",
                 "path": os.path.join(WEAPP_PATH, "dynamic-app"),

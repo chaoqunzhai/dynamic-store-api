@@ -239,7 +239,7 @@ func (e Goods) GetPage(c *gin.Context) {
 				}
 				return business.GetGoodPathName(row.CId) + strings.Split(row.Image, ",")[0]
 			}(),
-			"sold":       row.Sold,
+			"sale":       row.Sale,
 			"created_at": row.CreatedAt,
 			//规格的价格从小到大
 			"money": row.Money,
