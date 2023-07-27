@@ -64,7 +64,6 @@ func (e Orders) GetPage(c *gin.Context) {
 	//查询是否进行了分表
 	orderTableName := business.GetTableName(userDto.CId, e.Orm)
 
-
 	p := actions.GetPermissionFromContext(c)
 	list := make([]models.Orders, 0)
 	var count int64
@@ -77,10 +76,10 @@ func (e Orders) GetPage(c *gin.Context) {
 	//统一查询商家shop_id
 	cacheShopId := make([]int, 0)
 	//统一查询订单关联的规格
-	cacheOrderId:=make([]int,0)
+	cacheOrderId := make([]int, 0)
 	for _, row := range list {
 		cacheShopId = append(cacheShopId, row.ShopId)
-		cacheOrderId = append(cacheOrderId,row.Id)
+		cacheOrderId = append(cacheOrderId, row.Id)
 	}
 	cacheShopId = utils.RemoveRepeatInt(cacheShopId)
 
@@ -102,36 +101,34 @@ func (e Orders) GetPage(c *gin.Context) {
 	//是一个分表的名称
 	specsTable := business.OrderSpecsTableName(orderTableName)
 
-	e.Orm.Table(specsTable).Select("order_id,goods_name,number").Where("order_id in ?",cacheOrderId).Find(&orderSpecs)
+	e.Orm.Table(specsTable).Select("order_id,goods_name,number").Where("order_id in ?", cacheOrderId).Find(&orderSpecs)
 
 	//缓存订单关联的商品
 	orderSpecsMap := make(map[int]map[string]dto.OrderSpecsRow, 0)
 	for _, k := range orderSpecs {
-		rows,ok:=orderSpecsMap[k.OrderId]
-		fmt.Println("ok",ok,rows)
+		rows, ok := orderSpecsMap[k.OrderId]
+		fmt.Println("ok", ok, rows)
 		if !ok {
-			specsMap:=make(map[string]dto.OrderSpecsRow,0)
+			specsMap := make(map[string]dto.OrderSpecsRow, 0)
 
 			specsMap[k.GoodsName] = dto.OrderSpecsRow{
 				Number: k.Number,
 			}
 			orderSpecsMap[k.OrderId] = specsMap
 
-		}else {
+		} else {
 			parentDat := rows[k.GoodsName]
-			parentDat.Number +=k.Number
+			parentDat.Number += k.Number
 			rows[k.GoodsName] = parentDat
-
 
 			orderSpecsMap[k.OrderId] = rows
 		}
 	}
 
-
 	result := make([]map[string]interface{}, 0)
 	for _, row := range list {
 
-		specsDataMap :=orderSpecsMap[row.Id]
+		specsDataMap := orderSpecsMap[row.Id]
 		r := map[string]interface{}{
 			"id":   fmt.Sprintf("%v", row.Id),
 			"shop": cacheShopMap[row.ShopId],
@@ -147,7 +144,7 @@ func (e Orders) GetPage(c *gin.Context) {
 			"status":         global.OrderStatus(row.Status),
 			"pay_status":     global.GetOrderPayStatus(row.PayStatus),
 			"created_at":     row.CreatedAt,
-			"goods":specsDataMap,
+			"goods":          specsDataMap,
 		}
 		result = append(result, r)
 	}
@@ -332,7 +329,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 				Unit:      spec.Unit,
 				SpecsName: goodsSpecs.Name,
 				GoodsName: spec.GoodsName,
-				GoodsId: spec.GoodsId,
+				GoodsId:   spec.GoodsId,
 			}
 			var goodsObject models2.Goods
 			e.Orm.Model(&models2.Goods{}).Where("id = ? and c_id = ? and enable = ?", spec.GoodsId, userDto.CId, true).Limit(1).Find(&goodsObject)
@@ -354,7 +351,6 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	e.OK("", "successful")
 	return
 }
-
 
 func (e Orders) ToolsOrders(c *gin.Context) {
 	req := dto.ToolsOrdersUpdateReq{}
@@ -467,10 +463,9 @@ func (e Orders) OrderCycleList(c *gin.Context) {
 	return
 }
 
-
 func (e Orders) ShopOrderList(c *gin.Context) {
 	s := service.Orders{}
-	req:=dto.OrdersShopGetPageReq{}
+	req := dto.OrdersShopGetPageReq{}
 	err := e.MakeContext(c).
 		Bind(&req).
 		MakeOrm().
@@ -481,9 +476,9 @@ func (e Orders) ShopOrderList(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	shopId:=c.Param("id")
-	fmt.Println("商家ID",shopId)
-	result:=make([]map[string]interface{},0)
+	shopId := c.Param("id")
+	fmt.Println("商家ID", shopId)
+	result := make([]map[string]interface{}, 0)
 	var count int64
 	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 	return
@@ -698,7 +693,7 @@ func (e Orders) Insert(c *gin.Context) {
 	//收益总价
 	var orderMoney float64
 	//售出量
-	var goodsSoldNumber int
+	var goodsSaleNumber int
 	//规格下单
 	//下单后:1.对商品减库存 2.对商品增加出售量
 	for _, goods := range ofSpecsUseList {
@@ -713,7 +708,7 @@ func (e Orders) Insert(c *gin.Context) {
 			"inventory": nowIN,
 		})
 		orderMoney += goods.Money
-		goodsSoldNumber += goods.Number
+		goodsSaleNumber += goods.Number
 
 		e.Orm.Table(specsTable).Create(&models.OrderSpecs{
 			OrderId:   data.Id,
@@ -725,16 +720,16 @@ func (e Orders) Insert(c *gin.Context) {
 		})
 	}
 	inventory := goodsObject.Inventory
-	soldNumber := goodsObject.Sold
+	SaleNumber := goodsObject.Sale
 	//销量+,库存-
-	soldNumber += goodsSoldNumber
-	inventory -= goodsSoldNumber
+	SaleNumber += goodsSaleNumber
+	inventory -= goodsSaleNumber
 	e.Orm.Model(&models.Goods{}).Where("c_id = ? and id = ?", userDto.CId, goodsObject.Id).Updates(map[string]interface{}{
-		"sold":      soldNumber,
+		"sale":      SaleNumber,
 		"inventory": inventory,
 	})
 	e.Orm.Model(&models.Orders{}).Table(orderTableName).Where("id = ?", data.Id).Updates(map[string]interface{}{
-		"number": goodsSoldNumber,
+		"number": goodsSaleNumber,
 		"money":  orderMoney,
 	})
 	//订单创建成功了,同时做一个周期列表数据得保存
@@ -744,10 +739,10 @@ func (e Orders) Insert(c *gin.Context) {
 		userDto.CId, orderCreateName, timeConfResult.RandUid).Limit(1).Find(&cycleObject)
 
 	//周期订单数据更新更新
-	SoldMoney := cycleObject.SoldMoney
-	SoldMoney += orderMoney
+	SaleMoney := cycleObject.SaleMoney
+	SaleMoney += orderMoney
 	GoodsAll := cycleObject.GoodsAll
-	GoodsAll += goodsSoldNumber
+	GoodsAll += goodsSaleNumber
 
 	//如果没有这个周期,那就进行创建
 	if cycleObject.Id == 0 {
@@ -759,13 +754,13 @@ func (e Orders) Insert(c *gin.Context) {
 			EndTime:   timeConfResult.EndTime,
 			CycleTime: timeConfResult.CycleTime,
 			CycleStr:  timeConfResult.CycleStr,
-			SoldMoney: SoldMoney,
+			SaleMoney: SaleMoney,
 			GoodsAll:  GoodsAll,
 		}
 		e.Orm.Create(&cycleMode)
 	} else {
 		e.Orm.Model(&models.OrderCycleList{}).Where("id = ?", cycleObject.Id).Updates(map[string]interface{}{
-			"sold_money": SoldMoney,
+			"sale_money": SaleMoney,
 			"goods_all":  GoodsAll,
 		})
 	}

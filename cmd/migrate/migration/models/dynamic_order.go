@@ -39,7 +39,7 @@ type Orders struct {
 	Money     float64   `gorm:"comment:下单费用"`
 	Number    int       `gorm:"comment:下单数量"`
 	Pay       int       `gorm:"type:tinyint(1);default:0;index;comment:支付方式,0:线上,1:线下"`
-	PayStatus int        `gorm:"type:tinyint(1);default:0;index;comment:支付状态,0:未付款,1:已付款 2:线下付款，3:下线付款已收款"`
+	PayStatus int       `gorm:"type:tinyint(1);default:0;index;comment:支付状态,0:未付款,1:已付款 2:线下付款，3:下线付款已收款"`
 	CycleTime time.Time `json:"cycle_time" gorm:"type:date;comment:下单时计算的配送时间"`
 	CycleStr  string    `json:"cycle_str" gorm:"index;size:14;comment:配送周期文案"`
 	CycleUid  string    `gorm:"type:varchar(4);index;comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
@@ -52,8 +52,8 @@ func (Orders) TableName() string {
 // todo:订单规格
 type OrderSpecs struct {
 	Model
-	GoodsName string       `json:"goods_name" gorm:"size:35;comment:商品名称+广告"`
-	GoodsId   int       `gorm:"index;comment:商品ID"`
+	GoodsName string         `json:"goods_name" gorm:"size:35;comment:商品名称+广告"`
+	GoodsId   int            `gorm:"index;comment:商品ID"`
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
 	OrderId   int            `gorm:"index;comment:关联订单ID"`
@@ -95,7 +95,7 @@ type OrderCycleList struct {
 	EndTime   time.Time `gorm:"comment:记录此周期,下单周期结束时间"`
 	CycleTime time.Time `json:"cycle_time" gorm:"type:date;comment:计算的配送时间"`
 	CycleStr  string    `json:"cycle_str" gorm:"index;size:14;comment:配送时间的文案"`
-	SoldMoney float64   `gorm:"comment:销售总额"`
+	SaleMoney float64   `gorm:"comment:销售总额"`
 	GoodsAll  int       `gorm:"comment:商品总数"`
 	ShopCount int       `gorm:"type:tinyint(3);comment:客户总数"`
 }
