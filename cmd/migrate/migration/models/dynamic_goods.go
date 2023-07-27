@@ -5,7 +5,7 @@ type Goods struct {
 	BigBRichGlobal
 	Name      string       `gorm:"size:30;comment:商品名称"`
 	Subtitle  string       `gorm:"size:8;comment:商品广告"`
-	Image     string       `gorm:"size:155;comment:商品图片路径"`
+	Image     string       `gorm:"size:100;comment:商品图片路径"`
 	Quota     bool         `gorm:"comment:是否限购"`
 	VipSale   bool         `gorm:"comment:会员价"`
 	Inventory int          `gorm:"comment:库存"`
@@ -31,6 +31,7 @@ type GoodsSpecs struct {
 	Unit      string  `gorm:"size:8;comment:单位"`
 	Limit     int     `gorm:"comment:起售量"`
 	Code      string  `gorm:"size:30;comment:条形码"`
+	Image     string  `gorm:"size:100;comment:商品图片路径"`
 }
 
 func (GoodsSpecs) TableName() string {

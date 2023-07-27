@@ -203,7 +203,7 @@ func (e Goods) GetPage(c *gin.Context) {
 	case "off_sale":
 		//下架的
 		req.Enable = "0"
-	case "sold_out":
+	case "sale_out":
 		//售罄 ?
 	}
 	p := actions.GetPermissionFromContext(c)

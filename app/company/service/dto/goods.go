@@ -91,6 +91,7 @@ type Specs struct {
 	Layer     int                    `form:"layer"`
 	Enable    bool                   `form:"enable"`
 	Code      string                 `form:"code"`
+	Image     string                 `form:"image"`
 	Original  interface{}            `form:"original" comment:"原价"`
 	Inventory interface{}            `form:"inventory" comment:"库存"`
 	Unit      string                 `form:"unit" comment:"单位"`

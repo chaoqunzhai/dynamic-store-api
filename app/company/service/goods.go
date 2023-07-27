@@ -145,6 +145,7 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
 				Layer:   row.Layer,
 				GoodsId: data.Id,
 				Code:    row.Code,
+				Image:   row.Image,
 				Price:   price,
 				Original: func() float64 {
 
