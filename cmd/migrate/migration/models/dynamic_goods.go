@@ -10,6 +10,8 @@ type Goods struct {
 	VipSale   bool         `gorm:"comment:会员价"`
 	Inventory int          `gorm:"comment:库存"`
 	Sale      int          `json:"sale" gorm:"comment:销量"`
+	Recommend bool         `json:"recommend" gorm:"comment:是否推荐"`
+	SpecName  string       `gorm:"size:15;comment:规格命名,例如是:颜色,重量"`
 	Money     string       `gorm:"size:12;comment:价格区间显示"`
 	Tag       []GoodsTag   `gorm:"many2many:goods_mark_tag;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:tag_id;"`
 	Class     []GoodsClass `gorm:"many2many:goods_mark_class;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:class_id;"`
