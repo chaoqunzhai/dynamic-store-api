@@ -40,8 +40,8 @@ const (
 	CouponAppointShop  = 2
 	CouponAppointClass = 3
 
-	CouponTypeFd   = 1
-	CouponDiscount = 2
+	CouponTypeFd   = 0
+	CouponDiscount = 1
 
 	//未付款
 	OrderPayStatusDefault = 0

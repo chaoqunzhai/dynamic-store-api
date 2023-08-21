@@ -79,6 +79,7 @@ func (e *CompanyCoupon) Insert(cid int, c *dto.CompanyCouponInsertReq) error {
 			startTime = strings.Replace(startTime, "T", " ", -1)
 			startTime = strings.Replace(startTime, "Z", "", -1)
 			t, _ := time.Parse("2006-01-02 15:04:05", startTime)
+			//fmt.Println("startTime", startTime, "t", t)
 			data.StartTime = sql.NullTime{
 				Time:  t,
 				Valid: true,
@@ -88,6 +89,7 @@ func (e *CompanyCoupon) Insert(cid int, c *dto.CompanyCouponInsertReq) error {
 			endTime = strings.Replace(endTime, "T", " ", -1)
 			endTime = strings.Replace(endTime, "Z", "", -1)
 			t, _ := time.Parse("2006-01-02 15:04:05", endTime)
+			//fmt.Println("endTime", endTime, "t", t)
 			data.EndTime = sql.NullTime{
 				Time:  t,
 				Valid: true,
@@ -114,23 +116,30 @@ func (e *CompanyCoupon) Update(c *dto.CompanyCouponUpdateReq, p *actions.DataPer
 	if c.ExpireType == 1 {
 		startTime := c.BetweenTime[0]
 		endTime := c.BetweenTime[1]
+		//fmt.Println("BetweenTime", c.BetweenTime)
 		if startTime != "" {
 			startTime = strings.Replace(startTime, "T", " ", -1)
-			endTime = strings.Replace(endTime, "Z", "", -1)
+			startTime = strings.Replace(startTime, "Z", "", -1)
 			t, _ := time.Parse("2006-01-02 15:04:05", startTime)
 			data.StartTime = sql.NullTime{
-				Time: t,
+				Time:  t,
+				Valid: true,
 			}
+			fmt.Println("startTime", startTime, "t", t)
 		}
 		if endTime != "" {
 			endTime = strings.Replace(endTime, "T", " ", -1)
 			endTime = strings.Replace(endTime, "Z", "", -1)
 			t, _ := time.Parse("2006-01-02 15:04:05", endTime)
+			fmt.Println("endTime", endTime, "t", t)
 			data.EndTime = sql.NullTime{
-				Time: t,
+				Time:  t,
+				Valid: true,
 			}
 		}
+		data.ExpireDay = 7
 	}
+	fmt.Println("data!!!!", data.StartTime, data.EndTime)
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("CompanyCouponService Save error:%s \r\n", err)
