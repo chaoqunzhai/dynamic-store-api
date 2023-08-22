@@ -61,21 +61,36 @@ func (Driver) TableName() string {
 	return "driver"
 }
 
-
-// todo:大B物流配送方式
+// todo:大B物流配送方式,负责一些特殊的自定义配置
 type CompanyExpress struct {
 	BigBRichGlobal
-	Type int `gorm:"type:tinyint(1);default:1;comment:模板类型"`
+	Type int `gorm:"type:tinyint(1);default:2;comment:物流类型"`
 }
 
 func (CompanyExpress) TableName() string {
 	return "company_express"
 }
 
+// 门店
+type CompanyExpressStore struct {
+	BigBRichGlobal
+	Name    string `gorm:"size:20;comment:门店名称"`
+	Address string `json:"address" gorm:"size:120;comment:大B门店地址位置"`
+	Start   string `gorm:"size:12;comment:营业开始时间"`
+	End     string `gorm:"size:12;comment:营业结束时间"`
+}
+
+func (CompanyExpressStore) TableName() string {
+	return "company_express_store"
+}
+
+// todo: 运费配置
 type CompanyFreight struct {
 	BigBRichGlobal
-	QuotaMoney   float64 `gorm:"comment:达到多少钱可以免运费"`
-	FreightMoney float64 `gorm:"comment:没有达到Quota,运费多少钱"`
+	Type         int `gorm:"type:tinyint(1);default:2;comment:物流类型"`
+	QuotaMoney   int `gorm:"comment:达到多少钱可以免运费"`
+	StartMoney   int `gorm:"comment:最低的起送金额"`
+	FreightMoney int `gorm:"comment:没有达到QuotaMoney,运费多少钱"`
 }
 
 func (CompanyFreight) TableName() string {

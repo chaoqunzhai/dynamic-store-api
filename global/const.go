@@ -90,11 +90,23 @@ const (
 	ScanShopRecharge = 2 //用户充值
 	ScanShopUse      = 3 //用户消费
 	ScanShopRefund   = 4 //用户退款
-	ExpressSelf      = 1 //门店自提
+	ExpressStore     = 1 //门店自提
 	ExpressLocal     = 2 //同城配送
 	ExpressLogistics = 3 //物流配送
+
 )
 
+func GetExpressCn(v int) string {
+	switch v {
+	case ExpressStore:
+		return "门店自提"
+	case ExpressLocal:
+		return "同城配送"
+	case ExpressLogistics:
+		return "物流配送"
+	}
+	return "暂无"
+}
 func GetOrderPayStatus(v int) string {
 	switch v {
 	case OrderPayStatusDefault:

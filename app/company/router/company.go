@@ -29,6 +29,11 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		//大B商城模板配置
 		r.POST("/category", api.SaveCategory)
 		r.GET("/category", api.Category)
+
+		//大B物流信息
+		r.GET("/express", api.ExpressList)
+		//大B的配送,费用配置,
+		r.POST("/express/cnf", api.ExpressCnf)
 	}
 	//大B用户管理
 	{

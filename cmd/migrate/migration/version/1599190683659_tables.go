@@ -49,7 +49,12 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.ExtendUser),
 			new(models.Company),
 			new(models.CompanyCategory),
+
+			//物流方式
+			new(models.CompanyExpress),
+			//运费配置
 			new(models.CompanyFreight),
+			new(models.CompanyExpressStore),
 			new(models.CompanyRole),
 			//大B配置
 			new(models.CompanyRegisterCnf),
@@ -85,7 +90,6 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.CompanyNavCnf),
 			new(models.WeAppQuickTools),
 			new(models.CompanyQuickTools),
-
 		)
 		if err != nil {
 			return err
