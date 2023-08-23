@@ -21,6 +21,8 @@ type CompanyCoupon struct {
 	Threshold  float64      `json:"threshold" gorm:"comment:满多少钱可以用"`
 	ExpireType int          `json:"expire_type" gorm:"type:tinyint(1);default:0;comment:到期类型,0:领取后生效，1:指定日期生效"`
 	ExpireDay  int          `json:"expire_day" gorm:"type:tinyint(1);default:1;comment:过期多少天"`
+	First      bool         `json:"first"`
+	Automatic  bool         `json:"automatic"`
 	StartTime  sql.NullTime `json:"start_time" gorm:"comment:开始使用时间"`
 	EndTime    sql.NullTime `json:"end_time" gorm:"comment:截止使用时间"`
 	Inventory  int          `json:"inventory" gorm:"comment:库存"`

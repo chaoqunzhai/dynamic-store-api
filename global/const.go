@@ -1,5 +1,10 @@
 package global
 
+import (
+	"fmt"
+	"github.com/ser163/WordBot/generate"
+)
+
 const (
 	StdOut   = "./logs/info.log"
 	StdError = "./logs/error.log"
@@ -94,19 +99,12 @@ const (
 	ExpressLocal     = 2 //同城配送
 	ExpressLogistics = 3 //物流配送
 
+	CouponReceiveType = "wait" //待领取
+	ReceiveCoupon1    = 1      //下单时领取的
+	ReceiveCoupon2    = 2      //客户自己手动领取的
+	ReceiveCoupon3    = 3      //活动领取的
 )
 
-func GetExpressCn(v int) string {
-	switch v {
-	case ExpressStore:
-		return "门店自提"
-	case ExpressLocal:
-		return "同城配送"
-	case ExpressLogistics:
-		return "物流配送"
-	}
-	return "暂无"
-}
 func GetOrderPayStatus(v int) string {
 	switch v {
 	case OrderPayStatusDefault:
@@ -173,6 +171,17 @@ func GetScanStr(v int) string {
 	return "未知"
 
 }
+func GetCouponTypeEn(v int) string {
+	switch v {
+	case CouponTypeFd:
+		return "reduction"
+	case CouponDiscount:
+		return "discount"
+	}
+
+	return "未知"
+
+}
 func GetCouponType(v int) string {
 	switch v {
 	case CouponTypeFd:
@@ -197,6 +206,17 @@ func GetPayTypeStr(v int) string {
 	}
 	return "未支付"
 }
+func GetExpressCn(v int) string {
+	switch v {
+	case ExpressStore:
+		return "门店自提"
+	case ExpressLocal:
+		return "同城配送"
+	case ExpressLogistics:
+		return "物流配送"
+	}
+	return "暂无"
+}
 func GetCouponStr(v int) string {
 
 	switch v {
@@ -209,4 +229,14 @@ func GetCouponStr(v int) string {
 
 	}
 	return "未知"
+}
+func RandomName(phone string) string {
+	startValue := ""
+	if len(phone) > 4 {
+		startValue = phone[len(phone)-4:]
+	} else {
+		startValue = "小白"
+	}
+	value, _ := generate.GenRandomWorld(3, "mix")
+	return fmt.Sprintf("%v_%v", startValue, value.Word)
 }

@@ -54,6 +54,7 @@ func (CompanyRole) TableName() string {
 	return "company_role"
 }
 
+// todo:优惠卷
 type Coupon struct {
 	BigBRichGlobal
 	Name       string    `json:"name" gorm:"size:50;comment:优惠卷名称"`
@@ -62,6 +63,8 @@ type Coupon struct {
 	Reduce     float64   `gorm:"comment:优惠卷金额"`
 	Discount   float64   `gorm:"comment:折扣率"`
 	Threshold  float64   `gorm:"comment:满多少钱可以用"`
+	First      bool      `gorm:"comment:是否首推,首推的时候下单才会自动领取"`
+	Automatic  bool      `gorm:"comment:下单自动领取"`
 	ExpireType int       `gorm:"type:tinyint(1);default:0;comment:到期类型,0:领取后生效，1:指定日期生效"`
 	ExpireDay  int       `gorm:"type:tinyint(1);default:1;comment:过期多少天"`
 	StartTime  time.Time `gorm:"comment:开始使用时间"`
@@ -72,4 +75,19 @@ type Coupon struct {
 
 func (Coupon) TableName() string {
 	return "company_coupon"
+}
+
+// todo:优惠卷领取记录
+type ReceiveCouponLog struct {
+	BigBRichUserGlobal
+	CouponId   int     `json:"coupon_id" gorm:"index;comment:优惠卷ID"`
+	CouponType int     `json:"coupon_type" gorm:"type:tinyint(1);default:0;comment:优惠卷类型,0:满减,1:折扣"`
+	Type       int     `json:"type" gorm:"type:tinyint(1);default:2;comment:类型,1:订单领取 2:自己领取 3:活动领取"`
+	Reduce     float64 `gorm:"comment:优惠卷金额"`
+	Discount   float64 `gorm:"comment:折扣率"`
+	Threshold  float64 `gorm:"comment:满多少钱可以用"`
+}
+
+func (ReceiveCouponLog) TableName() string {
+	return "user_receive_coupon_log"
 }

@@ -130,7 +130,7 @@ func (e CompanyCoupon) Get(c *gin.Context) {
 		object.Start = object.StartTime.Time.Format("2006-01-02")
 	}
 	if object.EndTime.Valid {
-		object.End = object.StartTime.Time.Format("2006-01-02")
+		object.End = object.EndTime.Time.Format("2006-01-02")
 	}
 
 	e.OK(object, "查询成功")

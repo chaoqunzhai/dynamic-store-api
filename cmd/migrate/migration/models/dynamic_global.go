@@ -30,6 +30,11 @@ type BigBRichGlobal struct {
 	RichGlobal
 	CId int `gorm:"index;comment:大BID"`
 }
+type BigBRichUserGlobal struct {
+	RichGlobal
+	CId    int `gorm:"index;comment:大BID"`
+	UserId int `gorm:"index;comment:管理员ID"`
+}
 
 // todo: 大B下小B的简约公共函数
 type BigBMiniGlobal struct {

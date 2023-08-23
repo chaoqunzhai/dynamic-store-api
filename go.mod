@@ -24,6 +24,7 @@ require (
 	github.com/prometheus/client_golang v1.15.1
 	github.com/qiniu/go-sdk/v7 v7.15.0
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/ser163/WordBot v1.0.0
 	github.com/shirou/gopsutil/v3 v3.23.4
 	github.com/shopspring/decimal v0.0.0-20200227202807-02e2044944cc
 	github.com/spf13/cobra v1.7.0

@@ -139,7 +139,7 @@ func (e *CompanyCoupon) Update(c *dto.CompanyCouponUpdateReq, p *actions.DataPer
 		}
 		data.ExpireDay = 7
 	}
-	fmt.Println("data!!!!", data.StartTime, data.EndTime)
+
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("CompanyCouponService Save error:%s \r\n", err)

@@ -58,6 +58,8 @@ type CompanyCouponInsertReq struct {
 	Type        int      `json:"type" comment:"类型"`
 	Range       int      `json:"range" comment:"使用范围"`
 	ExpireDay   int      `json:"expire_day"`
+	First       bool     `json:"first"`
+	Automatic   bool     `json:"automatic"`
 	ExpireType  int      `json:"expire_type"`
 	Threshold   float64  `json:"threshold"`
 	Discount    float64  `json:"discount"`
@@ -83,6 +85,8 @@ func (s *CompanyCouponInsertReq) Generate(model *models.CompanyCoupon) {
 	model.Discount = s.Discount
 	model.Threshold = s.Threshold
 	model.ExpireType = s.ExpireType
+	model.First = s.First
+	model.Automatic = s.Automatic
 	model.ExpireDay = s.ExpireDay
 	model.Inventory = s.Inventory
 	model.Limit = s.Limit
@@ -104,6 +108,8 @@ type CompanyCouponUpdateReq struct {
 	ExpireType  int      `json:"expire_type"`
 	Threshold   float64  `json:"threshold"`
 	Discount    float64  `json:"discount"`
+	First       bool     `json:"first"`
+	Automatic   bool     `json:"automatic"`
 	Reduce      float64  `json:"reduce"`
 	BetweenTime []string `json:"betweenTime"`
 	Inventory   int      `json:"inventory" comment:"库存"`
@@ -127,7 +133,8 @@ func (s *CompanyCouponUpdateReq) Generate(model *models.CompanyCoupon) {
 	model.Threshold = s.Threshold
 	model.ExpireType = s.ExpireType
 	model.ExpireDay = s.ExpireDay
-
+	model.First = s.First
+	model.Automatic = s.Automatic
 	model.Inventory = s.Inventory
 	model.Limit = s.Limit
 }
