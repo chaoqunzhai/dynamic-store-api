@@ -241,6 +241,7 @@ func (e Goods) GetPage(c *gin.Context) {
 			}(),
 			"sale":       row.Sale,
 			"created_at": row.CreatedAt,
+			"spec_name":row.SpecName,
 			//规格的价格从小到大
 			"money": row.Money,
 		}
@@ -306,6 +307,8 @@ func (e Goods) Get(c *gin.Context) {
 		"quota":    object.Quota,
 		"enable":   object.Enable,
 		"layer":    object.Layer,
+		"spec_name":object.SpecName,
+		"recommend":object.Recommend,
 		"image": func() []string {
 			i := make([]string, 0)
 			if object.Image == "" {
@@ -452,12 +455,14 @@ func (e Goods) Insert(c *gin.Context) {
 		return
 	}
 	files := fileForm.File["files"]
+
+	fileList := make([]string, 0)
 	for _, file := range files {
 		// 逐个存
 		guid := strings.Split(uuid.New().String(), "-")
 		filePath := guid[0] + utils.GetExt(file.Filename)
 		saveFilePath := goodsImagePath + filePath
-		fileList := make([]string, 0)
+
 		if saveErr := c.SaveUploadedFile(file, saveFilePath); saveErr == nil {
 			//只保留文件名称,防止透露服务器地址
 			fileList = append(fileList, filePath)

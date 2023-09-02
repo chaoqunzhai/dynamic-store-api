@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go-admin/common/business"
 	"go-admin/common/utils"
 	"go-admin/global"
+	"os"
 	"strconv"
 	"strings"
 
@@ -115,112 +117,116 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
 	}
 	err = e.Orm.Create(&data).Error
 
-	specsList := make([]dto.Specs, 0)
-	marshErr := json.Unmarshal([]byte(c.Specs), &specsList)
-	//商品库存值,所以得规格相加
-	inventory := 0
-	//规格 + vip价格设置存在
-	moneyList := make([]float64, 0)
-	if len(specsList) > 0 && marshErr == nil {
-		for _, row := range specsList {
-			stock := func() int {
+	if c.Specs != ""{
+		specsList := make([]dto.Specs, 0)
+		marshErr := json.Unmarshal([]byte(c.Specs), &specsList)
+		//商品库存值,所以得规格相加
+		inventory := 0
+		//规格 + vip价格设置存在
+		moneyList := make([]float64, 0)
+		if len(specsList) > 0 && marshErr == nil {
+			for _, row := range specsList {
+				stock := func() int {
 
-				n, _ := strconv.Atoi(fmt.Sprintf("%v", row.Inventory))
-				return n
-			}()
-			price := func() float64 {
+					n, _ := strconv.Atoi(fmt.Sprintf("%v", row.Inventory))
+					return n
+				}()
+				price := func() float64 {
 
-				if row.Price == "" {
-					return 0
-				}
-				n, _ := strconv.ParseFloat(fmt.Sprintf("%v", row.Price), 64)
-				return n
-			}()
-			moneyList = append(moneyList, price)
-			inventory += stock
-			specsModels := models.GoodsSpecs{
-				Name:    row.Name,
-				CId:     cid,
-				Enable:  row.Enable,
-				Layer:   row.Layer,
-				GoodsId: data.Id,
-				Code:    row.Code,
-				Image:   row.Image,
-				Price:   price,
-				Original: func() float64 {
-
-					if row.Original == "" {
+					if row.Price == "" {
 						return 0
 					}
-					n, _ := strconv.ParseFloat(fmt.Sprintf("%v", row.Original), 64)
+					n, _ := strconv.ParseFloat(fmt.Sprintf("%v", row.Price), 64)
 					return n
-				}(),
-				Inventory: stock,
-				Unit:      row.Unit,
-				Limit: func() int {
-
-					n, _ := strconv.Atoi(fmt.Sprintf("%v", row.Limit))
-					return n
-				}(),
-			}
-			specsModels.CreateBy = data.CreateBy
-			e.Orm.Create(&specsModels)
-			var vipEnable bool
-			for k, v := range row.Vip {
-				if k == "enable" {
-					vipEnable = v.(bool)
-				}
-				if !strings.HasPrefix(k, "vip_") {
-					continue
-				}
-				gradeInt := strings.Replace(k, "vip_", "", -1)
-
-				var gradeRow models.GradeVip
-				e.Orm.Model(&models.GradeVip{}).Where("enable = ? and id = ? and c_id = ?", true, gradeInt, cid).Limit(1).Find(&gradeRow)
-				if gradeRow.Id == 0 {
-					continue
-				}
-				vipRow := models.GoodsVip{
+				}()
+				moneyList = append(moneyList, price)
+				inventory += stock
+				specsModels := models.GoodsSpecs{
+					Name:    row.Name,
 					CId:     cid,
+					Enable:  row.Enable,
+					Layer:   row.Layer,
 					GoodsId: data.Id,
-					SpecsId: specsModels.Id,
-					Enable:  vipEnable,
-					Layer:   0,
-					GradeId: gradeRow.Id,
-					CustomPrice: func() float64 {
-						if v == "" {
+					Code:    row.Code,
+					Image:   row.Image,
+					Price:   price,
+					Original: func() float64 {
+
+						if row.Original == "" {
 							return 0
 						}
-						n, _ := strconv.ParseFloat(fmt.Sprintf("%v", v), 64)
+						n, _ := strconv.ParseFloat(fmt.Sprintf("%v", row.Original), 64)
+						return n
+					}(),
+					Inventory: stock,
+					Unit:      row.Unit,
+					Limit: func() int {
+
+						n, _ := strconv.Atoi(fmt.Sprintf("%v", row.Limit))
 						return n
 					}(),
 				}
-				vipRow.CreateBy = data.CreateBy
-				e.Orm.Create(&vipRow)
-			}
-		}
-	} else {
-		fmt.Println("规格数据序列化失败", marshErr)
-	}
+				specsModels.CreateBy = data.CreateBy
+				e.Orm.Create(&specsModels)
+				var vipEnable bool
+				for k, v := range row.Vip {
+					if k == "enable" {
+						vipEnable = v.(bool)
+					}
+					if !strings.HasPrefix(k, "vip_") {
+						continue
+					}
+					gradeInt := strings.Replace(k, "vip_", "", -1)
 
+					var gradeRow models.GradeVip
+					e.Orm.Model(&models.GradeVip{}).Where("enable = ? and id = ? and c_id = ?", true, gradeInt, cid).Limit(1).Find(&gradeRow)
+					if gradeRow.Id == 0 {
+						continue
+					}
+					vipRow := models.GoodsVip{
+						CId:     cid,
+						GoodsId: data.Id,
+						SpecsId: specsModels.Id,
+						Enable:  vipEnable,
+						Layer:   0,
+						GradeId: gradeRow.Id,
+						CustomPrice: func() float64 {
+							if v == "" {
+								return 0
+							}
+							n, _ := strconv.ParseFloat(fmt.Sprintf("%v", v), 64)
+							return n
+						}(),
+					}
+					vipRow.CreateBy = data.CreateBy
+					e.Orm.Create(&vipRow)
+				}
+			}
+		} else {
+			fmt.Println("规格数据序列化失败", marshErr)
+		}
+		e.Orm.Model(&data).Where("id = ?", data.Id).Updates(map[string]interface{}{
+			"inventory": inventory,
+			"money": func() string {
+				if len(moneyList) > 0 {
+					if len(moneyList) == 1 {
+						return fmt.Sprintf("¥%v", moneyList[0])
+					}
+					min, max := utils.MinAndMax(moneyList)
+					if min == max {
+						return fmt.Sprintf("%v",min)
+					}
+					return fmt.Sprintf("¥%v-%v", min, max)
+				}
+				return ""
+			}(),
+		})
+	}
 	if err != nil {
 		e.Log.Errorf("GoodsService Insert error:%s \r\n", err)
 		return 0, err
 	}
 
-	e.Orm.Model(&data).Where("id = ?", data.Id).Updates(map[string]interface{}{
-		"inventory": inventory,
-		"money": func() string {
-			if len(moneyList) > 0 {
-				if len(moneyList) == 1 {
-					return fmt.Sprintf("¥%v", moneyList[0])
-				}
-				min, max := utils.MinAndMax(moneyList)
-				return fmt.Sprintf("¥%v-%v", min, max)
-			}
-			return ""
-		}(),
-	})
 	return data.Id, err
 }
 
@@ -376,6 +382,9 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 				return fmt.Sprintf("¥%v", moneyList[0])
 			}
 			min, max := utils.MinAndMax(moneyList)
+			if min == max {
+				return fmt.Sprintf("%v",min)
+			}
 			return fmt.Sprintf("¥%v-%v", min, max)
 		}
 
@@ -395,28 +404,29 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 
 // Remove 删除Goods
 func (e *Goods) Remove(d *dto.GoodsDeleteReq, p *actions.DataPermission) error {
-	var data models.Goods
 
-	db := e.Orm.Model(&data).
-		Scopes(
-			actions.Permission(data.TableName(), p),
-		).Delete(&data, d.GetId())
-	if err := db.Error; err != nil {
-		e.Log.Errorf("删除失败,", err)
-		return err
-	}
-
-	if db.RowsAffected == 0 {
-		return errors.New("无权删除该数据")
-	}
 	removeIds := make([]string, 0)
 	for _, t := range d.Ids {
 		removeIds = append(removeIds, fmt.Sprintf("%v", t))
+
+		var goods models.Goods
+
+		//删除商品
+		e.Orm.Model(&goods).Where("id = ?",t).Delete(&models.Goods{})
+
+		//如果有图片,删除图片
+		for _,image :=range strings.Split(goods.Image,","){
+			_ = os.Remove(business.GetGoodPathName(goods.CId) + image)
+		}
+
 	}
 	//商品删除了关联的一些配置都删除
 	e.Orm.Model(&models.GoodsVip{}).Where("goods_id in ?", removeIds).Unscoped().Delete(&models.GoodsVip{})
 	e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id in ?", removeIds).Unscoped().Delete(&models.GoodsSpecs{})
 	e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_tag` WHERE `goods_mark_tag`.`goods_id` IN (%v)", strings.Join(removeIds, ",")))
 	e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_class` WHERE `goods_mark_class`.`goods_id` IN (%v)", strings.Join(removeIds, ",")))
+
+
+
 	return nil
 }

@@ -48,8 +48,10 @@ sql_mode=ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_EN
 
 ```
 ## 构建上传
-sudo CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o dynamic  && scp -P 26622 -i ~/.ssh/id_rsa -r dynamic root@152.136.36.253:/home/chaoqun
-
+测试服务器
+sudo CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o dynamic-store  && scp -P 26622 -i ~/.ssh/id_rsa -r dynamic-store root@152.136.36.253:/home/chaoqun
+线上服务器
+sudo CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o dynamic-store  && scp -P 26622 -i ~/.ssh/id_rsa -r dynamic-store root@159.75.177.143:/home/chaoqun
 ### 项目关联
 1. 获取本机公钥地址:/Users/zhaichaoqun/.ssh/id_rsa.pub
 2. 在github settings中SSH keys / Add new
@@ -57,7 +59,7 @@ sudo CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o dynamic  && scp -P 26622 
 4.  ssh git@github.com 测试是否可访问
 ### Systemd 方式启动:
 ```shell
-cat > /etc/systemd/system/api.service << "END"
+cat > /etc/systemd/system/dc-api.service << "END"
 [Unit]
 Description=DyApi
 After=network.target
@@ -65,9 +67,9 @@ After=network.target
 [Service]
 Type=simple
 User=root
-WorkingDirectory=/usr/local/dynamic/
+WorkingDirectory=/data/dynamic-store
 ## 注:根据可执行文件路径修改
-ExecStart=/usr/local/dynamic/api server -c config/settings.yml
+ExecStart=/data/dynamic-store/dynamic-store server -c config/settings.yml
 
 # auto restart
 StartLimitIntervalSec=0

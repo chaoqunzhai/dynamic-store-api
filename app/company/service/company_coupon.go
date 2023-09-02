@@ -113,7 +113,7 @@ func (e *CompanyCoupon) Update(c *dto.CompanyCouponUpdateReq, p *actions.DataPer
 		actions.Permission(data.TableName(), p),
 	).First(&data, c.GetId())
 	c.Generate(&data)
-	if c.ExpireType == 1 {
+	if c.ExpireType == 0 {
 		startTime := c.BetweenTime[0]
 		endTime := c.BetweenTime[1]
 		//fmt.Println("BetweenTime", c.BetweenTime)
@@ -137,7 +137,7 @@ func (e *CompanyCoupon) Update(c *dto.CompanyCouponUpdateReq, p *actions.DataPer
 				Valid: true,
 			}
 		}
-		data.ExpireDay = 7
+		data.ExpireDay = 0
 	}
 
 	db := e.Orm.Save(&data)

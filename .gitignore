@@ -22,4 +22,4 @@ image
 # go sum
 go.sum
 config/settings.deva.yml
-dynamic
+dynamic-store

@@ -86,9 +86,10 @@ func (e CompanyCoupon) GetPage(c *gin.Context) {
 				return ""
 			}(),
 			"threshold":   row.Threshold,
-			"receive_num": 0,
+			"receive_num": row.ReceiveNum,
 			"layer":       row.Layer,
 			"created_at":  row.CreatedAt,
+			"updated_at":row.UpdatedAt,
 		}
 		result = append(result, r)
 	}

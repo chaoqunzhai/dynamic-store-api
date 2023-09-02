@@ -103,3 +103,19 @@ type OrderCycleList struct {
 func (OrderCycleList) TableName() string {
 	return "order_cycle_list"
 }
+
+//todo:订单和Redis的映射表
+type OrderToRedisMap struct {
+	Model
+	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
+	CId int `json:"c_id" gorm:"index;comment:大BID"`
+	UserId int `json:"user_id" gorm:"index;comment:用户ID"`
+	OrderName string `json:"order_name" gorm:"size:100;comment:订单名称"`
+	RedisKey string `json:"redis_key" gorm:"size:20;comment:redis的订单ID"`
+	Status int `json:"status" gorm:"index;comment:订单状态"`
+	
+}
+func (OrderToRedisMap) TableName() string {
+	return "order_to_redis_map"
+}

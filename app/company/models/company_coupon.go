@@ -12,7 +12,7 @@ type CompanyCoupon struct {
 	Enable bool   `json:"enable" gorm:"type:tinyint(1);comment:开关"`
 	Desc   string `json:"desc" gorm:"type:varchar(35);comment:描述信息"`
 	CId    int    `json:"-" gorm:"type:bigint(20);comment:大BID"`
-
+	ReceiveNum int `json:"receive_num"`
 	Name       string       `json:"name" gorm:"size:50;comment:优惠卷名称"`
 	Type       int          `json:"type" gorm:"type:tinyint(1);default:0;comment:类型,0:满减,1:折扣"`
 	Range      int          `json:"range" gorm:"type:tinyint(1);default:2;comment:使用范围,0:指定商品,1:指定分类 2:全场"`

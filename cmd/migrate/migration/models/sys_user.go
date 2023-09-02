@@ -8,6 +8,7 @@ import (
 type SysUser struct {
 	UserId         int    `gorm:"primaryKey;autoIncrement;comment:编码"  json:"userId"`
 	Layer          int    `gorm:"size:1;default:1;index;comment:排序"` //排序
+	NickName       string `json:"nickname" gorm:"type:varchar(20);comment:昵称"`
 	Username       string `json:"username" gorm:"type:varchar(20);comment:用户名"`
 	Password       string `json:"-" gorm:"type:varchar(66);comment:密码"`
 	Phone          string `json:"phone" gorm:"type:varchar(11);comment:手机号"`

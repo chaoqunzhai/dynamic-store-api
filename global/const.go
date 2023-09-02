@@ -41,10 +41,12 @@ const (
 	UserNumberReduce = "reduce" //减少
 	UserNumberSet    = "set"    //设置
 
-	CouponGlobal       = 1
-	CouponAppointShop  = 2
-	CouponAppointClass = 3
-
+	CouponAppointClass = 1
+	CouponGlobal       = 2
+	CouponAppointShop  = 3
+	CouponUserStateDefault = 0 //可以领取
+	CouponUserStateHash = 1 //已领取
+	CouponUserStateOver = 2 //已抢光
 	CouponTypeFd   = 0
 	CouponDiscount = 1
 

@@ -68,7 +68,7 @@ func (m *MakeWeAppInitConf) defaultImg() map[string]string {
 // 返回copyright
 func (m *MakeWeAppInitConf) copyright() map[string]interface{} {
 	return map[string]interface{}{
-		"icp":                    "备案号: 222222",
+		"icp":                    "备案号: 陕ICP备2022002980号-1",
 		"gov_record":             "",
 		"gov_url":                "",
 		"market_supervision_url": "",

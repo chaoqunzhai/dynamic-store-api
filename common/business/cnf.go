@@ -22,7 +22,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 	var cnf []models.CompanyQuotaCnf
 	var sql string
 	if key != "" {
-		sql = fmt.Sprintf("c_id = %v and enable = %v and key = %v", cid, true, key)
+		sql = fmt.Sprintf("c_id = %v and enable = %v and `key` = '%v'", cid, true, key)
 	} else {
 		sql = fmt.Sprintf("c_id = %v and enable = %v", cid, true)
 	}

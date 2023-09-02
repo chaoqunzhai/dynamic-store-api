@@ -80,7 +80,7 @@ func (WeAppQuickTools) TableName() string {
 	return "weapp_quick_tools"
 }
 
-// 大B和快捷导航配置关联配置
+//TODO:我得页面中 常用工具 导航配置关联配置
 type CompanyQuickTools struct {
 	BigBMiniGlobal
 	QuickId int `gorm:"index;comment:关联的导航配置"`
@@ -99,6 +99,20 @@ type CompanyMemberIndex struct {
 }
 
 func (CompanyMemberIndex) TableName() string {
+	return "company_member_index"
+}
+
+//TODO:配置一些扩展的客户端一些
+type WeAppExtendCnf struct {
+	BigBRichGlobal
+	DetailAddCart string `json:"detail_add_cart" gorm:"size:10;comment:加入购物车按钮的重命名"` //详情页面中,加入购物车的文案
+	DetailAddCartColor string `json:"detail_add_cart_color" gorm:"size:8;comment:加入购物车按钮的颜色"` //详情页面中,加入购物车的颜色
+	DetailAddCartShow bool `json:"detail_add_cart_show" gorm:"default:1"`
+	DetailByNow string `json:"detail_by_now" gorm:"size:10;comment:立即购买的重命名"` //详情页面中,立即购买的文案
+	DetailByNowColor string `json:"detail_by_now_color" gorm:"size:8;comment:立即购买颜色"` //详情页面中,立即购买的文案
+	DetailByNowShow bool `json:"detail_by_now_show" gorm:"default:1"`
+}
+func (WeAppExtendCnf) TableName() string {
 	return "company_member_index"
 }
 

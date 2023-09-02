@@ -52,6 +52,7 @@ type GoodsInsertReq struct {
 	Layer    int    `form:"layer"  comment:"排序"`
 	Enable   bool   `form:"enable"  comment:"开关"`
 	Desc     string `form:"desc"  comment:"商品详情"`
+	SpecName string  `form:"spec_name"  comment:"规格名称"`
 	Name     string `form:"name"  comment:"商品名称" binding:"required"`
 	Subtitle string `form:"subtitle"  comment:"副标题"`
 	Quota    int    `form:"quota"  comment:"活动类型"`
@@ -60,6 +61,7 @@ type GoodsInsertReq struct {
 	Tag      string `form:"tag" comment:"标签"`
 	Class    string `form:"class"  comment:"分类"`
 	Specs    string `form:"specs"  comment:"分类"`
+	Recommend bool `form:"recommend" json:"recommend"`
 	common.ControlBy
 }
 
@@ -127,11 +129,12 @@ func (s *GoodsInsertReq) Generate(model *models.Goods) {
 	model.Layer = s.Layer
 	model.Enable = s.Enable
 	model.Desc = s.Desc
-
+	model.SpecName = s.SpecName
 	model.Name = s.Name
 	model.Subtitle = s.Subtitle
 	model.Quota = s.Quota
 	model.VipSale = s.VipSale
+	model.Recommend = s.Recommend
 }
 
 func (s *GoodsInsertReq) GetId() interface{} {
@@ -151,8 +154,10 @@ type GoodsUpdateReq struct {
 	Tag       string `form:"tag" comment:"标签"`
 	Class     string `form:"class"  comment:"分类"`
 	Specs     string `form:"specs"  comment:"规格"`
+	SpecName string  `form:"spec_name"  comment:"规格名称"`
 	FileClear int    `form:"file_clear" comment:"是否清空照片"`
 	BaseFiles string `form:"base_files" comment:"原有图片"`
+	Recommend bool `form:"recommend" json:"recommend"`
 	common.ControlBy
 }
 
@@ -168,7 +173,8 @@ func (s *GoodsUpdateReq) Generate(model *models.Goods) {
 	model.Subtitle = s.Subtitle
 	model.Quota = s.Quota
 	model.VipSale = s.VipSale
-
+	model.SpecName = s.SpecName
+	model.Recommend = s.Recommend
 }
 
 func (s *GoodsUpdateReq) GetId() interface{} {

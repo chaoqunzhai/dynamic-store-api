@@ -4,7 +4,7 @@ const (
 	//手机号验证DB
 	PhoneMobileCodeDB = iota //0
 	SmallBLoginCnfDB         //1
-	//小B小程序颜色插件菜单配置
+	//小B小程序颜色插件,底部菜单配置
 	SmallBConfigDB // 2
 
 	//小B首页

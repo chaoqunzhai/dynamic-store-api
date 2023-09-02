@@ -21,7 +21,7 @@ func ImageShow(c *gin.Context) {
 	file, readError := ioutil.ReadFile(path)
 	if readError != nil {
 		c.JSON(200, gin.H{
-			"message": "ok",
+			"message": "暂无图片",
 		})
 		return
 	}

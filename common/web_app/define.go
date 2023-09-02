@@ -114,6 +114,16 @@ var DIY_VIEW_MEMBER_INDEX = `
 		"openBottomNav": true,
 		"textImgPosLink": "center",
 		"mpCollect": false,
+        "popWindow":{
+			"imageUrl": "",
+			"count": -1,
+			"show": 0,
+			"link": {
+				"name": ""
+			},
+			"imgWidth": "",
+			"imgHeight": ""
+		},
 		"template": {
 			"textColor": "#303133",
 			"componentAngle": "round",

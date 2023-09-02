@@ -69,6 +69,7 @@ type Coupon struct {
 	ExpireDay  int       `gorm:"type:tinyint(1);default:1;comment:过期多少天"`
 	StartTime  time.Time `gorm:"comment:开始使用时间"`
 	EndTime    time.Time `gorm:"comment:截止使用时间"`
+	ReceiveNum int `json:"receive_num" gorm:"comment:已经领取个数"`
 	Inventory  int       `gorm:"comment:库存"`
 	Limit      int       `gorm:"comment:每个人限领次数"`
 }
@@ -83,11 +84,21 @@ type ReceiveCouponLog struct {
 	CouponId   int     `json:"coupon_id" gorm:"index;comment:优惠卷ID"`
 	CouponType int     `json:"coupon_type" gorm:"type:tinyint(1);default:0;comment:优惠卷类型,0:满减,1:折扣"`
 	Type       int     `json:"type" gorm:"type:tinyint(1);default:2;comment:类型,1:订单领取 2:自己领取 3:活动领取"`
-	Reduce     float64 `gorm:"comment:优惠卷金额"`
-	Discount   float64 `gorm:"comment:折扣率"`
-	Threshold  float64 `gorm:"comment:满多少钱可以用"`
+	Status int `json:"status" gorm:"index;default:1;comment:优惠卷状态,1:未使用 2:已使用 3:已过期"`
 }
 
 func (ReceiveCouponLog) TableName() string {
 	return "user_receive_coupon_log"
+}
+
+//todo:用户余额
+type UserAmountStore struct {
+	BigBRichUserGlobal
+	Balance float64 `json:"balance"  gorm:"comment:余额"`
+	Credit float64 `json:"credit" gorm:"comment:授信分"`
+	Point int `json:"point" gorm:"comment:积分"`
+	GradeId int `json:"grade_id" gorm:"comment:VIP等级"`
+}
+func (UserAmountStore) TableName() string {
+	return "user_amount_store"
 }

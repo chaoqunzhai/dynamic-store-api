@@ -5,5 +5,5 @@ import (
 )
 
 func GoAdmin(c *gin.Context) {
-	c.String(200, "dcy")
+	c.String(200, "dcy-store.api")
 }

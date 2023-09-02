@@ -26,7 +26,7 @@ func (Company) TableName() string {
 type GradeVip struct {
 	BigBRichGlobal
 	Name     string  `gorm:"size:30;comment:等级名称"`
-	Weight   int     `gorm:"type:tinyint(1);default:1;comment:权重,从小到大"`
+	Weight   int     `gorm:"type:tinyint(1);default:1;comment:等级,从小到大"`
 	Discount float32 `gorm:"comment:折扣"`
 	Upgrade  int     `gorm:"default:0;comment:升级条件,满多少金额,自动升级Weight+1"`
 }

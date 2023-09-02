@@ -3,7 +3,7 @@ package models
 // todo:商品信息
 type Goods struct {
 	BigBRichGlobal
-	Name      string       `gorm:"size:30;comment:商品名称"`
+	Name      string       `gorm:"size:50;comment:商品名称"`
 	Subtitle  string       `gorm:"size:8;comment:商品广告"`
 	Image     string       `gorm:"size:100;comment:商品图片路径"`
 	Quota     bool         `gorm:"comment:是否限购"`
@@ -11,7 +11,7 @@ type Goods struct {
 	Inventory int          `gorm:"comment:库存"`
 	Sale      int          `json:"sale" gorm:"comment:销量"`
 	Recommend bool         `json:"recommend" gorm:"comment:是否推荐"`
-	SpecName  string       `gorm:"size:15;comment:规格命名,例如是:颜色,重量"`
+	SpecName  string       `gorm:"size:8;comment:规格命名,例如是:颜色,重量,系列"`
 	Money     string       `gorm:"size:12;comment:价格区间显示"`
 	Tag       []GoodsTag   `gorm:"many2many:goods_mark_tag;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:tag_id;"`
 	Class     []GoodsClass `gorm:"many2many:goods_mark_class;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:class_id;"`
