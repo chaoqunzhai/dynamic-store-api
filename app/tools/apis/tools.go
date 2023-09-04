@@ -22,11 +22,12 @@ type Tools struct {
 func (e Tools)ShowImage (c *gin.Context) {
 	mode := c.Param("t")
 	imageName := c.Param("name")
-
 	pathFile := path.Join(config.ExtConfig.ImageBase,mode,imageName)
 
 	file, _ := ioutil.ReadFile(pathFile)
 	_, _ = c.Writer.WriteString(string(file))
+
+
 }
 
 func (e Tools)SaveImage(c *gin.Context)  {

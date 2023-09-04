@@ -11,7 +11,7 @@ require (
 	github.com/casbin/casbin/v2 v2.69.1
 	github.com/gin-gonic/gin v1.9.0
 	github.com/go-admin-team/go-admin-core v1.5.1
-	github.com/go-admin-team/go-admin-core/sdk v1.5.1
+	github.com/go-admin-team/go-admin-core/sdk v1.3.12
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
 	github.com/go-playground/validator/v10 v10.11.2
@@ -58,6 +58,7 @@ require (
 	github.com/chanxuehong/wechat v0.0.0-20201110083048-0180211b69fd // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20221115062448-fe3a3abad311 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fatih/color v1.7.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
@@ -66,17 +67,16 @@ require (
 	github.com/git-chglog/git-chglog v0.0.0-20190611050339-63a4e637021f // indirect
 	github.com/go-admin-team/go-admin-core/plugins/logger/zap v0.0.0-20210610020726-2db73adb505d // indirect
 	github.com/go-admin-team/gorm-adapter/v3 v3.2.1-0.20210902112335-4148cb356a24 // indirect
-	github.com/go-admin-team/redis-watcher/v2 v2.0.0-20221121052608-058cebff72c2 // indirect
 	github.com/go-admin-team/redisqueue/v2 v2.0.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
 	github.com/go-openapi/spec v0.20.4 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
+	github.com/go-redis/redis/v7 v7.4.0 // indirect
 	github.com/go-redis/redis/v9 v9.0.0-rc.1 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
 	github.com/goccy/go-json v0.10.0 // indirect
-	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
@@ -118,6 +118,7 @@ require (
 	github.com/prometheus/client_model v0.3.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
+	github.com/robinjoseph08/redisqueue/v2 v2.1.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/shamsher31/goimgext v1.0.0 // indirect
 	github.com/shoenig/go-m1cpu v0.1.5 // indirect
