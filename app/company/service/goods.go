@@ -117,6 +117,12 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
 	}
 	err = e.Orm.Create(&data).Error
 
+	if c.Desc != ""{
+		e.Orm.Create(&models.GoodsDesc{
+			GoodsId: data.Id,
+			Desc: c.Desc,
+		})
+	}
 	if c.Specs != ""{
 		specsList := make([]dto.Specs, 0)
 		marshErr := json.Unmarshal([]byte(c.Specs), &specsList)
@@ -212,11 +218,11 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
 					if len(moneyList) == 1 {
 						return fmt.Sprintf("¥%v", moneyList[0])
 					}
-					min, max := utils.MinAndMax(moneyList)
-					if min == max {
-						return fmt.Sprintf("%v",min)
+					min1, max2 := utils.MinAndMax(moneyList)
+					if min1 == max2 {
+						return fmt.Sprintf("%v",min1)
 					}
-					return fmt.Sprintf("¥%v-%v", min, max)
+					return fmt.Sprintf("¥%v-%v", min1, max2)
 				}
 				return ""
 			}(),
@@ -396,8 +402,20 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 		e.Log.Errorf("GoodsService Save error:%s \r\n", err)
 		return err
 	}
-	if db.RowsAffected == 0 {
-		return errors.New("无权更新该数据")
+	if c.Desc != ""{
+		var GoodsDesc models.GoodsDesc
+		var count int64
+		e.Orm.Model(&GoodsDesc).Where("goods_id = ?",data.Id).Count(&count)
+		if count == 0 {
+			e.Orm.Create(&models.GoodsDesc{
+				GoodsId: data.Id,
+				Desc: c.Desc,
+			})
+		}else {
+			e.Orm.Model(&GoodsDesc).Where("goods_id = ?",data.Id).Updates(map[string]interface{}{
+				"desc":c.Desc,
+			})
+		}
 	}
 	return nil
 }

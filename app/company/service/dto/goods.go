@@ -128,7 +128,7 @@ func (s *GoodsInsertReq) Generate(model *models.Goods) {
 	model.CreateBy = s.CreateBy // 添加这而，需要记录是被谁创建的
 	model.Layer = s.Layer
 	model.Enable = s.Enable
-	model.Desc = s.Desc
+
 	model.SpecName = s.SpecName
 	model.Name = s.Name
 	model.Subtitle = s.Subtitle
@@ -168,7 +168,7 @@ func (s *GoodsUpdateReq) Generate(model *models.Goods) {
 	model.UpdateBy = s.UpdateBy // 添加这而，需要记录是被谁更新的
 	model.Layer = s.Layer
 	model.Enable = s.Enable
-	model.Desc = s.Desc
+
 	model.Name = s.Name
 	model.Subtitle = s.Subtitle
 	model.Quota = s.Quota

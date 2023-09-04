@@ -285,10 +285,12 @@ func (e Goods) Get(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("获取Goods失败，\r\n失败信息 %s", err.Error()))
 		return
 	}
+	var GoodsDesc models.GoodsDesc
+	e.Orm.Model(&GoodsDesc).Where("goods_id = ?",req.Id).Limit(1).Find(&GoodsDesc)
 	goodsMap := map[string]interface{}{
 		"name":     object.Name,
 		"subtitle": object.Subtitle,
-		"desc":     object.Desc,
+		"desc":     GoodsDesc.Desc,
 		"tag": func() []int {
 			t := make([]int, 0)
 			for _, r := range object.Tag {

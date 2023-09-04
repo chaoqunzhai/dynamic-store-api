@@ -15,13 +15,21 @@ type Goods struct {
 	Money     string       `gorm:"size:12;comment:价格区间显示"`
 	Tag       []GoodsTag   `gorm:"many2many:goods_mark_tag;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:tag_id;"`
 	Class     []GoodsClass `gorm:"many2many:goods_mark_class;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:class_id;"`
-	Desc      string       `gorm:"size:200;comment:商品详情"` //描述
 }
 
 func (Goods) TableName() string {
 	return "goods"
 }
 
+//todo:商品详情
+type GoodsDesc struct {
+	Model
+	GoodsId int
+	Desc      string //描述内容
+}
+func (GoodsDesc) TableName() string {
+	return "goods_desc"
+}
 // todo: 规格名称
 type GoodsSpecs struct {
 	BigBMiniGlobal

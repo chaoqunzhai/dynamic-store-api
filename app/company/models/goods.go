@@ -9,7 +9,6 @@ type Goods struct {
 
 	Layer     int          `json:"layer" gorm:"type:tinyint(4);comment:排序"`
 	Enable    bool         `json:"enable" gorm:"type:tinyint(1);comment:开关"`
-	Desc      string       `json:"desc" gorm:"type:varchar(200);comment:商品详情"`
 	CId       int          `json:"cId" gorm:"type:bigint(20);comment:大BID"`
 	Name      string       `json:"name" gorm:"type:varchar(35);comment:商品名称"`
 	SpecName  string       `gorm:"size:8;comment:规格命名,例如是:颜色,重量,系列"`
@@ -38,4 +37,13 @@ func (e *Goods) Generate() models.ActiveRecord {
 
 func (e *Goods) GetId() interface{} {
 	return e.Id
+}
+
+type GoodsDesc struct {
+	models.Model
+	GoodsId int
+	Desc      string //描述内容
+}
+func (GoodsDesc) TableName() string {
+	return "goods_desc"
 }
