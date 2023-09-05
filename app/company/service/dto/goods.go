@@ -21,6 +21,9 @@ type GoodCountOrder struct {
 	Count  int64
 	GoodId int
 }
+type GoodsRemove struct {
+	Image string `json:"image"`
+}
 type GoodsOrder struct {
 	Id        string `form:"idOrder"  search:"type:order;column:id;table:goods"`
 	CreateBy  string `form:"createByOrder"  search:"type:order;column:create_by;table:goods"`
@@ -51,7 +54,6 @@ type GoodsInsertReq struct {
 	Id       int    `form:"-" comment:"主键编码"` // 主键编码
 	Layer    int    `form:"layer"  comment:"排序"`
 	Enable   bool   `form:"enable"  comment:"开关"`
-	Desc     string `form:"desc"  comment:"商品详情"`
 	SpecName string  `form:"spec_name"  comment:"规格名称"`
 	Name     string `form:"name"  comment:"商品名称" binding:"required"`
 	Subtitle string `form:"subtitle"  comment:"副标题"`
@@ -62,6 +64,8 @@ type GoodsInsertReq struct {
 	Class    string `form:"class"  comment:"分类"`
 	Specs    string `form:"specs"  comment:"分类"`
 	Recommend bool `form:"recommend" json:"recommend"`
+	Content string `form:"content"  json:"content"`
+
 	common.ControlBy
 }
 
@@ -89,7 +93,8 @@ type Specs struct {
 	Id        int                    `form:"id" `
 	Key       interface{}            `form:"key"`
 	Name      string                 `form:"name" comment:"规格名称"`
-	Price     interface{}            `form:"price" comment:"售价"`
+	Market interface{} `form:"market"  json:"market" comment:"市场价"`
+	Price     interface{}            `form:"price" comment:"销售价"`
 	Layer     int                    `form:"layer"`
 	Enable    bool                   `form:"enable"`
 	Code      string                 `form:"code"`
@@ -98,6 +103,7 @@ type Specs struct {
 	Inventory interface{}            `form:"inventory" comment:"库存"`
 	Unit      string                 `form:"unit" comment:"单位"`
 	Limit     interface{}            `form:"limit" comment:"起售量"`
+	Max interface{}            `form:"limit" comment:"起售量"`
 	Vip       map[string]interface{} `form:"vip" comment:"vip价格设置"`
 }
 
@@ -145,7 +151,6 @@ type GoodsUpdateReq struct {
 	Id        int    `uri:"id" comment:""` //
 	Layer     int    `form:"layer"  comment:"排序"`
 	Enable    bool   `form:"enable"  comment:"开关"`
-	Desc      string `form:"desc"  comment:"商品详情"`
 	Name      string `form:"name"  comment:"商品名称" binding:"required"`
 	Subtitle  string `form:"subtitle"  comment:"副标题"`
 	Quota     int    `form:"quota"  comment:"活动类型"`
@@ -158,6 +163,7 @@ type GoodsUpdateReq struct {
 	FileClear int    `form:"file_clear" comment:"是否清空照片"`
 	BaseFiles string `form:"base_files" comment:"原有图片"`
 	Recommend bool `form:"recommend" json:"recommend"`
+	Content string `form:"content"  json:"content"  comment:"商品详情"`
 	common.ControlBy
 }
 

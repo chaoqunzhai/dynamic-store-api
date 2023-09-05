@@ -101,7 +101,7 @@ func (e *Shop) Update(c *dto.ShopUpdateReq, p *actions.DataPermission) error {
 	).First(&data, c.GetId())
 	c.Generate(&data)
 	//清除关联
-	e.Orm.Model(&data).Association("Tag").Clear()
+	_=e.Orm.Model(&data).Association("Tag").Clear()
 	if len(c.Tags) > 0 {
 		//增加关联
 		fmt.Println("标签", c.Tags)

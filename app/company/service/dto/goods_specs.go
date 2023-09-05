@@ -50,6 +50,7 @@ type GoodsSpecsInsertReq struct {
 	Inventory int     `json:"inventory" comment:"库存"`
 	Unit      string  `json:"unit" comment:"单位"`
 	Limit     int     `json:"limit" comment:"起售量"`
+	Max int `json:"max"`
 	common.ControlBy
 }
 
@@ -68,6 +69,7 @@ func (s *GoodsSpecsInsertReq) Generate(model *models.GoodsSpecs) {
 	model.Inventory = s.Inventory
 	model.Unit = s.Unit
 	model.Limit = s.Limit
+	model.Max = s.Max
 }
 
 func (s *GoodsSpecsInsertReq) GetId() interface{} {
@@ -86,6 +88,7 @@ type GoodsSpecsUpdateReq struct {
 	Inventory int     `json:"inventory" comment:"库存"`
 	Unit      string  `json:"unit" comment:"单位"`
 	Limit     int     `json:"limit" comment:"起售量"`
+	Max int `json:"max"`
 	common.ControlBy
 }
 
@@ -103,6 +106,7 @@ func (s *GoodsSpecsUpdateReq) Generate(model *models.GoodsSpecs) {
 	model.Inventory = s.Inventory
 	model.Unit = s.Unit
 	model.Limit = s.Limit
+	model.Max = s.Max
 }
 
 func (s *GoodsSpecsUpdateReq) GetId() interface{} {

@@ -7,8 +7,8 @@ if PROJECT == "home":
     BASE_PATH = "/Users/zhaichaoqun/workspace/goProjects/src/"
     WEAPP_PATH = "/Users/zhaichaoqun/workspace/vueProjects/"
 else:
-    BASE_PATH = "/Users/zhaichaoqun/workspace/goProjects/src/"
-    WEAPP_PATH = "/Users/zhaichaoqun/workspace/wechat/"
+    BASE_PATH = "/Users/zhaichaoqun/workespace/goProjects/src/"
+    WEAPP_PATH = "/Users/zhaichaoqun/workespace/vueProjects"
 projectList = [
     {
         "name": "universe",
@@ -36,7 +36,7 @@ projectList = [
                 "name": "vue-universe",
                 "desc": "宇宙帮-后端PC管理页面",
                 "url": "https://github.com/chaoqunzhai/vue-universe",
-                "path": "/Users/zhaichaoqun/workspace/vueProjects/vue-universe",
+                "path":os.path.join(WEAPP_PATH, "vue-universe"),
             },
         ]
     },
@@ -66,7 +66,7 @@ projectList = [
                 "name": "dynamic-web",
                 "desc": "动创云-大B管理页面",
                 "url": "https://github.com/chaoqunzhai/dynamic-web",
-                "path": "/Users/zhaichaoqun/workspace/vueProjects/dynamic-web",
+                "path": os.path.join(WEAPP_PATH, "dynamic-web"),
             },
         ]
     },

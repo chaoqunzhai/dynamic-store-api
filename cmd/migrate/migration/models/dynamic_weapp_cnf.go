@@ -102,18 +102,19 @@ func (CompanyMemberIndex) TableName() string {
 	return "company_member_index"
 }
 
-//TODO:配置一些扩展的客户端一些
+//TODO:配置一些扩展的客户端一些样式配置
 type WeAppExtendCnf struct {
 	BigBRichGlobal
 	DetailAddCart string `json:"detail_add_cart" gorm:"size:10;comment:加入购物车按钮的重命名"` //详情页面中,加入购物车的文案
 	DetailAddCartColor string `json:"detail_add_cart_color" gorm:"size:8;comment:加入购物车按钮的颜色"` //详情页面中,加入购物车的颜色
-	DetailAddCartShow bool `json:"detail_add_cart_show" gorm:"default:1"`
+	DetailAddCartShow bool `json:"detail_add_cart_show" gorm:"default:1"` //是否展示加入购物车
 	DetailByNow string `json:"detail_by_now" gorm:"size:10;comment:立即购买的重命名"` //详情页面中,立即购买的文案
 	DetailByNowColor string `json:"detail_by_now_color" gorm:"size:8;comment:立即购买颜色"` //详情页面中,立即购买的文案
-	DetailByNowShow bool `json:"detail_by_now_show" gorm:"default:1"`
+	DetailByNowShow bool `json:"detail_by_now_show" gorm:"default:1"` //是否展示立即购买
+	VisitorShowVip bool `json:"visitor_show_vip" gorm:"default:1"` //是否展示访问VIP价格
 }
 func (WeAppExtendCnf) TableName() string {
-	return "company_member_index"
+	return "company_weapp_extend_cnf"
 }
 
 //小程序我的订单配置

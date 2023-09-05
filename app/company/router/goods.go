@@ -28,6 +28,9 @@ func registerGoodsRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewa
 		//获取大B所有商品和分类的关联联系
 		r.GET("/class_specs", api.ClassSpecs)
 
-
+		//商品的图片上传
+		r.POST("/image",api.CosSaveImage)
+		//商品图片的删除
+		r.DELETE("/image",api.CosRemoveImage)
 	}
 }

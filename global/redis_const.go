@@ -13,7 +13,7 @@ const (
 	SmallBCategoryDB //4
 	//购物车
 	SmallBCartDB // 5
-	//个人中心工具
+	//个人中心菜单展示  +  详情页面中的底栏展示
 	SmallBMemberToolsDB //6
 	//要设置的比预期长点
 	PhoneMobileDbTimeOut = 130

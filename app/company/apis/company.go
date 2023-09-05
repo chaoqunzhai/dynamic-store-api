@@ -24,7 +24,6 @@ import (
 type Company struct {
 	api.Api
 }
-
 // GetPage 获取Company列表
 // @Summary 获取Company列表
 // @Description 获取Company列表

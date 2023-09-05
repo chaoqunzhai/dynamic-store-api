@@ -16,8 +16,10 @@ import (
 	"go-admin/common/actions"
 	"go-admin/common/business"
 	customUser "go-admin/common/jwt/user"
+	"go-admin/common/tx_api"
 	utils2 "go-admin/common/utils"
 	"go-admin/global"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"os"
 	"strconv"
@@ -131,7 +133,84 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 	return
 
 }
+func GetImagePath(fileName string,CId interface{})  (filePath,goodsImagePath string) {
+	guid := strings.Split(uuid.New().String(), "-")
+	filePath = guid[0] + utils.GetExt(fileName)
+	goodsImagePath = business.GetSiteGoodsPath(CId,filePath)
 
+	return
+}
+
+//todo:存储商品详情中上传的图片
+func (e Goods) CosSaveImage(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	res :=make(map[string]interface{},0)
+	file,_ :=c.FormFile("file")
+	guid := strings.Split(uuid.New().String(), "-")
+	filePath := guid[0] + utils.GetExt(file.Filename)
+
+	goodsImagePath := business.GetSiteGoodsPath(userDto.CId,filePath)
+
+	//1.文件先存本地
+	if saveErr :=c.SaveUploadedFile(file,goodsImagePath);saveErr==nil{
+		//2.上传到cos中
+		cos:=tx_api.TxCos{}
+		cos.InitClient()
+		cosUrl,cosErr:=cos.PostFile(goodsImagePath)
+		if cosErr !=nil{
+			zap.S().Errorf("商品图片上传COS失败:%v",cosErr.Error())
+			res["code"] = -1
+			res["msg"] = "文件上传失败"
+			return
+		}
+		//3.上传成功后删除本地文件
+		res["code"] = 0
+		res["msg"] = "文件上传成功"
+		res["url"] = cosUrl
+		defer func() {
+			_=os.Remove(goodsImagePath)
+		}()
+
+	}else {
+		zap.S().Errorf("商品图片上传,本地保存图片失败:%v",saveErr.Error())
+		res["code"] = -1
+		res["msg"] = "文件上传失败"
+	}
+	e.OK(res,"")
+	return
+}
+func (e Goods) CosRemoveImage(c *gin.Context) {
+	req:=dto.GoodsRemove{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	fmt.Println("删除的图片",req.Image)
+	cosImagePath:=business.GetDomainSplitFilePath(req.Image)
+
+	txClient :=tx_api.TxCos{}
+	txClient.InitClient()
+	txClient.RemoveFile(cosImagePath)
+	e.OK("","successful")
+	return
+}
 func (e Goods) MiniApi(c *gin.Context) {
 	err := e.MakeContext(c).
 		MakeOrm().
@@ -237,7 +316,7 @@ func (e Goods) GetPage(c *gin.Context) {
 				if row.Image == "" {
 					return ""
 				}
-				return business.GetGoodPathName(row.CId) + strings.Split(row.Image, ",")[0]
+				return business.GetGoodsPathFirst(row.CId,row.Image)
 			}(),
 			"sale":       row.Sale,
 			"created_at": row.CreatedAt,
@@ -247,7 +326,16 @@ func (e Goods) GetPage(c *gin.Context) {
 		}
 		result = append(result, r)
 	}
-	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+
+	data :=map[string]interface{}{
+		"list":result,
+		"count":count,
+		"pageIndex": req.GetPageIndex(),
+		"pageSize":req.GetPageSize(),
+		"imageUrl":"cos",
+	}
+	e.OK(data,"查询成功")
+	return
 }
 
 // Get 获取Goods
@@ -311,14 +399,18 @@ func (e Goods) Get(c *gin.Context) {
 		"layer":    object.Layer,
 		"spec_name":object.SpecName,
 		"recommend":object.Recommend,
-		"image": func() []string {
-			i := make([]string, 0)
+		"image": func() []map[string]string {
+			i := make([]map[string]string, 0)
 			if object.Image == "" {
 				return i
 			}
 			for _, im := range strings.Split(object.Image, ",") {
-				i = append(i,
-					business.GetGoodPathName(object.CId)+im)
+
+				imagePath :=business.GetDomainGoodPathName(object.CId,im,false)
+				i = append(i, map[string]string{
+					"url":imagePath,
+					"name":im,
+				})
 			}
 			return i
 		}(),
@@ -336,9 +428,11 @@ func (e Goods) Get(c *gin.Context) {
 			"name":      specs.Name,
 			"code":      specs.Code,
 			"price":     specs.Price,
+			"market":specs.Market,
 			"original":  specs.Original,
 			"inventory": specs.Inventory,
 			"limit":     specs.Limit,
+			"max":specs.Max,
 			"enable":    specs.Enable,
 			"layer":     specs.Layer,
 			"unit":      specs.Unit,
@@ -363,6 +457,7 @@ func (e Goods) Get(c *gin.Context) {
 
 	goodsMap["specs"] = specData
 	goodsMap["specsVip"] = specVipData
+	goodsMap["imageUrl"] = "cos"
 	e.OK(goodsMap, "查询成功")
 }
 
@@ -442,14 +537,16 @@ func (e Goods) Insert(c *gin.Context) {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return
 	}
-
+	if req.Specs == ""{
+		e.Error(500, errors.New("请配置规格"), "请配置规格")
+		return
+	}
 	goodId, goodErr := s.Insert(userDto.CId, &req)
 	if goodErr != nil {
 		e.Error(500, err, fmt.Sprintf("创建商品失败,%s", goodErr.Error()))
 		return
 	}
-	//商品信息创建成功,才会保存客户的商品照片
-	goodsImagePath := business.GetGoodPathName(fmt.Sprintf("%v", userDto.CId))
+
 	// 遍历所有图片
 	fileForm, fileErr := c.MultipartForm()
 	if fileErr != nil {
@@ -459,15 +556,22 @@ func (e Goods) Insert(c *gin.Context) {
 	files := fileForm.File["files"]
 
 	fileList := make([]string, 0)
+	txClient:=tx_api.TxCos{}
+	txClient.InitClient()
+	//商品信息创建成功,才会保存客户的商品照片
 	for _, file := range files {
 		// 逐个存
-		guid := strings.Split(uuid.New().String(), "-")
-		filePath := guid[0] + utils.GetExt(file.Filename)
-		saveFilePath := goodsImagePath + filePath
-
-		if saveErr := c.SaveUploadedFile(file, saveFilePath); saveErr == nil {
+		filePath,goodsImagePath  :=GetImagePath(file.Filename,userDto.CId)
+		if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 			//只保留文件名称,防止透露服务器地址
 			fileList = append(fileList, filePath)
+			//1.上传到cos中
+			_,cosErr :=txClient.PostFile(goodsImagePath)
+			if cosErr !=nil{
+				zap.S().Errorf("用户:%v,商品规格保存失败:%v",userDto.UserId,cosErr)
+			}
+			//本地删除
+			_=os.Remove(goodsImagePath)
 		}
 		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?", goodId, userDto.CId).Updates(map[string]interface{}{
 			"image": strings.Join(fileList, ","),
@@ -530,6 +634,10 @@ func (e Goods) Update(c *gin.Context) {
 			return
 		}
 	}
+	if req.Specs == ""{
+		e.Error(500, errors.New("请配置规格"), "请配置规格")
+		return
+	}
 	err = s.Update(userDto.CId, &req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("修改商品信息失败,%s", err.Error()))
@@ -540,10 +648,15 @@ func (e Goods) Update(c *gin.Context) {
 		req.Id, userDto.CId).Limit(1).Find(&goodsObject)
 	fileList := make([]string, 0)
 
+	//原来的图片
 	baseFileList := make([]string, 0)
 	if goodsObject.Image != "" {
 		baseFileList = strings.Split(goodsObject.Image, ",")
 	}
+	//初始化cos对象存储
+	txClient :=tx_api.TxCos{}
+	txClient.InitClient()
+
 	if req.FileClear == 1 {
 		for _, image := range fileList {
 			_ = os.Remove(business.GetGoodPathName(userDto.CId) + image)
@@ -553,9 +666,7 @@ func (e Goods) Update(c *gin.Context) {
 			"image": "",
 		})
 	} else {
-
 		//商品信息创建成功,才会保存客户的商品照片
-		goodsImagePath := business.GetGoodPathName(fmt.Sprintf("%v", userDto.CId))
 		// 遍历所有图片
 		fileForm, fileErr := c.MultipartForm()
 		if fileErr != nil {
@@ -572,18 +683,23 @@ func (e Goods) Update(c *gin.Context) {
 		}
 		//前段更新了,进行文件内容的比对 baseFileList 和 fileList 比对，如果不一样是需要进行删除的
 		diffList := utils2.Difference(baseFileList, fileList)
+
 		for _, image := range diffList {
-			_ = os.Remove(business.GetGoodPathName(userDto.CId) + image)
+
+			txClient.RemoveFile(business.GetSiteGoodsPath(userDto.CId,image))
 		}
 		for _, file := range files {
 			// 逐个存
-			guid := strings.Split(uuid.New().String(), "-")
-			filePath := guid[0] + utils.GetExt(file.Filename)
-			saveFilePath := goodsImagePath + filePath
-			if saveErr := c.SaveUploadedFile(file, saveFilePath); saveErr == nil {
-				//只保留文件名称,防止透露服务器地址
-				fileList = append(fileList, filePath)
 
+			filePath,goodsImagePath  :=GetImagePath(file.Filename,userDto.CId)
+
+			if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
+				//只保留文件名称,防止透露服务器地址
+				_,cosErr:=txClient.PostFile(goodsImagePath)
+				if cosErr !=nil{
+					continue
+				}
+				fileList = append(fileList, filePath)
 			}
 		}
 		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?", req.Id, userDto.CId).Updates(map[string]interface{}{
@@ -616,11 +732,15 @@ func (e Goods) Delete(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	// req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
 
-	err = s.Remove(&req, p)
+	err = s.Remove(&req,userDto.CId, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除Goods失败,%s", err.Error()))
 		return

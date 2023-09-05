@@ -16,6 +16,31 @@ import (
 	"time"
 )
 
+//对数值进行补0 或者 带有小数点的数字 只保留2位
+func StringDecimal(value interface{}) string {
+	amount,err :=decimal.NewFromString(fmt.Sprintf("%v",value))
+	if err!=nil{
+		return fmt.Sprintf("%v",value)
+	}
+	return  amount.StringFixed(2)
+
+}
+func StringToInt(v interface{}) int {
+	n, _ := strconv.Atoi(fmt.Sprintf("%v", v))
+	return n
+}
+func StringToFloat64(v interface{}) float64 {
+	n, _ := strconv.ParseFloat(fmt.Sprintf("%v", v), 64)
+	return n
+}
+//
+func RoundDecimalFlot64(value interface{}) float64 {
+	toStr := fmt.Sprintf("%v", value)
+	amount3, _ := decimal.NewFromString(toStr)
+	f,_:=amount3.Round(2).Float64()
+
+	return f
+}
 func GenValidateCode(width int) string {
 	numeric := [10]byte{0, 1, 2, 3, 5, 6, 7, 8, 9}
 	r := len(numeric)
@@ -28,17 +53,17 @@ func GenValidateCode(width int) string {
 	return sb.String()
 }
 func MinAndMax(values []float64) (float64, float64) {
-	min := values[0] //assign the first element equal to min
-	max := values[0] //assign the first element equal to max
+	min1 := values[0] //assign the first element equal to min
+	max1 := values[0] //assign the first element equal to max
 	for _, number := range values {
-		if number < min {
-			min = number
+		if number < min1 {
+			min1 = number
 		}
-		if number > max {
-			max = number
+		if number > max1 {
+			max1 = number
 		}
 	}
-	return min, max
+	return min1, max1
 }
 
 // 获取当前周几

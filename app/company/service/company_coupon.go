@@ -69,7 +69,7 @@ func (e *CompanyCoupon) Insert(cid int, c *dto.CompanyCouponInsertReq) error {
 	data.CId = cid
 	//todo:时间处理
 	fmt.Println("expr", c.ExpireType)
-	if c.ExpireType == 1 {
+	if c.ExpireType == 0 {
 		if len(c.BetweenTime) != 2 {
 			return errors.New("请填入开始结束时间")
 		}
@@ -78,20 +78,22 @@ func (e *CompanyCoupon) Insert(cid int, c *dto.CompanyCouponInsertReq) error {
 		if startTime != "" {
 			startTime = strings.Replace(startTime, "T", " ", -1)
 			startTime = strings.Replace(startTime, "Z", "", -1)
-			t, _ := time.Parse("2006-01-02 15:04:05", startTime)
+			t, _ := time.Parse("2006-01-02", startTime)
 			//fmt.Println("startTime", startTime, "t", t)
+			zeroTime:=time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,t.Location())
 			data.StartTime = sql.NullTime{
-				Time:  t,
+				Time:  zeroTime,
 				Valid: true,
 			}
 		}
 		if endTime != "" {
 			endTime = strings.Replace(endTime, "T", " ", -1)
 			endTime = strings.Replace(endTime, "Z", "", -1)
-			t, _ := time.Parse("2006-01-02 15:04:05", endTime)
+			t, _ := time.Parse("2006-01-02", endTime)
 			//fmt.Println("endTime", endTime, "t", t)
+			zeroTime:=time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,t.Location())
 			data.EndTime = sql.NullTime{
-				Time:  t,
+				Time:  zeroTime,
 				Valid: true,
 			}
 		}
@@ -121,19 +123,21 @@ func (e *CompanyCoupon) Update(c *dto.CompanyCouponUpdateReq, p *actions.DataPer
 			startTime = strings.Replace(startTime, "T", " ", -1)
 			startTime = strings.Replace(startTime, "Z", "", -1)
 			t, _ := time.Parse("2006-01-02 15:04:05", startTime)
+			zeroTime:=time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,t.Location())
 			data.StartTime = sql.NullTime{
-				Time:  t,
+				Time:  zeroTime,
 				Valid: true,
 			}
-			fmt.Println("startTime", startTime, "t", t)
+
 		}
 		if endTime != "" {
 			endTime = strings.Replace(endTime, "T", " ", -1)
 			endTime = strings.Replace(endTime, "Z", "", -1)
 			t, _ := time.Parse("2006-01-02 15:04:05", endTime)
-			fmt.Println("endTime", endTime, "t", t)
+
+			zeroTime:=time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,t.Location())
 			data.EndTime = sql.NullTime{
-				Time:  t,
+				Time:  zeroTime,
 				Valid: true,
 			}
 		}

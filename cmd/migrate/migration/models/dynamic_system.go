@@ -2,6 +2,17 @@ package models
 
 import "time"
 
+//订单交易配置
+type OrderTrade struct {
+	BigBRichGlobal
+	CloseHours int `json:"close_hours" gorm:"size:1;comment:未支付订单关闭时间"`
+	ReceiveDays int `json:"receive_days" gorm:"size:1;comment:已发货订单,后自动确认收货"`
+	RefundDays int `json:"refund_days" gorm:"size:1;comment:已完成订单,天内允许申请售后"`
+}
+func (OrderTrade) TableName() string {
+	return "company_order_trade"
+}
+
 type DyNamicMenu struct {
 	Model
 	ModelTime

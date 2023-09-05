@@ -55,7 +55,7 @@ type ShopInsertReq struct {
 	Layer         int     `json:"layer" comment:"排序"`
 	Enable        bool    `json:"enable" comment:"开关"`
 	Desc          string  `json:"desc" comment:"描述信息"`
-	UserId        int     `json:"user_id" comment:"管理员ID"`
+	UserId        int     `json:"user_id" comment:"用户ID,商家ID"`
 	Name          string  `json:"name" comment:"小B名称" binding:"required"`
 	Phone         string  `json:"phone" comment:"联系手机号" binding:"required"`
 	UserName      string  `json:"username" comment:"小B负责人名称" binding:"required"`
@@ -68,6 +68,7 @@ type ShopInsertReq struct {
 	Integral      int     `json:"integral" comment:"可用积分"`
 	SalesmanPhone string  `json:"salesman_phone" comment:"推荐人"`
 	Salesman      int     `json:"-" comment:"推荐人"`
+
 	Tags          []int   `json:"tags" comment:"客户标签"`
 	common.ControlBy
 }

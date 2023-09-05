@@ -10,7 +10,7 @@ type Shop struct {
     Enable     bool      `json:"enable" gorm:"type:tinyint(1);comment:开关"`
     Desc       string    `json:"desc" gorm:"type:varchar(25);comment:描述信息"`
     CId        int       `json:"-" gorm:"type:bigint(20);comment:大BID"`
-    UserId     int       `json:"user_id" gorm:"type:bigint(20);comment:管理员ID"`
+    UserId     int       `json:"user_id" gorm:"type:bigint(20);comment:用户ID"`
     Salesman   int       `json:"salesman" gorm:"type:bigint(20);comment:推荐人"`
     Name       string    `json:"name" gorm:"type:varchar(30);comment:小B名称"`
     Phone      string    `json:"phone" gorm:"type:varchar(11);comment:联系手机号"`

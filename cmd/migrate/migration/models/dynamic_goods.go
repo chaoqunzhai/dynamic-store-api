@@ -12,7 +12,7 @@ type Goods struct {
 	Sale      int          `json:"sale" gorm:"comment:销量"`
 	Recommend bool         `json:"recommend" gorm:"comment:是否推荐"`
 	SpecName  string       `gorm:"size:8;comment:规格命名,例如是:颜色,重量,系列"`
-	Money     string       `gorm:"size:12;comment:价格区间显示"`
+	Money     string       `gorm:"size:30;comment:价格区间"`
 	Tag       []GoodsTag   `gorm:"many2many:goods_mark_tag;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:tag_id;"`
 	Class     []GoodsClass `gorm:"many2many:goods_mark_class;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:class_id;"`
 }
@@ -36,10 +36,12 @@ type GoodsSpecs struct {
 	GoodsId   int     `gorm:"index;comment:商品ID"`
 	Name      string  `gorm:"size:30;comment:规格名称"`
 	Price     float32 `gorm:"comment:售价"`
-	Original  float32 `gorm:"comment:原价"`
+	Market float32 `gorm:"comment:市场价" json:"market"`
+	Original  float32 `gorm:"comment:进货价"`
 	Inventory int     `gorm:"comment:库存"`
 	Unit      string  `gorm:"size:8;comment:单位"`
 	Limit     int     `gorm:"comment:起售量"`
+	Max int  `gorm:"comment:最大购买量"`
 	Code      string  `gorm:"size:30;comment:条形码"`
 	Image     string  `gorm:"size:100;comment:商品图片路径"`
 }

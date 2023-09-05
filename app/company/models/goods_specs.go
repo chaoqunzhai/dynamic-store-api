@@ -15,10 +15,12 @@ type GoodsSpecs struct {
 	GoodsId   int            `json:"goods_id" gorm:"type:bigint(20);comment:商品ID"`
 	Name      string         `json:"name" gorm:"type:varchar(30);comment:规格名称"`
 	Price     float64        `json:"price" gorm:"type:float;comment:售价"`
+	Market float64        `json:"market" gorm:"type:float;comment:市场价"`
 	Original  float64        `json:"original" gorm:"type:float;comment:原价"`
 	Inventory int            `json:"inventory" gorm:"type:bigint(20);comment:库存"`
 	Unit      string         `json:"unit" gorm:"type:varchar(8);comment:单位"`
 	Limit     int            `json:"limit" gorm:"type:bigint(20);comment:起售量"`
+	Max int  `json:"max" gorm:"type:bigint(20);comment:起售量"`
 	Image     string         `gorm:"size:100;comment:商品图片路径"`
 	Code      string         `json:"code" gorm:"type:varchar(30);comment:规格名称"`
 	CreateBy  int            `json:"-" gorm:"index;comment:创建者"`

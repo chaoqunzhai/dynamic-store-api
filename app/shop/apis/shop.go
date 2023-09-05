@@ -240,10 +240,15 @@ func (e Shop) Insert(c *gin.Context) {
 		return
 	}
 
+	var userSymanObject sys.SysUser
+	e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? and enable = ?",req.SalesmanPhone,true).Limit(1).Find(&userSymanObject)
+	if userSymanObject.UserId > 0 {
+		req.Salesman = userSymanObject.UserId
+	}
 	var userObject sys.SysUser
-	e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? and enable = ?",req.SalesmanPhone,true).Limit(1).Find(&userObject)
+	e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? and enable = ?",req.Phone,true).Limit(1).Find(&userObject)
 	if userObject.UserId > 0 {
-		req.Salesman = userObject.UserId
+		req.UserId = userObject.UserId
 	}
 	err = s.Insert(userDto.CId,&req)
 	if err != nil {
@@ -301,10 +306,15 @@ func (e Shop) Update(c *gin.Context) {
 			return
 		}
 	}
+	var userSymanObject sys.SysUser
+	e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? and enable = ?",req.SalesmanPhone,true).Limit(1).Find(&userSymanObject)
+	if userSymanObject.UserId > 0 {
+		req.Salesman = userSymanObject.UserId
+	}
 	var userObject sys.SysUser
-	e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? and enable = ?",req.SalesmanPhone,true).Limit(1).Find(&userObject)
+	e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? and enable = ?",req.Phone,true).Limit(1).Find(&userObject)
 	if userObject.UserId > 0 {
-		req.Salesman = userObject.UserId
+		req.UserId = userObject.UserId
 	}
 	err = s.Update(&req, p)
 	if err != nil {

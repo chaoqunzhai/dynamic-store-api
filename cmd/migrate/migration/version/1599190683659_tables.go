@@ -64,6 +64,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.CompanyEmsQuotaCnfLog),
 			new(models.CompanyRenewalTimeLog),
 
+			new(models.OrderTrade),
 			new(models.SplitTableMap),
 			new(models.GradeVip),
 			//商品
@@ -84,6 +85,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.OrderCycleList),
 			new(models.OrderToRedisMap),
 			new(models.Goods),
+			new(models.GoodsDesc),
 			new(models.GoodsSpecs),
 			new(models.GoodsVip),
 
@@ -92,6 +94,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.CompanyNavCnf),
 			new(models.WeAppQuickTools),
 			new(models.CompanyQuickTools),
+			new(models.WeAppExtendCnf),
 		)
 		if err != nil {
 			return err

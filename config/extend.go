@@ -17,6 +17,7 @@ type Extend struct {
 	WxLeader    WxLeaderLogin `json:"wxLeader"`
 	WxUser      WxUserLogin   `json:"wxUser"`
 	WxOfficial  WxOfficial    `json:"wxOfficial"`
+	ImageUrl string  `json:"imageUrl"`
 	Domain      string        `json:"domain"`
 	ImageBase string        `json:"imageBase"`
 	CityAdv     string        `json:"cityAdv"`
@@ -24,6 +25,11 @@ type Extend struct {
 	Influx      Influx        `json:"influx"`
 	Callback    string        `json:"callback"`
 	Harbor      Harbor        `json:"harbor"`
+	Tx Tx `json:"tx"`
+}
+type Tx struct {
+	CosSecretID string `json:"cosSecretID"`
+	CosSecretKey string `json:"cosSecretKey"`
 }
 type Redis struct {
 	Ip       string `json:"ip"`
