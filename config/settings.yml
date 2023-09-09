@@ -41,12 +41,16 @@ settings:
     frontpath: ../go-admin-ui/src
   extend: # 扩展项使用说明
     domain: "http://localhost:8098"
-    imageUrl: "https://dcy-1318497773.cos.ap-nanjing.myqcloud.com/"
+#    imageUrl: "https://dcy-1318497773.cos.ap-nanjing.myqcloud.com/"
+    imageUrl: "http://qiniu.dongchuangyun.com/"
     #本地文件路径
     imageBase: "./image/"
     tx:
       cosSecretID: "AKIDuc92sDKFwPiwymMisoVxCF5h5FBtMbcO"
       cosSecretKey: "byAQSFpAHApGSQAiVBdrreDZhaFm9LI3"
+    qiniu:
+      AccessKey: "ZsSiKjddNXag9by7jqeaINFIbC050MXMMBM4pKEA"
+      SecretKey: "xqZ-FEAUiJzbYDFgbZzC8pxn3Tg6lSKhRG2urnTZ"
     redis:
       ip: "152.136.36.253"
       port: "26379"

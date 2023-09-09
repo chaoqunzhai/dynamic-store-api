@@ -75,6 +75,11 @@ func InitializationWeApp()  {
 			"image_url":"../../static/member/default_discount.png",
 			"wap_url":"/pages_tool/member/coupon",
 		},
+		{
+			"name":"我的收藏",
+			"image_url":"../../static/member/default_like.png",
+			"wap_url":"/pages_tool/member/collection",
+		},
 	}
 
 	for _, db := range dbs {

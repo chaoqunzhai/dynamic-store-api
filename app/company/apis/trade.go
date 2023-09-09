@@ -1,7 +1,6 @@
 package apis
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"go-admin/cmd/migrate/migration/models"
@@ -11,15 +10,15 @@ import (
 type Trade struct {
 	api.Api
 }
-type TradeInsertReq struct {
-	CloseHours int `json:"close_hours"`
-	ReceiveDays  int `json:"receive_days"`
-	RefundDays int `json:"refund_days"`
-
+type PayCnfInsertReq struct {
+	BalanceDeduct bool `json:"balance_deduct" gorm:"size:1;comment:是否开启余额支付"`
+	Alipay bool `json:"alipay" gorm:"size:1;comment:是否开启阿里支付"`
+	WeChat bool `json:"we_chat" gorm:"size:1;comment:是否开启微信支付"`
+	Credit bool `json:"credit" gorm:"size:1;comment:支持授信减扣"`
 
 }
 func (e Trade) Create(c *gin.Context) {
-	req := TradeInsertReq{}
+	req := PayCnfInsertReq{}
 	err := e.MakeContext(c).
 		MakeOrm().
 		Bind(&req).
@@ -34,22 +33,24 @@ func (e Trade) Create(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	fmt.Printf("refund_days:%v",req)
-	var OrderTrade models.OrderTrade
-	e.Orm.Model(&models.OrderTrade{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&OrderTrade)
+
+	var PayCnf models.PayCnf
+	e.Orm.Model(&models.PayCnf{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&PayCnf)
 
 
-	if OrderTrade.Id > 0 {
+	if PayCnf.Id > 0 {
 
-		OrderTrade.ReceiveDays = req.ReceiveDays
-		OrderTrade.RefundDays = req.RefundDays
-		OrderTrade.CloseHours= req.CloseHours
-		e.Orm.Save(&OrderTrade)
+		PayCnf.Ali = req.Alipay
+		PayCnf.BalanceDeduct = req.BalanceDeduct
+		PayCnf.WeChat = req.WeChat
+		PayCnf.Credit = req.Credit
+		e.Orm.Save(&PayCnf)
 	}else {
-		trade:=models.OrderTrade{
-			ReceiveDays: req.ReceiveDays,
-			RefundDays: req.RefundDays,
-			CloseHours: req.CloseHours,
+		trade:=models.PayCnf{
+			Ali: req.Alipay,
+			BalanceDeduct: req.BalanceDeduct,
+			WeChat: req.WeChat,
+			Credit: req.Credit,
 		}
 		trade.CId = userDto.CId
 		trade.Enable = true
@@ -72,10 +73,10 @@ func (e Trade) Detail(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	var OrderTrade models.OrderTrade
-	e.Orm.Model(&models.OrderTrade{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&OrderTrade)
+	var PayCnf models.PayCnf
+	e.Orm.Model(&models.PayCnf{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&PayCnf)
 
 
-	e.OK(OrderTrade,"successful")
+	e.OK(PayCnf,"successful")
 	return
 }

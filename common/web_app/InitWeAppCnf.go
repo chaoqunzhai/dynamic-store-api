@@ -31,10 +31,7 @@ func (m *MakeWeAppInitConf) cartCount() int {
 // 底栏样式,颜色
 func (m *MakeWeAppInitConf) styleTheme() map[string]interface{} {
 	dat := map[string]interface{}{
-		"title":      "热情红",
-		"name":       "default",
-		"main_color": "#F4391c",
-		"aux_color":  "#F7B500",
+		"name":       "default", //根据这个name来在前段做一个区分设置
 	}
 	return dat
 }

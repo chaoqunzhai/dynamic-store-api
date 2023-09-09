@@ -106,12 +106,19 @@ func (CompanyMemberIndex) TableName() string {
 type WeAppExtendCnf struct {
 	BigBRichGlobal
 	DetailAddCart string `json:"detail_add_cart" gorm:"size:10;comment:加入购物车按钮的重命名"` //详情页面中,加入购物车的文案
-	DetailAddCartColor string `json:"detail_add_cart_color" gorm:"size:8;comment:加入购物车按钮的颜色"` //详情页面中,加入购物车的颜色
 	DetailAddCartShow bool `json:"detail_add_cart_show" gorm:"default:1"` //是否展示加入购物车
 	DetailByNow string `json:"detail_by_now" gorm:"size:10;comment:立即购买的重命名"` //详情页面中,立即购买的文案
-	DetailByNowColor string `json:"detail_by_now_color" gorm:"size:8;comment:立即购买颜色"` //详情页面中,立即购买的文案
 	DetailByNowShow bool `json:"detail_by_now_show" gorm:"default:1"` //是否展示立即购买
 	VisitorShowVip bool `json:"visitor_show_vip" gorm:"default:1"` //是否展示访问VIP价格
+	StyleTheme string `json:"style_theme" gorm:"size:8;default:default"`//商场颜色风格默认就是一个default
+
+	//展示开关
+	SaleShow bool //销售量开关
+	StockShow bool //库存开关
+	MinBuyShow bool //起售量展示
+	MaxBuyShow bool //限购量展示
+	ShowBarrageShow bool //弹幕展示
+	MarketPriceShow bool //市场价展示
 }
 func (WeAppExtendCnf) TableName() string {
 	return "company_weapp_extend_cnf"

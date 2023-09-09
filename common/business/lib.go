@@ -15,23 +15,22 @@ func GetGoodsPathFirst(uid interface{},value string) string  {
 
 	return GetDomainGoodPathName(uid,imagList,false)
 }
-//return:goods/站点ID/WechatIMG950.jpg
+//return:大B用户ID/goods/WechatIMG950.jpg
 //这个路径是存在服务端的
 func GetSiteGoodsPath(uid interface{},image string) string  {
 
-	goodsImagePath := path.Join(global.GoodsPath, fmt.Sprintf("%v", uid),image)
+	goodsImagePath := path.Join( fmt.Sprintf("%v", uid),global.GoodsPath,image)
 
 	return goodsImagePath
 }
-//return:image/goods/1/WechatIMG950.jpg
+//return:image/大B用户ID/goods/WechatIMG950.jpg
 func GetGoodPathName(uid interface{}) string {
-	goodsImagePath := path.Join(config.ExtConfig.ImageBase, global.GoodsPath,
-		fmt.Sprintf("%v", uid)) + "/"
+	goodsImagePath := path.Join(config.ExtConfig.ImageBase,fmt.Sprintf("%v", uid), global.GoodsPath) + "/"
 
 	return goodsImagePath
 }
 //返回照片的域名
-//直接返回腾讯COS的对象存储API地址
+//直接返回的对象存储API地址
 func GetDomainGoodPathName(uid interface{}, image string,local bool) string {
 	if local{
 		//旧逻辑,直接返回本地的文件路径
@@ -48,7 +47,7 @@ func GetDomainGoodPathName(uid interface{}, image string,local bool) string {
 	domainUrl:=fmt.Sprintf("%v%v",imageUrl,encodeUrl)
 	return domainUrl
 }
-//return: goods/1/38ab9d1e.jpg
+//return: 用户ID/goods/38ab9d1e.jpg
 func GetDomainSplitFilePath(url string)  string {
 	//https://dcy-1318497773.cos.ap-nanjing.myqcloud.com/goods/1/38ab9d1e.jpg
 

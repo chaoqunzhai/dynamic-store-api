@@ -365,6 +365,7 @@ func (e WeApp) UpdateQuick(c *gin.Context) {
 			}
 		}
 		//大部分都是一些后期需要加的配置,先保存默认
+		//后台DB只需要配置路径即可
 		quickRow:=map[string]interface{}{
 			"title":row.Name,
 			"imageUrl":row.ImageUrl,

@@ -45,6 +45,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.GoodsSales),
 			new(models.GoodsClass),
 			new(models.GoodsTag),
+			new(models.GoodsCollect),
 			new(models.ShopTag),
 			new(models.ExtendUser),
 			new(models.Company),
@@ -67,6 +68,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.OrderTrade),
 			new(models.SplitTableMap),
 			new(models.GradeVip),
+			new(models.PayCnf),
 			//商品
 			new(models.Shop),
 			new(models.ShopRechargeLog),

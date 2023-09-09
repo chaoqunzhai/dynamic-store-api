@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"go-admin/common/business"
-	"go-admin/common/tx_api"
+	"go-admin/common/qiniu"
 	"go-admin/common/utils"
 	"go-admin/global"
 	"go.uber.org/zap"
@@ -377,8 +377,9 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 func (e *Goods) Remove(d *dto.GoodsDeleteReq,CId interface{}, p *actions.DataPermission) error {
 
 	removeIds := make([]string, 0)
-	txClient :=tx_api.TxCos{}
-	txClient.InitClient()
+
+	buckClient:=qiniu.QinUi{}
+	buckClient.InitClient()
 	for _, t := range d.Ids {
 		removeIds = append(removeIds, fmt.Sprintf("%v", t))
 
@@ -390,7 +391,7 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,CId interface{}, p *actions.DataPer
 		//如果有图片,删除图片
 		for _,image :=range strings.Split(goods.Image,","){
 			//_ = os.Remove(business.GetGoodPathName(goods.CId) + image)
-			txClient.RemoveFile(business.GetSiteGoodsPath(CId,image))
+			buckClient.RemoveFile(business.GetSiteGoodsPath(CId,image))
 		}
 		//如果有商品详细,那就匹配图片路径
 		var goodsDesc models.GoodsDesc
@@ -403,7 +404,7 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,CId interface{}, p *actions.DataPer
 			result:=re.FindAllString(goodsDesc.Desc,-1)
 			for _,image :=range result{
 				cosImagePath :=business.GetDomainSplitFilePath(image)
-				txClient.RemoveFile(cosImagePath)
+				buckClient.RemoveFile(cosImagePath)
 			}
 		}
 		//删除商品

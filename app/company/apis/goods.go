@@ -16,11 +16,12 @@ import (
 	"go-admin/common/actions"
 	"go-admin/common/business"
 	customUser "go-admin/common/jwt/user"
-	"go-admin/common/tx_api"
+	"go-admin/common/qiniu"
 	utils2 "go-admin/common/utils"
 	"go-admin/global"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -159,6 +160,7 @@ func (e Goods) CosSaveImage(c *gin.Context) {
 	res :=make(map[string]interface{},0)
 	file,_ :=c.FormFile("file")
 	guid := strings.Split(uuid.New().String(), "-")
+
 	filePath := guid[0] + utils.GetExt(file.Filename)
 
 	goodsImagePath := business.GetSiteGoodsPath(userDto.CId,filePath)
@@ -166,9 +168,10 @@ func (e Goods) CosSaveImage(c *gin.Context) {
 	//1.文件先存本地
 	if saveErr :=c.SaveUploadedFile(file,goodsImagePath);saveErr==nil{
 		//2.上传到cos中
-		cos:=tx_api.TxCos{}
+		//cos:=tx_api.TxCos{}
+		cos :=qiniu.QinUi{CId: userDto.CId}
 		cos.InitClient()
-		cosUrl,cosErr:=cos.PostFile(goodsImagePath)
+		fileName,cosErr:=cos.PostFile(goodsImagePath)
 		if cosErr !=nil{
 			zap.S().Errorf("商品图片上传COS失败:%v",cosErr.Error())
 			res["code"] = -1
@@ -178,7 +181,7 @@ func (e Goods) CosSaveImage(c *gin.Context) {
 		//3.上传成功后删除本地文件
 		res["code"] = 0
 		res["msg"] = "文件上传成功"
-		res["url"] = cosUrl
+		res["url"] = business.GetDomainGoodPathName(userDto.CId,fileName,false)
 		defer func() {
 			_=os.Remove(goodsImagePath)
 		}()
@@ -202,12 +205,20 @@ func (e Goods) CosRemoveImage(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	fmt.Println("删除的图片",req.Image)
-	cosImagePath:=business.GetDomainSplitFilePath(req.Image)
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	//fmt.Println("删除的图片",req.Image)
+	//处理下encode的路径
+	QueryUnescape,_ :=url.QueryUnescape(req.Image)
 
-	txClient :=tx_api.TxCos{}
-	txClient.InitClient()
-	txClient.RemoveFile(cosImagePath)
+	cosImagePath:=business.GetDomainSplitFilePath(QueryUnescape)
+	buckClient :=qiniu.QinUi{CId: userDto.CId}
+	buckClient.InitClient()
+
+	buckClient.RemoveFile(cosImagePath)
 	e.OK("","successful")
 	return
 }
@@ -556,20 +567,22 @@ func (e Goods) Insert(c *gin.Context) {
 	files := fileForm.File["files"]
 
 	fileList := make([]string, 0)
-	txClient:=tx_api.TxCos{}
-	txClient.InitClient()
+	//txClient:=tx_api.TxCos{}
+	buckClient :=qiniu.QinUi{CId: userDto.CId}
+	buckClient.InitClient()
 	//商品信息创建成功,才会保存客户的商品照片
 	for _, file := range files {
 		// 逐个存
-		filePath,goodsImagePath  :=GetImagePath(file.Filename,userDto.CId)
+		_,goodsImagePath  :=GetImagePath(file.Filename,userDto.CId)
 		if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
-			//只保留文件名称,防止透露服务器地址
-			fileList = append(fileList, filePath)
+
 			//1.上传到cos中
-			_,cosErr :=txClient.PostFile(goodsImagePath)
+			fileName,cosErr :=buckClient.PostFile(goodsImagePath)
 			if cosErr !=nil{
 				zap.S().Errorf("用户:%v,商品规格保存失败:%v",userDto.UserId,cosErr)
 			}
+			//只保留文件名称,防止透露服务器地址
+			fileList = append(fileList, fileName)
 			//本地删除
 			_=os.Remove(goodsImagePath)
 		}
@@ -654,8 +667,9 @@ func (e Goods) Update(c *gin.Context) {
 		baseFileList = strings.Split(goodsObject.Image, ",")
 	}
 	//初始化cos对象存储
-	txClient :=tx_api.TxCos{}
-	txClient.InitClient()
+	//txClient :=tx_api.TxCos{}
+	buckClient :=qiniu.QinUi{CId: userDto.CId}
+	buckClient.InitClient()
 
 	if req.FileClear == 1 {
 		for _, image := range fileList {
@@ -686,20 +700,20 @@ func (e Goods) Update(c *gin.Context) {
 
 		for _, image := range diffList {
 
-			txClient.RemoveFile(business.GetSiteGoodsPath(userDto.CId,image))
+			buckClient.RemoveFile(business.GetSiteGoodsPath(userDto.CId,image))
 		}
 		for _, file := range files {
 			// 逐个存
 
-			filePath,goodsImagePath  :=GetImagePath(file.Filename,userDto.CId)
+			_,goodsImagePath  :=GetImagePath(file.Filename,userDto.CId)
 
 			if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 				//只保留文件名称,防止透露服务器地址
-				_,cosErr:=txClient.PostFile(goodsImagePath)
+				fileName,cosErr:=buckClient.PostFile(goodsImagePath)
 				if cosErr !=nil{
 					continue
 				}
-				fileList = append(fileList, filePath)
+				fileList = append(fileList, fileName)
 			}
 		}
 		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?", req.Id, userDto.CId).Updates(map[string]interface{}{

@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 // todo:商品信息
 type Goods struct {
 	BigBRichGlobal
@@ -39,6 +41,7 @@ type GoodsSpecs struct {
 	Market float32 `gorm:"comment:市场价" json:"market"`
 	Original  float32 `gorm:"comment:进货价"`
 	Inventory int     `gorm:"comment:库存"`
+	Sale int   `gorm:"comment:销售量"`
 	Unit      string  `gorm:"size:8;comment:单位"`
 	Limit     int     `gorm:"comment:起售量"`
 	Max int  `gorm:"comment:最大购买量"`
@@ -96,4 +99,17 @@ type GoodsTag struct {
 
 func (GoodsTag) TableName() string {
 	return "goods_tag"
+}
+
+//商品收藏
+type GoodsCollect struct {
+	Model
+	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
+	UpdatedAt time.Time      `json:"updatedAt" gorm:"comment:最后更新时间"`
+	UserId int `json:"user_id" gorm:"index;"`
+	GoodsId int `json:"goods_id" gorm:"index;"`
+	Like bool `json:"like" `
+}
+func (GoodsCollect) TableName() string {
+	return "goods_collect"
 }

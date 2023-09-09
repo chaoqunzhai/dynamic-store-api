@@ -25,7 +25,12 @@ type Extend struct {
 	Influx      Influx        `json:"influx"`
 	Callback    string        `json:"callback"`
 	Harbor      Harbor        `json:"harbor"`
+	Qiniu Qiniu `json:"qiniu"`
 	Tx Tx `json:"tx"`
+}
+type Qiniu struct {
+	AccessKey string `json:"AccessKey"`
+	SecretKey string `json:"SecretKey"`
 }
 type Tx struct {
 	CosSecretID string `json:"cosSecretID"`
