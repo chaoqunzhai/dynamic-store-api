@@ -388,6 +388,73 @@ func (e Shop)Grade(c *gin.Context)  {
 	e.OK("","successful")
 	return
 }
+
+
+func (e Shop)Credit(c *gin.Context)  {
+	req := dto.ShopCreditReq{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	if req.Value < 0 {
+		e.Error(500, nil,"不可为负数")
+		return
+	}
+
+	var count int64
+	var object models.Shop
+	e.Orm.Model(&models.Shop{}).Select("credit,id").Where("id = ? and c_id = ?",req.ShopId,userDto.CId).First(&object).Count(&count)
+	if count == 0 {
+		e.Error(500, errors.New("客户不存在"), "客户不存在")
+		return
+	}
+	Scene:=""
+	switch req.Mode {
+	case global.UserNumberAdd:
+		object.Credit += req.Value
+		Scene = fmt.Sprintf("手动增加%v授信额",req.Value)
+	case global.UserNumberReduce:
+		if req.Value > object.Credit {
+			e.Error(500, errors.New("数值非法"), "数值非法")
+			return
+		}
+		object.Credit -=req.Value
+		Scene = fmt.Sprintf("手动减少%v授信额",req.Value)
+	case global.UserNumberSet:
+		object.Credit = req.Value
+		Scene = fmt.Sprintf("手动设置为%v授信额",req.Value)
+	default:
+		e.Error(500, nil,"操作不合法")
+		return
+	}
+	e.Orm.Model(&models.Shop{}).Where("id = ?",object.Id).Updates(map[string]interface{}{
+		"credit":object.Credit,
+		"update_by":user.GetUserId(c),
+	})
+	row:=models.ShopCreditLog{
+		CId: userDto.CId,
+		ShopId: req.ShopId,
+		Desc: req.Desc,
+		Number: req.Value,
+		Scene:fmt.Sprintf("后台管理员[%v] %v",userDto.Username,Scene),
+		Action: req.Mode,
+		Type: global.ScanAdmin,
+	}
+	row.CreateBy = user.GetUserId(c)
+	e.Orm.Create(&row)
+	e.OK("","successful")
+	return
+}
 func (e Shop)Amount(c *gin.Context)  {
 	req := dto.ShopAmountReq{}
 	err := e.MakeContext(c).

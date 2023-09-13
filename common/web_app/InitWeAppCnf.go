@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"go-admin/cmd/migrate/migration/models"
 	"go-admin/common/redis_db"
+	"go-admin/global"
 	"gorm.io/gorm"
 )
 
@@ -179,7 +180,7 @@ func (m *MakeWeAppInitConf) SetLoadRedis() map[string]interface{} {
 		},
 	}
 
-	redis_db.SetConfigInit(m.CId, dat)
+	redis_db.SetConfigManyInit(m.CId,  global.SmallBConfigKey,dat)
 	return dat
 
 }

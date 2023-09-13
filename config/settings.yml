@@ -45,9 +45,6 @@ settings:
     imageUrl: "http://qiniu.dongchuangyun.com/"
     #本地文件路径
     imageBase: "./image/"
-    tx:
-      cosSecretID: "AKIDuc92sDKFwPiwymMisoVxCF5h5FBtMbcO"
-      cosSecretKey: "byAQSFpAHApGSQAiVBdrreDZhaFm9LI3"
     qiniu:
       AccessKey: "ZsSiKjddNXag9by7jqeaINFIbC050MXMMBM4pKEA"
       SecretKey: "xqZ-FEAUiJzbYDFgbZzC8pxn3Tg6lSKhRG2urnTZ"
@@ -62,6 +59,9 @@ settings:
       mchntcd:  "0007910F5902365"
       orderRandom: "hfWUxQiqPx"
       openId: "o5TLF5YfLbL97r50xA157B9GOR3k"
+    tx:
+      cosSecretID: "AKIDuc92sDKFwPiwymMisoVxCF5h5FBtMbcO"
+      cosSecretKey: "byAQSFpAHApGSQAiVBdrreDZhaFm9LI3"
   queue:
     memory:
       poolSize: 100

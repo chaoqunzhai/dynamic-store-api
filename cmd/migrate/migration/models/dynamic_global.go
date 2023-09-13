@@ -20,15 +20,15 @@ type RichGlobal struct {
 	Model
 	ControlBy
 	ModelTime
-	Layer  int    `gorm:"size:1;default:1;index;comment:排序"` //排序
-	Enable bool   `gorm:"default:true;comment:开关"`
-	Desc   string `gorm:"size:35;comment:描述信息"` //描述
+	Layer  int    `json:"layer" gorm:"size:1;default:1;index;comment:排序"` //排序
+	Enable bool   `json:"enable" gorm:"default:true;comment:开关"`
+	Desc   string `json:"desc" gorm:"size:35;comment:描述信息"` //描述
 }
 
 // todo: 包含大BID的公共函数
 type BigBRichGlobal struct {
 	RichGlobal
-	CId int `gorm:"index;comment:大BID"`
+	CId int `json:"c_id" gorm:"index;comment:大BID"`
 }
 type BigBRichUserGlobal struct {
 	RichGlobal

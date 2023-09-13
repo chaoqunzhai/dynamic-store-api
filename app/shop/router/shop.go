@@ -5,8 +5,8 @@ import (
 	jwt "github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth"
 
 	"go-admin/app/shop/apis"
-	"go-admin/common/middleware"
 	"go-admin/common/actions"
+	"go-admin/common/middleware"
 )
 
 func init() {
@@ -26,6 +26,8 @@ func registerShopRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewar
 		r.DELETE("", api.Delete)
 		//积分增加
 		r.POST("/integral",api.Integral)
+		//授信分增加
+		r.POST("/credit",api.Credit)
 		//金额增加
 		r.POST("/amount",api.Amount)
 		//等级修改

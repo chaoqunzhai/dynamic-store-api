@@ -57,7 +57,7 @@ type ShopInsertReq struct {
 	Desc          string  `json:"desc" comment:"描述信息"`
 	UserId        int     `json:"user_id" comment:"用户ID,商家ID"`
 	Name          string  `json:"name" comment:"小B名称" binding:"required"`
-	Phone         string  `json:"phone" comment:"联系手机号" binding:"required"`
+	Phone         string  `json:"phone" comment:"联系手机号" binding:"required"` //小B的手机号
 	UserName      string  `json:"username" comment:"小B负责人名称" binding:"required"`
 	Address       string  `json:"address" comment:"小B收货地址" `
 	Longitude     float64 `json:"longitude" comment:""`
@@ -108,6 +108,13 @@ type ShopIntegralReq struct {
 type ShopAmountReq struct {
 	ShopId int     `json:"shop_id" `
 	Value  float64 `json:"value" `
+	Desc   string  `json:"desc" `
+	Mode   string  `json:"mode"`
+}
+
+type ShopCreditReq struct {
+	ShopId int     `json:"shop_id" `
+	Value  int `json:"value" `
 	Desc   string  `json:"desc" `
 	Mode   string  `json:"mode"`
 }

@@ -105,23 +105,38 @@ func (CompanyMemberIndex) TableName() string {
 //TODO:配置一些扩展的客户端一些样式配置
 type WeAppExtendCnf struct {
 	BigBRichGlobal
+	DetailAddName string `json:"detail_add_name" gorm:"size:5;comment:购物车名称"`
 	DetailAddCart string `json:"detail_add_cart" gorm:"size:10;comment:加入购物车按钮的重命名"` //详情页面中,加入购物车的文案
-	DetailAddCartShow bool `json:"detail_add_cart_show" gorm:"default:1"` //是否展示加入购物车
+	DetailAddCartShow bool `json:"detail_add_cart_show" ` //是否展示加入购物车
 	DetailByNow string `json:"detail_by_now" gorm:"size:10;comment:立即购买的重命名"` //详情页面中,立即购买的文案
-	DetailByNowShow bool `json:"detail_by_now_show" gorm:"default:1"` //是否展示立即购买
-	VisitorShowVip bool `json:"visitor_show_vip" gorm:"default:1"` //是否展示访问VIP价格
+	DetailByNowShow bool `json:"detail_by_now_show" ` //是否展示立即购买
+	VisitorShowVip bool `json:"visitor_show_vip" ` //是否展示访客VIP价格
 	StyleTheme string `json:"style_theme" gorm:"size:8;default:default"`//商场颜色风格默认就是一个default
-
+	Preview bool `json:"preview" ` //会员等级预览权限,默认是所有用户都可以预览
+	BuyingAuth bool `json:"buying_auth"` //会员等级购买权限
 	//展示开关
-	SaleShow bool //销售量开关
-	StockShow bool //库存开关
-	MinBuyShow bool //起售量展示
-	MaxBuyShow bool //限购量展示
-	ShowBarrageShow bool //弹幕展示
-	MarketPriceShow bool //市场价展示
+	SpecImageShow bool `json:"spec_image_show"` //规格图片是否展示
+	SaleShow bool `json:"sale_show" `//销售量开关
+	StockShow bool `json:"stock_show" `//库存开关
+	MinBuyShow bool `json:"min_buy_show" `//起售量展示
+	MaxBuyShow bool `json:"max_buy_show" `//限购量展示
+	ShowBarrageShow bool  `json:"show_barrage_show" `//弹幕展示
+	MarketPriceShow bool `json:"market_price_show" `//市场价展示
 }
 func (WeAppExtendCnf) TableName() string {
 	return "company_weapp_extend_cnf"
+}
+
+//会员等级关联的权限
+type VipShowEnable struct {
+	Model
+	CId int `gorm:"index;comment:大BID"`
+	VipId int `json:"vip_id"`
+	Type int `json:"type"`
+	Enable bool `json:"enable"  gorm:"default:1"`
+}
+func (VipShowEnable) TableName() string {
+	return "company_vip_show_enable"
 }
 
 //小程序我的订单配置

@@ -4,7 +4,9 @@ const (
 	//手机号验证DB
 	PhoneMobileCodeDB = iota //0
 	SmallBLoginCnfDB         //1
-	//小B小程序颜色插件,底部菜单配置
+	//小B小程序颜色插件
+	//底部菜单配置
+	//配置按钮文案和商品库存是否展示的
 	SmallBConfigDB // 2
 
 	//小B首页
@@ -23,7 +25,7 @@ const (
 
 	SmallBLoginKey  = "login_"
 	SmallBConfigKey = "cnf_"
-
+	SmallBConfigExtendKey = "extend_app_"
 	SmallBMemberToolsKey = "member_"
 	SmallBCategoryKey = "category_"
 )

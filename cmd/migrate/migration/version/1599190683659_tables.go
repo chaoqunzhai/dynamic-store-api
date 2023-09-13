@@ -74,6 +74,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.ShopRechargeLog),
 			new(models.ShopBalanceLog),
 			new(models.ShopIntegralLog),
+			new(models.ShopCreditLog),
 			new(models.ShopOrderRecord),
 			new(models.ShopOrderBindRecord),
 			new(models.Coupon),
@@ -97,6 +98,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.WeAppQuickTools),
 			new(models.CompanyQuickTools),
 			new(models.WeAppExtendCnf),
+			new(models.VipShowEnable),
 		)
 		if err != nil {
 			return err

@@ -26,6 +26,7 @@ type Shop struct {
 	LineId    int       `gorm:"index;comment:归属配送路线"`
 	Amount    float64   `gorm:"comment:剩余金额"`
 	Integral  int       `gorm:"comment:可用积分"`
+	Credit int   `gorm:"comment:授信分"`
 	GradeId   int       `gorm:"index;comment:会员等级"`
 	Platform  string    `json:"platform" gorm:"size:10;comment:注册来源"`
 	SuggestId int       `gorm:"index;comment:推荐人ID"`
@@ -92,6 +93,24 @@ func (ShopIntegralLog) TableName() string {
 	return "shop_integral_log"
 }
 
+// todo:授信额变动的明细
+type ShopCreditLog struct {
+	Model
+	CId       int            `gorm:"index;comment:大B"`
+	CreateBy  int            `json:"createBy" gorm:"index;comment:创建者"`
+	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
+	Action    string         `json:"action" gorm:"type:varchar(10);comment:操作"`
+	ShopId    int            `gorm:"index;comment:小BID"`
+	Number    int        `gorm:"comment:授信额变动数值"`
+	Scene     string         ` gorm:"size:30;comment:变动场景"`
+	Desc      string         ` gorm:"size:50;comment:描述/说明"`
+	Type      int            `gorm:"type:tinyint(1);default:1;index;comment:操作类型"`
+}
+
+func (ShopCreditLog) TableName() string {
+	return "shop_credit_log"
+}
 // todo:客户每次订单的统计日志,是一个消费的统计
 // 专门用来数据统计
 type ShopOrderRecord struct {

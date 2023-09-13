@@ -30,16 +30,18 @@ func SetLoginCnf(siteId int, value interface{}) (val map[string]interface{}, err
 }
 
 // 设置获取菜单配置,插件配置 颜色配置等
-func SetConfigInit(siteId int, value interface{}) (val map[string]interface{}, err error) {
+func SetConfigManyInit(siteId int,redisKey string, value interface{}) (val map[string]interface{}, err error) {
 	RedisCli.Do(Ctx, "select", global.SmallBConfigDB)
 
+
 	data, _ := json.Marshal(value)
-	res, err := RedisCli.Set(Ctx, fmt.Sprintf("%v%v", global.SmallBConfigKey, siteId), string(data), 0).Result()
+	res, err := RedisCli.Set(Ctx, fmt.Sprintf("%v%v", redisKey, siteId), string(data), 0).Result()
 	if err != nil {
 		zap.S().Errorf("Redis操作,设置大B小程序Config失败,原因:%v", err.Error())
 	}
 	return Marsh(res)
 }
+
 
 //设置个人中心配置
 func SetMemberInfo(siteId int, value interface{}) (val map[string]interface{}, err error) {

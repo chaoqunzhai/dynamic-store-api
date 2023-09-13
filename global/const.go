@@ -105,6 +105,10 @@ const (
 	ReceiveCoupon1    = 1      //下单时领取的
 	ReceiveCoupon2    = 2      //客户自己手动领取的
 	ReceiveCoupon3    = 3      //活动领取的
+
+
+	GoodsPreview = 0 //全部用户可以预览
+	GoodsAuthVip = 1 //只有VIP可以购买
 )
 
 func GetOrderPayStatus(v int) string {
