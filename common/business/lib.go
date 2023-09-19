@@ -32,6 +32,9 @@ func GetGoodPathName(uid interface{}) string {
 //返回照片的域名
 //直接返回的对象存储API地址
 func GetDomainGoodPathName(uid interface{}, image string,local bool) string {
+	if image == ""{
+		return ""
+	}
 	if local{
 		//旧逻辑,直接返回本地的文件路径
 		goodsImagePath := config.ExtConfig.ImageUrl +  path.Join(config.ExtConfig.ImageBase,

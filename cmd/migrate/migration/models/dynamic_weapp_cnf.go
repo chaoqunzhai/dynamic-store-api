@@ -70,6 +70,7 @@ func (CompanyNavCnf) TableName() string {
 type WeAppQuickTools struct {
 	Model
 	Name     string `json:"name"  gorm:"size:30;comment:名称"`
+	DefaultShow bool `json:"default_show"` //是否默认展示
 	UserEnable       bool   `gorm:"-" json:"user_enable"` //只是用来渲染,不做创建字段
 	Enable   bool   `json:"-" gorm:"type:tinyint(1);default:1;comment:是否开启"`
 	ImageUrl string `json:"image_url" gorm:"size:60;comment:图片路径"`
@@ -122,6 +123,8 @@ type WeAppExtendCnf struct {
 	MaxBuyShow bool `json:"max_buy_show" `//限购量展示
 	ShowBarrageShow bool  `json:"show_barrage_show" `//弹幕展示
 	MarketPriceShow bool `json:"market_price_show" `//市场价展示
+	RecommendShow bool `json:"recommend_show"` //是否显示推荐产品
+	ServerShow bool `json:"server_show"` //是否展示产品服务
 }
 func (WeAppExtendCnf) TableName() string {
 	return "company_weapp_extend_cnf"

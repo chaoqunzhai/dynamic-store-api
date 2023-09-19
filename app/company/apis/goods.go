@@ -164,33 +164,33 @@ func (e Goods) CosSaveImage(c *gin.Context) {
 	filePath := guid[0] + utils.GetExt(file.Filename)
 
 	goodsImagePath := business.GetSiteGoodsPath(userDto.CId,filePath)
-
-	//1.文件先存本地
+	fmt.Println("goodsImagePath",goodsImagePath)
+	////1.文件先存本地
 	if saveErr :=c.SaveUploadedFile(file,goodsImagePath);saveErr==nil{
 		//2.上传到cos中
-		//cos:=tx_api.TxCos{}
 		cos :=qiniu.QinUi{CId: userDto.CId}
 		cos.InitClient()
 		fileName,cosErr:=cos.PostFile(goodsImagePath)
+		fmt.Println("七牛保存的返回",fileName,cosErr)
 		if cosErr !=nil{
 			zap.S().Errorf("商品图片上传COS失败:%v",cosErr.Error())
 			res["code"] = -1
 			res["msg"] = "文件上传失败"
+			e.OK(res,"")
 			return
 		}
-		//3.上传成功后删除本地文件
+		////3.上传成功后删除本地文件
 		res["code"] = 0
 		res["msg"] = "文件上传成功"
 		res["url"] = business.GetDomainGoodPathName(userDto.CId,fileName,false)
-		defer func() {
-			_=os.Remove(goodsImagePath)
-		}()
+		_=os.Remove(goodsImagePath)
 
 	}else {
 		zap.S().Errorf("商品图片上传,本地保存图片失败:%v",saveErr.Error())
 		res["code"] = -1
 		res["msg"] = "文件上传失败"
 	}
+	fmt.Println("res!!!!!",res)
 	e.OK(res,"")
 	return
 }
@@ -447,6 +447,7 @@ func (e Goods) Get(c *gin.Context) {
 			"enable":    specs.Enable,
 			"layer":     specs.Layer,
 			"unit":      specs.Unit,
+			"image":business.GetDomainGoodPathName(object.CId,specs.Image,false),
 		}
 		specData = append(specData, specRow)
 		vipMap := map[string]interface{}{
@@ -552,7 +553,7 @@ func (e Goods) Insert(c *gin.Context) {
 		e.Error(500, errors.New("请配置规格"), "请配置规格")
 		return
 	}
-	goodId, goodErr := s.Insert(userDto.CId, &req)
+	goodId,specDbMap, goodErr := s.Insert(userDto.CId, &req)
 	if goodErr != nil {
 		e.Error(500, err, fmt.Sprintf("创建商品失败,%s", goodErr.Error()))
 		return
@@ -590,7 +591,34 @@ func (e Goods) Insert(c *gin.Context) {
 			"image": strings.Join(fileList, ","),
 		})
 	}
+	//存储规格的图片
+	//根据索引来创建
+	specFiles := fileForm.File["spec_files"]
+	fmt.Println("规格DB",specDbMap)
+	fmt.Println("规格图片",specFiles)
+	for index, file := range specFiles {
+		fmt.Println("规格索引",index)
+		specId,specOk:=specDbMap[index]
+		if !specOk{
+			continue
+		}
+		// 逐个存
+		_,goodsImagePath  :=GetImagePath(file.Filename,userDto.CId)
+		if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 
+			//1.上传到cos中
+			fileName,cosErr :=buckClient.PostFile(goodsImagePath)
+			if cosErr !=nil{
+				zap.S().Errorf("用户:%v,商品规格保存失败:%v",userDto.UserId,cosErr)
+			}
+			e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id = ? and c_id = ? and id = ?", goodId, userDto.CId,specId).Updates(map[string]interface{}{
+				"image": fileName,
+			})
+			//本地删除
+			_=os.Remove(goodsImagePath)
+		}
+
+	}
 	e.OK(req.GetId(), "创建成功")
 }
 
@@ -651,7 +679,12 @@ func (e Goods) Update(c *gin.Context) {
 		e.Error(500, errors.New("请配置规格"), "请配置规格")
 		return
 	}
-	err = s.Update(userDto.CId, &req, p)
+	//设置桶
+	buckClient :=qiniu.QinUi{CId: userDto.CId}
+	buckClient.InitClient()
+
+
+	CacheSpecImageMap,err := s.Update(userDto.CId,buckClient, &req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("修改商品信息失败,%s", err.Error()))
 		return
@@ -659,7 +692,7 @@ func (e Goods) Update(c *gin.Context) {
 	var goodsObject models.Goods
 	e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?",
 		req.Id, userDto.CId).Limit(1).Find(&goodsObject)
-	fileList := make([]string, 0)
+
 
 	//原来的图片
 	baseFileList := make([]string, 0)
@@ -668,13 +701,26 @@ func (e Goods) Update(c *gin.Context) {
 	}
 	//初始化cos对象存储
 	//txClient :=tx_api.TxCos{}
-	buckClient :=qiniu.QinUi{CId: userDto.CId}
-	buckClient.InitClient()
 
+
+	fileForm, fileErr := c.MultipartForm()
+	if fileErr != nil {
+		e.Error(500, nil, "请提交表单模式")
+		return
+	}
+
+	//商品的图片处理
 	if req.FileClear == 1 {
-		for _, image := range fileList {
-			_ = os.Remove(business.GetGoodPathName(userDto.CId) + image)
+
+		goodsObj :=models.Goods{}
+		e.Orm.Model(&models.Goods{}).Select("image").Where("id = ? and c_id = ?",
+			req.Id, userDto.CId).Limit(1).Find(&goodsObj)
+		if goodsObj.Image != ""{
+			for _, image := range strings.Split(goodsObj.Image,",") {
+				buckClient.RemoveFile(business.GetSiteGoodsPath(userDto.CId,image))
+			}
 		}
+
 		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?",
 			req.Id, userDto.CId).Updates(map[string]interface{}{
 			"image": "",
@@ -682,11 +728,7 @@ func (e Goods) Update(c *gin.Context) {
 	} else {
 		//商品信息创建成功,才会保存客户的商品照片
 		// 遍历所有图片
-		fileForm, fileErr := c.MultipartForm()
-		if fileErr != nil {
-			e.Error(500, nil, "请提交表单模式")
-			return
-		}
+		fileList := make([]string, 0)
 		files := fileForm.File["files"]
 		//处理下路径
 		if req.BaseFiles != "" {
@@ -704,6 +746,7 @@ func (e Goods) Update(c *gin.Context) {
 		}
 		for _, file := range files {
 			// 逐个存
+			//index
 
 			_,goodsImagePath  :=GetImagePath(file.Filename,userDto.CId)
 
@@ -715,10 +758,64 @@ func (e Goods) Update(c *gin.Context) {
 				}
 				fileList = append(fileList, fileName)
 			}
+			os.Remove(goodsImagePath)
 		}
 		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?", req.Id, userDto.CId).Updates(map[string]interface{}{
 			"image": strings.Join(fileList, ","),
 		})
+
+	}
+	//规格图片的处理
+	if req.SpecFileClear == 1{
+
+		//那就把规格的图片都清空掉
+		specsList:=make([]models.GoodsSpecs,0)
+		e.Orm.Model(&models.GoodsSpecs{}).Select("image").Where("goods_id = ? and c_id = ? ", req.Id, userDto.CId).Find(&specsList)
+
+		for _,row:=range specsList{
+			if row.Image != ""{
+				buckClient.RemoveFile(business.GetSiteGoodsPath(userDto.CId,row.Image))
+			}
+			e.Orm.Model(&models.GoodsSpecs{}).Select("image").Where("goods_id = ? and c_id = ? ", req.Id, userDto.CId).Updates(map[string]interface{}{
+				"image":"",
+			})
+		}
+
+	}else {
+
+		fmt.Println("规格和图片位置的map",CacheSpecImageMap)
+		specFiles := fileForm.File["spec_files"]
+		for index, file := range specFiles {
+			// 逐个存
+			_,goodsImagePath  :=GetImagePath(file.Filename,userDto.CId)
+
+			if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
+				//只保留文件名称,防止透露服务器地址
+				fileName,cosErr:=buckClient.PostFile(goodsImagePath)
+				if cosErr !=nil{
+					continue
+				}
+
+				fmt.Println("文件的索引",index)
+				for specIdKey,v:=range CacheSpecImageMap {
+					fmt.Println("规格图片的索引",specIdKey,v)
+					if index == v {
+						//因为图片更新了,那就把旧图删掉
+						//保存一个新图
+						GoodsImageSpecs:=models.GoodsSpecs{}
+						e.Orm.Model(&models.GoodsSpecs{}).Select("id,image").Where("goods_id = ? and c_id = ? and id = ?", req.Id, userDto.CId,specIdKey).Limit(1).Find(&GoodsImageSpecs)
+						if GoodsImageSpecs.Id > 0 && GoodsImageSpecs.Image !=""{
+							buckClient.RemoveFile(business.GetSiteGoodsPath(userDto.CId,GoodsImageSpecs.Image))
+						}
+
+						e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id = ? and c_id = ? and id = ?", req.Id, userDto.CId,specIdKey).Updates(map[string]interface{}{
+							"image": fileName,
+						})
+					}
+				}
+			}
+			_=os.Remove(goodsImagePath)
+		}
 
 	}
 

@@ -64,21 +64,31 @@ func InitializationWeApp()  {
 			"name":"个人资料",
 			"image_url":"../../static/member/default_person.png",
 			"wap_url":"/pages_tool/member/info",
+			"default_show":1,
 		},
 		{
 			"name":"收货地址",
 			"image_url":"../../static/member/default_address.png",
 			"wap_url":"/pages_tool/member/address",
+			"default_show":1,
 		},
 		{
 			"name":"优惠卷",
 			"image_url":"../../static/member/default_discount.png",
 			"wap_url":"/pages_tool/member/coupon",
+			"default_show":1,
 		},
 		{
 			"name":"我的收藏",
 			"image_url":"../../static/member/default_like.png",
 			"wap_url":"/pages_tool/member/collection",
+			"default_show":1,
+		},
+		{
+			"name":"核销台",
+			"image_url":"../../static/member/default_fenxiao.png",
+			"wap_url":"/pages_tool/verification/index",
+			"default_show":1, //设置是否默认可以显示的
 		},
 	}
 
@@ -88,6 +98,7 @@ func InitializationWeApp()  {
 			if db.Model(&models.WeAppQuickTools{}).Where("name = ?", row["name"]).Count(&count); count > 0 {
 				continue
 			}
+
 			db.Model(&models.WeAppQuickTools{}).Create(&row)
 		}
 	}

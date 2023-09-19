@@ -130,11 +130,14 @@ func (e CycleTimeConf) GetPage(c *gin.Context) {
 			"show":       row.Show,
 			"layer":      row.Layer,
 			"created_at": row.CreatedAt,
-			"give_range": func() string {
+			"give_range":func() string {
 				if row.GiveDay == 0 {
-					return fmt.Sprintf("下单当天,%v", row.GiveTime)
+					if row.GiveTime != ""{
+						return fmt.Sprintf("当天送达 %v", row.GiveTime)
+					}
+					return "当天送达"
 				}
-				return fmt.Sprintf("下单后 第%v天,%v", row.GiveDay, row.GiveTime)
+				return fmt.Sprintf("第%v天 %v", row.GiveDay, row.GiveTime)
 			}(),
 		}
 		switch row.Type {

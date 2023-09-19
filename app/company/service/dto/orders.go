@@ -140,7 +140,7 @@ func (s *OrdersUpdateReq) Generate(model *models.Orders) {
 
 	model.ShopId = s.ShopId
 	model.Status = s.Status
-	model.Money = s.Money
+	model.OrderMoney = s.Money
 	model.Number = s.Number
 	//model.Delivery = s.Delivery
 }

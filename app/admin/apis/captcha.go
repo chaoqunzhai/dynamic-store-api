@@ -22,6 +22,21 @@ func (e System) GenerateCaptchaHandler(c *gin.Context) {
 		e.Error(500, err, "服务初始化失败！")
 		return
 	}
+	//driverString:=base64Captcha.DriverString{
+	//	Height:          60,
+	//	Width:           200,
+	//	NoiseCount:      0,     //噪点数
+	//	ShowLineOptions: 1, //干扰线
+	//	Length:          4,
+	//	Source:          "123456789",
+	//	Fonts: []string{"wqy-microhei.ttc"},
+	//}
+	//var driver base64Captcha.Driver = driverString.ConvertFonts()
+	//cap1 := base64Captcha.NewCaptcha(driver, store)
+	//DriverDigit := base64Captcha.NewDriverDigit(80, 240, 4, 0, 1)
+	//
+	//cap1 := base64Captcha.NewCaptcha(DriverDigit, base64Captcha.DefaultMemStore)
+
 	id, b64s, err := captcha.DriverDigitFunc()
 	if err != nil {
 		e.Logger.Errorf("DriverDigitFunc error, %s", err.Error())

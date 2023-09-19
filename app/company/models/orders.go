@@ -6,20 +6,35 @@ import (
 
 type Orders struct {
 	models.Model
-	Enable    bool         `json:"enable" gorm:"type:tinyint(1);comment:开关"`
-	CId       int          `json:"c_id" gorm:"type:bigint;comment:大BID"`
-	ClassId   string       `json:"class_id" gorm:"type:bigint;comment:分类ID"`
-	ShopId    int          `json:"shop_id" gorm:"type:bigint;comment:关联客户"`
-	LineId    int          `json:"line_id" gorm:"type:bigint;comment:线路ID"`
-	Line      string       `json:"line" gorm:"index;size:16;comment:路线名称"`
-	Status    int          `json:"status" gorm:"type:bigint;default:1;comment:配送状态"`
-	Money     float64      `json:"money" gorm:"type:double;comment:下单总金额"`
-	Number    int          `json:"number" gorm:"type:bigint;comment:下单产品数量"`
-	Pay       int          `gorm:"type:tinyint(1);default:0;index;comment:支付方式,0:微信支付,1:余额支付,2:到付"`
-	PayStatus int          `gorm:"type:tinyint(1);default:0;index;comment:支付状态,0:未付款,1:已付款 2:线下付款，3:下线付款已收款"`
-	CycleTime models.XTime `json:"cycle_time" gorm:"type:date;comment:计算的配送时间"`
-	CycleStr  string       `json:"cycle_str" gorm:"index;size:16;comment:配送周期文案"`
-	CycleUid  string       `gorm:"type:varchar(4);index;comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
+	OrderId string `json:"order_id" gorm:"index;size:20;comment:订单ID"`
+	OrderNoId string `json:"order_no_id" gorm:"size:20;comment:支付流水号"`
+	DeliveryType int `json:"delivery_type" gorm:"comment:配送类型"`
+	DeliveryID int `json:"delivery_id" gorm:"comment:自提的时候,选择的站点ID"`
+	GoodsName string        `json:"goods_name" gorm:"size:50;comment:商品名称"`
+	CId       int       `gorm:"index;comment:大BID"`
+	Enable    bool      `gorm:"comment:开关"`
+	GoodsId int `json:"goods_id" gorm:"comment:商品ID"`
+	ShopId    int       `gorm:"index;comment:关联客户"`
+	Line      string    `gorm:"size:16;comment:路线名称"`
+	LineId    int       `json:"line_id" gorm:"index;type:bigint;comment:线路ID"`
+	Status    int       `gorm:"type:tinyint(1);default:0;index;comment:配送状态,0:待配送,1:配送中,2:已配送,3:退回,4:退款"`
+	PayMoney     float64   `gorm:"comment:实际支付价"`
+	OrderMoney float64  `gorm:"comment:需要支付价"`
+	GoodsMoney float64 `gorm:"comment:商品总价格"`
+	DeductionMoney float64  `json:"deduction_money" gorm:"comment:抵扣额"`
+	Number    int       `gorm:"comment:下单数量"`
+	Pay       int       `gorm:"type:tinyint(1);default:0;index;comment:支付方式,0:线上,1:线下"`
+	PayStatus int        `gorm:"type:tinyint(1);default:0;index;comment:支付状态,0:未付款,1:已付款 2:线下付款，3:下线付款已收款"`
+	CycleTime models.XTime `json:"cycle_time" gorm:"type:date;comment:下单时计算的配送时间"`
+	CycleId int `json:"cycle_id" gorm:"index;comment:周期ID"`
+	CycleUid  string    `gorm:"type:varchar(4);comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
+	DeliveryTime  string    `json:"delivery_time" gorm:"size:25;comment:配送，自提的中文描述"`
+	Deduction    int            `json:"deduction" gorm:"type:tinyint(1);default:0;comment:折扣类型"`
+	DeliveryMoney float64 `json:"delivery_money" gorm:"comment:运费"`
+	CouponId int `json:"coupon_id" gorm:"comment:使用优惠卷的ID"`
+	Buyer string `json:"buyer" gorm:"size:27;comment:买家留言"`
+
+
 	CreatedAt models.XTime `json:"created_at" gorm:"comment:创建时间"`
 	UpdatedAt models.XTime `json:"updated_at" gorm:"comment:最后更新时间"`
 	models.ControlBy
@@ -40,16 +55,18 @@ func (e *Orders) GetId() interface{} {
 // 订单规格
 type OrderSpecs struct {
 	models.Model
-	OrderId   int           `json:"orderId" gorm:"type:bigint(20);comment:关联订单ID"`
-	GoodsName string        `json:"goods_name" gorm:"size:35;comment:商品名称+广告"`
-	GoodsId   int           `gorm:"index;comment:商品表ID"`
-	SpecsName string        `gorm:"size:30;comment:规格名称"`
-	Unit      string        `json:"unit" gorm:"type:varchar(8);comment:单位"`
-	Status    int           `json:"status" gorm:"type:bigint(20);comment:配送状态"`
-	Money     float64       `json:"money" gorm:"type:double;comment:价格"`
-	Number    int           `json:"number" gorm:"type:bigint(20);comment:下单产品数"`
+
+
+	CId       int       `gorm:"index;comment:大BID"`
+	SpecId int `gorm:"index;comment:规格ID"`
 	CreatedAt models.XTime  `json:"created_at" gorm:"comment:创建时间"`
 	DeletedAt *models.XTime `json:"-" gorm:"index;comment:删除时间"`
+	OrderId   string            `gorm:"index;size:30;comment:关联订单长ID"`
+	SpecsName string         `gorm:"size:30;comment:规格名称"`
+	Unit      string         `json:"unit" gorm:"type:varchar(8);comment:单位"`
+	Number    int            `gorm:"comment:下单规格数"`
+	Status    int            `gorm:"type:tinyint(1);default:1;index;comment:配送状态"`
+	Money     float64        `gorm:"comment:规格的价格"`
 }
 
 func (OrderSpecs) TableName(tableName string) string {
@@ -68,13 +85,19 @@ func (e *OrderSpecs) GetId() interface{} {
 type OrderExtend struct {
 	models.Model
 
-	OrderId   int           `json:"orderId" gorm:"type:bigint(20);comment:关联订单ID"`
-	CreatedAt models.XTime  `json:"created_at" gorm:"comment:创建时间"`
+
+	CId       int       `gorm:"index;comment:大BID"`
+	CreatedAt models.XTime       `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt *models.XTime `json:"-" gorm:"index;comment:删除时间"`
-	Desc      string        `json:"desc" gorm:"type:varchar(35);comment:描述信息"`
-	Driver    string        `gorm:"size:12;comment:司机名称"`
-	Phone     string        `gorm:"size:11;comment:联系手机号"`
+	OrderId string `json:"order_id" gorm:"index;size:20;comment:订单ID"`
+	Driver    string         `gorm:"size:12;comment:司机名称"`
+	Phone     string         `gorm:"size:11;comment:联系手机号"`
 	Source    int           `gorm:"type:tinyint(1);default:0;index;comment:订单来源,0:客户下单,1:代客下单"`
+	Desc      string         `gorm:"size:20;comment:描述信息"`
+	UserPhone     string         `gorm:"size:11;comment:用户联系手机号"`
+	UserName string `json:"user_name" gorm:"size:20;comment:联系名称"`
+	UserAddress string `json:"user_address" gorm:"size:70;comment:用户地址"`
+	CouponMoney float64 `json:"coupon_money" gorm:"comment:优惠卷金额"`
 }
 
 func (OrderExtend) TableName(tableName string) string {

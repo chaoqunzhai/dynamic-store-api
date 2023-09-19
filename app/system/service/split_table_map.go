@@ -63,6 +63,7 @@ func (e *SplitTableMap) Insert(c *dto.SplitTableMapInsertReq) (uid int, err erro
 
 	var data models.SplitTableMap
 	c.Generate(&data)
+	data.Enable = true
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("分表创建失败\r\n", err)

@@ -46,7 +46,7 @@ type GoodsSpecs struct {
 	Limit     int     `gorm:"comment:起售量"`
 	Max int  `gorm:"comment:最大购买量"`
 	Code      string  `gorm:"size:30;comment:条形码"`
-	Image     string  `gorm:"size:100;comment:商品图片路径"`
+	Image     string  `gorm:"size:15;comment:商品图片路径"`
 }
 
 func (GoodsSpecs) TableName() string {

@@ -123,13 +123,30 @@ func (e SplitTableMap) Insert(c *gin.Context) {
 	tableName := ""
 	subTableName := ""
 
+	if req.CId == 0 {
+		e.Error(500, nil, "请选择大B")
+		return
+	}
+	var CompanyCount int64
+	e.Orm.Model(&models2.Company{}).Where("id = ? and enable = ?",req.CId,true).Count(&CompanyCount)
+	if CompanyCount == 0 {
+		e.Error(500, nil, "大B不存在")
+		return
+	}
+
+	var splitCount int64
+	e.Orm.Model(&models.SplitTableMap{}).Where("c_id = ? and type = ?",req.CId,req.Type).Count(&splitCount)
+	if splitCount > 0 {
+		e.Error(500, nil, "分表已经存在")
+		return
+	}
 	switch req.Type {
 	case global.SplitOrder:
 		//订单父表名称
 		tableName = fmt.Sprintf("%v_%v_%v", global.SplitOrderDefaultTableName, req.CId, nowUnix)
 		subTableName = fmt.Sprintf("%v_%v_%v", global.SplitOrderDefaultSubTableName, req.CId, nowUnix)
 	default:
-		e.Error(500, nil, "分来类型不存在")
+		e.Error(500, nil, "分表类型不存在")
 		return
 	}
 	var count int64

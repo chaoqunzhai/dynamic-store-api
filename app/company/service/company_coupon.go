@@ -69,35 +69,36 @@ func (e *CompanyCoupon) Insert(cid int, c *dto.CompanyCouponInsertReq) error {
 	data.CId = cid
 	//todo:时间处理
 	fmt.Println("expr", c.ExpireType)
-	if c.ExpireType == 0 {
-		if len(c.BetweenTime) != 2 {
-			return errors.New("请填入开始结束时间")
-		}
-		startTime := c.BetweenTime[0]
-		endTime := c.BetweenTime[1]
-		if startTime != "" {
-			startTime = strings.Replace(startTime, "T", " ", -1)
-			startTime = strings.Replace(startTime, "Z", "", -1)
-			t, _ := time.Parse("2006-01-02", startTime)
-			//fmt.Println("startTime", startTime, "t", t)
-			zeroTime:=time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,t.Location())
-			data.StartTime = sql.NullTime{
-				Time:  zeroTime,
-				Valid: true,
-			}
-		}
-		if endTime != "" {
-			endTime = strings.Replace(endTime, "T", " ", -1)
-			endTime = strings.Replace(endTime, "Z", "", -1)
-			t, _ := time.Parse("2006-01-02", endTime)
-			//fmt.Println("endTime", endTime, "t", t)
-			zeroTime:=time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,t.Location())
-			data.EndTime = sql.NullTime{
-				Time:  zeroTime,
-				Valid: true,
-			}
+
+	if len(c.BetweenTime) != 2 {
+		return errors.New("请填入开始结束时间")
+	}
+	startTime := c.BetweenTime[0]
+	endTime := c.BetweenTime[1]
+
+	if startTime != "" {
+		startTime = strings.Replace(startTime, "T", " ", -1)
+		startTime = strings.Replace(startTime, "Z", "", -1)
+		t, _ := time.Parse("2006-01-02 15:04:05", startTime)
+		fmt.Println("startTime", startTime, "t", t)
+		zeroTime:=time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,t.Location())
+		data.StartTime = sql.NullTime{
+			Time:  zeroTime,
+			Valid: true,
 		}
 	}
+	if endTime != "" {
+		endTime = strings.Replace(endTime, "T", " ", -1)
+		endTime = strings.Replace(endTime, "Z", "", -1)
+		t, _ := time.Parse("2006-01-02 15:04:05", endTime)
+
+		zeroTime:=time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,t.Location())
+		data.EndTime = sql.NullTime{
+			Time:  zeroTime,
+			Valid: true,
+		}
+	}
+
 
 	err = e.Orm.Create(&data).Error
 	if err != nil {

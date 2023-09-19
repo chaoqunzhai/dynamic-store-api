@@ -31,6 +31,8 @@ type DetailInsertReq struct {
 	PreviewVipList []int `json:"preview_vip_list"` //浏览的权限列表
 	BuyingAuth bool `json:"buying_auth"`
 	Preview bool `json:"preview"`
+	RecommendShow bool `json:"recommend_show"` //是否显示推荐产品
+	ServerShow bool `json:"server_show"` //是否展示产品服务
 }
 func (e DetailCnf) Create(c *gin.Context) {
 	req := DetailInsertReq{}
@@ -69,7 +71,8 @@ func (e DetailCnf) Create(c *gin.Context) {
 	WeAppExtendCnf.Preview = req.Preview
 	WeAppExtendCnf.BuyingAuth =req.BuyingAuth
 
-
+	WeAppExtendCnf.RecommendShow = req.RecommendShow
+	WeAppExtendCnf.ServerShow = req.ServerShow
 	if WeAppExtendCnf.Id > 0 {
 
 		e.Orm.Save(&WeAppExtendCnf)

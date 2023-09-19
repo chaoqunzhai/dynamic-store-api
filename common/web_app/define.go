@@ -53,51 +53,6 @@ var NavDefine = `{
         }
       }`
 
-// 商品分类
-var DIY_VIEW_GOODS_CATEGORY = `
-{
-	"global":{
-		"title": "商品分类",
-		"pageBgColor": "#FFFFFF",
-		"topNavColor": "#FFFFFF",
-		"topNavBg": false,
-		"navBarSwitch": true,
-		"textNavColor": "#333333",
-		"openBottomNav": true,
-		"navStyle": 1,
-		"textImgPosLink": "left",
-		"mpCollect": false,
-		"popWindow": {
-			"count": -1
-		},
-		"template": {
-			"textColor": "#303133",
-			"componentAngle": "round",
-			"elementBgColor": "",
-			"elementAngle": "round",
-			"margin": {
-				"top": 0,
-				"bottom": 0,
-				"both": 0
-			}
-		}
-	},
-	"value":[
-		{
-			"level": "2",
-			"template": "2",
-			"quickBuy": 1,
-			"search": 1,
-			"componentName": "GoodsCategory",
-			"componentTitle": "商品分类",
-			"isDelete": 1,
-			"margin": [],
-			"goodsLevel": 1,
-			"loadType": "part"
-		}
-	]
-}
-`
 
 // 我的中心
 var DIY_VIEW_MEMBER_INDEX = `
@@ -167,7 +122,7 @@ var DIY_VIEW_MEMBER_INDEX = `
     {
         "style": "style-12",
         "styleName": "风格12",
-        "text": "我的订单",
+        "text": "全部订单",
         "link": {
             "name": ""
         },
@@ -185,7 +140,7 @@ var DIY_VIEW_MEMBER_INDEX = `
             "link": {
                 "name": "ALL_ORDER",
                 "title": "全部订单",
-                "wap_url": "/pages/order/list",
+                "wap_url": "/pages_order/order/list",
                 "parent": "MALL_LINK"
             },
             "isShow": true,
@@ -211,6 +166,26 @@ var DIY_VIEW_MEMBER_INDEX = `
             "both": 15
         }
     },
+{
+        "id": "",
+        "addonName": "",
+        "componentName": "HorzLine",
+        "componentTitle": "辅助线",
+        "isDelete": 0,
+        "pageBgColor": "",
+        "topAroundRadius": 0,
+        "bottomAroundRadius": 0,
+        "topElementAroundRadius": 0,
+        "bottomElementAroundRadius": 0,
+        "margin": {
+          "top": 0,
+          "bottom": 0,
+          "both": 20
+        },
+
+        "color": "#EEEEEE",
+        "borderStyle": "solid"
+      },
     {
         "componentName": "MemberMyOrder",
         "componentTitle": "我的订单",
@@ -270,6 +245,26 @@ var DIY_VIEW_MEMBER_INDEX = `
             "both": 15
         }
     },
+{
+        "id": "",
+        "addonName": "",
+        "componentName": "HorzLine",
+        "componentTitle": "辅助线",
+        "isDelete": 0,
+        "pageBgColor": "",
+        "topAroundRadius": 0,
+        "bottomAroundRadius": 0,
+        "topElementAroundRadius": 0,
+        "bottomElementAroundRadius": 0,
+        "margin": {
+          "top": 0,
+          "bottom": 0,
+          "both": 20
+        },
+
+        "color": "#EEEEEE",
+        "borderStyle": "solid"
+      },
     {
         "mode": "graphic",
         "type": "img",
@@ -308,40 +303,6 @@ var DIY_VIEW_MEMBER_INDEX = `
 }
 `
 
-// 主页
-var DIY_VIEW_INDEX = `
-{
-	"global":{
-		"title": "",
-		"pageBgColor": "#F6F9FF",
-		"topNavColor": "#FFFFFF",
-		"topNavBg": true,
-		"navBarSwitch": true,
-		"navStyle": 1,
-		"textNavColor": "#333333",
-		"openBottomNav": true,
-		"textImgPosLink": "center",
-		"mpCollect": false,
-		"popWindow": {
-			"count": -1,
-			"show": 0
-		},
-		"bgUrl": "addon/diy_default1/bg.png",
-		"imgWidth": "2250",
-		"imgHeight": "1110",
-		"template": {
-			"textColor": "#303133",
-			"componentAngle": "round",
-			"elementAngle": "round",
-			"margin": {
-				"top": 0,
-				"bottom": 0,
-				"both": 12
-			}
-		}
-	}
-}
-`
 //如果没有对大B进行特殊配置,那就默认已经配置的
 var MemIndexData = `{
       "id": 0,

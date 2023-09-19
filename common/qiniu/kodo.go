@@ -2,6 +2,7 @@ package qiniu
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/nfnt/resize"
@@ -11,6 +12,7 @@ import (
 	"image/png"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/qiniu/go-sdk/v7/auth/qbox"
@@ -20,6 +22,65 @@ import (
 )
 
 
+func CompressImg(source string, hight uint) (newFilePath string,err error) {
+	fileDir,_:=path.Split(source)
+
+
+	var file *os.File
+	//reg, _ := regexp.Compile(`^.*\.((png)|(jpg))$`)
+	//if !reg.MatchString(source) {
+	//	err = errors.New("%s is not a .png or .jpg file")
+	//
+	//	return "", err
+	//}
+	if file, err = os.Open(source); err != nil {
+
+		return "", err
+	}
+	defer func() {
+		_=file.Close()
+	}()
+	name := file.Name()
+	var img image.Image
+	switch {
+	case strings.HasSuffix(name, ".png"):
+		if img, err = png.Decode(file); err != nil {
+
+			return "", err
+		}
+	case strings.HasSuffix(name, ".jpg"):
+		if img, err = jpeg.Decode(file); err != nil {
+
+			return "", err
+		}
+	default:
+		return "",errors.New("不支持的类型")
+	}
+	resizeImg := resize.Resize(hight, 0, img, resize.Lanczos3)
+
+	newFileName := newName(source, int(hight))
+
+
+
+	newFilePath	=path.Join(fileDir,newFileName)
+
+	if outFile, createErr := os.Create(newFilePath); createErr != nil {
+		return "", createErr
+	} else {
+		defer outFile.Close()
+		err = jpeg.Encode(outFile, resizeImg, nil)
+		if err != nil {
+
+			return "", err
+		}
+	}
+
+	return newFilePath,nil
+}
+func newName(name string, size int) string {
+	_, file := filepath.Split(name)
+	return fmt.Sprintf("%d%s", size, file)
+}
 func SizeFile(filePath string) string {
 	// 打开要压缩的图片文件
 	file, err := os.Open(filePath)
@@ -44,10 +105,10 @@ func SizeFile(filePath string) string {
 	newHeight :=  uint(img.Bounds().Dy() )
 
 
-	if newHeight < 750 {
+	if newHeight < 400 {
 		return filePath
 	}
-	resizeHeight:=750
+	resizeHeight:=400
 
 	h:=(uint(resizeHeight) * newWidth) / newHeight
 
@@ -86,7 +147,7 @@ func SizeFile(filePath string) string {
 
 
 type QinUi struct {
-	CId int `json:"c_id"` //站点ID
+	CId interface{} `json:"c_id"` //站点ID
 	Cfg storage.Config
 	BucketName string `json:"bucket_name"`
 	BucketManager *storage.BucketManager
@@ -131,7 +192,13 @@ func (q *QinUi)PostFile(filePath  string) (name string,err  error)  {
 	//filePath := "/Users/zhaichaoqun/workespace/goProjects/src/test/70e3f85b.jpg"
 
 	//压缩下文件
-	sizeFilePath :=SizeFile(filePath)
+	//细致压缩失败,那就用第二种
+	sizeFilePath,sizeError :=CompressImg(filePath,400)
+	if sizeError!=nil{
+		//return "",errors.New(fmt.Sprintf("压缩失败%v",sizeError.Error()))
+		sizeFilePath =SizeFile(filePath)
+	}
+	fmt.Println("sizeFilePath",sizeFilePath)
 	//sizeFilePath:是压缩后的文件
 	_,fileName := path.Split(sizeFilePath)
 
@@ -150,10 +217,12 @@ func (q *QinUi)PostFile(filePath  string) (name string,err  error)  {
 	err = formUploader.PutFile(context.Background(), &ret, q.Token, sizeFilePath, sizeFilePath, &putExtra)
 	if err != nil {
 		zap.S().Infof("七牛云图片上传失败:%v",err)
-		return "", err
+		return "", errors.New(fmt.Sprintf("图片上传失败:%v",err))
 	}
 	//上传成功后,删除这个压缩的文件
-	os.Remove(sizeFilePath)
+	defer func() {
+		os.Remove(sizeFilePath)
+	}()
 	return fileName, err
 }
 func (q *QinUi)MakeUrl(fileName string) string  {
@@ -166,5 +235,5 @@ func (q *QinUi)RemoveFile(FileName string)  {
 
 	err:=q.BucketManager.Delete(q.BucketName,FileName)
 
-	fmt.Printf("删除图片:%v 成功,返回:%v",FileName,err)
+	fmt.Printf("删除图片:%v 成功,返回:%v\n",FileName,err)
 }

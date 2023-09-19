@@ -104,22 +104,22 @@ func (e Orders) GetPage(c *gin.Context) {
 	e.Orm.Table(specsTable).Select("order_id,goods_name,number").Where("order_id in ?", cacheOrderId).Find(&orderSpecs)
 
 	//缓存订单关联的商品
-	orderSpecsMap := make(map[int]map[string]dto.OrderSpecsRow, 0)
+	orderSpecsMap := make(map[string]map[string]dto.OrderSpecsRow, 0)
 	for _, k := range orderSpecs {
 		rows, ok := orderSpecsMap[k.OrderId]
 		fmt.Println("ok", ok, rows)
 		if !ok {
 			specsMap := make(map[string]dto.OrderSpecsRow, 0)
 
-			specsMap[k.GoodsName] = dto.OrderSpecsRow{
+			specsMap[k.SpecsName] = dto.OrderSpecsRow{
 				Number: k.Number,
 			}
 			orderSpecsMap[k.OrderId] = specsMap
 
 		} else {
-			parentDat := rows[k.GoodsName]
+			parentDat := rows[k.SpecsName]
 			parentDat.Number += k.Number
-			rows[k.GoodsName] = parentDat
+			rows[k.SpecsName] = parentDat
 
 			orderSpecsMap[k.OrderId] = rows
 		}
@@ -128,7 +128,7 @@ func (e Orders) GetPage(c *gin.Context) {
 	result := make([]map[string]interface{}, 0)
 	for _, row := range list {
 
-		specsDataMap := orderSpecsMap[row.Id]
+		specsDataMap := orderSpecsMap[row.OrderId]
 		r := map[string]interface{}{
 			"id":   fmt.Sprintf("%v", row.Id),
 			"shop": cacheShopMap[row.ShopId],
@@ -136,9 +136,9 @@ func (e Orders) GetPage(c *gin.Context) {
 			"cycle_place": row.CreatedAt.Format("2006-01-02"),
 			//配送周期
 			"cycle_give":     row.CycleTime.Format("2006-01-02"),
-			"cycle_give_str": row.CycleStr,
+			"cycle_give_str": row.DeliveryTime,
 			"count":          row.Number,
-			"money":          row.Money,
+			"money":          row.PayMoney,
 			"s":              row.Status,
 			"p":              row.PayStatus,
 			"status":         global.OrderStatus(row.Status),
@@ -199,7 +199,7 @@ func (e Orders) Get(c *gin.Context) {
 		"order_id":       object.Id,
 		"created_at":     object.CreatedAt.Format("2006-01-02 15:04:05"),
 		"cycle_time":     object.CycleTime.Format("2006-01-02"),
-		"cycle_str":      object.CycleStr,
+		"cycle_str":      object.DeliveryTime,
 		"pay":            global.GetPayTypeStr(object.Pay),
 		"pay_status_str": global.GetOrderPayStatus(object.PayStatus),
 		"pay_status":     object.PayStatus,
@@ -218,7 +218,7 @@ func (e Orders) Get(c *gin.Context) {
 	for _, row := range orderSpecs {
 		ss := map[string]interface{}{
 			"id":         row.Id,
-			"goods_name": row.GoodsName,
+
 			"name":       row.SpecsName,
 			"created_at": row.CreatedAt.Format("2006-01-02 15:04:05"),
 			"specs":      fmt.Sprintf("%v%v", row.Number, row.Unit),
@@ -278,25 +278,26 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	driverName := DriverObject.Name
 	for classId, goodsList := range req.Goods {
 
+		fmt.Println("classId",classId)
 		orderRow := &models.Orders{
 			Enable:  true,
 			ShopId:  req.Shop,
 			Line:    lineName,
 			LineId:  lineObject.Id,
 			CId:     userDto.CId,
-			ClassId: classId,
+			//ClassId: classId,
 		}
 		//
 		orderId := utils.GenUUID()
 		orderRow.Id = orderId
 		//代客下单,需要把配送周期保存，方便周期配送
 		orderRow.CycleTime = s.CalculateTime(DeliveryObject.GiveDay)
-		orderRow.CycleStr = DeliveryObject.GiveTime
+		orderRow.DeliveryTime = DeliveryObject.GiveTime
 		orderRow.CycleUid = DeliveryObject.Uid
 		orderRow.CreateBy = userDto.UserId
 
 		e.Orm.Table(orderExtend).Create(&models.OrderExtend{
-			OrderId: orderRow.Id,
+			OrderId: orderRow.OrderId,
 			Desc:    req.Desc,
 			Driver:  driverName,
 			Source:  1,
@@ -328,8 +329,8 @@ func (e Orders) ValetOrder(c *gin.Context) {
 				Money:     spec.Price,
 				Unit:      spec.Unit,
 				SpecsName: goodsSpecs.Name,
-				GoodsName: spec.GoodsName,
-				GoodsId:   spec.GoodsId,
+
+				SpecId:   spec.Id,
 			}
 			var goodsObject models2.Goods
 			e.Orm.Model(&models2.Goods{}).Where("id = ? and c_id = ? and enable = ?", spec.GoodsId, userDto.CId, true).Limit(1).Find(&goodsObject)
@@ -341,7 +342,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			specsOrderId = append(specsOrderId, specRow.Id)
 		}
 		orderRow.Number = goodsNumber
-		orderRow.Money = orderMoney
+		orderRow.PayMoney = orderMoney
 		e.Orm.Table(orderTableName).Create(orderRow)
 		e.Orm.Table(specsTable).Where("id in ?", specsOrderId).Updates(map[string]interface{}{
 			"order_id": orderRow.Id,
@@ -666,7 +667,7 @@ func (e Orders) Insert(c *gin.Context) {
 	data.LineId = lineObject.Id
 	//todo:配送周期
 	data.CycleTime = timeConfResult.CycleTime
-	data.CycleStr = timeConfResult.CycleStr
+	data.DeliveryTime = timeConfResult.CycleStr
 	data.CycleUid = timeConfResult.RandUid
 	data.CreateBy = userId
 	createErr := e.Orm.Table(orderTableName).Create(&data).Error
@@ -680,7 +681,7 @@ func (e Orders) Insert(c *gin.Context) {
 	//扩展表
 	orderExtend := business.OrderExtendTableName(orderTableName)
 	e.Orm.Table(orderExtend).Create(&models.OrderExtend{
-		OrderId: data.Id,
+		OrderId:   fmt.Sprintf("%v",data.Id),
 		Desc:    req.Desc,
 		Source:  0,
 		Driver:  DriverObject.Name,
@@ -711,7 +712,7 @@ func (e Orders) Insert(c *gin.Context) {
 		goodsSaleNumber += goods.Number
 
 		e.Orm.Table(specsTable).Create(&models.OrderSpecs{
-			OrderId:   data.Id,
+			OrderId:   fmt.Sprintf("%v",data.Id),
 			SpecsName: goods.Name,
 			Unit:      goods.Unit,
 			Status:    global.OrderStatusWait,

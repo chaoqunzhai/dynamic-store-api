@@ -293,13 +293,14 @@ func (e WeApp) Quick(c *gin.Context) {
 		navCnf := make([]interface{}, 0)
 		for _, nav := range navList {
 			var object models.CompanyQuickTools
-			e.Orm.Model(&models.CompanyQuickTools{}).Where("c_id = ? and quick_id = ?", row.Id, nav.Id).Limit(1).Find(&object)
+			e.Orm.Model(&models.CompanyQuickTools{}).Select("id,enable").Where("c_id = ? and quick_id = ?", row.Id, nav.Id).Limit(1).Find(&object)
 
 			if object.Id > 0 {
 				nav.UserEnable = object.Enable
 
 			} else {
-				nav.UserEnable = row.Enable
+
+				nav.UserEnable = nav.DefaultShow
 			}
 			navCnf = append(navCnf, nav)
 		}

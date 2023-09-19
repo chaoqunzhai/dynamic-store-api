@@ -99,6 +99,7 @@ type Specs struct {
 	Enable    bool                   `form:"enable"`
 	Code      string                 `form:"code"`
 	Image     string                 `form:"image"`
+	Type string `json:"type"`
 	Original  interface{}            `form:"original" comment:"原价"`
 	Inventory interface{}            `form:"inventory" comment:"库存"`
 	Unit      string                 `form:"unit" comment:"单位"`
@@ -161,9 +162,11 @@ type GoodsUpdateReq struct {
 	Specs     string `form:"specs"  comment:"规格"`
 	SpecName string  `form:"spec_name"  comment:"规格名称"`
 	FileClear int    `form:"file_clear" comment:"是否清空照片"`
+	SpecFileClear int    `form:"spec_file_clear" comment:"是否清空规格照片"`
 	BaseFiles string `form:"base_files" comment:"原有图片"`
 	Recommend bool `form:"recommend" json:"recommend"`
 	Content string `form:"content"  json:"content"  comment:"商品详情"`
+	SpecImageMap string `form:"spec_image_map" comment:"规格图片映射表"`
 	common.ControlBy
 }
 

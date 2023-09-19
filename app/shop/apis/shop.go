@@ -421,17 +421,17 @@ func (e Shop)Credit(c *gin.Context)  {
 	Scene:=""
 	switch req.Mode {
 	case global.UserNumberAdd:
-		object.Credit += req.Value
+		object.Credit += float64(req.Value)
 		Scene = fmt.Sprintf("手动增加%v授信额",req.Value)
 	case global.UserNumberReduce:
-		if req.Value > object.Credit {
+		if float64(req.Value) > object.Credit {
 			e.Error(500, errors.New("数值非法"), "数值非法")
 			return
 		}
-		object.Credit -=req.Value
+		object.Credit -=float64(req.Value)
 		Scene = fmt.Sprintf("手动减少%v授信额",req.Value)
 	case global.UserNumberSet:
-		object.Credit = req.Value
+		object.Credit = float64(req.Value)
 		Scene = fmt.Sprintf("手动设置为%v授信额",req.Value)
 	default:
 		e.Error(500, nil,"操作不合法")

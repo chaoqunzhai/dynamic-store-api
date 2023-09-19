@@ -101,8 +101,9 @@ func (e *Goods) getClassModels(ids []string) (list []models.GoodsClass) {
 }
 
 // Insert 创建Goods对象
-func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
+func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int,specDbMap map[int]int, err error) {
 
+	specDbMap = make(map[int]int,0)
 	var data models.Goods
 	c.Generate(&data)
 	data.CId = cid
@@ -132,7 +133,7 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
 	//规格 + vip价格设置存在
 	moneyList := make([]float64, 0)
 	if len(specsList) > 0 && marshErr == nil {
-		for _, row := range specsList {
+		for index, row := range specsList {
 
 			stock :=utils.StringToInt(row.Inventory)
 
@@ -160,7 +161,7 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
 			}
 			specsModels.CreateBy = data.CreateBy
 			e.Orm.Create(&specsModels)
-
+			specDbMap[index] = specsModels.Id
 			for k, v := range row.Vip {
 
 				if !strings.HasPrefix(k, "vip_") {
@@ -210,15 +211,15 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int, err error) {
 
 	if err != nil {
 		e.Log.Errorf("GoodsService Insert error:%s \r\n", err)
-		return 0, err
+		return 0,specDbMap, err
 	}
 
-	return data.Id, err
+	return data.Id,specDbMap, err
 }
 
 // Update 修改Goods对象
-func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission) error {
-	var err error
+func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p *actions.DataPermission) (NewSpecImageMap map[int]int,err error ) {
+	NewSpecImageMap = make(map[int]int,0)
 	var data = models.Goods{}
 	e.Orm.Scopes(
 		actions.Permission(data.TableName(), p),
@@ -243,16 +244,37 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 	specsList := make([]dto.Specs, 0)
 	marshErr := json.Unmarshal([]byte(c.Specs), &specsList)
 	moneyList := make([]float64, 0)
-	//规格更新
+
+	//操作的规格列表
+	netSpecList:=make([]int,0)
+
+	//原来数据的规格ID
+	GoodsSpecsList:=make([]models.GoodsSpecs,0)
+	e.Orm.Model(&models.GoodsSpecs{}).Select("id").Where("goods_id = ?",c.Id).Find(&GoodsSpecsList)
+	oldSpecList:=make([]int,0)
+	for _,spec:=range GoodsSpecsList{
+		oldSpecList = append(oldSpecList,spec.Id)
+	}
+
+	//{规格ID:图片索引}
+	cacheSpecImageMap :=make(map[string]int,0)
+	json.Unmarshal([]byte(fmt.Sprintf("%v",c.SpecImageMap)),&cacheSpecImageMap)
+
+	//规格处理
 	if len(specsList) > 0 && marshErr == nil {
-		for _, row := range specsList {
+
+		//这个是专门用来记录, 文件的位置
+		fileIndex:=0
+		for index, row := range specsList {
 			var specsRow models.GoodsSpecs
 			//获取库存量
 			stock := utils.StringToInt(row.Inventory)
 			price := utils.RoundDecimalFlot64(row.Price)
 			moneyList = append(moneyList, price)
 			inventory += stock
-			if row.Id > 0 {
+
+
+			if row.Type !="append" {
 				//就是一个规格资源的更新
 				e.Orm.Model(&models.GoodsSpecs{}).Where("id = ?", row.Id).Limit(1).Find(&specsRow)
 				if specsRow.Id == 0 {
@@ -269,8 +291,10 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 				specsRow.Unit = row.Unit
 				specsRow.Limit = utils.StringToInt(row.Limit)
 				specsRow.Max = utils.StringToInt(row.Max)
-
+				netSpecList = append(netSpecList,specsRow.Id)
 				e.Orm.Save(&specsRow)
+
+
 			} else {
 				//规格资源的创建
 				specsRow = models.GoodsSpecs{
@@ -289,6 +313,18 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 				}
 				specsRow.CreateBy = data.CreateBy
 				e.Orm.Create(&specsRow)
+				netSpecList = append(netSpecList,specsRow.Id)
+
+			}
+			//这个是新增的一个规格，那这个规格 判断下是否有规格图片
+			//cacheSpecImageMap:{规格ID:属于第几个规格}
+			for _,specIndex:=range cacheSpecImageMap{
+				if specIndex == index{
+					//保存到新的这个组中
+					NewSpecImageMap[specsRow.Id] =  fileIndex
+					//这样才算是一个文件
+					fileIndex ++
+				}
 			}
 
 			for k, v := range row.Vip {
@@ -328,6 +364,23 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 
 				}
 			}
+
+
+		}
+
+		diffList := utils.DifferenceInt(oldSpecList, netSpecList)
+
+
+		fmt.Println("有差别的规格,",diffList)
+		fmt.Println("新的一个map映射",NewSpecImageMap)
+		for _,specId:=range diffList{
+			var goodsSpec models.GoodsSpecs
+			e.Orm.Model(&models.GoodsSpecs{}).Select("id,image").Where("id = ?",specId).Limit(1).Find(&goodsSpec)
+			if goodsSpec.Id > 0 && goodsSpec.Image != ""{
+				fmt.Println("删除有差别规格的图片",goodsSpec.Image)
+				buckClient.RemoveFile(business.GetSiteGoodsPath(cid,goodsSpec.Image))
+			}
+			e.Orm.Model(&models.GoodsSpecs{}).Unscoped().Where("id = ?",specId).Delete(&models.GoodsSpecs{})
 		}
 
 	} else {
@@ -353,7 +406,7 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("GoodsService Save error:%s \r\n", err)
-		return err
+		return nil, err
 	}
 	if c.Content != ""{
 		var GoodsDesc models.GoodsDesc
@@ -370,7 +423,7 @@ func (e *Goods) Update(cid int, c *dto.GoodsUpdateReq, p *actions.DataPermission
 			})
 		}
 	}
-	return nil
+	return NewSpecImageMap, err
 }
 
 // Remove 删除Goods
@@ -378,18 +431,33 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,CId interface{}, p *actions.DataPer
 
 	removeIds := make([]string, 0)
 
-	buckClient:=qiniu.QinUi{}
+	buckClient:=qiniu.QinUi{
+		CId: CId,
+	}
 	buckClient.InitClient()
 	for _, t := range d.Ids {
 		removeIds = append(removeIds, fmt.Sprintf("%v", t))
 
+		removeFileList:=make([]string,0)
 		var goods models.Goods
 
 		//删除商品
 		e.Orm.Model(&goods).Select("image").Where("id = ?",t).Limit(1).Find(&goods)
 
+		removeFileList = append(removeFileList, strings.Split(goods.Image,",")...)
+		//删除规格图片
+		GoodsSpecsList:=make([]models.GoodsSpecs,0)
+
+		e.Orm.Model(&models.GoodsSpecs{}).Select("image").Where("goods_id = ?",t).Limit(1).Find(&GoodsSpecsList)
+
+		for _,spec:=range GoodsSpecsList{
+			if spec.Image !="" {
+				removeFileList = append(removeFileList,spec.Image)
+			}
+		}
+		fmt.Println("删除商品+规格图片",removeFileList)
 		//如果有图片,删除图片
-		for _,image :=range strings.Split(goods.Image,","){
+		for _,image :=range removeFileList{
 			//_ = os.Remove(business.GetGoodPathName(goods.CId) + image)
 			buckClient.RemoveFile(business.GetSiteGoodsPath(CId,image))
 		}
@@ -409,6 +477,7 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,CId interface{}, p *actions.DataPer
 		}
 		//删除商品
 		e.Orm.Model(&goods).Where("id = ?",t).Delete(&models.Goods{})
+
 
 
 	}
