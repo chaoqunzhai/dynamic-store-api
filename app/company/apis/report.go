@@ -95,7 +95,7 @@ func (e Orders) Index(c *gin.Context) {
 	//大B + 选择天数 + 待送 + 有用的单子 +
 	//只聚合查询出，哪些客户=哪些路线  哪些商品=商品的配送
 	whereSql := fmt.Sprintf("select shop_id,good_id,line_id from orders where c_id = %v and enable = %v and delivery_time = '%v' and status ='%v' GROUP BY shop_id,good_id,line_id",
-		userDto.CId, true, req.Day, global.OrderStatusWait)
+		userDto.CId, true, req.Day, global.OrderStatusWaitSend)
 	orderResult := make([]OrderShopResult, 0)
 	e.Orm.Table(orderTableName).Raw(whereSql).Scan(&orderResult)
 
@@ -149,7 +149,7 @@ func (e Orders) Index(c *gin.Context) {
 
 	var list []models2.Orders
 
-	e.Orm.Table(orderTableName).Select("number,good_id,line_id,money").Where("c_id = ? and enable = ? and delivery_time = ? and status =? ", userDto.CId, true, req.Day, global.OrderStatusWait).Find(&list)
+	e.Orm.Table(orderTableName).Select("number,good_id,line_id,money").Where("c_id = ? and enable = ? and delivery_time = ? and status =? ", userDto.CId, true, req.Day, global.OrderStatusWaitSend).Find(&list)
 
 	//todo:商品聚合计算
 	//cacheGoods := make(map[int]GoodsRow, 0)

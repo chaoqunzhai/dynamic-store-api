@@ -29,7 +29,7 @@ func registerShopRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewar
 		//授信分增加
 		r.POST("/credit",api.Credit)
 		//金额增加
-		r.POST("/amount",api.Amount)
+		r.POST("/balance",api.Amount)
 		//等级修改
 		r.POST("/grade",api.Grade)
 		//获取客户配置的路线信息

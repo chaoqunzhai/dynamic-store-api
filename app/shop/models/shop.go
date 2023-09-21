@@ -15,7 +15,7 @@ type Shop struct {
     Name       string    `json:"name" gorm:"type:varchar(30);comment:小B名称"`
     Phone      string    `json:"phone" gorm:"type:varchar(11);comment:联系手机号"`
     UserName   string    `json:"username" gorm:"type:varchar(20);comment:小B负责人名称"`
-    Address    string    `json:"address" gorm:"type:varchar(200);comment:小B收货地址"`
+    Address    string    `json:"address" gorm:"type:varchar(60);comment:小B收货地址"`
     Longitude  float64       `json:"longitude" gorm:"type:double;comment:Longitude"`
     Latitude   float64       `json:"latitude" gorm:"type:double;comment:Latitude"`
     Image      string    `json:"image" gorm:"type:varchar(80);comment:图片"`
@@ -23,7 +23,7 @@ type Shop struct {
     GradeId   int    `json:"grade_id" gorm:"index;comment:会员等级"`
     Platform  string `json:"platform" gorm:"size:10;comment:注册来源"`
     SuggestId int    `json:"suggest_id" gorm:"index;comment:推荐人ID"`
-    Amount     float64   `json:"amount" gorm:"type:double;comment:剩余金额"`
+    Balance    float64   `json:"balance" gorm:"comment:金额"`
     Integral   int       `json:"integral" gorm:"type:bigint(20);comment:可用积分"`
     Tag        []ShopTag `json:"-" gorm:"many2many:shop_mark_tag;foreignKey:id;joinForeignKey:shop_id;references:id;joinReferences:tag_id;"`
     Credit float64   `gorm:"comment:授信分" json:"credit"`

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk/service"
+	"github.com/google/uuid"
 	"go-admin/app/company/models"
 	"go-admin/app/company/service/dto"
 	"go-admin/common/actions"
@@ -19,6 +20,11 @@ type Orders struct {
 	service.Service
 }
 
+type ValetOrderGoodsRow struct {
+	GoodsId int
+	SpecsId int
+	Number int
+}
 type TimeConfResponse struct {
 	Valid    bool
 	ObjectId int
@@ -28,7 +34,16 @@ type TimeConfResponse struct {
 	StartTime models2.XTime
 	EndTime models2.XTime
 }
+//生成核销码
 
+func DeliveryCode() string {
+	//9位
+
+	guid,_ := uuid.NewRandom()
+	code:=fmt.Sprintf("%v",guid.ID())
+
+	return code[:9]
+}
 func (e *Orders) CalculateTime(day int) (t models2.XTime) {
 	//选择的天数，计算出配送周期
 

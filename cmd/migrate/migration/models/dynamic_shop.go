@@ -16,7 +16,7 @@ type Shop struct {
 	Name      string  `gorm:"size:30;comment:小B名称"`
 	Phone     string  `gorm:"size:11;comment:联系手机号"`
 	UserName  string  `gorm:"size:20;comment:小B负责人名称"`
-	Address   string  `gorm:"size:200;comment:小B收货地址"`
+	Address   string  `gorm:"size:70;comment:小B收货地址"`
 	Longitude float64 //经度
 	Latitude  float64 //纬度
 	Image     string  `gorm:"size:80;comment:图片"`
@@ -24,9 +24,9 @@ type Shop struct {
 	//给小B打标签
 	Tag       []ShopTag `json:"tag" gorm:"many2many:shop_mark_tag;foreignKey:id;joinForeignKey:shop_id;references:id;joinReferences:tag_id;"`
 	LineId    int       `gorm:"index;comment:归属配送路线"`
-	Amount    float64   `gorm:"comment:剩余金额"`
+	Balance    float64   `gorm:"comment:金额"`
 	Integral  int       `gorm:"comment:可用积分"`
-	Credit int   `gorm:"comment:授信分"`
+	Credit float64   `gorm:"comment:授信额"`
 	GradeId   int       `gorm:"index;comment:会员等级"`
 	Platform  string    `json:"platform" gorm:"size:10;comment:注册来源"`
 	SuggestId int       `gorm:"index;comment:推荐人ID"`

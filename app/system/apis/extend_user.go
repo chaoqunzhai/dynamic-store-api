@@ -85,7 +85,7 @@ func (e ExtendUser) GetPage(c *gin.Context) {
 		var shopRow models2.Shop
 		e.Orm.Model(&models2.Shop{}).Where("user_id = ?",row.UserId).Limit(1).Find(&shopRow)
 		if shopRow.Id > 0 {
-			u["amount"] = shopRow.Amount
+			u["balance"] = shopRow.Balance
 			u["integral"] = shopRow.Integral
 			u["shop"] = shopRow.Name
 		}

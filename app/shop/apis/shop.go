@@ -478,7 +478,7 @@ func (e Shop)Amount(c *gin.Context)  {
 
 	var count int64
 	var object models.Shop
-	e.Orm.Model(&models.Shop{}).Select("amount,id").Where("id = ? and c_id = ?",req.ShopId,userDto.CId).First(&object).Count(&count)
+	e.Orm.Model(&models.Shop{}).Select("balance,id").Where("id = ? and c_id = ?",req.ShopId,userDto.CId).First(&object).Count(&count)
 	if count == 0 {
 		e.Error(500, errors.New("客户不存在"), "客户不存在")
 		return
@@ -486,24 +486,24 @@ func (e Shop)Amount(c *gin.Context)  {
 	Scene:=""
 	switch req.Mode {
 	case global.UserNumberAdd:
-		object.Amount += req.Value
+		object.Balance += req.Value
 		Scene = fmt.Sprintf("手动增加%v元",req.Value)
 	case global.UserNumberReduce:
-		if req.Value > object.Amount {
+		if req.Value > object.Balance {
 			e.Error(500, errors.New("数值非法"), "数值非法")
 			return
 		}
-		object.Amount -=req.Value
+		object.Balance -=req.Value
 		Scene = fmt.Sprintf("手动减少%v元",req.Value)
 	case global.UserNumberSet:
-		object.Amount = req.Value
+		object.Balance = req.Value
 		Scene = fmt.Sprintf("手动设置为%v元",req.Value)
 	default:
 		e.Error(500, nil,"操作不合法")
 		return
 	}
 	e.Orm.Model(&models.Shop{}).Where("id = ?",object.Id).Updates(map[string]interface{}{
-		"amount":object.Amount,
+		"balance":object.Balance,
 		"update_by":user.GetUserId(c),
 	})
 	row:=models.ShopBalanceLog{

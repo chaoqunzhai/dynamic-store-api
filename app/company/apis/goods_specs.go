@@ -51,13 +51,45 @@ func (e GoodsSpecs) GetPage(c *gin.Context) {
 	list := make([]models.GoodsSpecs, 0)
 	var count int64
 
+
 	err = s.GetPage(&req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取GoodsSpecs失败，\r\n失败信息 %s", err.Error()))
         return
 	}
 
-	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	result:=make([]map[string]interface{},0)
+	for _,row:=range list {
+		dd:=map[string]interface{}{
+			"goods_id":row.GoodsId,
+			"id":row.Id,
+			"unit":row.Unit,
+			"price":row.Price, //销售的价格
+			"original":row.Original,
+			"name":row.Name,
+			"inventory":row.Inventory,
+			"market":row.Market,
+		}
+		var vipSpecs []models.GoodsVip
+		e.Orm.Model(&vipSpecs).Select("grade_id,custom_price").Where("goods_id = ? and specs_id = ?",row.GoodsId,row.Id).Find(&vipSpecs)
+
+		vipSpecList:=make([]string,0)
+		for _,vip_spec:=range vipSpecs{
+			if vip_spec.CustomPrice == 0 {
+				continue
+			}
+			var vipRow models.GradeVip
+			e.Orm.Model(&vipRow).Select("name,id").Where("c_id = ? and id = ?",row.CId,vip_spec.GradeId).Limit(1).Find(&vipRow)
+
+			if vipRow.Id > 0 {
+				vipSpecList = append(vipSpecList,fmt.Sprintf("%v: ¥%v",vipRow.Name,vip_spec.CustomPrice))
+			}
+		}
+		dd["vip_spec_list"] = vipSpecList
+		result = append(result,dd)
+	}
+
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
 // Get 获取GoodsSpecs

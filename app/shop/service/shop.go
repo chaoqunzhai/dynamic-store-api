@@ -104,7 +104,7 @@ func (e *Shop) Update(c *dto.ShopUpdateReq, p *actions.DataPermission) error {
 	_=e.Orm.Model(&data).Association("Tag").Clear()
 	if len(c.Tags) > 0 {
 		//增加关联
-		fmt.Println("标签", c.Tags)
+		//fmt.Println("标签", c.Tags)
 		data.Tag = e.getShopTagModels(c.Tags)
 	}
 	db := e.Orm.Save(&data)

@@ -24,7 +24,14 @@ type RichGlobal struct {
 	Enable bool   `json:"enable" gorm:"default:true;comment:开关"`
 	Desc   string `json:"desc" gorm:"size:35;comment:描述信息"` //描述
 }
-
+//没有创建者和更新者
+type BigBNoCreateByRichGlobal struct {
+	Model
+	ModelTime
+	CId int `gorm:"index;comment:大BID"`
+	UserId int `gorm:"index;comment:用户ID"`
+	Enable bool   `gorm:"default:true;comment:开关"`
+}
 // todo: 包含大BID的公共函数
 type BigBRichGlobal struct {
 	RichGlobal

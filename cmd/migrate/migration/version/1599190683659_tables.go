@@ -64,7 +64,8 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.CompanyEmsQuotaCnf),
 			new(models.CompanyEmsQuotaCnfLog),
 			new(models.CompanyRenewalTimeLog),
-
+			new(models.WeChatPay),
+			new(models.AliPay),
 			new(models.OrderTrade),
 			new(models.SplitTableMap),
 			new(models.GradeVip),
@@ -99,6 +100,8 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.CompanyQuickTools),
 			new(models.WeAppExtendCnf),
 			new(models.VipShowEnable),
+
+			new(models.DynamicUserAddress),
 		)
 		if err != nil {
 			return err

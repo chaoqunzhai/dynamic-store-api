@@ -98,6 +98,7 @@ type ValetOrderReq struct {
 	Cycle int                     `json:"cycle"` //代客下单,只需要获取选择的时间段就行
 	Goods map[string][]valetSpecs `json:"goods"`
 	Desc  string                  `json:"desc"`
+	DeductionType int `json:"deduction_type"`
 }
 type valetSpecs struct {
 	Id      int     `json:"id"`
@@ -134,7 +135,6 @@ func (s *OrdersUpdateReq) Generate(model *models.Orders) {
 	if s.Id == 0 {
 		model.Model = common.Model{Id: s.Id}
 	}
-	model.UpdateBy = s.UpdateBy // 添加这而，需要记录是被谁更新的
 
 	model.Enable = s.Enable
 
@@ -151,11 +151,11 @@ func (s *OrdersUpdateReq) GetId() interface{} {
 
 // OrdersGetReq 功能获取请求参数
 type OrdersGetReq struct {
-	Id int `uri:"id"`
+	OrderId int `uri:"orderId"`
 }
 
 func (s *OrdersGetReq) GetId() interface{} {
-	return s.Id
+	return s.OrderId
 }
 
 // OrdersDeleteReq 功能删除请求参数

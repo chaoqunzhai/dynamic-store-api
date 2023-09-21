@@ -101,7 +101,7 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 				if row.Image == "" {
 					return ""
 				}
-				return business.GetGoodPathName(row.CId) + strings.Split(row.Image, ",")[0]
+				return business.GetGoodsPathFirst(row.CId,row.Image)
 			}(),
 			GoodsName:  row.Name,
 			GoodsPrice: row.Money,

@@ -90,7 +90,7 @@ func (s *ShopInsertReq) Generate(model *models.Shop) {
 	model.Latitude = s.Latitude
 	model.Image = s.Image
 	model.LineId = s.LineId
-	model.Amount = s.Amount
+	model.Balance = s.Amount
 	model.Integral = s.Integral
 	model.Salesman = s.Salesman
 }
@@ -162,8 +162,7 @@ func (s *ShopUpdateReq) Generate(model *models.Shop) {
 	model.Latitude = s.Latitude
 	model.Image = s.Image
 	model.LineId = s.LineId
-	model.Amount = s.Amount
-	model.Integral = s.Integral
+
 	model.Salesman = s.Salesman
 }
 

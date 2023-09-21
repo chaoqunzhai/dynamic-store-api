@@ -50,26 +50,32 @@ const (
 	CouponTypeFd   = 0
 	CouponDiscount = 1
 
-	//未付款
-	OrderPayStatusDefault = 0
-	//已付款
-	OrderPayStatusSuccess = 1
-	//开始线下付款
-	OrderPayStatusOfflineDefault = 2
-	//下线付款已收款
-	OrderPayStatusOfflineSuccess = 3
+	OrderStatusPayFail = -2  //支付失败
 
-	//待配送
-	OrderStatusWait = 0
-	//配送中
-	OrderStatusLoading = 1
+	OrderStatusClose = -1 //订单关闭
 
-	//已配送
-	OrderStatusOk = 2
-	//退回
-	OrderStatusReturn = 3
-	//退款
-	OrderStatusRefund = 4
+	OrderStatusWaitPay = 0 //默认状态，就是待支付
+
+	OrderStatusWaitSend = 1//待发货
+
+	OrderWaitConfirm = 2//待收货
+
+	OrderWaitRefunding  = 3 //售后
+
+	OrderStatusRefund   = 4 //退款
+
+	OrderStatusReturn = 5 //退货
+
+
+	OrderPayStatusOfflineSuccess = 6 	//线下付款已收款
+
+	OrderPayStatusOfflineDefault = 7 	//线下付款默认状态
+
+	OrderStatusPaySuccess  = 8 //线上支付成功
+
+	OrderStatusWaitPayDefault = 9 //下单了,但是没有支付的状态,还是放在redis中的
+
+	OrderStatusOver = 10 //订单收尾,那就是收货了,确认了
 
 	//分表的逻辑
 	SplitOrder                 = 1
@@ -109,37 +115,71 @@ const (
 
 	GoodsPreview = 0 //全部用户可以预览
 	GoodsAuthVip = 1 //只有VIP可以购买
+
+	DeductionBalance = 1 //余额抵扣
+	DeductionCredit = 2 //授信额抵扣
+
+
+	OrderSourceApplet = 0 //小程序
+	OrderSourceH5 = 1 //H5
+	OrderSourceValet = 2 //代客下单
+	OrderSourceWeChat = 3 //微信公众号
+	OrderSourceAli = 4 //支付宝
+
+	PayTypeBalance = 1 //余额支付
+	PayTypeCredit = 2 //授信额支付
+
+	PayTypeOnlineWechat = 3 //线上微信支付
+	PayTypeOnlineAli = 4 //线上支付宝支付
+	PayTypeOffline = 5 //线下支付
+
 )
 
 func GetOrderPayStatus(v int) string {
 	switch v {
-	case OrderPayStatusDefault:
+	case OrderStatusWaitPay:
 		return "未付款"
-	case OrderPayStatusSuccess:
+	case OrderStatusPaySuccess:
 		return "已付款"
 	case OrderPayStatusOfflineDefault:
 		return "线下付款"
 	case OrderPayStatusOfflineSuccess:
-		return "下线付款已收款"
+		return "线下已收款"
 
 	}
 	return "未知"
 }
 func OrderStatus(v int) string {
+
 	switch v {
-	case OrderStatusWait:
-		return "待配送"
-	case OrderStatusLoading:
-		return "配送中"
-	case OrderStatusOk:
-		return "已配送"
-	case OrderStatusReturn:
-		return "退回"
+	case OrderStatusPayFail:
+		return "支付失败"
+	case OrderStatusClose:
+		return "订单关闭"
+	case OrderStatusWaitPay:
+		return "待支付"
+	case OrderStatusWaitSend:
+		return "待发货"
+	case OrderWaitConfirm:
+		return "待收货"
+	case OrderWaitRefunding:
+		return "售后"
 	case OrderStatusRefund:
 		return "退款"
-
+	case OrderStatusReturn:
+		return "退货"
+	case OrderPayStatusOfflineSuccess:
+		return "线下付款已收款"
+	case OrderPayStatusOfflineDefault:
+		return "线下付款"
+	case OrderStatusPaySuccess:
+		return "支付成功"
+	case OrderStatusWaitPayDefault:
+		return "待支付"
+	case OrderStatusOver:
+		return "完成"
 	}
-	return "未知"
+	return fmt.Sprintf("%v",v)
 }
 func WeekIntToMsg(v int) string {
 	switch v {
@@ -170,7 +210,7 @@ func GetScanStr(v int) string {
 	case ScanShopUse:
 		return "用户消费"
 	case ScanShopRefund:
-		return "用用户退款户充值"
+		return "用户退款"
 
 	}
 
@@ -199,18 +239,21 @@ func GetCouponType(v int) string {
 	return "未知"
 
 }
-
-func GetPayTypeStr(v int) string {
-	switch v {
-	case PayWechat:
-		return "微信支付"
-	case PayAmount:
+//支付方式
+func GetPayType(v int)  string {
+	switch  v{
+	case PayTypeOnlineWechat:
+		return "线上微信支付"
+	case PayTypeOnlineAli:
+		return "线上支付宝支付"
+	case PayTypeOffline:
+		return "线下支付"
+	case PayTypeBalance:
 		return "余额支付"
-	case PayCollect:
-		return "到付"
-
+	case PayTypeCredit:
+		return "授信额支付"
 	}
-	return "未支付"
+	return "线上支付"
 }
 func GetExpressCn(v int) string {
 	switch v {
@@ -221,7 +264,22 @@ func GetExpressCn(v int) string {
 	case ExpressLogistics:
 		return "物流配送"
 	}
-	return "暂无"
+	return "同城配送"
+}
+func GetOrderSource(v int) string {
+	switch v {
+	case OrderSourceApplet:
+		return "微信小程序"
+	case OrderSourceH5:
+		return "H5"
+	case OrderSourceValet:
+		return "代客下单"
+	case OrderSourceWeChat:
+		return "微信公众号"
+	case OrderSourceAli:
+		return "支付宝"
+	}
+	return "H5"
 }
 func GetCouponStr(v int) string {
 

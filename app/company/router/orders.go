@@ -36,7 +36,7 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 	r2 := v1.Group("/orders").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole())
 	{
 		//todo:订单详情
-		r2.GET("/:id", api.Get)
+		r2.GET("/:orderId", api.Get)
 		//todo:创建订单
 		r2.POST("", api.Insert)
 		//todo:校验是否可以下单

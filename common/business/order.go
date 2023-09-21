@@ -36,7 +36,7 @@ func OrderExtendTableName(orderTable string) string {
 
 	if orderTable != global.SplitOrderDefaultTableName {
 		//拼接位 order_specs_大BID_时间戳后6位
-		specsTable = fmt.Sprintf("%v%v", specsTable, strings.Replace(orderTable, global.SplitOrderExtendSubTableName, "", -1))
+		specsTable = fmt.Sprintf("%v%v", specsTable, strings.Replace(orderTable, global.SplitOrderDefaultTableName, "", -1))
 
 	}
 	return specsTable
