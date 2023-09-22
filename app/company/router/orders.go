@@ -37,8 +37,7 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 	{
 		//todo:订单详情
 		r2.GET("/:orderId", api.Get)
-		//todo:创建订单
-		r2.POST("", api.Insert)
+
 		//todo:校验是否可以下单
 		r2.GET("/valid_time", api.ValidTimeConf)
 

@@ -130,26 +130,17 @@ func (e CycleTimeConf) GetPage(c *gin.Context) {
 			"show":       row.Show,
 			"layer":      row.Layer,
 			"created_at": row.CreatedAt,
-			"give_range":func() string {
-				if row.GiveDay == 0 {
-					if row.GiveTime != ""{
-						return fmt.Sprintf("当天送达 %v", row.GiveTime)
-					}
-					return "当天送达"
-				}
-				return fmt.Sprintf("第%v天 %v", row.GiveDay, row.GiveTime)
+			"order_range":service.GetOrderCreateStr(row),
+			"give_range": func()  string {
+				_,giveRange :=service.GetOrderCyClyCnf(row,false)
+				return giveRange
 			}(),
 		}
 		switch row.Type {
 		case global.CyCleTimeDay:
 			cnf["type_cn"] = "每天"
-			cnf["order_range"] = fmt.Sprintf("%v-%v", row.StartTime, row.EndTime)
 		case global.CyCleTimeWeek:
 			cnf["type_cn"] = "每周"
-
-			cnf["order_range"] = fmt.Sprintf("每周%v %v-每周%v %v", global.WeekIntToMsg(row.StartWeek), row.StartTime,
-				global.WeekIntToMsg(row.EndWeek), row.EndTime,
-			)
 		}
 		result = append(result, cnf)
 

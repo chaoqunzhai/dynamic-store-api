@@ -7,6 +7,7 @@ import (
 type Orders struct {
 	models.Model
 
+	Uid string `json:"uid" gorm:"size:8;index;comment:关联的配送周期统一UID"`
 	CreateBy int `json:"createBy" gorm:"index;comment:创建者"`
 	SourceType int `json:"source_type" gorm:"type:tinyint(1);default:1;index;comment:订单来源"`
 	PayType    int            `json:"pay_type" gorm:"type:tinyint(1);default:1;comment:支付方式"`
@@ -26,7 +27,7 @@ type Orders struct {
 	PayMoney     float64   `gorm:"comment:实际支付价"`
 	OrderMoney float64  `gorm:"comment:需要支付价"`
 	GoodsMoney float64 `gorm:"comment:商品总价格"`
-	DeductionMoney float64  `json:"deduction_money" gorm:"comment:抵扣额"`
+	DeductionMoney float64  `json:"deduction_money" gorm:"comment:抵扣费用"`
 	Number    int       `gorm:"comment:下单数量"`
 	PayStatus int        `gorm:"type:tinyint(1);default:0;index;comment:支付状态,0:未付款,1:已付款 2:线下付款，3:下线付款已收款"`
 	PayTime models.XTime `json:"pay_time" gorm:"comment:支付时间"`
@@ -83,14 +84,14 @@ func (e *OrderSpecs) GetId() interface{} {
 // todo:存放一些无关紧要的非必要首次查询的数据
 type OrderExtend struct {
 	models.Model
-	Buyer string `json:"buyer" gorm:"size:27;comment:留言"`
+	Buyer string `json:"buyer" gorm:"size:24;comment:留言"`
 	CId       int       `gorm:"index;comment:大BID"`
 	CreatedAt models.XTime       `json:"createdAt" gorm:"comment:创建时间"`
 	OrderId string `json:"order_id" gorm:"index;size:20;comment:订单ID"`
-	Driver    string         `gorm:"size:12;comment:司机名称"`
-	Phone     string         `gorm:"size:11;comment:联系手机号"`
-	UserName string `json:"user_name" gorm:"size:20;comment:联系用户名称"`
-	UserAddress string `json:"user_address" gorm:"size:70;comment:用户地址"`
+	DriverId    int         `gorm:"comment:司机ID"`
+	//如果是同城配送,就是保存的小B地址的ID
+	//如果是自提,那保存的是大B的设置的自提点地址的ID
+	AddressId int `json:"user_address_id" gorm:"comment:用户的收货地址,或者自提的店家地址"`
 	CouponMoney float64 `json:"coupon_money" gorm:"comment:优惠卷金额"`
 }
 
@@ -106,22 +107,33 @@ func (e *OrderExtend) GetId() interface{} {
 	return e.Id
 }
 
-// todo:周期列表
-type OrderCycleList struct {
+
+// todo:订单周期列表的记录
+type OrderCycleCnf struct {
+
 	models.Model
 	CreatedAt models.XTime `json:"createdAt" gorm:"comment:创建时间"`
-	CId       int          `gorm:"index;comment:大BID"`
-	Name      string       `gorm:"size:12;comment:当前下单周期日期名称"`
-	Uid       string       `gorm:"type:varchar(4);comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
-	StartTime models.XTime `gorm:"comment:此周期,下单周期开始时间"`
-	EndTime   models.XTime `gorm:"comment:此周期,下单周期结束时间"`
-	CycleTime models.XTime `json:"cycle_time" gorm:"type:date;comment:计算的配送时间"`
-	CycleStr  string       `json:"cycle_str" gorm:"index;size:14;comment:配送时间的文案"`
-	SaleMoney float64      `gorm:"comment:销售总额"`
-	GoodsAll  int          `gorm:"comment:商品总数"`
-	ShopCount int          `gorm:"type:tinyint(3);comment:客户总数"`
+	CId       int       `gorm:"index;comment:大BID"`
+	Uid       string    `gorm:"type:varchar(8);comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
+	//StartTime 查看下单周期开始时间 EndTime 查看下单结束周期
+	//直接算好时间,方便订单查询,因为下单的时候 是可以算出来的
+	StartTime models.XTime `json:"start_time" gorm:"comment:记录可下单周期开始时间"`
+	EndTime   models.XTime `json:"end_time" gorm:"comment:记录可下单周期结束时间"`
+	//下单周期的文案也是保持最新的
+	CreateStr string `json:"create_str" gorm:"size:30;comment:下单日期的文案内容"`
+	//配送周期的统一查询
+	DeliveryTime models.XTime `json:"delivery_time" gorm:"type:date;comment:计算的配送时间"`
+	//展示,也是保持最新的
+	DeliveryStr string `json:"delivery_str" gorm:"size:30;comment:配送文案"`
+}
+func (OrderCycleCnf) TableName(tableName string) string {
+	if tableName == "" {
+		return "order_cycle_cnf"
+	} else {
+		return tableName
+	}
 }
 
-func (OrderCycleList) TableName() string {
-	return "order_cycle_list"
+func (e *OrderCycleCnf) GetId() interface{} {
+	return e.Id
 }

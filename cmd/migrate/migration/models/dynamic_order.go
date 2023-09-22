@@ -26,6 +26,7 @@ func (CycleTimeConf) TableName() string {
 // todo:订单,因为订单是一个记录,所有大部分可变的数据都是静态资源,不做关联查询
 type Orders struct {
 	Model
+	Uid string `json:"uid" gorm:"size:8;index;comment:关联的配送周期统一UID"`
 	CreateBy int `json:"createBy" gorm:"index;comment:创建者"`
 	SourceType int `json:"source_type" gorm:"type:tinyint(1);default:1;index;comment:订单来源"`
 	PayType    int            `json:"pay_type" gorm:"type:tinyint(1);default:1;comment:支付方式"`
@@ -100,24 +101,26 @@ func (OrderExtend) TableName() string {
 }
 
 
-// todo:周期列表
-type OrderCycleList struct {
+// todo:订单周期列表的记录
+type OrderCycleCnf struct {
 	Model
-	CreatedAt time.Time `json:"createdAt" gorm:"comment:创建时间"`
+	CreatedAt models.XTime `json:"createdAt" gorm:"comment:创建时间"`
 	CId       int       `gorm:"index;comment:大BID"`
-	Name      string    `gorm:"size:12;comment:下单周期日期名称"`
-	Uid       string    `gorm:"type:varchar(4);comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
-	StartTime time.Time `gorm:"comment:记录此周期,下单周期开始时间"`
-	EndTime   time.Time `gorm:"comment:记录此周期,下单周期结束时间"`
-	CycleTime time.Time `json:"cycle_time" gorm:"type:date;comment:计算的配送时间"`
-	CycleStr  string    `json:"cycle_str" gorm:"index;size:14;comment:配送时间的文案"`
-	SoldMoney float64   `gorm:"comment:销售总额"`
-	GoodsAll  int       `gorm:"comment:商品总数"`
-	ShopCount int       `gorm:"type:tinyint(3);comment:客户总数"`
+	Uid       string    `gorm:"type:varchar(8);comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
+	//StartTime 查看下单周期开始时间 EndTime 查看下单结束周期
+	//直接算好时间,方便订单查询,因为下单的时候 是可以算出来的
+	StartTime time.Time `gorm:"comment:记录可下单周期开始时间"`
+	EndTime   time.Time `gorm:"comment:记录可下单周期结束时间"`
+	//下单周期的文案也是保持最新的
+	CreateStr string `json:"create_str" gorm:"size:30;comment:下单日期的文案内容"`
+	//配送周期的统一查询
+	DeliveryTime time.Time `json:"delivery_time" gorm:"type:date;index;comment:计算的配送时间"`
+	//展示,也是保持最新的
+	DeliveryStr string `json:"delivery_str" gorm:"size:30;comment:配送文案"`
 }
 
-func (OrderCycleList) TableName() string {
-	return "order_cycle_list"
+func (OrderCycleCnf) TableName() string {
+	return "order_cycle_cnf"
 }
 
 
@@ -127,9 +130,9 @@ type OrderToRedisMap struct {
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	CId int `json:"c_id" gorm:"index;comment:大BID"`
 	UserId int `json:"user_id" gorm:"index;comment:用户ID"`
-	OrderName string `json:"order_name" gorm:"size:100;comment:订单名称"`
 	RedisKey string `json:"redis_key" gorm:"size:20;comment:redis的订单ID"`
 	Status int `json:"status" gorm:"index;comment:订单状态"`
+	RandomId string `json:"random_id" gorm:"size:10;comment:随机计算的ID,防止恶意请求订单,payInfo会产生"`
 
 }
 func (OrderToRedisMap) TableName() string {

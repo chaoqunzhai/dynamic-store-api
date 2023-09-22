@@ -120,8 +120,7 @@ func (e SplitTableMap) Insert(c *gin.Context) {
 		return
 	}
 	nowUnix := fmt.Sprintf("%v", time.Now().Unix())[4:]
-	tableName := ""
-	subTableName := ""
+
 
 	if req.CId == 0 {
 		e.Error(500, nil, "请选择大B")
@@ -134,21 +133,8 @@ func (e SplitTableMap) Insert(c *gin.Context) {
 		return
 	}
 
-	var splitCount int64
-	e.Orm.Model(&models.SplitTableMap{}).Where("c_id = ? and type = ?",req.CId,req.Type).Count(&splitCount)
-	if splitCount > 0 {
-		e.Error(500, nil, "分表已经存在")
-		return
-	}
-	switch req.Type {
-	case global.SplitOrder:
-		//订单父表名称
-		tableName = fmt.Sprintf("%v_%v_%v", global.SplitOrderDefaultTableName, req.CId, nowUnix)
-		subTableName = fmt.Sprintf("%v_%v_%v", global.SplitOrderDefaultSubTableName, req.CId, nowUnix)
-	default:
-		e.Error(500, nil, "分表类型不存在")
-		return
-	}
+
+	tableName := fmt.Sprintf("%v_%v_%v", global.SplitOrderDefaultTableName, req.CId, nowUnix)
 	var count int64
 	e.Orm.Model(&models.SplitTableMap{}).Where("c_id = ? and type = ? and enable = ?", req.CId, req.Type, true).Count(&count)
 	if count > 0 {
@@ -160,7 +146,7 @@ func (e SplitTableMap) Insert(c *gin.Context) {
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
 	req.Name = tableName
-	uid, err := s.Insert(&req)
+	_, err = s.Insert(&req)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("创建分表失败,%s", err.Error()))
 		return
@@ -174,29 +160,38 @@ func (e SplitTableMap) Insert(c *gin.Context) {
 		newOrmObject := e.Orm.Model(&SplitRow).Table(tableName)
 		createErr := newOrmObject.Migrator().CreateTable(&SplitRow)
 		if createErr != nil {
-			e.Orm.Unscoped().Delete(&models.SplitTableMap{}, uid)
 			e.Error(500, createErr, fmt.Sprintf("创建分表失败,%s", createErr.Error()))
 			return
 		}
 		//订单子表规格表自动创建
+		subTableName := fmt.Sprintf("%v_%v_%v", global.SplitOrderDefaultSubTableName, req.CId, nowUnix)
 		SplitSubRow := models2.OrderSpecs{}
 		newSubOrmObject := e.Orm.Model(&SplitSubRow).Table(subTableName)
 		createSubErr := newSubOrmObject.Migrator().CreateTable(&SplitSubRow)
 		if createSubErr != nil {
-			e.Orm.Unscoped().Delete(&models.SplitTableMap{}, uid)
+			newSubOrmObject.Migrator()
 			e.Error(500, createSubErr, fmt.Sprintf("创建子表失败,%s", createSubErr.Error()))
 			return
 		}
-
+		//扩展表
 		orderExtend := fmt.Sprintf("%v_%v_%v", global.SplitOrderExtendSubTableName, req.CId, nowUnix)
 		ExtendSubRow := models2.OrderExtend{}
 		ExtendOrmObject := e.Orm.Model(&ExtendSubRow).Table(orderExtend)
 		ExtendSubErr := ExtendOrmObject.Migrator().CreateTable(&ExtendSubRow)
 		if ExtendSubErr != nil {
-			e.Orm.Unscoped().Delete(&models.SplitTableMap{}, uid)
+
 			e.Error(500, ExtendSubErr, fmt.Sprintf("创建扩展表失败,%s", ExtendSubErr.Error()))
 			return
 		}
+		orderCycle:= fmt.Sprintf("%v_%v_%v", global.SplitOrderCycleSubTableName, req.CId, nowUnix)
+		CycleSubRow := models2.OrderCycleCnf{}
+		CycleOrmObject := e.Orm.Model(&CycleSubRow).Table(orderCycle)
+		CycleSubErr := CycleOrmObject.Migrator().CreateTable(&CycleSubRow)
+		if CycleSubErr != nil {
+			e.Error(500, ExtendSubErr, fmt.Sprintf("创建配送配置表失败,%s", CycleSubErr.Error()))
+			return
+		}
+
 	default:
 		e.Error(500, nil, "分来类型不存在")
 		return

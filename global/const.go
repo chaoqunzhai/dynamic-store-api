@@ -84,15 +84,15 @@ const (
 	SplitOrderDefaultSubTableName = "order_specs"
 	//扩展表
 	SplitOrderExtendSubTableName = "order_extend"
+
+	//周期配送下单索引表
+	SplitOrderCycleSubTableName = "order_cycle_cnf"
 	//Cycle 配送的设置
 	//每天
 	CyCleTimeDay = 1
 	//每周
 	CyCleTimeWeek = 2
-	//支付方式
-	PayWechat  = 0 //微信支付
-	PayAmount  = 1 //余额支付
-	PayCollect = 2 //到付
+
 
 	//支付状态
 
@@ -120,11 +120,11 @@ const (
 	DeductionCredit = 2 //授信额抵扣
 
 
-	OrderSourceApplet = 0 //小程序
-	OrderSourceH5 = 1 //H5
-	OrderSourceValet = 2 //代客下单
-	OrderSourceWeChat = 3 //微信公众号
-	OrderSourceAli = 4 //支付宝
+	OrderSourceApplet = 5 //小程序
+	OrderSourceH5 = 6 //H5
+	OrderSourceValet = 7 //代客下单
+	OrderSourceWeChat = 8 //微信公众号
+	OrderSourceAli = 9 //支付宝
 
 	PayTypeBalance = 1 //余额支付
 	PayTypeCredit = 2 //授信额支付

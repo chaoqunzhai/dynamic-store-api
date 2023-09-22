@@ -7,6 +7,7 @@ import (
 	"go-admin/common/utils"
 	"go-admin/global"
 	"gorm.io/gorm"
+	"time"
 
 	"go-admin/app/company/models"
 	"go-admin/app/company/service/dto"
@@ -126,4 +127,47 @@ func (e *CycleTimeConf) Remove(d *dto.CycleTimeConfDeleteReq, p *actions.DataPer
 		return errors.New("无权删除该数据")
 	}
 	return nil
+}
+func GetOrderCyClyCnf(CyCleCnf models.CycleTimeConf,compute bool) (day, dayValue string) {
+
+	//时间检测返回以下内容
+	//配送的具体日期Time对象
+	//配送的具体时间文案做展示
+
+	nowDay:=time.Now().Format("2006-01-02")
+	if CyCleCnf.GiveDay == 0 {
+		if CyCleCnf.GiveTime != ""{
+			return "",fmt.Sprintf("%v", CyCleCnf.GiveTime)
+		}
+		return nowDay,"当天配送"
+	}
+
+	//大B端就不进行时间换算了
+
+	if compute {
+		cycleTimeValue :=CalculateTime(CyCleCnf.GiveDay)
+		cycleTimeDay:=cycleTimeValue.Format("2006-01-02")
+		cycleVal := fmt.Sprintf("%v %v",cycleTimeDay, CyCleCnf.GiveTime)
+
+		return cycleTimeDay,cycleVal
+
+	}else {
+		return   nowDay,fmt.Sprintf("下单后第%v天 %v",CyCleCnf.GiveDay, CyCleCnf.GiveTime)
+	}
+
+
+}
+func GetOrderCreateStr(row models.CycleTimeConf) string {
+	orderCreateStr:=""
+	switch row.Type {
+	case global.CyCleTimeDay:
+		orderCreateStr = fmt.Sprintf("每天 %v-%v", row.StartTime, row.EndTime)
+	case global.CyCleTimeWeek:
+		orderCreateStr = fmt.Sprintf("每周%v %v-每周%v %v", global.WeekIntToMsg(row.StartWeek), row.StartTime,
+			global.WeekIntToMsg(row.EndWeek), row.EndTime,
+		)
+	}
+
+	return orderCreateStr
+
 }

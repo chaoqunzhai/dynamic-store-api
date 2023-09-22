@@ -43,13 +43,26 @@ func OrderExtendTableName(orderTable string) string {
 }
 func OrderSpecsTableName(orderTable string) string {
 	//子表默认名称
-	specsTable := global.SplitOrderDefaultSubTableName
+	table := global.SplitOrderDefaultSubTableName
 	//判断是否分表了
 	//默认是 orders 表名，如果分表后就是 orders_大BID_时间戳后6位
 
 	if orderTable != global.SplitOrderDefaultTableName {
 		//拼接位 order_specs_大BID_时间戳后6位
-		specsTable = fmt.Sprintf("%v%v", specsTable, strings.Replace(orderTable, global.SplitOrderDefaultTableName, "", -1))
+		table = fmt.Sprintf("%v%v", table, strings.Replace(orderTable, global.SplitOrderDefaultTableName, "", -1))
 	}
-	return specsTable
+	return table
+}
+
+func OrderCycleTableName(orderTable string) string {
+	//子表默认名称
+	table := global.SplitOrderCycleSubTableName
+	//判断是否分表了
+	//默认是 orders 表名，如果分表后就是 orders_大BID_时间戳后6位
+
+	if orderTable != global.SplitOrderDefaultTableName {
+		//拼接位 order_specs_大BID_时间戳后6位
+		table = fmt.Sprintf("%v%v", table, strings.Replace(orderTable, global.SplitOrderDefaultTableName, "", -1))
+	}
+	return table
 }

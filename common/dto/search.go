@@ -2,8 +2,9 @@ package dto
 
 import (
 	"fmt"
-	"github.com/go-admin-team/go-admin-core/tools/search"
+	modSearch "github.com/go-admin-team/go-admin-core/tools/search"
 	"go-admin/common/global"
+	"go-admin/common/search"
 	"gorm.io/gorm"
 )
 
@@ -41,11 +42,50 @@ type GeneralGetDto struct {
 
 func MakeCondition(q interface{}) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
+		condition := &modSearch.GormCondition{
+			GormPublic: modSearch.GormPublic{},
+			Join:       make([]*modSearch.GormJoin, 0),
+		}
+		modSearch.ResolveSearchQuery(global.Driver, q, condition)
+		for _, join := range condition.Join {
+			if join == nil {
+				continue
+			}
+			db = db.Joins(join.JoinOn)
+			for k, v := range join.Where {
+				db = db.Where(k, v...)
+			}
+			for k, v := range join.Or {
+				db = db.Or(k, v...)
+			}
+			for _, o := range join.Order {
+				db = db.Order(o)
+			}
+		}
+		for k, v := range condition.Where {
+			//fmt.Println("Where",k,v,"tableName",table)
+
+			db = db.Where(k, v...)
+		}
+		for k, v := range condition.Or {
+
+			db = db.Or(k, v...)
+		}
+		for _, o := range condition.Order {
+
+			db = db.Order(o)
+		}
+		return db
+	}
+}
+
+func MakeSplitTableCondition(q interface{},table string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
 		condition := &search.GormCondition{
 			GormPublic: search.GormPublic{},
 			Join:       make([]*search.GormJoin, 0),
 		}
-		search.ResolveSearchQuery(global.Driver, q, condition)
+		search.ResolveSplitSearchQuery(table,global.Driver, q, condition)
 		for _, join := range condition.Join {
 			if join == nil {
 				continue
@@ -63,12 +103,16 @@ func MakeCondition(q interface{}) func(db *gorm.DB) *gorm.DB {
 			}
 		}
 		for k, v := range condition.Where {
+			//fmt.Println("Where",k,v,"tableName",table)
+			fmt.Printf("Where k:%v v:%v table:%v\n",k,v,table)
 			db = db.Where(k, v...)
 		}
 		for k, v := range condition.Or {
+			fmt.Println("condition",k,v)
 			db = db.Or(k, v...)
 		}
 		for _, o := range condition.Order {
+			fmt.Println("Order",o)
 			db = db.Order(o)
 		}
 		return db

@@ -86,8 +86,9 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.Orders),
 			new(models.OrderSpecs),
 			new(models.OrderExtend),
-			new(models.OrderCycleList),
+
 			new(models.OrderToRedisMap),
+			new(models.OrderCycleCnf),
 			new(models.Goods),
 			new(models.GoodsDesc),
 			new(models.GoodsSpecs),

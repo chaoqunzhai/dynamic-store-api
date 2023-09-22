@@ -44,7 +44,7 @@ func DeliveryCode() string {
 
 	return code[:9]
 }
-func (e *Orders) CalculateTime(day int) (t models2.XTime) {
+func CalculateTime(day int) (t models2.XTime) {
 	//选择的天数，计算出配送周期
 
 	newTime := time.Now().AddDate(0, 0, day)
@@ -89,7 +89,7 @@ func (e *Orders) ValidTimeConf(cid int) (response *TimeConfResponse) {
 			response.Valid = true
 			response.RandUid = d.Uid
 			response.ObjectId = d.Id
-			response.CycleTime = e.CalculateTime(d.GiveDay)
+			response.CycleTime = CalculateTime(d.GiveDay)
 			response.CycleStr = d.GiveTime
 			response.StartTime = e.MakeTime(d.StartTime)
 			response.EndTime = e.MakeTime(d.EndTime)
@@ -109,7 +109,7 @@ func (e *Orders) ValidTimeConf(cid int) (response *TimeConfResponse) {
 				response.Valid = true
 				response.RandUid = w.Uid
 				response.ObjectId = w.Id
-				response.CycleTime = e.CalculateTime(w.GiveDay)
+				response.CycleTime = CalculateTime(w.GiveDay)
 				response.CycleStr = w.GiveTime
 				response.StartTime = e.MakeTime(w.StartTime)
 				response.EndTime = e.MakeTime(w.EndTime)
@@ -125,16 +125,16 @@ func (e *Orders) ValidTimeConf(cid int) (response *TimeConfResponse) {
 // GetPage 获取Orders列表
 func (e *Orders) GetPage(tableName string, c *dto.OrdersGetPageReq, p *actions.DataPermission, list *[]models.Orders, count *int64) error {
 	var err error
-	var data models.Orders
+
 	whereSQL := fmt.Sprintf("")
 	if c.CId > 0 {
 		whereSQL = fmt.Sprintf("c_id = %v", c.CId)
 	}
 	err = e.Orm.Table(tableName).Where(whereSQL).
 		Scopes(
-			cDto.MakeCondition(c.GetNeedSearch()),
+			cDto.MakeSplitTableCondition(c.GetNeedSearch(),tableName),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
-			actions.Permission(data.TableName(tableName), p),
+
 		).Order(global.OrderTimeKey).
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
