@@ -108,6 +108,12 @@ func InitializationWeApp()  {
 			"wap_url":"/pages_tool/verification/index",
 			"default_show":1, //设置是否默认可以显示的
 		},
+		{
+			"name":"付款单",
+			"image_url":"../../static/member/default_fenxiao.png",
+			"wap_url":"/pages_tool/verification/index",
+			"default_show":1, //设置是否默认可以显示的
+		},
 	}
 
 	for _, db := range dbs {
