@@ -173,22 +173,22 @@ func (e SplitTableMap) Insert(c *gin.Context) {
 			e.Error(500, createSubErr, fmt.Sprintf("创建子表失败,%s", createSubErr.Error()))
 			return
 		}
-		//扩展表
-		orderExtend := fmt.Sprintf("%v_%v_%v", global.SplitOrderExtendSubTableName, req.CId, nowUnix)
-		ExtendSubRow := models2.OrderExtend{}
-		ExtendOrmObject := e.Orm.Model(&ExtendSubRow).Table(orderExtend)
-		ExtendSubErr := ExtendOrmObject.Migrator().CreateTable(&ExtendSubRow)
-		if ExtendSubErr != nil {
-
-			e.Error(500, ExtendSubErr, fmt.Sprintf("创建扩展表失败,%s", ExtendSubErr.Error()))
-			return
-		}
+		//扩展表 暂时不弄
+		//orderExtend := fmt.Sprintf("%v_%v_%v", global.SplitOrderExtendSubTableName, req.CId, nowUnix)
+		//ExtendSubRow := models2.OrderExtend{}
+		//ExtendOrmObject := e.Orm.Model(&ExtendSubRow).Table(orderExtend)
+		//ExtendSubErr := ExtendOrmObject.Migrator().CreateTable(&ExtendSubRow)
+		//if ExtendSubErr != nil {
+		//
+		//	e.Error(500, ExtendSubErr, fmt.Sprintf("创建扩展表失败,%s", ExtendSubErr.Error()))
+		//	return
+		//}
 		orderCycle:= fmt.Sprintf("%v_%v_%v", global.SplitOrderCycleSubTableName, req.CId, nowUnix)
 		CycleSubRow := models2.OrderCycleCnf{}
 		CycleOrmObject := e.Orm.Model(&CycleSubRow).Table(orderCycle)
 		CycleSubErr := CycleOrmObject.Migrator().CreateTable(&CycleSubRow)
 		if CycleSubErr != nil {
-			e.Error(500, ExtendSubErr, fmt.Sprintf("创建配送配置表失败,%s", CycleSubErr.Error()))
+			e.Error(500, CycleSubErr, fmt.Sprintf("创建配送配置表失败,%s", CycleSubErr.Error()))
 			return
 		}
 

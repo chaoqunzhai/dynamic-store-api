@@ -9,6 +9,7 @@ import (
 	"go-admin/common/business"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/global"
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -125,6 +126,15 @@ func (e Shop) GetPage(c *gin.Context) {
 		}
 		cache.Tags = cacheTag
 		cache.TagName = cacheTagName
+
+		//获取下用户默认地址
+		var defaultAddress models2.DynamicUserAddress
+		e.Orm.Model(&defaultAddress).Select("address,id").Where("c_id = ? and is_default = 1 and user_id = ?",row.CId,row.UserId).Limit(1).Find(&defaultAddress)
+
+		if defaultAddress.Id > 0 {
+			cache.DefaultAddress = defaultAddress.Address
+		}
+		//查询用户
 		result = append(result,cache)
 	}
 
@@ -226,7 +236,10 @@ func (e Shop) Insert(c *gin.Context) {
 
 	var countAll int64
 	e.Orm.Model(&models.Shop{}).Where("c_id = ?", userDto.CId).Count(&countAll)
+
+	//限制配置
 	CompanyCnf := business.GetCompanyCnf(userDto.CId, "shop", e.Orm)
+
 	MaxNumber:=CompanyCnf["shop"]
 	if countAll > int64(MaxNumber) {
 		e.Error(500, errors.New(fmt.Sprintf("客户最多只可创建%v个", MaxNumber)), fmt.Sprintf("客户最多只可创建%v个", MaxNumber))
@@ -240,21 +253,33 @@ func (e Shop) Insert(c *gin.Context) {
 		return
 	}
 
+	var userCount int64
+	e.Orm.Model(&sys.SysUser{}).Where("phone = ? ",req.Phone).Count(&userCount)
+	if userCount > 0 {
+		e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
+		return
+	}
+
+	var userNameCount int64
+	e.Orm.Model(&sys.SysUser{}).Where("username = ? and  c_id = ?",req.UserName,userDto.CId).Count(&userNameCount)
+	if userCount > 0 {
+		e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
+		return
+	}
+
 	var userSymanObject sys.SysUser
 	e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? and enable = ?",req.SalesmanPhone,true).Limit(1).Find(&userSymanObject)
 	if userSymanObject.UserId > 0 {
 		req.Salesman = userSymanObject.UserId
 	}
-	var userObject sys.SysUser
-	e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? and enable = ?",req.Phone,true).Limit(1).Find(&userObject)
-	if userObject.UserId > 0 {
-		req.UserId = userObject.UserId
-	}
-	err = s.Insert(userDto.CId,&req)
+
+	err = s.Insert(userDto,&req)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("用户创建失败,%s", err.Error()))
         return
 	}
+
+
 
 	e.OK(req.GetId(), "创建成功")
 }
@@ -291,30 +316,60 @@ func (e Shop) Update(c *gin.Context) {
 		return
 	}
 
-	var count int64
-	e.Orm.Model(&models.Shop{}).Where("id = ?",req.Id).Count(&count)
-	if count == 0 {
+	var parentShopRow models.Shop
+	e.Orm.Model(&models.Shop{}).Where("id = ?",req.Id).Limit(1).Find(&parentShopRow)
+	if parentShopRow.Id == 0 {
 		e.Error(500, errors.New("数据不存在"), "数据不存在")
 		return
 	}
-	var oldRow models.Shop
-	e.Orm.Model(&models.Shop{}).Select("id").Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&oldRow)
 
-	if oldRow.Id != 0 {
-		if oldRow.Id != req.Id {
-			e.Error(500, errors.New("名称不可重复"), "名称不可重复")
-			return
+
+	//名称发生了变化
+	if parentShopRow.Name != req.Name {
+		var cacheShop models.Shop
+		e.Orm.Model(&models.Shop{}).Select("id").Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&cacheShop)
+
+		if cacheShop.Id != 0 {
+			if cacheShop.Id != req.Id {
+				e.Error(500, errors.New("名称不可重复"), "名称不可重复")
+				return
+			}
+		}
+
+	}
+	//手机号发生了变化
+	if parentShopRow.Phone != req.Phone {
+		//检测手机号是否已经存在
+		var validUser sys.SysUser
+		//查询大B下 + 新手机号
+		e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? ",req.Phone).Limit(1).Find(&validUser)
+
+		if validUser.UserId > 0 {
+			if validUser.UserId != parentShopRow.UserId {
+				e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
+				return
+			}
 		}
 	}
+	//用户名发生了变化
+	if parentShopRow.UserName != req.UserName {
+		//检测手机号是否已经存在
+		var validUser sys.SysUser
+		//查询大B下 + 新手机号
+		e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("username = ? ",req.UserName).Limit(1).Find(&validUser)
+
+		if validUser.UserId > 0 {
+			if validUser.UserId != parentShopRow.UserId {
+				e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
+				return
+			}
+		}
+	}
+
 	var userSymanObject sys.SysUser
 	e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? and enable = ?",req.SalesmanPhone,true).Limit(1).Find(&userSymanObject)
 	if userSymanObject.UserId > 0 {
 		req.Salesman = userSymanObject.UserId
-	}
-	var userObject sys.SysUser
-	e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? and enable = ?",req.Phone,true).Limit(1).Find(&userObject)
-	if userObject.UserId > 0 {
-		req.UserId = userObject.UserId
 	}
 	err = s.Update(&req, p)
 	if err != nil {
@@ -587,6 +642,47 @@ func (e Shop)Integral(c *gin.Context)  {
 }
 
 
+func (e Shop) UpPass(c *gin.Context) {
+	req :=dto.UpPass{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	if req.Pass == ""{
+		e.Error(500, nil, "请输入密码")
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	var sysDto sys.SysUser
+	e.Orm.Model(&sys.SysUser{}).Where("user_id = ? and c_id = ?",req.Id,userDto.CId).Limit(1).Find(&sysDto)
+
+	if sysDto.UserId == 0 {
+		e.Error(500,nil,"用户不存在")
+		return
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.Pass), bcrypt.DefaultCost)
+
+	if err!=nil{
+		e.Error(500,err,"密码更新失败")
+		return
+	}
+	e.Orm.Model(&sys.SysUser{}).Where("user_id = ? and c_id = ?",req.Id,userDto.CId).Updates(map[string]interface{}{
+		"password":string(hash),
+	})
+
+	e.OK("","successful")
+	return
+}
 func (e Shop) GetLine(c *gin.Context) {
 
 	err := e.MakeContext(c).

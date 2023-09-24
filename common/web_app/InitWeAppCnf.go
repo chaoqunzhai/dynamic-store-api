@@ -190,7 +190,7 @@ func (m *MakeWeAppInitConf)SearchRun()  {
 	m.Company = companyObject
 	//首次进来,那就进行一次数据的初始化
 	navList := make([]models.WeAppGlobalNavCnf, 0)
-	m.Orm.Model(&models.WeAppGlobalNavCnf{}).Where("enable = true").Find(&navList)
+	m.Orm.Model(&models.WeAppGlobalNavCnf{}).Order("layer asc").Find(&navList)
 
 	navListData := make([]interface{}, 0)
 	for _, row := range navList {

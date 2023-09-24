@@ -132,7 +132,7 @@ func (e CycleTimeConf) GetPage(c *gin.Context) {
 			"created_at": row.CreatedAt,
 			"order_range":service.GetOrderCreateStr(row),
 			"give_range": func()  string {
-				_,giveRange :=service.GetOrderCyClyCnf(row,false)
+				_,giveRange :=service.GetOrderCyClyCnf(row)
 				return giveRange
 			}(),
 		}

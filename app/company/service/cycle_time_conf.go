@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk/service"
+	"github.com/google/uuid"
+	models2 "go-admin/common/models"
 	"go-admin/common/utils"
 	"go-admin/global"
 	"gorm.io/gorm"
@@ -14,9 +16,26 @@ import (
 	"go-admin/common/actions"
 	cDto "go-admin/common/dto"
 )
-
+var (
+	Loc, _ = time.LoadLocation("Local")
+)
 type CycleTimeConf struct {
 	service.Service
+}
+
+type ValidCycle struct {
+	IsTime bool `json:"is_time"` //是否在这个时间区间
+	DeliveryMsg string `json:"delivery_msg"` //送达时间
+	DeliveryId int `json:"delivery_id"` //配送ID
+	StartTime time.Time `json:"-" gorm:"comment:记录可下单周期开始时间"`
+	EndTime   time.Time `json:"-" gorm:"comment:记录可下单周期结束时间"`
+	//下单周期的文案也是保持最新的
+	CreateStr string `json:"-" gorm:"size:30;comment:下单日期的文案内容"`
+	//配送周期的统一查询
+	DeliveryTime  models2.XTime   `json:"-" gorm:"type:date;comment:计算的配送时间"`
+	//展示,也是保持最新的
+	DeliveryStr string `json:"-" gorm:"size:30;comment:配送文案"`
+
 }
 
 // GetPage 获取CycleTimeConf列表
@@ -128,33 +147,27 @@ func (e *CycleTimeConf) Remove(d *dto.CycleTimeConfDeleteReq, p *actions.DataPer
 	}
 	return nil
 }
-func GetOrderCyClyCnf(CyCleCnf models.CycleTimeConf,compute bool) (day, dayValue string) {
+func GetOrderCyClyCnf(CyCleCnf models.CycleTimeConf) (day models2.XTime, dayValue string) {
 
 	//时间检测返回以下内容
 	//配送的具体日期Time对象
 	//配送的具体时间文案做展示
+	nowDay:=models2.XTime{
+		Time:time.Now(),
+	}
 
-	nowDay:=time.Now().Format("2006-01-02")
 	if CyCleCnf.GiveDay == 0 {
 		if CyCleCnf.GiveTime != ""{
-			return "",fmt.Sprintf("%v", CyCleCnf.GiveTime)
+			return nowDay,fmt.Sprintf("%v", CyCleCnf.GiveTime)
 		}
 		return nowDay,"当天配送"
 	}
 
-	//大B端就不进行时间换算了
+	cycleTimeValue :=CalculateTime(CyCleCnf.GiveDay)
 
-	if compute {
-		cycleTimeValue :=CalculateTime(CyCleCnf.GiveDay)
-		cycleTimeDay:=cycleTimeValue.Format("2006-01-02")
-		cycleVal := fmt.Sprintf("%v %v",cycleTimeDay, CyCleCnf.GiveTime)
+	cycleVal := fmt.Sprintf("%v %v",cycleTimeValue.Format("2006-01-02"), CyCleCnf.GiveTime)
 
-		return cycleTimeDay,cycleVal
-
-	}else {
-		return   nowDay,fmt.Sprintf("下单后第%v天 %v",CyCleCnf.GiveDay, CyCleCnf.GiveTime)
-	}
-
+	return cycleTimeValue,cycleVal
 
 }
 func GetOrderCreateStr(row models.CycleTimeConf) string {
@@ -169,5 +182,64 @@ func GetOrderCreateStr(row models.CycleTimeConf) string {
 	}
 
 	return orderCreateStr
+
+}
+
+//只有支付成功的时候才会调用这个方法
+//1.记录当前时间的哪个下单的时间段,获取到这个下单开始和结束时间 和文案 记录下来
+//2.计算这个配送时间也需要录入DB中
+
+//只需要返回这个上层的UID
+func CheckOrderCyCleCnfIsDb(cid int,table string,DeliveryObject models.CycleTimeConf,orm *gorm.DB) string  {
+
+	//计算出配送的周期
+	deliveryTime,deliveryMsg:=GetOrderCyClyCnf(DeliveryObject)
+
+	//检测下,然后直接返回吧
+	var cycleCnf models.OrderCycleCnf
+
+	uid:=""
+	//查询大B + 配送时间为同一天
+	//如果没有,那就创建
+	//如果有,那就统一订单的这个UID
+
+	orm.Table(table).Model(&models.OrderCycleCnf{}).Where("c_id = ? and delivery_time = ?",cid,deliveryTime).Find(&cycleCnf)
+	if cycleCnf.Id == 0 {
+		guid,_ := uuid.NewRandom()
+		code:=fmt.Sprintf("%v",guid.ID())
+		//生成一个新的uid,让订单来记录
+		uid = code[:8]
+
+		//把生成的配送信息录入到DB中,做一个订单统筹
+
+		nowTime:=time.Now()
+		noYearMonth:=nowTime.Format("2006-01-02")
+		if DeliveryObject.StartTime != "" && DeliveryObject.EndTime != ""{
+
+			startStr:=fmt.Sprintf("%v %v",noYearMonth,DeliveryObject.StartTime)
+			endStr:=fmt.Sprintf("%v %v",noYearMonth,DeliveryObject.EndTime)
+			sTime, _:=time.ParseInLocation("2006-01-02 15:04", startStr, Loc)
+
+			eTime,_:=time.ParseInLocation("2006-01-02 15:04", endStr, Loc)
+
+			//获取到配送的文案和天数
+			CreateStr:=GetOrderCreateStr(DeliveryObject)
+
+			orm.Table(table).Create(&models.OrderCycleCnf{
+				CId:cid,
+				Uid: uid,
+				StartTime: sTime,
+				EndTime: eTime,
+				CreateStr: CreateStr,
+				DeliveryTime: deliveryTime,
+				DeliveryStr: deliveryMsg,
+			})
+		}
+
+
+	}else {
+		uid = cycleCnf.Uid
+	}
+	return uid
 
 }

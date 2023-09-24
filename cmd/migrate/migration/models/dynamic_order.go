@@ -57,6 +57,10 @@ type Orders struct {
 	DeliveryStr  string    `json:"delivery_str" gorm:"size:25;comment:配送文案"`
 	DeliveryMoney float64 `json:"delivery_money" gorm:"comment:配送费"`
 	CouponId int `json:"coupon_id" gorm:"comment:使用优惠卷的ID"`
+	DriverId    int         `gorm:"index;comment:司机ID"`
+	AddressId int `json:"user_address_id" gorm:"index;comment:用户的收货地址,或者自提的店家地址"`
+	CouponMoney float64 `json:"coupon_money" gorm:"comment:优惠卷金额"`
+	Buyer string `json:"buyer" gorm:"size:24;comment:留言"`
 }
 
 func (Orders) TableName() string {
@@ -87,13 +91,13 @@ func (OrderSpecs) TableName() string {
 // todo:订单扩展信息
 type OrderExtend struct {
 	Model
-	Buyer string `json:"buyer" gorm:"size:24;comment:留言"`
+	//Buyer string `json:"buyer" gorm:"size:24;comment:留言"`
 	CId       int       `gorm:"index;comment:大BID"`
 	CreatedAt models.XTime       `json:"createdAt" gorm:"comment:创建时间"`
 	OrderId string `json:"order_id" gorm:"index;size:20;comment:订单ID"`
-	DriverId    int         `gorm:"comment:司机ID"`
-	AddressId int `json:"user_address_id" gorm:"comment:用户的收货地址,或者自提的店家地址"`
-	CouponMoney float64 `json:"coupon_money" gorm:"comment:优惠卷金额"`
+	//DriverId    int         `gorm:"index;comment:司机ID"`
+	//AddressId int `json:"user_address_id" gorm:"index;comment:用户的收货地址,或者自提的店家地址"`
+	//CouponMoney float64 `json:"coupon_money" gorm:"comment:优惠卷金额"`
 }
 
 func (OrderExtend) TableName() string {

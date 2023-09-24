@@ -24,6 +24,8 @@ func InitializationWeApp()  {
 			"name":"INDEX",
 			"wap_url":"/pages/index/index",
 			"icon_class":"icon-system-home",
+			"layer":1,
+			"enable":true,
 		},
 		{
 			"icon_path":"icondiy icon-system-category",
@@ -32,6 +34,18 @@ func InitializationWeApp()  {
 			"name":"SHOP_CATEGORY",
 			"wap_url":"/pages/goods/category",
 			"icon_class":"icon-system-category",
+			"layer":2,
+			"enable":true,
+		},
+		{
+			"icon_path":"icondiy icondiy icon-system-broadcast-fill",
+			"selected_icon_path":"icondiy icon-system-category-selected",
+			"text":"咨询",
+			"name":"SHOP_INFO",
+			"wap_url":"/pages_tool/article/list",
+			"icon_class":"icon-system-broadcast-fill",
+			"layer":3,
+			"enable":false,
 		},
 		{
 			"icon_path":"icondiy icon-system-cart",
@@ -40,6 +54,8 @@ func InitializationWeApp()  {
 			"name":"SHOPPING_TROLLEY",
 			"wap_url":"/pages/goods/cart",
 			"icon_class":"icon-system-cart",
+			"layer":4,
+			"enable":true,
 		},
 		{
 			"icon_path":"icondiy icon-system-my",
@@ -48,6 +64,8 @@ func InitializationWeApp()  {
 			"name":"MEMBER_CENTER",
 			"wap_url":"/pages/member/index",
 			"icon_class":"icon-system-my",
+			"layer":5,
+			"enable":true,
 		},
 	}
 	for _, db := range dbs {

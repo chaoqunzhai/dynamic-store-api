@@ -42,7 +42,7 @@ type ShopOrder struct {
 	Latitude  string `form:"latitudeOrder"  search:"type:order;column:latitude;table:shop"`
 	Image     string `form:"imageOrder"  search:"type:order;column:image;table:shop"`
 	LineId    string `form:"lineIdOrder"  search:"type:order;column:line_id;table:shop"`
-	Amount    string `form:"amountOrder"  search:"type:order;column:amount;table:shop"`
+	Balance    string `form:"balanceOrder"  search:"type:order;column:balance;table:shop"`
 	Integral  string `form:"integralOrder"  search:"type:order;column:integral;table:shop"`
 }
 
@@ -55,11 +55,11 @@ type ShopInsertReq struct {
 	Layer         int     `json:"layer" comment:"排序"`
 	Enable        bool    `json:"enable" comment:"开关"`
 	Desc          string  `json:"desc" comment:"描述信息"`
-	UserId        int     `json:"user_id" comment:"用户ID,商家ID"`
 	Name          string  `json:"name" comment:"小B名称" binding:"required"`
 	Phone         string  `json:"phone" comment:"联系手机号" binding:"required"` //小B的手机号
 	UserName      string  `json:"username" comment:"小B负责人名称" binding:"required"`
 	Address       string  `json:"address" comment:"小B收货地址" `
+	Password string `json:"password"`
 	Longitude     float64 `json:"longitude" comment:""`
 	Latitude      float64 `json:"latitude" comment:""`
 	Image         string  `json:"image" comment:"图片"`
@@ -81,7 +81,7 @@ func (s *ShopInsertReq) Generate(model *models.Shop) {
 	model.Layer = s.Layer
 	model.Enable = s.Enable
 	model.Desc = s.Desc
-	model.UserId = s.UserId
+
 	model.Name = s.Name
 	model.Phone = s.Phone
 	model.UserName = s.UserName
@@ -137,7 +137,7 @@ type ShopUpdateReq struct {
 	Latitude      float64 `json:"latitude" comment:""`
 	Image         string  `json:"image" comment:"图片"`
 	LineId        int     `json:"line_id" comment:"归属配送路线"`
-	Amount        float64 `json:"amount" comment:"剩余金额"`
+	Balance        float64 `json:"balance" comment:"剩余金额"`
 	Integral      int     `json:"integral" comment:"可用积分"`
 	SalesmanPhone string  `json:"salesman_phone" comment:"推荐人"`
 	Salesman      int     `json:"-" comment:"推荐人"`
@@ -153,7 +153,6 @@ func (s *ShopUpdateReq) Generate(model *models.Shop) {
 	model.Layer = s.Layer
 	model.Enable = s.Enable
 	model.Desc = s.Desc
-	model.UserId = s.UserId
 	model.Name = s.Name
 	model.Phone = s.Phone
 	model.UserName = s.UserName
@@ -186,4 +185,9 @@ type ShopDeleteReq struct {
 
 func (s *ShopDeleteReq) GetId() interface{} {
 	return s.Ids
+}
+
+type UpPass struct {
+	Id int `json:"id"`
+	Pass string `json:"pass"`
 }

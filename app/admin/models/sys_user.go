@@ -10,6 +10,7 @@ type SysUser struct {
 	UserId         int    `gorm:"primaryKey;autoIncrement;comment:编码"  json:"user_id"`
 	Layer          int    `json:"layer"`
 	Username       string `json:"username" gorm:"type:varchar(20);comment:用户名"`
+	NickName string `json:"nick_name"  gorm:"type:varchar(20);comment:昵称"`
 	Password       string `json:"-" gorm:"type:varchar(66);comment:密码"`
 	Phone          string `json:"phone" gorm:"type:varchar(11);comment:手机号"`
 	CId            int    `json:"c_id" gorm:"comment:关联大B"`

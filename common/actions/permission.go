@@ -186,8 +186,7 @@ func Permission(tableName string, p *DataPermission) func(db *gorm.DB) *gorm.DB 
 		if !config.ApplicationConfig.EnableDP {
 			return db
 		}
-		//fmt.Println("p.dataScope", p.DataScope, p.CId)
-
+		fmt.Printf("进行表权限校验 校验用户角色为:%v,大BID为:%v\n", global.GetRoleCname(p.DataScope), p.CId)
 		switch p.DataScope {
 		case global.RoleSuper:
 			return db

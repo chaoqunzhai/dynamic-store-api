@@ -64,12 +64,14 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.CompanyEmsQuotaCnf),
 			new(models.CompanyEmsQuotaCnfLog),
 			new(models.CompanyRenewalTimeLog),
+			new(models.WeChatAppIdCnf),
 			new(models.WeChatPay),
 			new(models.AliPay),
 			new(models.OrderTrade),
 			new(models.SplitTableMap),
 			new(models.GradeVip),
 			new(models.PayCnf),
+			new(models.DebitCard),
 			//商品
 			new(models.Shop),
 			new(models.ShopRechargeLog),
@@ -94,6 +96,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.GoodsSpecs),
 			new(models.GoodsVip),
 
+			new(models.Article),
 			//小程序配置
 			new(models.WeAppGlobalNavCnf),
 			new(models.CompanyNavCnf),

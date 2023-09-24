@@ -192,7 +192,7 @@ func (e WeApp) Navbar(c *gin.Context) {
 		Find(&list).Limit(-1).Offset(-1).
 		Count(&count).Error
 	navList := make([]models2.WeAppGlobalNavCnf, 0)
-	e.Orm.Model(&models2.WeAppGlobalNavCnf{}).Where("enable = true").Find(&navList)
+	e.Orm.Model(&models2.WeAppGlobalNavCnf{}).Order("layer asc").Find(&navList)
 
 	result := make([]interface{}, 0)
 	for _, row := range list {
@@ -206,7 +206,8 @@ func (e WeApp) Navbar(c *gin.Context) {
 				nav.UserEnable = object.Enable
 
 			} else {
-				nav.UserEnable = row.Enable
+				//设置菜单的默认状态
+				nav.UserEnable = nav.Enable
 			}
 			navCnf = append(navCnf, nav)
 		}

@@ -13,6 +13,7 @@ type WeAppGlobalNavCnf struct {
 	Name             string `gorm:"size:50;" json:"name"`
 	WapUrl           string `gorm:"size:50;" json:"wap_url"`
 	IconClass        string `gorm:"size:50;" json:"icon_class"`
+	Layer string   `gorm:"size:3;" json:"layer"`
 }
 
 func (WeAppGlobalNavCnf) TableName() string {

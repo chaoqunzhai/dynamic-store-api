@@ -9,11 +9,13 @@ import (
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/business"
+	cDto "go-admin/common/dto"
 	customUser "go-admin/common/jwt/user"
 	models3 "go-admin/common/models"
 	"go-admin/common/utils"
 	"go-admin/global"
 	"gorm.io/gorm"
+	"strconv"
 	"strings"
 	"time"
 
@@ -69,19 +71,21 @@ func (e Orders) GetPage(c *gin.Context) {
 
 	//CycleGive interface{} `form:"cycle_give"`
 	//CycleCreate int `form:"cycle_create"`
-	CycleGive:=c.Query("cycle_give")
-	CycleCreate:=c.Query("cycle_create")
-	fmt.Println("CycleGive",CycleGive,CycleCreate)
+
+
+	//处理不是数字字符串的问题
+	if req.Uid != ""{
+		uid,uidErr:=strconv.Atoi(req.Uid)
+		if uidErr==nil{
+			req.Uid = fmt.Sprintf("%v",uid)
+		}else {
+			req.Uid = ""
+		}
+	}
 
 	//配送周期传入的值是:14_2023-09-23
 	//配送周期查询
-	if CycleGive != ""{
 
-		giveList:=strings.Split(CycleGive,"_")
-		if len(giveList) == 2{
-			req.DeliveryTime = giveList[1]
-		}
-	}
 	//下单周期查询
 
 
@@ -95,33 +99,67 @@ func (e Orders) GetPage(c *gin.Context) {
 	}
 	//统一查询商家shop_id
 	cacheShopId := make([]int, 0)
+	//统一查询用户地址
+	cacheAddressId:=make([]int,0)
 
 	for _, row := range list {
-		cacheShopId = append(cacheShopId, row.ShopId)
+		if row.ShopId > 0 {
+			cacheShopId = append(cacheShopId,row.ShopId)
+		}
+		if row.AddressId > 0 {
+			cacheAddressId = append(cacheAddressId,row.AddressId)
+		}
+
 	}
 	cacheShopId = utils.RemoveRepeatInt(cacheShopId)
-
+	cacheAddressId = utils.RemoveRepeatInt(cacheAddressId)
 	//查询客户信息
 	cacheShopMap := make(map[int]map[string]interface{}, 0)
-	cacheShopObject := make([]models2.Shop, 0)
+
+
 	if len(cacheShopId) > 0 {
-		e.Orm.Model(&models2.Shop{}).Select("name,id,phone,address,user_name").Where("c_id = ? and id in ?",
+		cacheShopObject := make([]models2.Shop, 0)
+		e.Orm.Model(&models2.Shop{}).Select("name,id,phone,address,user_name,grade_id").Where("c_id = ? and id in ?",
 			userDto.CId, cacheShopId).Find(&cacheShopObject)
 		//保存为map
 		//应该是获取的用户下单的地址
 		for _, k := range cacheShopObject {
+			GradeName:=""
+			if k.GradeId > 0 {
+				var gradeRow models2.GradeVip
+				e.Orm.Model(&models2.GradeVip{}).Select("name,id").Where("id = ? and enable = ?",k.GradeId,true).Limit(1).Find(&gradeRow)
+				if gradeRow.Id > 0 {
+					GradeName = gradeRow.Name
+				}
+			}
 			cacheShopMap[k.Id] = map[string]interface{}{
 				"name":  k.Name,
 				"phone": k.Phone,
 				"id":    k.Id,
 				"username":k.UserName,
-				"address":k.Address,
+				"grade_name":GradeName,
 			}
 		}
 	}
 
 
+	cacheAddressMap := make(map[int]map[string]interface{}, 0)
+
+	if len(cacheAddressId) > 0 {
+		cacheAddressObject := make([]models2.DynamicUserAddress, 0)
+		e.Orm.Model(&models2.DynamicUserAddress{}).Select("id,address").Where("c_id = ? and id in ?",
+			userDto.CId, cacheAddressId).Find(&cacheAddressObject)
+		//保存为map
+		//应该是获取的用户下单的地址
+		for _, k := range cacheAddressObject {
+			cacheAddressMap[k.Id] = map[string]interface{}{
+				"value":k.Address,
+			}
+		}
+	}
+
 	specsTable := business.OrderSpecsTableName(orderTableName)
+
 	result := make([]map[string]interface{}, 0)
 	for _, row := range list {
 
@@ -139,6 +177,7 @@ func (e Orders) GetPage(c *gin.Context) {
 			"order_id":   row.OrderId,
 			"order_no_id":row.OrderNoId,
 			"shop": cacheShopMap[row.ShopId],
+			"address":cacheAddressMap[row.AddressId],
 			"cycle_place": row.CreatedAt.Format("2006-01-02"), 			//下单周期
 			"delivery_time":     row.DeliveryTime.Format("2006-01-02"), 			//配送周期
 			"delivery_str": row.DeliveryStr,
@@ -198,7 +237,6 @@ func (e Orders) Get(c *gin.Context) {
 		e.Error(500, orderErr, "订单不存在")
 		return
 	}
-
 	var shopRow models2.Shop
 	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?", object.ShopId, userDto.CId).Limit(1).Find(&shopRow)
 
@@ -215,20 +253,43 @@ func (e Orders) Get(c *gin.Context) {
 		"shop_username":  shopRow.UserName,
 		"shop_phone":     shopRow.Phone,
 		"shop_address":   shopRow.Address,
-		"driver_name":"",
-		"driver_phone":"",
+		"delivery_type":object.DeliveryType,
 	}
-	var orderExtend models.OrderExtend
-	orderExtendTable:=business.OrderExtendTableName(orderTableName)
-	e.Orm.Table(orderExtendTable).Where("order_id = ?",orderId).Limit(1).Find(&orderExtend)
-	if orderExtend.Id > 0 && orderExtend.DriverId > 0 {
-
-		var driverCnf models.Driver
-		e.Orm.Model(&driverCnf).Where("id = ? and c_id = ?",orderExtend.DriverId,object.CId).Limit(1).Find(&driverCnf)
-		if driverCnf.Id > 0 {
-			result["driver_name"] = driverCnf.Name
-			result["driver_phone"] = driverCnf.Phone
+	//如果是同城配送那就获取
+	switch object.DeliveryType {
+	case global.ExpressLocal:
+		var userAddress models2.DynamicUserAddress
+		e.Orm.Model(&models2.DynamicUserAddress{}).Select("id,address").Where("c_id = ? and id = ?",
+			userDto.CId, object.AddressId).Limit(1).Find(&userAddress)
+		if userAddress.Id > 0{
+			result["address"] = map[string]interface{}{
+				"address":userAddress.Address,
+			}
 		}
+
+	case global.ExpressStore:
+		var expressStore models2.CompanyExpressStore
+		e.Orm.Model(&models2.CompanyExpressStore{}).Select("id,address,name").Where("c_id = ? and id = ?",
+			userDto.CId, object.AddressId).Limit(1).Find(&expressStore)
+		if expressStore.Id > 0{
+			result["address"] = map[string]interface{}{
+				"name":expressStore.Name,
+				"address":expressStore.Address,
+			}
+		}
+
+	}
+
+
+	//var orderExtend models.OrderExtend
+	//orderExtendTable:=business.OrderExtendTableName(orderTableName)
+	//e.Orm.Table(orderExtendTable).Where("order_id = ?",orderId).Limit(1).Find(&orderExtend)
+
+	var driverCnf models.Driver
+	e.Orm.Model(&driverCnf).Where("id = ? and c_id = ?",object.DriverId,object.CId).Limit(1).Find(&driverCnf)
+	if driverCnf.Id > 0 {
+		result["driver_name"] = driverCnf.Name
+		result["driver_phone"] = driverCnf.Phone
 	}
 
 	var orderSpecs []models.OrderSpecs
@@ -321,15 +382,23 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		return
 	}
 
+
+
 	orderTableName := business.GetTableName(userDto.CId, e.Orm)
 	specsTable := business.OrderSpecsTableName(orderTableName)
-	orderExtend := business.OrderExtendTableName(orderTableName)
+
+	cycleTableName:=business.OrderCycleTableName(orderTableName)
 	var DeliveryObject models.CycleTimeConf
 	e.Orm.Model(&models2.CycleTimeConf{}).Where("id = ? and enable =? and c_id = ?", req.Cycle, true, userDto.CId).Limit(1).Find(&DeliveryObject)
 	if DeliveryObject.Id == 0 {
 		e.Error(500, nil, "时间区间不存在")
 		return
 	}
+
+
+	//获取到统一配送的配送UUID
+	uid:=service.CheckOrderCyCleCnfIsDb(userDto.CId,cycleTableName,DeliveryObject,e.Orm)
+
 	var lineObject models2.Line
 	e.Orm.Model(&models2.Line{}).Where("id = ? and c_id = ? and enable = ?", shopObject.LineId, userDto.CId, true).Limit(1).Find(&lineObject)
 
@@ -343,6 +412,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 
 	//一个订单下了很多商品
 	orderRow := &models.Orders{
+		Uid: uid,
 		Enable:  true,
 		ShopId:  req.Shop,
 		Line:    lineName,
@@ -365,19 +435,18 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	orderRow.Phone = shopObject.Phone
 	orderRow.DeliveryTime = service.CalculateTime(DeliveryObject.GiveDay)
 	orderRow.DeliveryStr = DeliveryObject.GiveTime
-	orderRow.DeliveryUid = DeliveryObject.Uid
 	orderRow.DeliveryID = DeliveryObject.Id
 	orderRow.DeliveryType = global.ExpressLocal
 
 	orderRow.CreateBy = userDto.UserId
-	//代客下单,那地址就是客户的地址
-	e.Orm.Table(orderExtend).Create(&models.OrderExtend{
-		CId: userDto.CId,
-		OrderId: orderRow.OrderId,
-		DriverId: DriverObject.Id,
-		AddressId:req.AddressId,
-		Buyer: req.Desc,
-	})
+	orderRow.Buyer = req.Desc
+	orderRow.DriverId = DriverObject.Id
+
+	//代客下单,地址就是客户的默认地址
+	var defaultAddress models2.DynamicUserAddress
+	e.Orm.Model(&defaultAddress).Select("id").Where("c_id = ? and is_default = 1 and user_id = ?",userDto.CId,shopObject.UserId).Limit(1).Find(&defaultAddress)
+	//用户是一定有一个默认地址的
+	orderRow.AddressId = defaultAddress.Id
 
 	var orderMoney float64
 	var goodsNumber int
@@ -468,6 +537,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	}
 	orderRow.Number = goodsNumber
 
+	//设置价格
 	orderMoney = utils.RoundDecimalFlot64(orderMoney)
 	orderRow.PayMoney = orderMoney
 	orderRow.OrderMoney = orderMoney
@@ -498,7 +568,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		}
 		Balance = utils.RoundDecimalFlot64(Balance)
 		e.Orm.Model(&models2.Shop{}).Where("id = ?",shopObject.Id).Updates(map[string]interface{}{
-			"amount":Balance,
+			"balance":Balance,
 		})
 		//余额变动记录
 		row:=models2.ShopBalanceLog{
@@ -586,8 +656,10 @@ func (e Orders) ToolsOrders(c *gin.Context) {
 
 func (e Orders) OrderCycleList(c *gin.Context) {
 	s := service.Orders{}
+	req := dto.CyClePageReq{}
 	err := e.MakeContext(c).
 		MakeOrm().
+		Bind(&req).
 		MakeService(&s.Service).
 		Errors
 	if err != nil {
@@ -600,9 +672,15 @@ func (e Orders) OrderCycleList(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	//获取所有的周期列表
-	datalist := make([]models.CycleTimeConf, 0)
-	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and enable = ?", userDto.CId,true).Order(global.OrderTimeKey).Find(&datalist)
+	tableName:=business.GetTableName(userDto.CId,e.Orm)
+	CycleTableName:=business.OrderCycleTableName(tableName)
+	//默认展示最近10条的配送周期
+	datalist := make([]models2.OrderCycleCnf, 0)
+	e.Orm.Table(CycleTableName).Scopes(
+		cDto.MakeSplitTableCondition(req.GetNeedSearch(),CycleTableName),
+		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
+	).Model(&models2.OrderCycleCnf{}).Where(
+		"c_id = ?", userDto.CId).Order(global.OrderTimeKey).Find(&datalist)
 
 	//下单周期
 	createTime := make([]map[string]interface{}, 0)
@@ -611,21 +689,35 @@ func (e Orders) OrderCycleList(c *gin.Context) {
 
 	//下单周期和配送周期是成对出现的,
 	for _, row := range datalist {
-
-		t1:=map[string]interface{}{
-			"id":row.Id,
-			"t":row.Id,
+		t1 := map[string]interface{}{
+			"id": row.Id,
+			"color":"",
+			"t":  row.Uid,
+			"value": row.CreateStr,
 		}
-		t2:=map[string]interface{}{
-			"id":row.Id,
-		}
-		giveDay,giveStr:=service.GetOrderCyClyCnf(row,true)
-		t2["value"] = giveStr
-		t2["t"] = fmt.Sprintf("%v_%v",row.Id,giveDay)
-		t1["value"] = service.GetOrderCreateStr(row)
-
 		createTime = append(createTime, t1)
+
+		t2 := map[string]interface{}{
+			"id":    row.Id,
+			"color":"",
+			"t":     row.Uid,
+			"value": row.DeliveryStr,
+		}
 		giveTime = append(giveTime, t2)
+	}
+	if len(createTime) > 0 {
+		createTime = append(createTime, map[string]interface{}{
+			"color":"#1890ff",
+			"t":     "create",
+			"value": "查看更多周期列表",
+		})
+	}
+	if len(giveTime) > 0 {
+		giveTime = append(giveTime, map[string]interface{}{
+			"color":"#1890ff",
+			"t":     "give",
+			"value": "查看更多周期列表",
+		})
 	}
 	//放到不同的列表中
 	result := map[string]interface{}{
@@ -636,7 +728,6 @@ func (e Orders) OrderCycleList(c *gin.Context) {
 
 	return
 }
-
 func (e Orders) ShopOrderList(c *gin.Context) {
 	s := service.Orders{}
 	req := dto.OrdersShopGetPageReq{}
@@ -684,25 +775,10 @@ func (e Orders) Times(c *gin.Context) {
 			"placing": "",
 			"give":    "",
 		}
-		placing := ""
-		give := ""
-		if row.GiveDay == 0 {
-			give = fmt.Sprintf("下单当天,%v", row.GiveTime)
-		} else {
-			give = fmt.Sprintf("下单后 第%v天,%v", row.GiveDay, row.GiveTime)
-		}
-		switch row.Type {
-		case global.CyCleTimeDay:
-			placing = fmt.Sprintf("每天%v-%v", row.StartTime, row.EndTime)
-		case global.CyCleTimeWeek:
-			placing = fmt.Sprintf("每周%v %v-每周%v %v", global.WeekIntToMsg(row.StartWeek), row.StartTime,
-				global.WeekIntToMsg(row.EndWeek), row.EndTime,
-			)
-		default:
-			continue
-		}
-		m["placing"] = placing
-		m["give"] = give
+		//
+		_,giveStr:=service.GetOrderCyClyCnf(row)
+		m["placing"] = service.GetOrderCreateStr(row)
+		m["give"] = giveStr
 		result = append(result, m)
 	}
 	e.PageOK(result, len(result), 1, -1, "successful")

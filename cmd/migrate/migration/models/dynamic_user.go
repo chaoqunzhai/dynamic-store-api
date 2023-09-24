@@ -13,6 +13,7 @@ type DynamicUserAddress struct {
 	Mobile    string `json:"mobile"  gorm:"size:12;comment:收件人电话"`
 	Address   string `json:"address"  gorm:"size:100;comment:收件人地址"`
 	IsDefault bool   `json:"is_default" gorm:"comment:是否默认地址"`
+	Source      int       `gorm:"type:tinyint(1);default:0;comment:使用范围 1:大B给创建的一个默认地址 0:用户创建的"`
 }
 
 func (DynamicUserAddress) TableName() string {

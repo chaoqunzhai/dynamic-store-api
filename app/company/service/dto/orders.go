@@ -22,10 +22,16 @@ type OrdersGetPageReq struct {
 	PayType int `form:"pay_type" search:"type:exact;column:pay_type;table:orders" comment:""`
 	Line string `form:"line" search:"type:exact;column:line_id;table:orders" comment:""`
 	DeliveryTime string `form:"delivery_time" search:"type:exact;column:delivery_time;table:orders" comment:""`
-
+	Uid string `form:"uid" search:"type:exact;column:uid;table:orders"`
 	OrdersOrder
 }
 
+type CyClePageReq struct {
+	dto.Pagination `search:"-"`
+}
+func (m *CyClePageReq) GetNeedSearch() interface{} {
+	return *m
+}
 type OrdersOrder struct {
 	Id        string `form:"idOrder"  search:"type:order;column:id;table:orders"`
 	CreateBy  string `form:"createByOrder"  search:"type:order;column:create_by;table:orders"`
@@ -103,7 +109,6 @@ type ValetOrderReq struct {
 	Shop  int                     `json:"shop"`
 	Cycle int                     `json:"cycle"` //代客下单,只需要获取选择的时间段就行
 	Goods map[string][]valetSpecs `json:"goods"`
-	AddressId int `json:"address_id"`
 	Desc  string                  `json:"desc"`
 	DeductionType int `json:"deduction_type"`
 }

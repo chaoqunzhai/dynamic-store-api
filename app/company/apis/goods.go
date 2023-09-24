@@ -20,7 +20,6 @@ import (
 	utils2 "go-admin/common/utils"
 	"go-admin/global"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 	"net/url"
 	"os"
 	"strconv"
@@ -36,6 +35,7 @@ type ClassData struct {
 	ClassName string     `json:"class_name" `
 	GoodsList []specsRow `json:"goods_list" `
 }
+
 
 type specsRow struct {
 	GoodsId    int     `json:"goods_id" `
@@ -59,35 +59,30 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	ClassID:=c.Query("class_id")
+	fmt.Println("req",ClassID)
 	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {
 		e.Error(500, err, err.Error())
 		return
 	}
+	if ClassID == "" {
+		e.Error(500, err, "请输入类别")
+		return
+	}
+	result := make([]specsRow, 0)
+	//获取商品和分类的关联
+	var bindGoodsId []int
+	e.Orm.Raw(fmt.Sprintf("select goods_id from goods_mark_class where class_id = %v",ClassID)).Scan(&bindGoodsId)
+
+	if len(bindGoodsId) == 0 {
+		e.OK(result, "successful")
+		return
+	}
 	var goods []models.Goods
 	e.Orm.Model(&models.Goods{}).Select("id,name,c_id,image,inventory,money").Where(
-		"c_id = ? and enable = ?", userDto.CId, true).
-		Order(global.OrderLayerKey).Preload("Class", func(tx *gorm.DB) *gorm.DB {
-		return tx.Select("id", "name")
-	}).Find(&goods)
-
-	classId := make([]int, 0)
-	for _, row := range goods {
-		for _, class := range row.Class {
-			classId = append(classId, class.Id)
-		}
-
-	}
-	classRows := make([]models.GoodsClass, 0)
-	e.Orm.Model(&models.GoodsClass{}).Select("id,name").Where("id in ? and enable = ? and c_id = ?", classId, true, userDto.CId).Find(&classRows)
-	classResult := make([]map[string]interface{}, 0)
-	for _, row := range classRows {
-		classResult = append(classResult, map[string]interface{}{
-			"name": row.Name,
-			"id":   row.Id,
-		})
-	}
-	result := make(map[int]ClassData, 0)
+		"c_id = ? and enable = ? and id in ?", userDto.CId, true,bindGoodsId).
+		Order(global.OrderLayerKey).Find(&goods).Limit(-1).Offset(-1)
 	for _, row := range goods {
 		//只返回有规格的数据
 		var specsObject models.GoodsSpecs
@@ -111,26 +106,9 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 			Name:       specsObject.Name,
 			Inventory:  specsObject.Inventory,
 		}
-		for _, class := range row.Class {
-			data, ok := result[class.Id]
-			if ok {
-				data.GoodsList = append(data.GoodsList, specData)
-				result[class.Id] = data
-			} else {
-				result[class.Id] = ClassData{
-					ClassId:   class.Id,
-					ClassName: class.Name,
-					GoodsList: []specsRow{specData},
-				}
-			}
-		}
+		result = append(result,specData)
 	}
-
-	resAll := map[string]interface{}{
-		"class": classResult,
-		"specs": result,
-	}
-	e.OK(resAll, "successful")
+	e.OK(result, "successful")
 	return
 
 }

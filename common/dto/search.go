@@ -104,15 +104,13 @@ func MakeSplitTableCondition(q interface{},table string) func(db *gorm.DB) *gorm
 		}
 		for k, v := range condition.Where {
 			//fmt.Println("Where",k,v,"tableName",table)
-			fmt.Printf("Where k:%v v:%v table:%v\n",k,v,table)
 			db = db.Where(k, v...)
 		}
 		for k, v := range condition.Or {
-			fmt.Println("condition",k,v)
 			db = db.Or(k, v...)
 		}
 		for _, o := range condition.Order {
-			fmt.Println("Order",o)
+
 			db = db.Order(o)
 		}
 		return db

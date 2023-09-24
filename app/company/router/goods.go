@@ -25,9 +25,8 @@ func registerGoodsRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewa
 		r.POST("/state", api.UpdateState)
 		r.PUT("/:id", api.Update)
 		r.DELETE("", api.Delete)
-		//获取大B所有商品和分类的关联联系
+		//根据分类获取分类下的商品
 		r.GET("/class_specs", api.ClassSpecs)
-
 		//商品的图片上传
 		r.POST("/image",api.CosSaveImage)
 		//商品图片的删除

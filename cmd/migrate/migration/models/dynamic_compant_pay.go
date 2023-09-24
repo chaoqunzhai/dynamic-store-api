@@ -1,5 +1,13 @@
 package models
 
+type WeChatAppIdCnf struct {
+	BigBRichGlobal
+	AppId string `json:"app_id" gorm:"index;size:20;comment:应用ID"`
+	AppSecret string `json:"app_secret"  gorm:"index;size:50;comment:应用ID"`
+}
+func (WeChatAppIdCnf) TableName() string {
+	return "company_wechat_app_cnf"
+}
 //微信支付配置
 type WeChatPay struct {
 	BigBRichGlobal
@@ -39,4 +47,17 @@ type PayCnf struct {
 
 func (PayCnf) TableName() string {
 	return "company_pay_cnf"
+}
+
+//借记卡管理,
+//使用go-admin生成代码
+type DebitCard struct {
+	BigBRichGlobal
+	Name string `json:"name" gorm:"size:20;comment:持卡人名称"`
+	BackName string `json:"back_name" gorm:"size:15;comment:开户行"`
+	CardNumber string `json:"card_number" gorm:"size:25;comment:银行卡号"`
+}
+
+func (DebitCard) TableName() string {
+	return "company_debit_card"
 }

@@ -34,6 +34,7 @@ type Shop struct {
     GradeName string `json:"grade_name" gorm:"-"`
     Tags []int `json:"tags" gorm:"-"`
     TagName []string `json:"tag_name" gorm:"-"`
+    DefaultAddress string `json:"default_address" gorm:"-"`
     OrderCount int64 `json:"order_count" gorm:"-"`
     models.ModelTime
     models.ControlBy

@@ -9,6 +9,10 @@ const (
 	StdOut   = "./logs/info.log"
 	StdError = "./logs/error.log"
 
+	ExpressStore     = 1 //门店自提
+	ExpressLocal     = 2 //同城配送
+	ExpressLogistics = 3 //物流配送
+
 	//商品目录
 	GoodsPath       = "goods"
 	SysName         = "动创云订货配送"
@@ -103,9 +107,8 @@ const (
 	ScanShopRecharge = 2 //用户充值
 	ScanShopUse      = 3 //用户消费
 	ScanShopRefund   = 4 //用户退款
-	ExpressStore     = 1 //门店自提
-	ExpressLocal     = 2 //同城配送
-	ExpressLogistics = 3 //物流配送
+
+
 
 	CouponReceiveType = "wait" //待领取
 	ReceiveCoupon1    = 1      //下单时领取的
@@ -135,6 +138,22 @@ const (
 
 )
 
+func GetRoleCname(v int) string  {
+	switch v {
+	case RoleSuper:
+		return "超管"
+	case RoleCompany:
+		return "大B"
+	case RoleCompanyUser:
+		return "大B员工"
+	case RoleShop:
+		return "小B"
+	case RoleUser:
+		return "用户"
+
+	}
+	return "非法角色"
+}
 func GetOrderPayStatus(v int) string {
 	switch v {
 	case OrderStatusWaitPay:

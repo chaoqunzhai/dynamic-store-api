@@ -2,6 +2,7 @@ package apis
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"go-admin/cmd/migrate/migration/models"
 	customUser "go-admin/common/jwt/user"
@@ -17,17 +18,18 @@ type PayCnfInsertReq struct {
 	Credit bool `json:"credit" gorm:"size:1;comment:支持授信减扣"`
 
 }
-func (e Trade) Create(c *gin.Context) {
+func (e *Trade) Create(c *gin.Context) {
 	req := PayCnfInsertReq{}
 	err := e.MakeContext(c).
+		Bind(&req, binding.JSON, nil).
 		MakeOrm().
-		Bind(&req).
 		Errors
 	if err != nil {
 		e.Logger.Error(err)
 		e.Error(500, err, err.Error())
 		return
 	}
+
 	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {
 		e.Error(500, err, err.Error())

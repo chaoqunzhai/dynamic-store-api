@@ -34,5 +34,7 @@ func registerShopRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewar
 		r.POST("/grade",api.Grade)
 		//获取客户配置的路线信息
 		r.GET("/line/:id",api.GetLine)
+		//密码修改
+		r.POST("/uppass",api.UpPass)
 	}
 }

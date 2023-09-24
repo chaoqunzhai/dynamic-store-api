@@ -80,7 +80,55 @@ func (e Company) ExpressList(c *gin.Context) {
 	return
 }
 
-func (e Company) ExpressCnf(c *gin.Context) {
+func (e Company) ExpressCnfLocal(c *gin.Context) {
+	req := dto.CompanyExpressCnfReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	//快递配置
+	var localObject models2.CompanyFreight
+	e.Orm.Model(&models2.CompanyFreight{}).Where("c_id = ? and type = ?", userDto.CId, global.ExpressLocal).Limit(1).Find(&localObject)
+
+	localReq := req.Local
+
+	if localObject.Id > 0 {
+		e.Orm.Model(&localObject).Updates(map[string]interface{}{
+			"quota_money":   localReq.QuotaMoney,
+			"start_money":   localReq.StartMoney,
+			"freight_Money": localReq.FreightMoney,
+		})
+		e.OK("更新成功", "successful")
+		return
+	}
+	localObject = models2.CompanyFreight{
+		Type:         global.ExpressLocal,
+		QuotaMoney:   localReq.QuotaMoney,
+		StartMoney:   localReq.StartMoney,
+		FreightMoney: localReq.FreightMoney,
+	}
+	localObject.CId = userDto.CId
+	localObject.Desc = global.GetExpressCn(global.ExpressLocal)
+	localObject.Enable = true
+
+	e.Orm.Save(&localObject)
+	e.OK("更新成功", "successful")
+	return
+}
+
+func (e Company) ExpressCnfStore(c *gin.Context) {
 	req := dto.CompanyExpressCnfReq{}
 	err := e.MakeContext(c).
 		MakeOrm().
@@ -112,19 +160,6 @@ func (e Company) ExpressCnf(c *gin.Context) {
 		e.Orm.Create(&store)
 	}
 
-	var objectLocal models2.CompanyExpress
-	e.Orm.Model(&models2.CompanyExpress{}).Where("c_id = ? and type = ?", userDto.CId, global.ExpressLocal).Limit(1).Find(&objectLocal)
-	if objectLocal.Id > 0 {
-		objectLocal.Enable = req.Local.Enable
-		e.Orm.Save(&objectLocal)
-	} else {
-		local := models2.CompanyExpress{}
-		local.Enable = req.Local.Enable
-		local.CId = userDto.CId
-		local.Type = global.ExpressLocal
-		local.Desc = global.GetExpressCn(global.ExpressLocal)
-		e.Orm.Create(&local)
-	}
 	//自提配置
 	//先清空
 	e.Orm.Model(&models2.CompanyExpressStore{}).Unscoped().Where("c_id = ? ", userDto.CId).Delete(&models2.CompanyExpressStore{})
@@ -139,32 +174,6 @@ func (e Company) ExpressCnf(c *gin.Context) {
 		rr.CId = userDto.CId
 		e.Orm.Create(&rr)
 	}
-	//快递配置
-	var localObject models2.CompanyFreight
-	e.Orm.Model(&models2.CompanyFreight{}).Where("c_id = ? and type = ?", userDto.CId, global.ExpressLocal).Limit(1).Find(&localObject)
-
-	localReq := req.Local
-
-	if localObject.Id > 0 {
-		e.Orm.Model(&localObject).Updates(map[string]interface{}{
-			"quota_money":   localReq.QuotaMoney,
-			"start_money":   localReq.StartMoney,
-			"freight_Money": localReq.FreightMoney,
-		})
-		e.OK("更新成功", "successful")
-		return
-	}
-	localObject = models2.CompanyFreight{
-		Type:         global.ExpressLocal,
-		QuotaMoney:   localReq.QuotaMoney,
-		StartMoney:   localReq.StartMoney,
-		FreightMoney: localReq.FreightMoney,
-	}
-	localObject.CId = userDto.CId
-	localObject.Desc = global.GetExpressCn(global.ExpressLocal)
-	localObject.Enable = true
-
-	e.Orm.Save(&localObject)
 	e.OK("更新成功", "successful")
 	return
 }
