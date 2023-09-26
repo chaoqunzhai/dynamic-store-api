@@ -23,15 +23,23 @@ func registerPayCnfRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 		r.GET("", api.Detail)
 	}
 
-	r2 := v1.Group("/pay_offline").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
-	apiOffline := apis.OfflinePay{}
+	r2 := v1.Group("/wechat_pay").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
+	apiWechatPay := apis.PayWechat{}
 	{
-		//线下支付列表创建
-		r2.POST("", apiOffline.Create)
-		//线下支付列表
-		r2.GET("", apiOffline.List)
-		//更新支付方式
-		r.PUT("/:id",apiOffline.Update)
-		r.DELETE("/:id",apiOffline.Remove)
+
+		r2.POST("", apiWechatPay.Create)
+
+
+		r2.GET("",apiWechatPay.Detail)
+	}
+
+	r3 := v1.Group("/ali_pay").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
+	apiAliPay := apis.PayALI{}
+	{
+
+		r3.POST("", apiAliPay.Create)
+
+
+		r3.GET("",apiAliPay.Detail)
 	}
 }

@@ -18,7 +18,7 @@ type WeChatPay struct {
 	ApiV3 string `json:"api_v3" gorm:"size:50;"`
 	Refund bool `json:"refund" gorm:"comment:支持退款;"`
 	CertPath string `json:"cert_path" gorm:"size:50;comment:支付证书cert路径"`
-	KeyPath string  `json:"KeyPath" gorm:"size:50;comment:支付证书key路径"`
+	KeyPath string  `json:"key_path" gorm:"size:50;comment:支付证书key路径"`
 }
 func (WeChatPay) TableName() string {
 	return "company_pay_wechat"
