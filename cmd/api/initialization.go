@@ -168,6 +168,10 @@ func Initialization() {
 			"key":   "shop_tag",
 			"value": global.CompanyUserTag,
 		},
+		{
+			"key":   "offline_pay",
+			"value": global.OffLinePay ,
+		},
 	}
 	for _, db := range dbs {
 		for _, row := range ComQuotaCnf {

@@ -139,7 +139,7 @@ func (e GoodsTag) Insert(c *gin.Context) {
 	CompanyCnf := business.GetCompanyCnf(userDto.CId, "good_tag", e.Orm)
 	MaxNumber := CompanyCnf["good_tag"]
 
-	if countAll > int64(MaxNumber) {
+	if countAll >= int64(MaxNumber) {
 		e.Error(500, errors.New(fmt.Sprintf("标签最多只可创建%v个", MaxNumber)), fmt.Sprintf("标签最多只可创建%v个", MaxNumber))
 		return
 	}

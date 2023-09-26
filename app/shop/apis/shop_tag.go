@@ -138,7 +138,7 @@ func (e ShopTag) Insert(c *gin.Context) {
 
 	CompanyCnf := business.GetCompanyCnf(userDto.CId, "good_tag", e.Orm)
 	MaxNumber:=CompanyCnf["shop_tag"]
-	if countAll > int64(MaxNumber) {
+	if countAll >= int64(MaxNumber) {
 		e.Error(500, errors.New(fmt.Sprintf("分类最多只可创建%v个", MaxNumber)), fmt.Sprintf("分类最多只可创建%v个", MaxNumber))
 		return
 	}

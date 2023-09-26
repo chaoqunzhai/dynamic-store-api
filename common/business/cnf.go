@@ -18,6 +18,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 		"shop_tag":   global.CompanyUserTag,
 		"shop":       global.CompanyMaxShop,
 		"good":       global.CompanyMaxGoods,
+		"offline_pay":global.OffLinePay,
 	}
 	var cnf []models.CompanyQuotaCnf
 	var sql string
@@ -55,6 +56,8 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 				v = global.CompanyMaxShop
 			case "line":
 				v = global.CompanyLine
+			case "offline_pay":
+				v = global.OffLinePay
 
 			}
 			result[key] = v

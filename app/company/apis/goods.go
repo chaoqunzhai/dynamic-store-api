@@ -516,7 +516,7 @@ func (e Goods) Insert(c *gin.Context) {
 	e.Orm.Model(&models.Goods{}).Where("c_id = ?", userDto.CId).Count(&countAll)
 	CompanyCnf := business.GetCompanyCnf(userDto.CId, "good", e.Orm)
 	MaxNumber := CompanyCnf["good"]
-	if countAll > int64(MaxNumber) {
+	if countAll >= int64(MaxNumber) {
 		e.Error(500, errors.New(fmt.Sprintf("商品最多只可创建%v个", MaxNumber)), fmt.Sprintf("商品最多只可创建%v个", MaxNumber))
 		return
 	}

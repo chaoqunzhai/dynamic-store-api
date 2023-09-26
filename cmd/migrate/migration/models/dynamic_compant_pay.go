@@ -55,8 +55,9 @@ func (PayCnf) TableName() string {
 //使用go-admin生成代码
 type DebitCard struct {
 	BigBRichGlobal
+	Bank string `json:"bank" gorm:"size:20;comment:银行名称"`
 	Name string `json:"name" gorm:"size:20;comment:持卡人名称"`
-	BackName string `json:"back_name" gorm:"size:15;comment:开户行"`
+	BankName string `json:"bank_name" gorm:"size:15;comment:开户行"`
 	CardNumber string `json:"card_number" gorm:"size:25;comment:银行卡号"`
 }
 

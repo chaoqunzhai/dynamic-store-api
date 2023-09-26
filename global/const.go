@@ -38,7 +38,7 @@ const (
 	CompanyMaxGoodsTag   = 20  //大B最多可以设置标签个数
 	CompanyMaxGoodsImage = 4   //大B最多可以设置单个商品做多6张图片
 	CompanyUserTag       = 30  //大B最多可以设置客户标签个数
-
+	OffLinePay = 6 //大B最多可以设置线下支付的个数
 	OrderLayerKey    = "layer desc"
 	OrderTimeKey     = "created_at desc"
 	UserNumberAdd    = "add"    //增加

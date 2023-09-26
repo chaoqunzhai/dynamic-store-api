@@ -130,7 +130,7 @@ func (e GradeVip) Insert(c *gin.Context) {
 	CompanyCnf := business.GetCompanyCnf(userDto.CId, "vip", e.Orm)
 	MaxNumber := CompanyCnf["vip"]
 
-	if countAll > int64(MaxNumber) {
+	if countAll >= int64(MaxNumber) {
 		e.Error(500, errors.New(fmt.Sprintf("VIP最多只可创建%v个", MaxNumber)),
 			fmt.Sprintf("VIP最多只可创建%v个", MaxNumber))
 		return
