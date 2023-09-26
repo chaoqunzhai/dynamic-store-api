@@ -3,11 +3,9 @@ package service
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk/service"
 	"go-admin/global"
 	"gorm.io/gorm"
-	"strings"
 	"time"
 
 	"go-admin/app/company/models"
@@ -68,33 +66,17 @@ func (e *CompanyCoupon) Insert(cid int, c *dto.CompanyCouponInsertReq) error {
 	c.Generate(&data)
 	data.CId = cid
 	//todo:时间处理
-	fmt.Println("expr", c.ExpireType)
 
-	if len(c.BetweenTime) != 2 {
-		return errors.New("请填入开始结束时间")
-	}
-	startTime := c.BetweenTime[0]
-	endTime := c.BetweenTime[1]
-
-	if startTime != "" {
-		startTime = strings.Replace(startTime, "T", " ", -1)
-		startTime = strings.Replace(startTime, "Z", "", -1)
-		t, _ := time.Parse("2006-01-02 15:04:05", startTime)
-		fmt.Println("startTime", startTime, "t", t)
-		zeroTime:=time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,t.Location())
+	if c.Start > 0 {
 		data.StartTime = sql.NullTime{
-			Time:  zeroTime,
+			Time:  time.Unix(c.Start , 0),
 			Valid: true,
 		}
-	}
-	if endTime != "" {
-		endTime = strings.Replace(endTime, "T", " ", -1)
-		endTime = strings.Replace(endTime, "Z", "", -1)
-		t, _ := time.Parse("2006-01-02 15:04:05", endTime)
 
-		zeroTime:=time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,t.Location())
-		data.EndTime = sql.NullTime{
-			Time:  zeroTime,
+	}
+	if c.End > 0 {
+		data.StartTime = sql.NullTime{
+			Time:  time.Unix(c.End , 0),
 			Valid: true,
 		}
 	}
@@ -116,35 +98,22 @@ func (e *CompanyCoupon) Update(c *dto.CompanyCouponUpdateReq, p *actions.DataPer
 		actions.Permission(data.TableName(), p),
 	).First(&data, c.GetId())
 	c.Generate(&data)
-	if c.ExpireType == 0 {
-		startTime := c.BetweenTime[0]
-		endTime := c.BetweenTime[1]
-		//fmt.Println("BetweenTime", c.BetweenTime)
-		if startTime != "" {
-			startTime = strings.Replace(startTime, "T", " ", -1)
-			startTime = strings.Replace(startTime, "Z", "", -1)
-			t, _ := time.Parse("2006-01-02 15:04:05", startTime)
-			zeroTime:=time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,t.Location())
-			data.StartTime = sql.NullTime{
-				Time:  zeroTime,
-				Valid: true,
-			}
 
-		}
-		if endTime != "" {
-			endTime = strings.Replace(endTime, "T", " ", -1)
-			endTime = strings.Replace(endTime, "Z", "", -1)
-			t, _ := time.Parse("2006-01-02 15:04:05", endTime)
 
-			zeroTime:=time.Date(t.Year(),t.Month(),t.Day(),0,0,0,0,t.Location())
-			data.EndTime = sql.NullTime{
-				Time:  zeroTime,
-				Valid: true,
-			}
+	if c.Start > 0 {
+		data.StartTime = sql.NullTime{
+			Time:  time.Unix(c.Start , 0),
+			Valid: true,
 		}
-		data.ExpireDay = 0
+
 	}
-
+	if c.End > 0 {
+		data.StartTime = sql.NullTime{
+			Time:  time.Unix(c.End , 0),
+			Valid: true,
+		}
+	}
+	data.ExpireDay = 0
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("CompanyCouponService Save error:%s \r\n", err)

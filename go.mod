@@ -1,6 +1,6 @@
 module go-admin
 
-go 1.21.0
+go 1.18
 
 require (
 	github.com/alibaba/sentinel-golang v1.0.4
@@ -14,7 +14,7 @@ require (
 	github.com/go-admin-team/go-admin-core/sdk v1.5.1
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
-	github.com/go-playground/validator/v10 v10.15.3
+	github.com/go-playground/validator/v10 v10.15.4
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/google/uuid v1.3.1
 	github.com/huaweicloud/huaweicloud-sdk-go-obs v3.23.4+incompatible
@@ -32,10 +32,10 @@ require (
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.2
-	github.com/tencentyun/cos-go-sdk-v5 v0.7.42
+	github.com/tencentyun/cos-go-sdk-v5 v0.7.43
 	github.com/unrolled/secure v1.13.0
-	go.uber.org/zap v1.25.0
-	golang.org/x/crypto v0.12.0
+	go.uber.org/zap v1.26.0
+	golang.org/x/crypto v0.13.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gorm.io/driver/mysql v1.5.1
 	gorm.io/driver/postgres v1.5.2
@@ -142,8 +142,8 @@ require (
 	golang.org/x/image v0.0.0-20220413100746-70e8d0d3baa9 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sync v0.2.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
-	golang.org/x/text v0.12.0 // indirect
+	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect

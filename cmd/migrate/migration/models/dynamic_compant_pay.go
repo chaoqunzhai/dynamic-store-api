@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type WeChatAppIdCnf struct {
 	BigBRichGlobal
 	AppId string `json:"app_id" gorm:"index;size:20;comment:应用ID"`
@@ -60,4 +62,15 @@ type DebitCard struct {
 
 func (DebitCard) TableName() string {
 	return "company_debit_card"
+}
+
+
+type OfflinePay struct {
+	BigBRichGlobal
+	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
+	CId int `gorm:"index;comment:大BID"`
+	Name string `json:"back_name" gorm:"size:12;comment:线下支付名称"`
+}
+func (OfflinePay) TableName() string {
+	return "company_offline_pay"
 }

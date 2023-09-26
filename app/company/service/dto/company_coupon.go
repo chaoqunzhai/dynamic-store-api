@@ -67,6 +67,8 @@ type CompanyCouponInsertReq struct {
 	BetweenTime []string `json:"betweenTime"`
 	Inventory   int      `json:"inventory" comment:"库存"`
 	Limit       int      `json:"limit" comment:"每个人限领次数"`
+	Start  int64 `json:"start"`
+	End int64  `json:"end"`
 	common.ControlBy
 }
 
@@ -111,7 +113,8 @@ type CompanyCouponUpdateReq struct {
 	First       bool     `json:"first"`
 	Automatic   bool     `json:"automatic"`
 	Reduce      float64  `json:"reduce"`
-	BetweenTime []string `json:"betweenTime"`
+	Start  int64 `json:"start"`
+	End int64  `json:"end"`
 	Inventory   int      `json:"inventory" comment:"库存"`
 	Limit       int      `json:"limit" comment:"每个人限领次数"`
 	common.ControlBy

@@ -75,13 +75,13 @@ func (e CompanyCoupon) GetPage(c *gin.Context) {
 			"discount":    row.Discount,
 			"start_time": func() string {
 				if row.StartTime.Valid {
-					return row.StartTime.Time.Format("2006-01-02")
+					return row.StartTime.Time.Format("2006-01-02 15:04:05")
 				}
 				return ""
 			}(),
 			"end_time": func() string {
 				if row.EndTime.Valid {
-					return row.EndTime.Time.Format("2006-01-02")
+					return row.EndTime.Time.Format("2006-01-02 15:04:05")
 				}
 				return ""
 			}(),
@@ -128,10 +128,10 @@ func (e CompanyCoupon) Get(c *gin.Context) {
 	}
 	if object.StartTime.Valid {
 
-		object.Start = object.StartTime.Time.Format("2006-01-02")
+		object.Start = object.StartTime.Time.Format("2006-01-02 15:04:05")
 	}
 	if object.EndTime.Valid {
-		object.End = object.EndTime.Time.Format("2006-01-02")
+		object.End = object.EndTime.Time.Format("2006-01-02 15:04:05	")
 	}
 
 	e.OK(object, "查询成功")

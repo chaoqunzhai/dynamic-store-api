@@ -72,6 +72,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.GradeVip),
 			new(models.PayCnf),
 			new(models.DebitCard),
+			new(models.OfflinePay),
 			//商品
 			new(models.Shop),
 			new(models.ShopRechargeLog),
