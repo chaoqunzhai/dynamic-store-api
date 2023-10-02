@@ -41,6 +41,7 @@ func (GradeVip) TableName() string {
 type Line struct {
 	BigBRichGlobal
 	Name     string `gorm:"index;size:16;comment:路线名称"`
+	ExpiresTime time.Time  `json:"expires_time" gorm:"路线到期时间"`
 	DriverId int    `gorm:"index;comment:关联司机"`
 }
 

@@ -2,6 +2,9 @@ package apis
 
 import (
     "fmt"
+	"github.com/gin-gonic/gin/binding"
+	models2 "go-admin/cmd/migrate/migration/models"
+	customUser "go-admin/common/jwt/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -17,7 +20,71 @@ import (
 type CompanyArticle struct {
 	api.Api
 }
+type Message struct {
 
+	Context string `json:"context"`
+}
+
+func (e CompanyArticle) Message(c *gin.Context) {
+
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var object models2.Message
+
+	e.Orm.Model(&object).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
+
+
+	e.OK(object.Context,"successful")
+	return
+}
+
+func (e CompanyArticle) UpdateMessage(c *gin.Context) {
+	req := Message{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var object models2.Message
+
+	e.Orm.Model(&object).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
+	if object.Id > 0 {
+
+		object.Context = req.Context
+		e.Orm.Save(&object)
+	}else {
+		object = models2.Message{
+			Context: req.Context,
+		}
+		object.CId = userDto.CId
+		object.CreateBy = userDto.UserId
+		e.Orm.Create(&object)
+	}
+	e.OK("","successful")
+	return
+
+}
 // GetPage 获取CompanyArticle列表
 // @Summary 获取CompanyArticle列表
 // @Description 获取CompanyArticle列表

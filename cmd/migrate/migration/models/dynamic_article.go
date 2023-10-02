@@ -1,5 +1,6 @@
 package models
 
+//文章信息
 type Article struct {
 	BigBRichGlobal
 	CoverImage string `json:"cover_image" gorm:"size:20;comment:封面图片"`
@@ -9,4 +10,13 @@ type Article struct {
 }
 func (Article) TableName() string {
 	return "company_article"
+}
+
+type Message struct {
+	BigBRichGlobal
+	Context string `json:"context" gorm:"size:60;comment:公告内容"`
+
+}
+func (Message) TableName() string {
+	return "company_message"
 }

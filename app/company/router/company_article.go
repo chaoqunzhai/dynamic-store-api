@@ -23,5 +23,8 @@ func registerCompanyArticleRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJW
 		r.POST("", api.Insert)
 		r.PUT("/:id", actions.PermissionAction(), api.Update)
 		r.DELETE("", api.Delete)
+
+		r.POST("/message",api.UpdateMessage)
+		r.GET("/message",api.Message)
 	}
 }

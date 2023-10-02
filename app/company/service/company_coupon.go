@@ -75,7 +75,7 @@ func (e *CompanyCoupon) Insert(cid int, c *dto.CompanyCouponInsertReq) error {
 
 	}
 	if c.End > 0 {
-		data.StartTime = sql.NullTime{
+		data.EndTime = sql.NullTime{
 			Time:  time.Unix(c.End , 0),
 			Valid: true,
 		}
@@ -108,12 +108,13 @@ func (e *CompanyCoupon) Update(c *dto.CompanyCouponUpdateReq, p *actions.DataPer
 
 	}
 	if c.End > 0 {
-		data.StartTime = sql.NullTime{
+		data.EndTime = sql.NullTime{
 			Time:  time.Unix(c.End , 0),
 			Valid: true,
 		}
 	}
 	data.ExpireDay = 0
+
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("CompanyCouponService Save error:%s \r\n", err)

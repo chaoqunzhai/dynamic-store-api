@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin/binding"
 	models2 "go-admin/cmd/migrate/migration/models"
+	"go-admin/common/business"
 	cDto "go-admin/common/dto"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/global"
@@ -26,6 +27,39 @@ type Line struct {
 	api.Api
 }
 
+func (e Line) QuotaCnf(c *gin.Context)   {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	CompanyCnf := business.GetCompanyCnf(userDto.CId, "line", e.Orm)
+
+	MaxNumber := CompanyCnf["line"]
+	var count int64
+	e.Orm.Model(&models.Line{}).Where("c_id = ?",userDto.CId).Count(&count)
+
+	res:=make(map[string]interface{},0)
+	if int(count) < MaxNumber {
+		//还有可以创建的路线
+
+		res["show"] = true
+		res["count"] =  MaxNumber - int(count)
+	}else {
+		res["show"] = false
+	}
+
+	e.OK(res,"successful")
+	return
+}
 func (e Line) BindShop(c *gin.Context) {
 	req := dto.BindLineUserReq{}
 	err := e.MakeContext(c).
@@ -230,6 +264,7 @@ func (e Line) GetPage(c *gin.Context) {
 		row.ShopCount = shopCount
 		result = append(result, row)
 	}
+
 	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
@@ -292,6 +327,16 @@ func (e Line) Insert(c *gin.Context) {
 	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {
 		e.Error(500, err, err.Error())
+		return
+	}
+	var countAll int64
+	e.Orm.Model(&models.Line{}).Where("c_id = ?", userDto.CId).Count(&countAll)
+
+	CompanyCnf := business.GetCompanyCnf(userDto.CId, "good_class", e.Orm)
+	MaxNumber := CompanyCnf["line"]
+
+	if countAll >= int64(MaxNumber) {
+		e.Error(500, errors.New(fmt.Sprintf("线路最多只可创建%v个", MaxNumber)), fmt.Sprintf("线路最多只可创建%v个", MaxNumber))
 		return
 	}
 	// 设置创建人

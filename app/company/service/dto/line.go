@@ -70,7 +70,7 @@ type LineInsertReq struct {
 	Enable   bool   `json:"enable" comment:"开关"`
 	Desc     string `json:"desc" comment:"描述信息"`
 	Name     string `json:"name" comment:"路线名称"  binding:"required"`
-	DriverId int    `json:"driver_id" comment:"关联司机"  binding:"required"`
+	DriverId int    `json:"driver_id" comment:"关联司机" `
 	common.ControlBy
 }
 
@@ -96,7 +96,7 @@ type LineUpdateReq struct {
 	Enable   bool   `json:"enable" comment:"开关"`
 	Desc     string `json:"desc" comment:"描述信息"`
 	Name     string `json:"name" comment:"路线名称"  binding:"required"`
-	DriverId int    `json:"driver_id" comment:"关联司机"  binding:"required"`
+	DriverId int    `json:"driver_id" comment:"关联司机" `
 	common.ControlBy
 }
 
