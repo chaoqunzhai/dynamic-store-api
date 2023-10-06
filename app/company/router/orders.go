@@ -20,6 +20,9 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 	{
 		//todo:订单列表
 		r.GET("", api.GetPage)
+
+		//todo:获取下单时创建的配送周期列表
+		r.GET("/cycle_tables",api.Cycle)
 		//todo:代客下单
 		r.POST("/valet_order", api.ValetOrder)
 

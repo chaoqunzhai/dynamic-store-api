@@ -28,6 +28,8 @@ type OrdersGetPageReq struct {
 
 type CyClePageReq struct {
 	dto.Pagination `search:"-"`
+
+
 }
 func (m *CyClePageReq) GetNeedSearch() interface{} {
 	return *m
@@ -104,6 +106,16 @@ func (s *OrdersInsertReq) Generate(model *models.Orders) {
 func (s *OrdersInsertReq) GetId() interface{} {
 	return s.Id
 }
+
+type OrderCyCleReq struct {
+	dto.Pagination `search:"-"`
+	CyCle int ` form:"cycle"`
+}
+
+func (m *OrderCyCleReq) GetNeedSearch() interface{} {
+	return *m
+}
+
 
 type ValetOrderReq struct {
 	Shop  int                     `json:"shop"`

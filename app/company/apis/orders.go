@@ -69,10 +69,6 @@ func (e Orders) GetPage(c *gin.Context) {
 
 	p := actions.GetPermissionFromContext(c)
 
-	//CycleGive interface{} `form:"cycle_give"`
-	//CycleCreate int `form:"cycle_create"`
-
-
 	//处理不是数字字符串的问题
 	if req.Uid != ""{
 		uid,uidErr:=strconv.Atoi(req.Uid)
@@ -101,13 +97,20 @@ func (e Orders) GetPage(c *gin.Context) {
 	cacheShopId := make([]int, 0)
 	//统一查询用户地址
 	cacheAddressId:=make([]int,0)
-
+	cacheStoreAddressId:=make([]int,0)
 	for _, row := range list {
 		if row.ShopId > 0 {
 			cacheShopId = append(cacheShopId,row.ShopId)
 		}
+
 		if row.AddressId > 0 {
-			cacheAddressId = append(cacheAddressId,row.AddressId)
+			switch row.DeliveryType {
+			case global.ExpressStore:
+				cacheStoreAddressId = append(cacheStoreAddressId,row.AddressId)
+			case global.ExpressLocal:
+				cacheAddressId = append(cacheAddressId,row.AddressId)
+			}
+
 		}
 
 	}
@@ -144,7 +147,6 @@ func (e Orders) GetPage(c *gin.Context) {
 
 
 	cacheAddressMap := make(map[int]map[string]interface{}, 0)
-
 	if len(cacheAddressId) > 0 {
 		cacheAddressObject := make([]models2.DynamicUserAddress, 0)
 		e.Orm.Model(&models2.DynamicUserAddress{}).Select("id,address").Where("c_id = ? and id in ?",
@@ -157,7 +159,19 @@ func (e Orders) GetPage(c *gin.Context) {
 			}
 		}
 	}
-
+	cacheStoreAddressMap:=make(map[int]map[string]interface{}, 0)
+	if len(cacheStoreAddressId) > 0 {
+		storeAddressObject := make([]models2.CompanyExpressStore, 0)
+		e.Orm.Model(&models2.CompanyExpressStore{}).Select("id,address").Where("c_id = ? and id in ?",
+			userDto.CId, cacheStoreAddressId).Find(&storeAddressObject)
+		//保存为map
+		//应该是获取的用户下单的地址
+		for _, k := range storeAddressObject {
+			cacheStoreAddressMap[k.Id] = map[string]interface{}{
+				"value":k.Address,
+			}
+		}
+	}
 	specsTable := business.OrderSpecsTableName(orderTableName)
 
 	result := make([]map[string]interface{}, 0)
@@ -173,11 +187,11 @@ func (e Orders) GetPage(c *gin.Context) {
 		var specCount int64
 		e.Orm.Table(specsTable).Where("order_id = ?", row.OrderId).Count(&specCount)
 
+
 		r := map[string]interface{}{
 			"order_id":   row.OrderId,
 			"order_no_id":row.OrderNoId,
 			"shop": cacheShopMap[row.ShopId],
-			"address":cacheAddressMap[row.AddressId],
 			"cycle_place": row.CreatedAt.Format("2006-01-02"), 			//下单周期
 			"delivery_time":     row.DeliveryTime.Format("2006-01-02"), 			//配送周期
 			"delivery_str": row.DeliveryStr,
@@ -188,10 +202,17 @@ func (e Orders) GetPage(c *gin.Context) {
 			"delivery_type":global.GetExpressCn(row.DeliveryType), //配送类型
 			"pay_type":global.GetPayType(row.PayType),//支付类型
 			"source_type":global.GetOrderSource(row.SourceType),//订单来源
-			"status":         global.OrderStatus(row.Status),
+			"status":         global.OrderStatus(row.Status), //成为DB的订单都是支付成功的订单
 			"pay_status":     global.GetOrderPayStatus(row.PayStatus),
 			"created_at":     row.CreatedAt,
 			"delivery":row.DeliveryType,
+		}
+		switch row.DeliveryType {
+		case global.ExpressStore:
+			r["address"] = cacheStoreAddressMap[row.AddressId]
+		default:
+			r["address"] = cacheAddressMap[row.AddressId]
+
 		}
 		result = append(result, r)
 	}
@@ -315,6 +336,56 @@ func (e Orders) Get(c *gin.Context) {
 	e.OK(result, "查询成功")
 }
 
+func (e Orders)Cycle(c *gin.Context)  {
+	req := dto.OrderCyCleReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		fmt.Println("err!",err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	result:=make([]map[string]interface{},0)
+
+	fmt.Println("req!!",req)
+	tableName:=business.GetTableName(userDto.CId,e.Orm)
+	CycleTableName:=business.OrderCycleTableName(tableName)
+	//默认展示最近10条的配送周期
+	datalist := make([]models2.OrderCycleCnf, 0)
+	var count int64
+	e.Orm.Table(CycleTableName).Model(&models2.OrderCycleCnf{}).Where(
+		"c_id = ?", userDto.CId).Order(global.OrderTimeKey).Find(&datalist).Limit(-1).Offset(-1).
+		Count(&count)
+	
+	for _,row:=range datalist {
+		var value string
+		switch req.CyCle {
+		case 1:
+			value = row.DeliveryStr
+		case 2:
+			value = row.CreateStr
+		default:
+			continue
+		}
+		dd :=map[string]interface{}{
+			"value":value,
+			"count":"1",
+		}
+		result = append(result,dd)
+	}
+
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	return
+}
 // 代客下单就没有时间的限制了
 func (e Orders) ValetOrder(c *gin.Context) {
 	req := dto.ValetOrderReq{}
@@ -705,20 +776,19 @@ func (e Orders) OrderCycleList(c *gin.Context) {
 		}
 		giveTime = append(giveTime, t2)
 	}
-	if len(createTime) > 0 {
+	if len(createTime) > 1 {
 		createTime = append(createTime, map[string]interface{}{
 			"color":"#1890ff",
 			"t":     "create",
 			"value": "查看更多周期列表",
 		})
-	}
-	if len(giveTime) > 0 {
 		giveTime = append(giveTime, map[string]interface{}{
 			"color":"#1890ff",
 			"t":     "give",
 			"value": "查看更多周期列表",
 		})
 	}
+
 	//放到不同的列表中
 	result := map[string]interface{}{
 		"cycle_create": createTime,

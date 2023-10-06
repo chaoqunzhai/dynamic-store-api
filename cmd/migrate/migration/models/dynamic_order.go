@@ -121,6 +121,8 @@ type OrderCycleCnf struct {
 	DeliveryTime time.Time `json:"delivery_time" gorm:"type:date;index;comment:计算的配送时间"`
 	//展示,也是保持最新的
 	DeliveryStr string `json:"delivery_str" gorm:"size:30;comment:配送文案"`
+
+	//应该增加一个周期的价格统计.商品统计 商品分类统计
 }
 
 func (OrderCycleCnf) TableName() string {
