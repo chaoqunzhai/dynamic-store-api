@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"go-admin/cmd/migrate/migration/models"
+	"go-admin/common/actions"
 	customUser "go-admin/common/jwt/user"
 )
 
@@ -44,7 +45,8 @@ func (e *PayALI) Create(c *gin.Context) {
 	}
 	var PayCnf models.AliPay
 
-	e.Orm.Model(&PayCnf).Where("c_id = ? ",userDto.CId).Limit(1).First(&PayCnf)
+	e.Orm.Model(&PayCnf).Scopes(
+		actions.PermissionSysUser(PayCnf.TableName(),userDto)).Limit(1).First(&PayCnf)
 
 	if PayCnf.Id > 0 {
 		PayCnf.AppId = req.AppId
@@ -80,7 +82,6 @@ func (e *PayALI) Detail(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-
 	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {
 		e.Error(500, err, err.Error())
@@ -88,7 +89,8 @@ func (e *PayALI) Detail(c *gin.Context) {
 	}
 
 	var data models.AliPay
-	e.Orm.Model(&models.AliPay{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&data)
+	e.Orm.Model(&models.AliPay{}).Scopes(
+		actions.PermissionSysUser(data.TableName(),userDto)).Limit(1).Find(&data)
 
 	e.OK(data,"successful")
 	return
