@@ -180,7 +180,7 @@ func (e Company) SaveCategory(c *gin.Context) {
 	}
 	var object models2.CompanyCategory
 
-	e.Orm.Model(&models2.CompanyCategory{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
+	e.Orm.Model(&models2.CompanyCategory{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Limit(1).Find(&object)
 	object.Type = req.Type
 	object.CId = userDto.CId
 	object.Enable = true
@@ -205,7 +205,7 @@ func (e Company) Category(c *gin.Context) {
 	}
 	var object models2.CompanyCategory
 	result :=make(map[string]interface{},0)
-	e.Orm.Model(&models2.CompanyCategory{}).Where("c_id = ? and enable = ?",userDto.CId,true).Limit(1).Find(&object)
+	e.Orm.Model(&models2.CompanyCategory{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("enable = ?",true).Limit(1).Find(&object)
 	if object.Id > 0 {
 		result["type"] = object.Type
 	}else {
@@ -224,6 +224,7 @@ func (e Company) Cnf(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	//获取配置
 	userDto, err := user.GetUserDto(e.Orm, c)
 	if err != nil {
 		e.Error(500, err, err.Error())
@@ -283,7 +284,7 @@ func (e Company) Info(c *gin.Context) {
 			return
 		}
 		var object models.Company
-		e.Orm.Model(&models.Company{}).Where("enable = 1 and id = ?", userDto.CId).First(&object)
+		e.Orm.Model(&models.Company{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("enable = 1 ").First(&object)
 
 		if object.Id == 0 {
 			storeInfo["store_name"] = "已经下线"

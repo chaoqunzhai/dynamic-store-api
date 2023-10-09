@@ -259,7 +259,7 @@ func (e Orders) Get(c *gin.Context) {
 		return
 	}
 	var shopRow models2.Shop
-	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?", object.ShopId, userDto.CId).Limit(1).Find(&shopRow)
+	e.Orm.Model(&models2.Shop{}).Scopes(actions.PermissionSysUser(shopRow.TableName(),userDto)).Where("id = ? ", object.ShopId).Limit(1).Find(&shopRow)
 
 	result := map[string]interface{}{
 		"order_id":       object.Id,
@@ -280,8 +280,8 @@ func (e Orders) Get(c *gin.Context) {
 	switch object.DeliveryType {
 	case global.ExpressLocal:
 		var userAddress models2.DynamicUserAddress
-		e.Orm.Model(&models2.DynamicUserAddress{}).Select("id,address").Where("c_id = ? and id = ?",
-			userDto.CId, object.AddressId).Limit(1).Find(&userAddress)
+		e.Orm.Model(&models2.DynamicUserAddress{}).Scopes(actions.PermissionSysUser(userAddress.TableName(),userDto)).Select("id,address").Where(" id = ?",
+			 object.AddressId).Limit(1).Find(&userAddress)
 		if userAddress.Id > 0{
 			result["address"] = map[string]interface{}{
 				"address":userAddress.Address,
@@ -290,8 +290,8 @@ func (e Orders) Get(c *gin.Context) {
 
 	case global.ExpressStore:
 		var expressStore models2.CompanyExpressStore
-		e.Orm.Model(&models2.CompanyExpressStore{}).Select("id,address,name").Where("c_id = ? and id = ?",
-			userDto.CId, object.AddressId).Limit(1).Find(&expressStore)
+		e.Orm.Model(&models2.CompanyExpressStore{}).Scopes(actions.PermissionSysUser(expressStore.TableName(),userDto)).Select("id,address,name").Where(" id = ?",
+			object.AddressId).Limit(1).Find(&expressStore)
 		if expressStore.Id > 0{
 			result["address"] = map[string]interface{}{
 				"name":expressStore.Name,
@@ -307,7 +307,7 @@ func (e Orders) Get(c *gin.Context) {
 	//e.Orm.Table(orderExtendTable).Where("order_id = ?",orderId).Limit(1).Find(&orderExtend)
 
 	var driverCnf models.Driver
-	e.Orm.Model(&driverCnf).Where("id = ? and c_id = ?",object.DriverId,object.CId).Limit(1).Find(&driverCnf)
+	e.Orm.Model(&driverCnf).Scopes(actions.PermissionSysUser(driverCnf.TableName(),userDto)).Where("id = ? ",object.DriverId).Limit(1).Find(&driverCnf)
 	if driverCnf.Id > 0 {
 		result["driver_name"] = driverCnf.Name
 		result["driver_phone"] = driverCnf.Phone
@@ -362,8 +362,7 @@ func (e Orders)Cycle(c *gin.Context)  {
 	//默认展示最近10条的配送周期
 	datalist := make([]models2.OrderCycleCnf, 0)
 	var count int64
-	e.Orm.Table(CycleTableName).Model(&models2.OrderCycleCnf{}).Select("delivery_str,create_str,uid").Where(
-		"c_id = ?", userDto.CId).Order(global.OrderTimeKey).Find(&datalist).Limit(-1).Offset(-1).
+	e.Orm.Model(&models2.OrderCycleCnf{}).Scopes(actions.PermissionSysUser(CycleTableName,userDto)).Select("delivery_str,create_str,uid").Order(global.OrderTimeKey).Find(&datalist).Limit(-1).Offset(-1).
 		Count(&count)
 	
 	for _,row:=range datalist {
@@ -409,7 +408,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	//抵扣类型
 	//查询选择的用户额度是否够
 	var shopObject models2.Shop
-	e.Orm.Model(&models2.Shop{}).Where("id = ? and enable =? and c_id = ?", req.Shop, true, userDto.CId).Limit(1).Find(&shopObject)
+	e.Orm.Model(&models2.Shop{}).Scopes(actions.PermissionSysUser(shopObject.TableName(),userDto)).Where("id = ? and enable =? ", req.Shop, true).Limit(1).Find(&shopObject)
 	if shopObject.Id == 0 {
 		e.Error(500, errors.New("商户不存在"), "商户不存在")
 		return
@@ -461,7 +460,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 
 	cycleTableName:=business.OrderCycleTableName(orderTableName)
 	var DeliveryObject models.CycleTimeConf
-	e.Orm.Model(&models2.CycleTimeConf{}).Where("id = ? and enable =? and c_id = ?", req.Cycle, true, userDto.CId).Limit(1).Find(&DeliveryObject)
+	e.Orm.Model(&models2.CycleTimeConf{}).Scopes(actions.PermissionSysUser(DeliveryObject.TableName(),userDto)).Where("id = ? and enable =? ", req.Cycle, true).Limit(1).Find(&DeliveryObject)
 	if DeliveryObject.Id == 0 {
 		e.Error(500, nil, "时间区间不存在")
 		return
@@ -472,11 +471,11 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	uid:=service.CheckOrderCyCleCnfIsDb(userDto.CId,cycleTableName,DeliveryObject,e.Orm)
 
 	var lineObject models2.Line
-	e.Orm.Model(&models2.Line{}).Where("id = ? and c_id = ? and enable = ?", shopObject.LineId, userDto.CId, true).Limit(1).Find(&lineObject)
+	e.Orm.Model(&models2.Line{}).Scopes(actions.PermissionSysUser(lineObject.TableName(),userDto)).Where("id = ?  and enable = ?", shopObject.LineId, true).Limit(1).Find(&lineObject)
 
 	lineName := lineObject.Name
 	var DriverObject models2.Driver
-	e.Orm.Model(&models2.Driver{}).Where("id = ? and c_id = ? and enable = ?", lineObject.DriverId, userDto.CId, true).Limit(1).Find(&DriverObject)
+	e.Orm.Model(&models2.Driver{}).Scopes(actions.PermissionSysUser(DriverObject.TableName(),userDto)).Where("id = ? and enable = ?", lineObject.DriverId, true).Limit(1).Find(&DriverObject)
 
 
 	//保存商品和规格的一些映射
@@ -516,7 +515,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 
 	//代客下单,地址就是客户的默认地址
 	var defaultAddress models2.DynamicUserAddress
-	e.Orm.Model(&defaultAddress).Select("id").Where("c_id = ? and is_default = 1 and user_id = ?",userDto.CId,shopObject.UserId).Limit(1).Find(&defaultAddress)
+	e.Orm.Model(&defaultAddress).Scopes(actions.PermissionSysUser(defaultAddress.TableName(),userDto)).Select("id").Where(" is_default = 1 and user_id = ?",shopObject.UserId).Limit(1).Find(&defaultAddress)
 	//用户是一定有一个默认地址的
 	orderRow.AddressId = defaultAddress.Id
 
@@ -529,14 +528,14 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		for _, spec := range goodsList {
 			//如果商品不存在
 			var goodsObject models2.Goods
-			e.Orm.Model(&models2.Goods{}).Select("id,sale,inventory,name,image").Where("id = ? and c_id = ? and enable = ?", spec.GoodsId, userDto.CId, true).Limit(1).Find(&goodsObject)
+			e.Orm.Model(&models2.Goods{}).Scopes(actions.PermissionSysUser(goodsObject.TableName(),userDto)).Select("id,sale,inventory,name,image").Where("id = ?  and enable = ?", spec.GoodsId,  true).Limit(1).Find(&goodsObject)
 			if goodsObject.Id == 0 {
 				continue
 			}
 
 			//如果下单的次数>库存的值，那就是非法数据 直接跳出
 			var goodsSpecs models.GoodsSpecs
-			e.Orm.Model(&models.GoodsSpecs{}).Where("id = ? and c_id = ?", spec.Id, userDto.CId).Limit(1).Find(&goodsSpecs)
+			e.Orm.Model(&models.GoodsSpecs{}).Scopes(actions.PermissionSysUser(goodsSpecs.TableName(),userDto)).Where("id = ? ", spec.Id).Limit(1).Find(&goodsSpecs)
 			if goodsSpecs.Id == 0 {
 				continue
 			}
@@ -582,7 +581,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 				continue
 			}
 			//规格减库存 + 销量
-			e.Orm.Model(&models.GoodsSpecs{}).Where("id = ? and c_id =?", spec.Id, userDto.CId).Updates(map[string]interface{}{
+			e.Orm.Model(&models.GoodsSpecs{}).Where("id = ? and c_id = s?", spec.Id, userDto.CId).Updates(map[string]interface{}{
 				"inventory": goodsSpecs.Inventory - spec.Number,
 				"sale":	goodsSpecs.Sale + spec.Number,
 			})
@@ -620,11 +619,11 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	for goodsId,goodsRow:=range goodsCacheList{
 		//商品减库存 + 销量
 		var goodsObject models.Goods
-		e.Orm.Model(&models.Goods{}).Select("sale,inventory,id").Where("id = ? and c_id = ? and enable = ?", goodsId, userDto.CId, true).Limit(1).Find(&goodsObject)
+		e.Orm.Model(&models.Goods{}).Scopes(actions.PermissionSysUser(goodsObject.TableName(),userDto)).Select("sale,inventory,id").Where("id = ?  and enable = ?", goodsId, userDto.CId, true).Limit(1).Find(&goodsObject)
 		if goodsObject.Id == 0 {
 			continue
 		}
-		e.Orm.Model(&models.Goods{}).Where("c_id = ? and id = ?", userDto.CId, goodsId).Updates(map[string]interface{}{
+		e.Orm.Model(&models.Goods{}).Scopes(actions.PermissionSysUser(goodsObject.TableName(),userDto)).Where(" id = ?", goodsId).Updates(map[string]interface{}{
 			"sale":    goodsObject.Sale + goodsRow.Number  ,
 			"inventory": goodsObject.Inventory - goodsRow.Number,
 		})
@@ -748,11 +747,11 @@ func (e Orders) OrderCycleList(c *gin.Context) {
 	CycleTableName:=business.OrderCycleTableName(tableName)
 	//默认展示最近10条的配送周期
 	datalist := make([]models2.OrderCycleCnf, 0)
+
 	e.Orm.Table(CycleTableName).Scopes(
 		cDto.MakeSplitTableCondition(req.GetNeedSearch(),CycleTableName),
 		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-	).Model(&models2.OrderCycleCnf{}).Where(
-		"c_id = ?", userDto.CId).Order(global.OrderTimeKey).Find(&datalist)
+		actions.PermissionSysUser(CycleTableName,userDto)).Model(&models2.OrderCycleCnf{}).Order(global.OrderTimeKey).Find(&datalist)
 
 	//下单周期
 	createTime := make([]map[string]interface{}, 0)

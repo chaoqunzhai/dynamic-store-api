@@ -45,8 +45,7 @@ func (e *PayALI) Create(c *gin.Context) {
 	}
 	var PayCnf models.AliPay
 
-	e.Orm.Model(&PayCnf).Scopes(
-		actions.PermissionSysUser(PayCnf.TableName(),userDto)).Limit(1).First(&PayCnf)
+	e.Orm.Model(&PayCnf).Scopes(actions.PermissionSysUser(PayCnf.TableName(), userDto)).Limit(1).First(&PayCnf)
 
 	if PayCnf.Id > 0 {
 		PayCnf.AppId = req.AppId

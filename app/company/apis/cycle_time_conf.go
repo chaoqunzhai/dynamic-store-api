@@ -44,7 +44,8 @@ func (e CycleTimeConf) Switch(c *gin.Context) {
 		e.Error(500, nil,"非法类型")
 		return
 	}
-	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ?",userDto.CId).Updates(map[string]interface{}{
+	var object models.CycleTimeConf
+	e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Updates(map[string]interface{}{
 		"type":switchType,
 		"update_by":userDto.UserId,
 	})
@@ -68,7 +69,7 @@ func (e CycleTimeConf) TypeCnf(c *gin.Context) {
 	}
 	cnf := make(map[string]interface{}, 0)
 	var cycleObject models.CycleTimeConf
-	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id =? and enable = ? ", userDto.CId, true).Limit(1).Find(&cycleObject)
+	e.Orm.Model(&models.CycleTimeConf{}).Scopes(actions.PermissionSysUser(cycleObject.TableName(),userDto)).Where("enable = ? ", true).Limit(1).Find(&cycleObject)
 	if cycleObject.Id == 0 {
 		cnf["type"] = false
 	} else {

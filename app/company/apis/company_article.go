@@ -43,7 +43,7 @@ func (e CompanyArticle) Message(c *gin.Context) {
 	}
 	var object models2.Message
 
-	e.Orm.Model(&object).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
+	e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Limit(1).Find(&object)
 
 
 	e.OK(object.Context,"successful")
@@ -68,7 +68,7 @@ func (e CompanyArticle) UpdateMessage(c *gin.Context) {
 	}
 	var object models2.Message
 
-	e.Orm.Model(&object).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
+	e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Limit(1).Find(&object)
 	if object.Id > 0 {
 
 		object.Context = req.Context

@@ -45,7 +45,8 @@ func (e Line) QuotaCnf(c *gin.Context)   {
 
 	MaxNumber := CompanyCnf["line"]
 	var count int64
-	e.Orm.Model(&models.Line{}).Where("c_id = ?",userDto.CId).Count(&count)
+	var object models.Line
+	e.Orm.Model(&models.Line{}).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&count)
 
 	res:=make(map[string]interface{},0)
 	if int(count) < MaxNumber {
@@ -74,16 +75,16 @@ func (e Line) BindShop(c *gin.Context) {
 	p := actions.GetPermissionFromContext(c)
 	var object models.Line
 	e.Orm.Model(&models.Line{}).Where("id = ? and enable = ?", req.LineId, true).Scopes(
-		actions.Permission("line", p),
+		actions.Permission(object.TableName(), p),
 	).Limit(1).Find(&object)
 
 	if object.Id == 0 {
 		e.Error(500, errors.New("路线不存在"), "路线不存在")
 		return
 	}
-
-	e.Orm.Model(&models2.Shop{}).Where("id in ?", req.ShopId).Scopes(
-		actions.Permission("line", p),
+	var shopObject models2.Shop
+	e.Orm.Model(&shopObject).Where("id in ?", req.ShopId).Scopes(
+		actions.Permission(shopObject.TableName(), p),
 	).Updates(map[string]interface{}{
 		"line_id":    req.LineId,
 		"updated_at": time.Now(),
@@ -114,13 +115,14 @@ func (e Line) UpdateLineBindShopList(c *gin.Context) {
 	}
 
 	var shopCount int64
-	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?", req.Id, userDto.CId).Count(&shopCount)
+	var object models2.Shop
+	e.Orm.Model(&models2.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Where("id = ?", req.Id).Count(&shopCount)
 
 	if shopCount == 0 {
 		e.Error(500, nil, "客户不存在")
 		return
 	}
-	e.Orm.Model(&models2.Shop{}).Where("id = ? and c_id = ?", req.Id, userDto.CId).Updates(map[string]interface{}{
+	e.Orm.Model(&models2.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Where("id = ? ", req.Id).Updates(map[string]interface{}{
 		"layer":     req.Layer,
 		"enable":    req.Enable,
 		"desc":      req.Desc,
@@ -153,7 +155,7 @@ func (e Line) LineBindShopList(c *gin.Context) {
 	lineId := c.Param("id")
 	lineIdNumber, _ := strconv.Atoi(lineId)
 	var lineObject models.Line
-	e.Orm.Model(&lineObject).Select("id,name").Where("id = ? and enable = ? and c_id = ?", lineIdNumber, true, userDto.CId).Limit(1).Find(&lineObject)
+	e.Orm.Model(&lineObject).Scopes(actions.PermissionSysUser(lineObject.TableName(),userDto)).Select("id,name").Where("id = ? and enable = ?", lineIdNumber, true).Limit(1).Find(&lineObject)
 	if lineObject.Id == 0 {
 		e.Error(500, nil, "路线不存在")
 		return
@@ -162,12 +164,12 @@ func (e Line) LineBindShopList(c *gin.Context) {
 	var list []models2.Shop
 	var count int64
 	p := actions.GetPermissionFromContext(c)
-	e.Orm.Model(&models2.Shop{}).Where("enable = ? and c_id = ? and line_id = ?", true, userDto.CId, lineIdNumber).
-		Scopes(
+	var shopObject models2.Shop
+	e.Orm.Model(&shopObject).Scopes(
 			cDto.MakeCondition(req.GetNeedSearch()),
 			cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-			actions.Permission("shop", p),
-		).Order(global.OrderLayerKey).Find(&list).Limit(-1).Offset(-1).
+			actions.Permission(shopObject.Name, p),
+		).Where("enable = ?  and line_id = ?", true, lineIdNumber).Order(global.OrderLayerKey).Find(&list).Limit(-1).Offset(-1).
 		Count(&count)
 	for _, row := range list {
 		cc := map[string]interface{}{
@@ -202,7 +204,8 @@ func (e Line) MiniApi(c *gin.Context) {
 		return
 	}
 	datalist:=make([]models.Line,0)
-	e.Orm.Model(&models.Line{}).Select("id,name").Where("c_id = ? and enable = ?",userDto.CId,true).Order(global.OrderLayerKey).Find(&datalist)
+	var object models.Line
+	e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Select("id,name").Where("enable = ?",true).Order(global.OrderLayerKey).Find(&datalist)
 
 	result:=make([]map[string]interface{},0)
 	for _,row:=range datalist{
@@ -329,8 +332,9 @@ func (e Line) Insert(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	var object models.Line
 	var countAll int64
-	e.Orm.Model(&models.Line{}).Where("c_id = ?", userDto.CId).Count(&countAll)
+	e.Orm.Model(&models.Line{}).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&countAll)
 
 	CompanyCnf := business.GetCompanyCnf(userDto.CId, "good_class", e.Orm)
 	MaxNumber := CompanyCnf["line"]
@@ -342,7 +346,7 @@ func (e Line) Insert(c *gin.Context) {
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
 	var count int64
-	e.Orm.Model(&models.Line{}).Where("c_id = ? and name = ?", userDto.CId, req.Name).Count(&count)
+	e.Orm.Model(&models.Line{}).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Where("name = ?", userDto.CId, req.Name).Count(&count)
 	if count > 0 {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return
@@ -389,6 +393,7 @@ func (e Line) Update(c *gin.Context) {
 	req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
 
+
 	var count int64
 	e.Orm.Model(&models.Line{}).Where("id = ?", req.Id).Count(&count)
 	if count == 0 {
@@ -396,7 +401,7 @@ func (e Line) Update(c *gin.Context) {
 		return
 	}
 	var oldRow models.Line
-	e.Orm.Model(&models.Line{}).Where("name = ? and c_id = ?", req.Name, userDto.CId).Limit(1).Find(&oldRow)
+	e.Orm.Model(&models.Line{}).Scopes(actions.PermissionSysUser(oldRow.TableName(),userDto)).Where("name = ? ", req.Name).Limit(1).Find(&oldRow)
 
 	if oldRow.Id != 0 {
 		if oldRow.Id != req.Id {
@@ -409,7 +414,7 @@ func (e Line) Update(c *gin.Context) {
 	if req.DriverId > 0 {
 
 		var validLine models.Line
-		e.Orm.Model(&models.Line{}).Where("driver_id = ? and c_id = ?", req.DriverId, userDto.CId).Limit(1).Find(&validLine)
+		e.Orm.Model(&models.Line{}).Scopes(actions.PermissionSysUser(validLine.TableName(),userDto)).Where("driver_id = ? ", req.DriverId).Limit(1).Find(&validLine)
 
 		if validLine.Id != 0 {
 			if validLine.Id != req.Id {

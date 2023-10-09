@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"go-admin/cmd/migrate/migration/models"
+	"go-admin/common/actions"
 	customUser "go-admin/common/jwt/user"
 )
 
@@ -37,7 +38,7 @@ func (e *Trade) Create(c *gin.Context) {
 	}
 
 	var PayCnf models.PayCnf
-	e.Orm.Model(&models.PayCnf{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&PayCnf)
+	e.Orm.Model(&models.PayCnf{}).Scopes(actions.PermissionSysUser(PayCnf.TableName(), userDto)).Limit(1).Find(&PayCnf)
 
 
 	if PayCnf.Id > 0 {
@@ -76,7 +77,7 @@ func (e Trade) Detail(c *gin.Context) {
 		return
 	}
 	var PayCnf models.PayCnf
-	e.Orm.Model(&models.PayCnf{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&PayCnf)
+	e.Orm.Model(&models.PayCnf{}).Scopes(actions.PermissionSysUser(PayCnf.TableName(), userDto)).Limit(1).Find(&PayCnf)
 
 
 	e.OK(PayCnf,"successful")

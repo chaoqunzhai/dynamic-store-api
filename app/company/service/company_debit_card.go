@@ -76,7 +76,7 @@ func (e *CompanyDebitCard) Update(c *dto.CompanyDebitCardUpdateReq, p *actions.D
     var data = models.CompanyDebitCard{}
     e.Orm.Scopes(
             actions.Permission(data.TableName(), p),
-        ).Where("c_id = ? and id = ?",c.CId,c.GetId()).First(&data)
+        ).Where("id = ?",c.GetId()).First(&data)
     c.Generate(&data)
 	data.Enable = true
     db := e.Orm.Save(&data)
@@ -94,7 +94,7 @@ func (e *CompanyDebitCard) Update(c *dto.CompanyDebitCardUpdateReq, p *actions.D
 func (e *CompanyDebitCard) Remove(d *dto.CompanyDebitCardDeleteReq, p *actions.DataPermission) error {
 	var data models.CompanyDebitCard
 
-	db := e.Orm.Model(&data).Unscoped().Where("c_id = ? and id = ? ",d.CId,d.GetId()).Delete(&data)
+	db := e.Orm.Model(&data).Scopes(actions.Permission(data.TableName(), p)).Unscoped().Where("id = ? ",d.GetId()).Delete(&data)
 	if err := db.Error; err != nil {
         e.Log.Errorf("Service RemoveCompanyDebitCard error:%s \r\n", err)
         return err

@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"go-admin/cmd/migrate/migration/models"
+	"go-admin/common/actions"
 	customUser "go-admin/common/jwt/user"
 )
 
@@ -44,7 +45,7 @@ func (e *PayWechat) Create(c *gin.Context) {
 	}
 	var PayCnf models.WeChatPay
 
-	e.Orm.Model(&PayCnf).Where("c_id = ? ",userDto.CId).Limit(1).First(&PayCnf)
+	e.Orm.Model(&PayCnf).Scopes(actions.PermissionSysUser(PayCnf.TableName(),userDto)).Limit(1).First(&PayCnf)
 
 	if PayCnf.Id > 0 {
 
@@ -92,7 +93,7 @@ func (e *PayWechat) Detail(c *gin.Context) {
 	}
 
 	var data models.WeChatPay
-	e.Orm.Model(&models.WeChatPay{}).Where("c_id = ? ",userDto.CId).Limit(1).Find(&data)
+	e.Orm.Model(&models.WeChatPay{}).Scopes(actions.PermissionSysUser(data.TableName(),userDto)).Limit(1).Find(&data)
 
 	e.OK(data,"successful")
 	return

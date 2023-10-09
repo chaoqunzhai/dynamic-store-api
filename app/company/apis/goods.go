@@ -86,7 +86,7 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 	for _, row := range goods {
 		//只返回有规格的数据
 		var specsObject models.GoodsSpecs
-		e.Orm.Model(&models.GoodsSpecs{}).Where("c_id = ? and enable = ? and goods_id = ?", userDto.CId, true, row.Id).Limit(1).Find(&specsObject)
+		e.Orm.Model(&models.GoodsSpecs{}).Scopes(actions.PermissionSysUser(specsObject.TableName(),userDto)).Where("enable = ? and goods_id = ?", true, row.Id).Limit(1).Find(&specsObject)
 		if specsObject.Id == 0 {
 			continue
 		}

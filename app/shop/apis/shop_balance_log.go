@@ -70,10 +70,11 @@ func (e ShopBalanceLog) GetPage(c *gin.Context) {
 		}
 	}
 
-	var shopObject []models.Shop
-	e.Orm.Model(&models.Shop{}).Select("name,id").Where("id in ? and c_id = ?",shopList,userDto.CId).Limit(1).Find(&shopObject)
+	var shopListObject []models.Shop
+	var shopObject models.Shop
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(shopObject.TableName(),userDto)).Select("name,id").Where("id in ? ",shopList).Find(&shopListObject)
 	shopRowMap:=make(map[int]string,0)
-	for _,row:=range shopObject{
+	for _,row:=range shopListObject{
 		shopRowMap[row.Id] = row.Name
 	}
 

@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go-admin/app/company/service/dto"
 	models2 "go-admin/cmd/migrate/migration/models"
+	"go-admin/common/actions"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/global"
 )
@@ -30,7 +31,7 @@ func (e Company) ExpressList(c *gin.Context) {
 	for _, row := range global.CompanyGlobalExpress() {
 
 		var object models2.CompanyExpress
-		e.Orm.Model(&models2.CompanyExpress{}).Where("c_id = ? and type = ?", userDto.CId, row).Limit(1).Find(&object)
+		e.Orm.Model(&models2.CompanyExpress{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("type = ?",row).Limit(1).Find(&object)
 
 		cnf := map[string]interface{}{
 			"type": row,
@@ -47,7 +48,7 @@ func (e Company) ExpressList(c *gin.Context) {
 
 		if enable {
 			var CompanyFreight models2.CompanyFreight
-			e.Orm.Model(&models2.CompanyFreight{}).Where("c_id = ? and type = ?", userDto.CId, row).Limit(1).Find(&CompanyFreight)
+			e.Orm.Model(&models2.CompanyFreight{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("type = ?", row).Limit(1).Find(&CompanyFreight)
 			if CompanyFreight.Id > 0 {
 
 				Freight := map[string]interface{}{
@@ -62,7 +63,7 @@ func (e Company) ExpressList(c *gin.Context) {
 		if row == global.ExpressStore {
 			address := make([]map[string]string, 0)
 			localAddress := make([]models2.CompanyExpressStore, 0)
-			e.Orm.Model(&models2.CompanyExpressStore{}).Where("c_id = ? ", userDto.CId).Find(&localAddress)
+			e.Orm.Model(&models2.CompanyExpressStore{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Find(&localAddress)
 			for _, r := range localAddress {
 				address = append(address, map[string]string{
 					"address": r.Address,
@@ -100,7 +101,7 @@ func (e Company) ExpressCnfLocal(c *gin.Context) {
 
 	//快递配置
 	var localObject models2.CompanyFreight
-	e.Orm.Model(&models2.CompanyFreight{}).Where("c_id = ? and type = ?", userDto.CId, global.ExpressLocal).Limit(1).Find(&localObject)
+	e.Orm.Model(&models2.CompanyFreight{}).Scopes(actions.PermissionSysUser(localObject.TableName(), userDto)).Where("type = ?",global.ExpressLocal).Limit(1).Find(&localObject)
 
 	localReq := req.Local
 
@@ -147,7 +148,7 @@ func (e Company) ExpressCnfStore(c *gin.Context) {
 	}
 
 	var objectStore models2.CompanyExpress
-	e.Orm.Model(&models2.CompanyExpress{}).Where("c_id = ? and type = ?", userDto.CId, global.ExpressStore).Limit(1).Find(&objectStore)
+	e.Orm.Model(&models2.CompanyExpress{}).Scopes(actions.PermissionSysUser(objectStore.TableName(), userDto)).Where("type = ?", global.ExpressStore).Limit(1).Find(&objectStore)
 	if objectStore.Id > 0 {
 		objectStore.Enable = req.Store.Enable
 		e.Orm.Save(&objectStore)
@@ -162,7 +163,8 @@ func (e Company) ExpressCnfStore(c *gin.Context) {
 
 	//自提配置
 	//先清空
-	e.Orm.Model(&models2.CompanyExpressStore{}).Unscoped().Where("c_id = ? ", userDto.CId).Delete(&models2.CompanyExpressStore{})
+	var object models2.CompanyExpressStore
+	e.Orm.Model(&models2.CompanyExpressStore{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Unscoped().Delete(&models2.CompanyExpressStore{})
 	//后增加
 	for _, row := range req.Store.Address {
 		rr := models2.CompanyExpressStore{

@@ -11,6 +11,7 @@ import (
 	"go-admin/app/company/models"
 	"go-admin/app/company/service/dto"
 	models2 "go-admin/cmd/migrate/migration/models"
+	"go-admin/common/actions"
 	cDto "go-admin/common/dto"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/common/redis_db"
@@ -44,7 +45,7 @@ func (e WeApp) LoginList(c *gin.Context) {
 
 	for _, val := range strings.Split(global.LoginStr, ",") {
 		var registerCnf models.CompanyRegisterCnf
-		e.Orm.Model(&models.CompanyRegisterCnf{}).Where("c_id = ? and type = 0 and value = ?", userDto.CId, val).Limit(1).Find(&registerCnf)
+		e.Orm.Model(&models.CompanyRegisterCnf{}).Scopes(actions.PermissionSysUser(registerCnf.TableName(), userDto)).Where(" type = 0 and value = ?",val).Limit(1).Find(&registerCnf)
 		enable := true
 		if registerCnf.Id > 0 {
 			enable = registerCnf.Enable
@@ -58,7 +59,7 @@ func (e WeApp) LoginList(c *gin.Context) {
 
 	for _, val := range strings.Split(global.RegisterStr, ",") {
 		var registerCnf models.CompanyRegisterCnf
-		e.Orm.Model(&models.CompanyRegisterCnf{}).Where("c_id = ? and type = 1 and value = ?", userDto.CId, val).Limit(1).Find(&registerCnf)
+		e.Orm.Model(&models.CompanyRegisterCnf{}).Scopes(actions.PermissionSysUser(registerCnf.TableName(), userDto)).Where("type = 1 and value = ?",  val).Limit(1).Find(&registerCnf)
 		enable := true
 		if registerCnf.Id > 0 {
 			enable = registerCnf.Enable
@@ -99,7 +100,7 @@ func (e WeApp) UpdateLoginList(c *gin.Context) {
 	}
 
 	var registerCnf models.CompanyRegisterCnf
-	e.Orm.Model(&models.CompanyRegisterCnf{}).Where("c_id = ? and type = ? and value = ?", userDto.CId, req.T, req.Val).Limit(1).Find(&registerCnf)
+	e.Orm.Model(&models.CompanyRegisterCnf{}).Scopes(actions.PermissionSysUser(registerCnf.TableName(), userDto)).Where(" type = ? and value = ?",  req.T, req.Val).Limit(1).Find(&registerCnf)
 	if registerCnf.Id == 0 {
 		registerCnf = models.CompanyRegisterCnf{
 			CId:    userDto.CId,
@@ -120,7 +121,7 @@ func (e WeApp) UpdateLoginList(c *gin.Context) {
 	r1 := make([]string, 0)
 	for _, val := range strings.Split(global.RegisterStr, ",") {
 		var registerRow models.CompanyRegisterCnf
-		e.Orm.Model(&models.CompanyRegisterCnf{}).Select("id,enable").Where("c_id = ?  and value = ? and type = 1", userDto.CId, val).Limit(1).Find(&registerRow)
+		e.Orm.Model(&models.CompanyRegisterCnf{}).Scopes(actions.PermissionSysUser(registerCnf.TableName(), userDto)).Select("id,enable").Where("value = ? and type = 1",val).Limit(1).Find(&registerRow)
 		enable := false
 		if registerRow.Id == 0 {
 			enable = true
@@ -134,7 +135,7 @@ func (e WeApp) UpdateLoginList(c *gin.Context) {
 	}
 	for _, val := range strings.Split(global.LoginStr, ",") {
 		var registerRow models.CompanyRegisterCnf
-		e.Orm.Model(&models.CompanyRegisterCnf{}).Select("id,enable").Where("c_id = ? and value = ? and type = 0", userDto.CId, val).Limit(1).Find(&registerRow)
+		e.Orm.Model(&models.CompanyRegisterCnf{}).Scopes(actions.PermissionSysUser(registerCnf.TableName(), userDto)).Select("id,enable").Where("value = ? and type = 0", val).Limit(1).Find(&registerRow)
 		enable := false
 		if registerRow.Id == 0 {
 			enable = true
@@ -161,7 +162,7 @@ func (e WeApp) UpdateLoginList(c *gin.Context) {
 		Value:      value,
 	}
 
-	redis_db.SetLoginCnf(userDto.CId, redisData)
+	_,_=redis_db.SetLoginCnf(userDto.CId, redisData)
 
 	e.OK("", "successful")
 	return
@@ -182,13 +183,13 @@ func (e WeApp) Navbar(c *gin.Context) {
 	//查询是否有特殊配置
 	var data models.Company
 	list := make([]models.Company, 0)
+
 	var count int64
 	//获取所有的大B
 	err = e.Orm.Model(&data).
 		Scopes(
 			cDto.MakeCondition(req.GetNeedSearch()),
-			cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-		).Order(global.OrderLayerKey).
+			cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order(global.OrderLayerKey).
 		Find(&list).Limit(-1).Offset(-1).
 		Count(&count).Error
 	navList := make([]models2.WeAppGlobalNavCnf, 0)
@@ -200,7 +201,7 @@ func (e WeApp) Navbar(c *gin.Context) {
 		navCnf := make([]interface{}, 0)
 		for _, nav := range navList {
 			var object models.CompanyNavCnf
-			e.Orm.Model(&models.CompanyNavCnf{}).Where("c_id = ? and g_id = ?", row.Id, nav.Id).Limit(1).Find(&object)
+			e.Orm.Model(&models.CompanyNavCnf{}).Where("g_id = ?",nav.Id).Limit(1).Find(&object)
 
 			if object.Id > 0 {
 				nav.UserEnable = object.Enable
@@ -230,6 +231,7 @@ func (e WeApp) UpdateNavbar(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+
 	var companyObject models2.Company
 	e.Orm.Model(&models2.Company{}).Where("id = ?", req.CId).Limit(1).Find(&companyObject)
 	if companyObject.Id == 0 {

@@ -134,7 +134,8 @@ func (e ShopTag) Insert(c *gin.Context) {
 		return
 	}
 	var countAll int64
-	e.Orm.Model(&models.ShopTag{}).Where("c_id = ?", userDto.CId).Count(&countAll)
+	var object models.ShopTag
+	e.Orm.Model(&models.ShopTag{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Count(&countAll)
 
 	CompanyCnf := business.GetCompanyCnf(userDto.CId, "good_tag", e.Orm)
 	MaxNumber:=CompanyCnf["shop_tag"]
@@ -143,7 +144,7 @@ func (e ShopTag) Insert(c *gin.Context) {
 		return
 	}
 	var count int64
-	e.Orm.Model(&models.ShopTag{}).Where("c_id = ? and name = ?", userDto.CId, req.Name).Count(&count)
+	e.Orm.Model(&models.ShopTag{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where(" name = ?",req.Name).Count(&count)
 	if count > 0 {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return
@@ -196,7 +197,7 @@ func (e ShopTag) Update(c *gin.Context) {
 		return
 	}
 	var oldRow models.ShopTag
-	e.Orm.Model(&models.ShopTag{}).Where("name = ? and c_id = ?", req.Name, userDto.CId).Limit(1).Find(&oldRow)
+	e.Orm.Model(&models.ShopTag{}).Scopes(actions.PermissionSysUser(oldRow.TableName(), userDto)).Where("name = ? ", req.Name).Limit(1).Find(&oldRow)
 
 	if oldRow.Id != 0 {
 		if oldRow.Id != req.Id {

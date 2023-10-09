@@ -168,7 +168,8 @@ func (e CompanyCoupon) Insert(c *gin.Context) {
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
 	var count int64
-	e.Orm.Model(&models.CompanyCoupon{}).Where("c_id = ? and name = ?", userDto.CId, req.Name).Count(&count)
+	var object models.CompanyCoupon
+	e.Orm.Model(&models.CompanyCoupon{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where(" name = ?",req.Name).Count(&count)
 	if count > 0 {
 
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")

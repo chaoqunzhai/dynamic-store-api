@@ -41,7 +41,8 @@ func (e Shop) MiniApi(c *gin.Context) {
 		return
 	}
 	datalist:=make([]models.Shop,0)
-	e.Orm.Model(&models.Shop{}).Select("id,name").Where("c_id = ?",userDto.CId).Order(global.OrderLayerKey).Find(&datalist)
+	var object models.Shop
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Select("id,name").Order(global.OrderLayerKey).Find(&datalist)
 
 	result:=make([]map[string]interface{},0)
 	for _,row:=range datalist{
@@ -171,7 +172,7 @@ func (e Shop) Get(c *gin.Context) {
 	p := actions.GetPermissionFromContext(c)
 	err = s.Get(&req, p, &object)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("获取用户信息失败,%s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("获取数据失败,%s", err.Error()))
         return
 	}
 
@@ -235,7 +236,8 @@ func (e Shop) Insert(c *gin.Context) {
 	}
 
 	var countAll int64
-	e.Orm.Model(&models.Shop{}).Where("c_id = ?", userDto.CId).Count(&countAll)
+	var object models.Shop
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Count(&countAll)
 
 	//限制配置
 	CompanyCnf := business.GetCompanyCnf(userDto.CId, "shop", e.Orm)
@@ -247,7 +249,7 @@ func (e Shop) Insert(c *gin.Context) {
 	}
 
 	var count int64
-	e.Orm.Model(&models.Shop{}).Where("c_id = ? and name = ? ", userDto.CId, req.Name).Count(&count)
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("name = ? ",  req.Name).Count(&count)
 	if count > 0 {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return
@@ -261,7 +263,7 @@ func (e Shop) Insert(c *gin.Context) {
 	}
 
 	var userNameCount int64
-	e.Orm.Model(&sys.SysUser{}).Where("username = ? and  c_id = ?",req.UserName,userDto.CId).Count(&userNameCount)
+	e.Orm.Model(&sys.SysUser{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("username = ? ",req.UserName).Count(&userNameCount)
 	if userCount > 0 {
 		e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
 		return
@@ -317,7 +319,7 @@ func (e Shop) Update(c *gin.Context) {
 	}
 
 	var parentShopRow models.Shop
-	e.Orm.Model(&models.Shop{}).Where("id = ?",req.Id).Limit(1).Find(&parentShopRow)
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(parentShopRow.TableName(), userDto)).Where("id = ?",req.Id).Limit(1).Find(&parentShopRow)
 	if parentShopRow.Id == 0 {
 		e.Error(500, errors.New("数据不存在"), "数据不存在")
 		return
@@ -327,7 +329,7 @@ func (e Shop) Update(c *gin.Context) {
 	//名称发生了变化
 	if parentShopRow.Name != req.Name {
 		var cacheShop models.Shop
-		e.Orm.Model(&models.Shop{}).Select("id").Where("name = ? and c_id = ?",req.Name,userDto.CId).Limit(1).Find(&cacheShop)
+		e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(cacheShop.TableName(), userDto)).Select("id").Where("name = ?  ",req.Name).Limit(1).Find(&cacheShop)
 
 		if cacheShop.Id != 0 {
 			if cacheShop.Id != req.Id {
@@ -430,7 +432,7 @@ func (e Shop)Grade(c *gin.Context)  {
 	}
 	var count int64
 	var object models.Shop
-	e.Orm.Model(&models.Shop{}).Select("id").Where("id = ? and c_id = ?",req.ShopId,userDto.CId).First(&object).Count(&count)
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Select("id").Where("id = ? ",req.ShopId).First(&object).Count(&count)
 	if count == 0 {
 		e.Error(500, errors.New("客户不存在"), "客户不存在")
 		return
@@ -468,7 +470,7 @@ func (e Shop)Credit(c *gin.Context)  {
 
 	var count int64
 	var object models.Shop
-	e.Orm.Model(&models.Shop{}).Select("credit,id").Where("id = ? and c_id = ?",req.ShopId,userDto.CId).First(&object).Count(&count)
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Select("credit,id").Where("id = ? ",req.ShopId).First(&object).Count(&count)
 	if count == 0 {
 		e.Error(500, errors.New("客户不存在"), "客户不存在")
 		return
@@ -492,7 +494,7 @@ func (e Shop)Credit(c *gin.Context)  {
 		e.Error(500, nil,"操作不合法")
 		return
 	}
-	e.Orm.Model(&models.Shop{}).Where("id = ?",object.Id).Updates(map[string]interface{}{
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("id = ?",object.Id).Updates(map[string]interface{}{
 		"credit":object.Credit,
 		"update_by":user.GetUserId(c),
 	})
@@ -533,7 +535,7 @@ func (e Shop)Amount(c *gin.Context)  {
 
 	var count int64
 	var object models.Shop
-	e.Orm.Model(&models.Shop{}).Select("balance,id").Where("id = ? and c_id = ?",req.ShopId,userDto.CId).First(&object).Count(&count)
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Select("balance,id").Where("id = ? ",req.ShopId).First(&object).Count(&count)
 	if count == 0 {
 		e.Error(500, errors.New("客户不存在"), "客户不存在")
 		return
@@ -557,7 +559,7 @@ func (e Shop)Amount(c *gin.Context)  {
 		e.Error(500, nil,"操作不合法")
 		return
 	}
-	e.Orm.Model(&models.Shop{}).Where("id = ?",object.Id).Updates(map[string]interface{}{
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("id = ?",object.Id).Updates(map[string]interface{}{
 		"balance":object.Balance,
 		"update_by":user.GetUserId(c),
 	})
@@ -597,7 +599,7 @@ func (e Shop)Integral(c *gin.Context)  {
 	}
 	var count int64
 	var object models.Shop
-	e.Orm.Model(&models.Shop{}).Select("integral,id").Where("id = ? and c_id = ?",req.ShopId,userDto.CId).First(&object).Count(&count)
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Select("integral,id").Where("id = ?",req.ShopId).First(&object).Count(&count)
 	if count == 0 {
 		e.Error(500, errors.New("客户不存在"), "客户不存在")
 		return
@@ -621,7 +623,7 @@ func (e Shop)Integral(c *gin.Context)  {
 		e.Error(500, nil,"操作不合法")
 		return
 	}
-	e.Orm.Model(&models.Shop{}).Where("id = ?",object.Id).Updates(map[string]interface{}{
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("id = ?",object.Id).Updates(map[string]interface{}{
 		"integral":object.Integral,
 		"update_by":user.GetUserId(c),
 	})
@@ -664,7 +666,7 @@ func (e Shop) UpPass(c *gin.Context) {
 	}
 
 	var sysDto sys.SysUser
-	e.Orm.Model(&sys.SysUser{}).Where("user_id = ? and c_id = ?",req.Id,userDto.CId).Limit(1).Find(&sysDto)
+	e.Orm.Model(&sys.SysUser{}).Scopes(actions.PermissionSysUser(sysDto.TableName(), userDto)).Where("user_id = ? ",req.Id).Limit(1).Find(&sysDto)
 
 	if sysDto.UserId == 0 {
 		e.Error(500,nil,"用户不存在")
@@ -676,7 +678,7 @@ func (e Shop) UpPass(c *gin.Context) {
 		e.Error(500,err,"密码更新失败")
 		return
 	}
-	e.Orm.Model(&sys.SysUser{}).Where("user_id = ? and c_id = ?",req.Id,userDto.CId).Updates(map[string]interface{}{
+	e.Orm.Model(&sys.SysUser{}).Scopes(actions.PermissionSysUser(sysDto.TableName(), userDto)).Where("user_id = ? ",req.Id).Updates(map[string]interface{}{
 		"password":string(hash),
 	})
 
@@ -693,10 +695,15 @@ func (e Shop) GetLine(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	shopId:=c.Param("id")
 
 	var object models.Shop
-	e.Orm.Model(&models.Shop{}).Where("id = ? and enable = ?",shopId,true).Limit(1).Find(&object)
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("id = ? and enable = ?",shopId,true).Limit(1).Find(&object)
 	if object.Id == 0 {
 		e.Error(500,nil,"数据不存在")
 		return
@@ -710,19 +717,19 @@ func (e Shop) GetLine(c *gin.Context) {
 		"driver":"",
 	}
 	var lineObject models2.Line
-	e.Orm.Model(&models2.Line{}).Where("id = ? and enable = ?",object.LineId,true).Limit(1).Find(&lineObject)
+	e.Orm.Model(&models2.Line{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("id = ? and enable = ?",object.LineId,true).Limit(1).Find(&lineObject)
 	if lineObject.Id  > 0 {
 		result["line"] = lineObject.Name
 	}
 	var driverObject models2.Driver
-	e.Orm.Model(&models2.Driver{}).Where("id = ? and enable = ?",lineObject.DriverId,true).Limit(1).Find(&driverObject)
+	e.Orm.Model(&models2.Driver{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("id = ? and enable = ?",lineObject.DriverId,true).Limit(1).Find(&driverObject)
 	if driverObject.Id  > 0 {
 		result["driver_name"] = driverObject.Name
 		result["driver_phone"] = driverObject.Phone
 	}
 	if object.GradeId  > 0 {
 		var gradeVip models2.GradeVip
-		e.Orm.Model(&models2.GradeVip{}).Where("id = ? and enable = ?",object.GradeId,true).Limit(1).Find(&gradeVip)
+		e.Orm.Model(&models2.GradeVip{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("id = ? and enable = ?",object.GradeId,true).Limit(1).Find(&gradeVip)
 		if gradeVip.Id  > 0 {
 			result["grade"] = gradeVip.Name
 		}

@@ -126,16 +126,12 @@ func (e *Orders) ValidTimeConf(cid int) (response *TimeConfResponse) {
 func (e *Orders) GetPage(tableName string, c *dto.OrdersGetPageReq, p *actions.DataPermission, list *[]models.Orders, count *int64) error {
 	var err error
 
-	whereSQL := fmt.Sprintf("")
-	if c.CId > 0 {
-		whereSQL = fmt.Sprintf("c_id = %v", c.CId)
-	}
-	err = e.Orm.Table(tableName).Where(whereSQL).
+
+	err = e.Orm.Table(tableName).
 		Scopes(
 			cDto.MakeSplitTableCondition(c.GetNeedSearch(),tableName),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
-
-		).Order(global.OrderTimeKey).
+			actions.Permission(tableName,p)).Order(global.OrderTimeKey).
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {

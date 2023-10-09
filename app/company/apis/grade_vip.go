@@ -136,7 +136,8 @@ func (e GradeVip) Insert(c *gin.Context) {
 		return
 	}
 	var count int64
-	e.Orm.Model(&models.GradeVip{}).Where("c_id = ? and name = ?", userDto.CId, req.Name).Count(&count)
+	var object models.GradeVip
+	e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Where(" name = ?", req.Name).Count(&count)
 	if count > 0 {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return
@@ -189,7 +190,7 @@ func (e GradeVip) Update(c *gin.Context) {
 		return
 	}
 	var oldRow models.GradeVip
-	e.Orm.Model(&models.GradeVip{}).Where("name = ? and c_id = ?", req.Name, userDto.CId).Limit(1).Find(&oldRow)
+	e.Orm.Model(&models.GradeVip{}).Scopes(actions.PermissionSysUser(oldRow.TableName(),userDto)).Where("name = ? ", req.Name).Limit(1).Find(&oldRow)
 
 	if oldRow.Id != 0 {
 		if oldRow.Id != req.Id {
