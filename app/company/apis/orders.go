@@ -356,13 +356,13 @@ func (e Orders)Cycle(c *gin.Context)  {
 
 	result:=make([]map[string]interface{},0)
 
-	fmt.Println("req!!",req)
+	//fmt.Println("req!!",req)
 	tableName:=business.GetTableName(userDto.CId,e.Orm)
 	CycleTableName:=business.OrderCycleTableName(tableName)
 	//默认展示最近10条的配送周期
 	datalist := make([]models2.OrderCycleCnf, 0)
 	var count int64
-	e.Orm.Table(CycleTableName).Model(&models2.OrderCycleCnf{}).Where(
+	e.Orm.Table(CycleTableName).Model(&models2.OrderCycleCnf{}).Select("delivery_str,create_str,uid").Where(
 		"c_id = ?", userDto.CId).Order(global.OrderTimeKey).Find(&datalist).Limit(-1).Offset(-1).
 		Count(&count)
 	
@@ -378,7 +378,8 @@ func (e Orders)Cycle(c *gin.Context)  {
 		}
 		dd :=map[string]interface{}{
 			"value":value,
-			"count":"1",
+			"uid":row.Uid,
+			//"count":"1",
 		}
 		result = append(result,dd)
 	}
