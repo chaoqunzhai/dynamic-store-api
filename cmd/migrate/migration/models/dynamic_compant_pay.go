@@ -69,7 +69,6 @@ func (DebitCard) TableName() string {
 type OfflinePay struct {
 	BigBRichGlobal
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
-	CId int `gorm:"index;comment:大BID"`
 	Name string `json:"back_name" gorm:"size:12;comment:线下支付名称"`
 }
 func (OfflinePay) TableName() string {

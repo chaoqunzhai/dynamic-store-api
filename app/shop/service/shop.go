@@ -77,14 +77,14 @@ func (e *Shop) getShopTagModels(ids []int) (list []models.ShopTag) {
 // Insert 创建Shop对象
 func (e *Shop) Insert(userDto *sys.SysUser, c *dto.ShopInsertReq) error {
 	//创建小B用户
-	shopUserDto:=sys.SysUser{
+	shopUserDto:=sys.SysShopUser{
 		Username: c.UserName,
 		NickName: c.UserName,
 		Phone: c.Phone,
 		Password: c.Password,
 		Enable: true,
 		CId: userDto.CId,
-		Status:fmt.Sprintf("%v", global.SysUserSuccess),
+		Status:global.SysUserSuccess,
 		RoleId:global.RoleShop,
 	}
 	//设置创建用户为大B的名字
@@ -149,12 +149,42 @@ func (e *Shop) Update(c *dto.ShopUpdateReq, p *actions.DataPermission) error {
 	if db.RowsAffected == 0 {
 		return errors.New("无权更新该数据")
 	}
+
+	//修改小B用户名更改
+	var shopUserObject sys.SysShopUser
+	e.Orm.Model(&shopUserObject).Where("c_id = ? and phone = ?",data.CId,data.Phone).Limit(1).Find(&shopUserObject)
+
+	//保存的是小B的用户ID
+	var shopUserId int
+	if shopUserObject.UserId == 0 {
+		shopUserDto:=sys.SysShopUser{
+			Username: c.UserName,
+			NickName: c.UserName,
+			Phone: c.Phone,
+			Password:"123456",
+			Enable: true,
+			CId: data.CId,
+			Status:global.SysUserSuccess,
+			RoleId:global.RoleShop,
+		}
+		//设置创建用户为大B的名字
+		shopUserDto.CreateBy = data.CreateBy
+
+		e.Orm.Create(&shopUserDto)
+		shopUserId = shopUserDto.UserId
+	}else {
+		shopUserId = shopUserObject.UserId
+		e.Orm.Model(&sys.SysShopUser{}).Where("c_id = ? and phone = ?",data.CId,data.Phone).Updates(map[string]interface{}{
+			"username":data.UserName,
+			"phone":data.Phone,
+		})
+	}
 	var userAddress models2.DynamicUserAddress
 
 	var isDefault int64
-	e.Orm.Model(&models2.DynamicUserAddress{}).Where("user_id = ? and is_default = 1 and c_id = ?",data.UserId,data.CId).Count(&isDefault)
+	e.Orm.Model(&models2.DynamicUserAddress{}).Where("user_id = ? and is_default = 1 and c_id = ?",shopUserId,data.CId).Count(&isDefault)
 	//用户把大B创建的地址删了
-	e.Orm.Model(&models2.DynamicUserAddress{}).Where("user_id = ? and source = 1 and c_id = ?",data.UserId,data.CId).Limit(1).Find(&userAddress)
+	e.Orm.Model(&models2.DynamicUserAddress{}).Where("user_id = ? and source = 1 and c_id = ?",shopUserId,data.CId).Limit(1).Find(&userAddress)
 	if userAddress.Id == 0  {
 		address:=models2.DynamicUserAddress{
 			Source: 1,
@@ -169,22 +199,16 @@ func (e *Shop) Update(c *dto.ShopUpdateReq, p *actions.DataPermission) error {
 			address.IsDefault = true
 		}
 		//存储的是创建小B的用户ID,因为这个地址是小B的
-		address.UserId = data.UserId
+		address.UserId = shopUserId
 		address.CId = data.CId
 		e.Orm.Create(&address)
 	}else {
-		e.Orm.Model(&models2.DynamicUserAddress{}).Where("user_id = ? and source = 1 and c_id = ?",data.UserId,data.CId).Updates(map[string]interface{}{
+		e.Orm.Model(&models2.DynamicUserAddress{}).Where("user_id = ? and source = 1 and c_id = ?",shopUserId,data.CId).Updates(map[string]interface{}{
 			"name":data.Name,
 			"address":data.Address,
 			"mobile":data.Phone,
 		})
 	}
-
-	//修改小B用户名更改
-	e.Orm.Model(&sys.SysUser{}).Where("c_id = ? and phone = ?",data.CId,data.Phone).Updates(map[string]interface{}{
-		"username":data.UserName,
-		"phone":data.Phone,
-	})
 
 	return nil
 }
@@ -206,7 +230,7 @@ func (e *Shop) Remove(d *dto.ShopDeleteReq, p *actions.DataPermission) error {
 		e.Orm.Model(models2.DynamicUserAddress{}).Where("source = 1 and user_id = ?",data.UserId).Delete(&models2.DynamicUserAddress{})
 
 		//删除小B的用户
-		e.Orm.Model(&sys.SysUser{}).Where("c_id = ? and user_id = ?",data.CId,data.UserId).Delete(&sys.SysUser{})
+		e.Orm.Model(&sys.SysShopUser{}).Where("c_id = ? and user_id = ?",data.CId,data.UserId).Delete(&sys.SysShopUser{})
 
 		e.Orm.Model(&data).Scopes(
 			actions.Permission(data.TableName(), p),

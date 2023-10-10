@@ -31,6 +31,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.SysOperaLog),
 			new(models.SysRoleDept),
 			new(models.SysUser),
+			new(models.SysShopUser),
 			new(models.SysRole),
 			new(models.SysPost),
 			new(models.DictData),
