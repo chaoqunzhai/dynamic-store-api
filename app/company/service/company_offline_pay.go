@@ -80,6 +80,7 @@ func (e *CompanyOfflinePay) Update(c *dto.CompanyOfflinePayUpdateReq, p *actions
 		actions.Permission(data.TableName(), p),
 	).Where("c_id = ? and id = ?",c.CId,c.GetId()).First(&data)
     c.Generate(&data)
+    data.Layer = "0"
 	data.Enable = true
     db := e.Orm.Save(&data)
     if err = db.Error; err != nil {

@@ -43,8 +43,7 @@ func (e *CompanyDebitCard) Get(d *dto.CompanyDebitCardGetReq, p *actions.DataPer
 	err := e.Orm.Model(&data).
 		Scopes(
 			actions.Permission(data.TableName(), p),
-		).
-		First(model, d.GetId()).Error
+		).First(model, d.GetId()).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		err = errors.New("查看对象不存在或无权查看")
 		e.Log.Errorf("Service GetCompanyDebitCard error:%s \r\n", err)
@@ -62,6 +61,7 @@ func (e *CompanyDebitCard) Insert(c *dto.CompanyDebitCardInsertReq) error {
     var err error
     var data models.CompanyDebitCard
     c.Generate(&data)
+    data.Layer = "0"
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("CompanyDebitCardService Insert error:%s \r\n", err)
@@ -76,9 +76,10 @@ func (e *CompanyDebitCard) Update(c *dto.CompanyDebitCardUpdateReq, p *actions.D
     var data = models.CompanyDebitCard{}
     e.Orm.Scopes(
             actions.Permission(data.TableName(), p),
-        ).Where("id = ?",c.GetId()).First(&data)
+        ).Where("c_id = ? and id = ?",c.CId,c.GetId()).First(&data)
     c.Generate(&data)
 	data.Enable = true
+	data.Layer = "0"
     db := e.Orm.Save(&data)
     if err = db.Error; err != nil {
         e.Log.Errorf("CompanyDebitCardService Save error:%s \r\n", err)
