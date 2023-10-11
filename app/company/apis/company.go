@@ -12,6 +12,7 @@ import (
 	"go-admin/common/business"
 	cDto "go-admin/common/dto"
 	"go-admin/common/jwt/user"
+	customUser "go-admin/common/jwt/user"
 	"go-admin/global"
 	"time"
 
@@ -562,4 +563,86 @@ func (e Company) Delete(c *gin.Context) {
 		return
 	}
 	e.OK(req.GetId(), "删除成功")
+}
+
+
+func (e Company) QuotaCnf(c *gin.Context)   {
+
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	quotaType:=c.Query("type")
+	fmt.Println("quotaType",quotaType)
+
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	res:=make(map[string]interface{},0)
+	MaxNumber:=0
+	var dbCount int64
+	var msg string
+	switch quotaType {
+	case "line":
+		CompanyCnf := business.GetCompanyCnf(userDto.CId, "line", e.Orm)
+		MaxNumber = CompanyCnf["line"]
+		var object models.Line
+		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)
+		msg = "条线路可以创建"
+	case "goods":
+		CompanyCnf := business.GetCompanyCnf(userDto.CId, "goods", e.Orm)
+		MaxNumber = CompanyCnf["goods"]
+		var object models.Goods
+		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)
+		msg = "个商品可以创建"
+	case "goods_class":
+		CompanyCnf := business.GetCompanyCnf(userDto.CId, "goods_class", e.Orm)
+		MaxNumber = CompanyCnf["goods_class"]
+		var object models.GoodsClass
+		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)
+		msg = "个商品分类可以创建"
+	case "goods_tag":
+		CompanyCnf := business.GetCompanyCnf(userDto.CId, "goods_tag", e.Orm)
+		MaxNumber = CompanyCnf["goods_tag"]
+		var object models.GoodsTag
+		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)
+		msg = "个商品标签可以创建"
+	case "vip":
+		CompanyCnf := business.GetCompanyCnf(userDto.CId, "vip", e.Orm)
+		MaxNumber = CompanyCnf["vip"]
+		var object models.GradeVip
+		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)
+		msg = "个VIP等级可以创建"
+	case "shop_tag":
+		CompanyCnf := business.GetCompanyCnf(userDto.CId, "shop_tag", e.Orm)
+		MaxNumber = CompanyCnf["shop_tag"]
+		var object models2.ShopTag
+		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)
+		msg = "个客户标签可以创建"
+	case "offline_pay":
+		CompanyCnf := business.GetCompanyCnf(userDto.CId, "offline_pay", e.Orm)
+		MaxNumber = CompanyCnf["offline_pay"]
+		var object models2.OfflinePay
+		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)
+		msg = "个线下支付可以创建"
+
+	}
+	res["msg"] = msg
+	if int(dbCount) < MaxNumber {
+		//还有可以创建的路线
+		res["show"] = true
+		res["count"] =  MaxNumber - int(dbCount)
+	}else {
+		res["show"] = false
+		res["count"] =  0
+	}
+
+	e.OK(res,"successful")
+	return
 }

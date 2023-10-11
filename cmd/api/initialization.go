@@ -145,7 +145,7 @@ func Initialization() {
 			"value": global.CompanyMaxRole,
 		},
 		{
-			"key":   "good",
+			"key":   "goods",
 			"value": global.CompanyMaxGoods,
 		},
 		{
@@ -153,15 +153,15 @@ func Initialization() {
 			"value": global.CompanyMaxShop,
 		},
 		{
-			"key":   "good_class",
+			"key":   "goods_class",
 			"value": global.CompanyMaxGoodsClass,
 		},
 		{
-			"key":   "good_tag",
+			"key":   "goods_tag",
 			"value": global.CompanyMaxGoodsTag,
 		},
 		{
-			"key":   "good_image",
+			"key":   "goods_image",
 			"value": global.CompanyMaxGoodsImage,
 		},
 		{

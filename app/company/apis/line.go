@@ -26,41 +26,6 @@ import (
 type Line struct {
 	api.Api
 }
-
-func (e Line) QuotaCnf(c *gin.Context)   {
-	err := e.MakeContext(c).
-		MakeOrm().
-		Errors
-	if err != nil {
-		e.Logger.Error(err)
-		e.Error(500, err, err.Error())
-		return
-	}
-	userDto, err := customUser.GetUserDto(e.Orm, c)
-	if err != nil {
-		e.Error(500, err, err.Error())
-		return
-	}
-	CompanyCnf := business.GetCompanyCnf(userDto.CId, "line", e.Orm)
-
-	MaxNumber := CompanyCnf["line"]
-	var count int64
-	var object models.Line
-	e.Orm.Model(&models.Line{}).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&count)
-
-	res:=make(map[string]interface{},0)
-	if int(count) < MaxNumber {
-		//还有可以创建的路线
-
-		res["show"] = true
-		res["count"] =  MaxNumber - int(count)
-	}else {
-		res["show"] = false
-	}
-
-	e.OK(res,"successful")
-	return
-}
 func (e Line) BindShop(c *gin.Context) {
 	req := dto.BindLineUserReq{}
 	err := e.MakeContext(c).

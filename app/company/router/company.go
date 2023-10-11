@@ -37,6 +37,9 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.POST("/express/cnf/local", api.ExpressCnfLocal)
 		//自提
 		r.POST("/express/cnf/store", api.ExpressCnfStore)
+
+		//展示一些限制的文案，例如当前可用路线是多少条
+		r.GET("/quota/cnf",api.QuotaCnf)
 	}
 	//大B用户管理
 	{

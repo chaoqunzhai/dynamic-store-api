@@ -63,6 +63,7 @@ func (e *CompanyOfflinePay) Insert(c *dto.CompanyOfflinePayInsertReq) error {
     var data models.CompanyOfflinePay
     c.Generate(&data)
     data.Enable = true
+    data.Layer = "0"
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("CompanyOfflinePayService Insert error:%s \r\n", err)

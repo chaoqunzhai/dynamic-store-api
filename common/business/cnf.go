@@ -7,17 +7,18 @@ import (
 	"gorm.io/gorm"
 )
 
+
 func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 	defaultCnf := map[string]int{
 		"line":       global.CompanyLine,
 		"vip":        global.CompanyVip,
 		"role":       global.CompanyMaxRole,
-		"good_image": global.CompanyMaxGoodsImage,
-		"good_class": global.CompanyMaxGoodsClass,
-		"good_tag":   global.CompanyMaxGoodsTag,
+		"goods_image": global.CompanyMaxGoodsImage,
+		"goods_class": global.CompanyMaxGoodsClass,
+		"goods_tag":   global.CompanyMaxGoodsTag,
 		"shop_tag":   global.CompanyUserTag,
 		"shop":       global.CompanyMaxShop,
-		"good":       global.CompanyMaxGoods,
+		"goods":       global.CompanyMaxGoods,
 		"offline_pay":global.OffLinePay,
 	}
 	var cnf []models.CompanyQuotaCnf
@@ -28,7 +29,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 		sql = fmt.Sprintf("c_id = %v and enable = %v", cid, true)
 	}
 	orm.Model(&models.CompanyQuotaCnf{}).Where(sql).Find(&cnf)
-	//没有进行特殊配置,那就都返回配置即可
+	//没有进行特殊配置,那就都返回系统初始化配置的值
 	if len(cnf) == 0 {
 		return defaultCnf
 	}
@@ -50,7 +51,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 				v = global.CompanyMaxGoodsTag
 			case "shop_tag":
 				v = global.CompanyUserTag
-			case "good":
+			case "goods":
 				v = global.CompanyMaxGoods
 			case "shop":
 				v = global.CompanyMaxShop

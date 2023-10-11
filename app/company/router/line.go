@@ -5,8 +5,8 @@ import (
 	jwt "github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth"
 
 	"go-admin/app/company/apis"
-	"go-admin/common/middleware"
 	"go-admin/common/actions"
+	"go-admin/common/middleware"
 )
 
 func init() {
@@ -30,7 +30,6 @@ func registerLineRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewar
 		r.POST("/shop/:id",api.UpdateLineBindShopList)
 		//直接绑定客户
 		r.POST("/bind_shop",api.BindShop)
-		//当前可用可用路线
-		r.GET("/quota",api.QuotaCnf)
+
 	}
 }
