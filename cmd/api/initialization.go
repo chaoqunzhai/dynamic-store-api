@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk"
 	"go-admin/cmd/migrate/migration/models"
-	"go-admin/global"
 	"strconv"
 )
 
@@ -131,68 +130,72 @@ func Initialization() {
 
 	fmt.Println("开始录入系统初始化配置")
 	dbs := sdk.Runtime.GetDb()
-	ComQuotaCnf := []map[string]interface{}{
-		{
-			"key":   "line",
-			"value": global.CompanyLine,
-		},
-		{
-			"key":   "vip",
-			"value": global.CompanyVip,
-		},
-		{
-			"key":   "role",
-			"value": global.CompanyMaxRole,
-		},
-		{
-			"key":   "goods",
-			"value": global.CompanyMaxGoods,
-		},
-		{
-			"key":   "shop",
-			"value": global.CompanyMaxShop,
-		},
-		{
-			"key":   "goods_class",
-			"value": global.CompanyMaxGoodsClass,
-		},
-		{
-			"key":   "goods_tag",
-			"value": global.CompanyMaxGoodsTag,
-		},
-		{
-			"key":   "goods_image",
-			"value": global.CompanyMaxGoodsImage,
-		},
-		{
-			"key":   "shop_tag",
-			"value": global.CompanyUserTag,
-		},
-		{
-			"key":   "offline_pay",
-			"value": global.OffLinePay ,
-		},
-	}
-	for _, db := range dbs {
-		for _, row := range ComQuotaCnf {
-			var thisRow models.CompanyQuotaCnf
-			var count int64
-			if db.Model(&models.CompanyQuotaCnf{}).Where("`key` = ?", row["key"]).First(&thisRow).Count(&count); count > 0 {
-				continue
-			}
-			Number, _ := strconv.Atoi(fmt.Sprintf("%v", row["value"]))
-			rows := &models.CompanyQuotaCnf{
-				Key:    fmt.Sprintf("%v", row["key"]),
-				Number: Number,
-				BigBRichGlobal: models.BigBRichGlobal{
-					RichGlobal: models.RichGlobal{
-						Enable: true,
-					},
-				},
-			}
-			db.Create(&rows)
-		}
-	}
+	//ComQuotaCnf := []map[string]interface{}{
+	//	{
+	//		"key":   "line",
+	//		"value": global.CompanyLine,
+	//	},
+	//	{
+	//		"key":   "vip",
+	//		"value": global.CompanyVip,
+	//	},
+	//	{
+	//		"key":   "role",
+	//		"value": global.CompanyMaxRole,
+	//	},
+	//	{
+	//		"key":   "goods",
+	//		"value": global.CompanyMaxGoods,
+	//	},
+	//	{
+	//		"key":   "shop",
+	//		"value": global.CompanyMaxShop,
+	//	},
+	//	{
+	//		"key":   "goods_class",
+	//		"value": global.CompanyMaxGoodsClass,
+	//	},
+	//	{
+	//		"key":   "goods_tag",
+	//		"value": global.CompanyMaxGoodsTag,
+	//	},
+	//	{
+	//		"key":   "goods_image",
+	//		"value": global.CompanyMaxGoodsImage,
+	//	},
+	//	{
+	//		"key":   "shop_tag",
+	//		"value": global.CompanyUserTag,
+	//	},
+	//	{
+	//		"key":   "ems_number",
+	//		"value": global.CompanyEmsNumber ,
+	//	},
+	//	{
+	//		"key":   "offline_pay",
+	//		"value": global.OffLinePay ,
+	//	},
+	//}
+	//for _, db := range dbs {
+	//	for _, row := range ComQuotaCnf {
+	//		var thisRow models.CompanyQuotaCnf
+	//		var count int64
+	//		if db.Model(&models.CompanyQuotaCnf{}).Where("`key` = ?", row["key"]).First(&thisRow).Count(&count); count > 0 {
+	//			continue
+	//		}
+	//		Number, _ := strconv.Atoi(fmt.Sprintf("%v", row["value"]))
+	//		rows := &models.CompanyQuotaCnf{
+	//			Key:    fmt.Sprintf("%v", row["key"]),
+	//			Number: Number,
+	//			BigBRichGlobal: models.BigBRichGlobal{
+	//				RichGlobal: models.RichGlobal{
+	//					Enable: true,
+	//				},
+	//			},
+	//		}
+	//		db.Create(&rows)
+	//	}
+	//}
 	//抽成默认配置
 	//需要注意,如果有一个菜单下有children,那这个菜单需要有一个layer来声明出场顺序
 	Menus := []map[string]interface{}{
