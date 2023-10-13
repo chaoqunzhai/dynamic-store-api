@@ -110,7 +110,7 @@ func InitializationWeApp()  {
 		{
 			"name":"付款单",
 			"image_url":"../../static/member/default_fukuandan.png",
-			"wap_url":"/pages_tool/verification/index",
+			"wap_url":"/pages_tool/pay_order/index",
 			"default_show":0, //设置是否默认可以显示的
 		},
 	}
