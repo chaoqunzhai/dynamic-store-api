@@ -64,6 +64,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.CompanyQuotaCnf),
 			new(models.CompanyEmsQuotaCnf),
 			new(models.CompanyEmsQuotaCnfLog),
+			new(models.CompanyEmsRecordLog),
 			new(models.CompanyRenewalTimeLog),
 			new(models.WeChatAppIdCnf),
 			new(models.WeChatPay),

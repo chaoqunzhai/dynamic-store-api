@@ -2,6 +2,7 @@ package main
 
 import (
 	"go-admin/cmd"
+	_"go-admin/global/initialization"
 )
 
 //go:generate swag init --parseDependency --parseDepth=6

@@ -2,19 +2,10 @@ package initialization
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin/binding"
-	"github.com/go-playground/locales/en"
-	"github.com/go-playground/locales/zh"
-	ut "github.com/go-playground/universal-translator"
-	"github.com/go-playground/validator/v10"
-	en_translations "github.com/go-playground/validator/v10/translations/en"
-	zh_translations "github.com/go-playground/validator/v10/translations/zh"
 	"go-admin/global"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"reflect"
-	"strings"
 	"time"
 )
 
@@ -23,10 +14,7 @@ const (
 )
 
 func init() {
-	if err := InitTrans("zh"); err != nil {
-		fmt.Println("获取翻译器错误", err)
-		return
-	}
+	fmt.Println("开始获取日志")
 	InitLogger()
 }
 func InitLogger() {
@@ -35,14 +23,14 @@ func InitLogger() {
 		Filename:   global.StdOut, // 日志文件路径
 		MaxSize:    128,           // 每个日志文件保存的最大尺寸 单位：M
 		MaxBackups: 30,            // 日志文件最多保存多少个备份
-		MaxAge:     7,             // 文件最多保存多少天
+		MaxAge:     14,             // 文件最多保存多少天
 		Compress:   true,          // 是否压缩
 	}
 	hookError :=lumberjack.Logger{
 		Filename:   global.StdError, // 日志文件路径
 		MaxSize:    128,             // 每个日志文件保存的最大尺寸 单位：M
 		MaxBackups: 30,              // 日志文件最多保存多少个备份
-		MaxAge:     7,               // 文件最多保存多少天
+		MaxAge:     14,               // 文件最多保存多少天
 		Compress:   true,            // 是否压缩
 	}
 	encoderConfig := zapcore.EncoderConfig{
@@ -87,7 +75,7 @@ func InitLogger() {
 		Development:   true,                                            // 开发模式，堆栈跟踪
 		Encoding:      "json",                                          // 输出格式 console 或 json
 		EncoderConfig: encoderConfig,                                   // 编码器配置
-		InitialFields: map[string]interface{}{"serviceName": "universe"}, // 初始化字段，如：添加一个服务器名称
+		InitialFields: map[string]interface{}{"serviceName": "dynamic-store-api"}, // 初始化字段，如：添加一个服务器名称
 
 		OutputPaths:      []string{"stdout", global.StdOut}, // 输出到指定文件 stdout（标准输出，正常颜色） stderr（错误输出，红色）
 		ErrorOutputPaths: []string{"stderr", global.StdError},
@@ -106,7 +94,7 @@ func InitLogger() {
 	// 开启文件及行号
 	development := zap.Development()
 	// 设置初始化字段
-	filed := zap.Fields(zap.String("api", "universe"))
+	filed := zap.Fields(zap.String("api", "dynamic-weapp-api"))
 	logger := zap.New(core, caller, development, filed)
 
 	zap.ReplaceGlobals(logger)
@@ -121,36 +109,4 @@ func errorToString(r interface{}) string {
 	}
 }
 
-func InitTrans(locale string) (err error) {
 
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-
-		v.RegisterTagNameFunc(func(field reflect.StructField) string {
-			name := strings.SplitN(field.Tag.Get("json"), ",", 2)[0]
-			if name == "-" {
-				return ""
-			}
-			return name
-		})
-		zhT := zh.New()
-		enT := en.New()
-
-		uni := ut.New(enT, zhT, enT)
-
-		global.Trans, ok = uni.GetTranslator(locale)
-		if !ok {
-			return fmt.Errorf("uni GetTranslator (%s)", locale)
-		}
-		switch locale {
-		case "en":
-			en_translations.RegisterDefaultTranslations(v, global.Trans)
-		case "zh":
-
-			zh_translations.RegisterDefaultTranslations(v, global.Trans)
-		default:
-			zh_translations.RegisterDefaultTranslations(v, global.Trans)
-		}
-		return err
-	}
-	return err
-}

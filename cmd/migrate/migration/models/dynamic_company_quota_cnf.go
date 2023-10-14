@@ -38,6 +38,7 @@ func (CompanyQuotaCnf) TableName() string {
 type CompanyEmsQuotaCnf struct {
 	BigBRichGlobal
 	Available int `gorm:"comment:可用次数"`
+	Record bool `gorm:"comment:是否开启消费记录"`
 }
 
 func (CompanyEmsQuotaCnf) TableName() string {
@@ -53,4 +54,16 @@ type CompanyEmsQuotaCnfLog struct {
 
 func (CompanyEmsQuotaCnfLog) TableName() string {
 	return "company_ems_cnf_log"
+}
+
+//todo:大B短信消费记录, 这个是开关,如果大B需要记录就
+type CompanyEmsRecordLog struct {
+	Model
+	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
+	CId int `gorm:"index;comment:大BID"`
+	Phone string `gorm:"size:11;comment:手机号"`
+	Code string `gorm:"size:6;comment:验证码"`
+}
+func (CompanyEmsRecordLog) TableName() string {
+	return "company_ems_record_log"
 }
