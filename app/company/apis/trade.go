@@ -12,15 +12,14 @@ import (
 type Trade struct {
 	api.Api
 }
-type PayCnfInsertReq struct {
-	BalanceDeduct bool `json:"balance_deduct" gorm:"size:1;comment:是否开启余额支付"`
-	Alipay bool `json:"alipay" gorm:"size:1;comment:是否开启阿里支付"`
-	WeChat bool `json:"we_chat" gorm:"size:1;comment:是否开启微信支付"`
-	Credit bool `json:"credit" gorm:"size:1;comment:支持授信减扣"`
+type TradeInsertReq struct {
+	CloseHours int `json:"close_hours" gorm:"size:1;comment:是否开启余额支付"`
+	ReceiveDays int `json:"receive_days" gorm:"size:1;comment:是否开启阿里支付"`
+	RefundDays int `json:"refund_days" gorm:"size:1;comment:是否开启微信支付"`
 
 }
 func (e *Trade) Create(c *gin.Context) {
-	req := PayCnfInsertReq{}
+	req := TradeInsertReq{}
 	err := e.MakeContext(c).
 		Bind(&req, binding.JSON, nil).
 		MakeOrm().
@@ -37,23 +36,21 @@ func (e *Trade) Create(c *gin.Context) {
 		return
 	}
 
-	var PayCnf models.PayCnf
-	e.Orm.Model(&models.PayCnf{}).Scopes(actions.PermissionSysUser(PayCnf.TableName(), userDto)).Limit(1).Find(&PayCnf)
+	var object models.OrderTrade
+	e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Limit(1).Find(&object)
 
 
-	if PayCnf.Id > 0 {
+	if object.Id > 0 {
 
-		PayCnf.Ali = req.Alipay
-		PayCnf.BalanceDeduct = req.BalanceDeduct
-		PayCnf.WeChat = req.WeChat
-		PayCnf.Credit = req.Credit
-		e.Orm.Save(&PayCnf)
+		object.CloseHours = req.CloseHours
+		object.RefundDays = req.RefundDays
+		object.ReceiveDays = req.ReceiveDays
+		e.Orm.Save(&object)
 	}else {
-		trade:=models.PayCnf{
-			Ali: req.Alipay,
-			BalanceDeduct: req.BalanceDeduct,
-			WeChat: req.WeChat,
-			Credit: req.Credit,
+		trade:=models.OrderTrade{
+			CloseHours: req.CloseHours,
+			RefundDays: req.RefundDays,
+			ReceiveDays: req.ReceiveDays,
 		}
 		trade.CId = userDto.CId
 		trade.Enable = true
@@ -76,10 +73,10 @@ func (e Trade) Detail(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	var PayCnf models.PayCnf
-	e.Orm.Model(&models.PayCnf{}).Scopes(actions.PermissionSysUser(PayCnf.TableName(), userDto)).Limit(1).Find(&PayCnf)
+	var object models.OrderTrade
+	e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Limit(1).Find(&object)
 
 
-	e.OK(PayCnf,"successful")
+	e.OK(object,"successful")
 	return
 }

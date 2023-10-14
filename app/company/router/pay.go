@@ -14,7 +14,7 @@ func init() {
 }
 
 func registerPayCnfRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
-	api := apis.Trade{}
+	api := apis.PayApi{}
 	r := v1.Group("/pay_cnf").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
 		//todo:更新

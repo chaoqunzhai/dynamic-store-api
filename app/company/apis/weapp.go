@@ -201,7 +201,7 @@ func (e WeApp) Navbar(c *gin.Context) {
 		navCnf := make([]interface{}, 0)
 		for _, nav := range navList {
 			var object models.CompanyNavCnf
-			e.Orm.Model(&models.CompanyNavCnf{}).Where("g_id = ?",nav.Id).Limit(1).Find(&object)
+			e.Orm.Model(&models.CompanyNavCnf{}).Where("g_id = ? and c_id = ?",nav.Id,row.Id).Limit(1).Find(&object)
 
 			if object.Id > 0 {
 				nav.UserEnable = object.Enable
@@ -245,7 +245,7 @@ func (e WeApp) UpdateNavbar(c *gin.Context) {
 		return
 	}
 	var CompanyNavCnf models.CompanyNavCnf
-	e.Orm.Model(&models.CompanyNavCnf{}).Where("g_id = ? and c_id = ?", req.NavId, req.CId).Limit(1).Find(&CompanyNavCnf)
+	e.Orm.Model(&CompanyNavCnf).Where("g_id = ? and c_id = ?", req.NavId, req.CId).Limit(1).Find(&CompanyNavCnf)
 	if CompanyNavCnf.Id == 0 {
 		rr := models.CompanyNavCnf{
 			Enable: req.Enable,
@@ -255,8 +255,9 @@ func (e WeApp) UpdateNavbar(c *gin.Context) {
 
 		e.Orm.Create(&rr)
 	} else {
-		CompanyNavCnf.Enable = req.Enable
-		e.Orm.Save(&CompanyNavCnf)
+		e.Orm.Model(&CompanyNavCnf).Where("g_id = ? and c_id = ?", req.NavId, req.CId).Updates(map[string]interface{}{
+			"enable":req.Enable,
+		})
 	}
 
 	web_app.SearchAndLoadData(req.CId,e.Orm)

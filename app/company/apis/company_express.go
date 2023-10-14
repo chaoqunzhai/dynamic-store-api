@@ -48,7 +48,7 @@ func (e Company) ExpressList(c *gin.Context) {
 
 		if enable {
 			var CompanyFreight models2.CompanyFreight
-			e.Orm.Model(&models2.CompanyFreight{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("type = ?", row).Limit(1).Find(&CompanyFreight)
+			e.Orm.Model(&models2.CompanyFreight{}).Scopes(actions.PermissionSysUser(CompanyFreight.TableName(), userDto)).Where("type = ?", row).Limit(1).Find(&CompanyFreight)
 			if CompanyFreight.Id > 0 {
 
 				Freight := map[string]interface{}{
@@ -63,7 +63,8 @@ func (e Company) ExpressList(c *gin.Context) {
 		if row == global.ExpressStore {
 			address := make([]map[string]string, 0)
 			localAddress := make([]models2.CompanyExpressStore, 0)
-			e.Orm.Model(&models2.CompanyExpressStore{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Find(&localAddress)
+			var localObject models2.CompanyExpressStore
+			e.Orm.Model(&localObject).Scopes(actions.PermissionSysUser(localObject.TableName(), userDto)).Find(&localAddress)
 			for _, r := range localAddress {
 				address = append(address, map[string]string{
 					"address": r.Address,
