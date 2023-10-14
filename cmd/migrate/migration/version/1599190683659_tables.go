@@ -59,7 +59,8 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.CompanyExpressStore),
 			new(models.CompanyRole),
 			//大B配置
-			new(models.CompanyRegisterCnf),
+			new(models.CompanyRegisterRule),
+			//new(models.CompanyRegisterCnf),
 			new(models.CompanyWeAppCnf),
 			new(models.CompanyQuotaCnf),
 			new(models.CompanyEmsQuotaCnf),

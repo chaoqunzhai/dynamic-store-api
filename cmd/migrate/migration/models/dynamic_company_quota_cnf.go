@@ -5,7 +5,16 @@ package models
 import "time"
 
 
+type CompanyRegisterRule struct {
+	Model
+	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
+	CId int `gorm:"index;comment:大BID"`
+	UserRule int `gorm:"index;comment:1:需要审核通过才可以登录 2:需要审核直接注册"`
 
+}
+func (CompanyRegisterRule) TableName() string {
+	return "company_register_rule"
+}
 // todo:大B续费信息
 type CompanyRenewalTimeLog struct {
 	Model

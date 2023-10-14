@@ -216,6 +216,60 @@ func (e Company) Category(c *gin.Context) {
 	return
 
 }
+
+func (e Company) RegisterCnfInfo(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	//获取配置
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var object models2.CompanyRegisterRule
+	e.Orm.Model(&models2.CompanyRegisterRule{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
+	e.OK(object.UserRule, "successful")
+	return
+}
+func (e Company) RegisterCnf(c *gin.Context) {
+	req:=dto.RegisterRule{}
+	err := e.MakeContext(c).
+		Bind(&req,binding.JSON,nil).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	//获取配置
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var object models2.CompanyRegisterRule
+	e.Orm.Model(&models2.CompanyRegisterRule{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
+	if object.Id == 0 {
+
+		e.Orm.Create(&models2.CompanyRegisterRule{
+			CId: userDto.CId,
+			UserRule: req.Rule,
+		})
+	}else {
+		e.Orm.Model(&models2.CompanyRegisterRule{}).Where("c_id = ?",userDto.CId).Updates(map[string]interface{}{
+			"user_rule":req.Rule,
+		})
+	}
+	e.OK("", "successful")
+	return
+}
 func (e Company) Cnf(c *gin.Context) {
 	err := e.MakeContext(c).
 		MakeOrm().

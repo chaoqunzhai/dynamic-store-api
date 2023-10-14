@@ -23,6 +23,9 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.GET("/info", api.Info)
 		//一些限制配置
 		r.GET("/cnf", api.Cnf)
+		//修改注册登录的配置
+		r.POST("/register_cnf",api.RegisterCnf)
+		r.GET("/register_cnf",api.RegisterCnfInfo)
 		//r.GET("/home", api.MonitorData)
 		r.GET("/home", api.Demo)
 

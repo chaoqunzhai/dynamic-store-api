@@ -182,3 +182,6 @@ type CompanyDeleteReq struct {
 func (s *CompanyDeleteReq) GetId() interface{} {
 	return s.Ids
 }
+type RegisterRule struct {
+	Rule int  `json:"rule"`
+}
