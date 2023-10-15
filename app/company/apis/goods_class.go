@@ -137,8 +137,8 @@ func (e GoodsClass) Insert(c *gin.Context) {
 	var countAll int64
 	e.Orm.Model(&models.GoodsClass{}).Where("c_id = ?", userDto.CId).Count(&countAll)
 
-	CompanyCnf := business.GetCompanyCnf(userDto.CId, "good_class", e.Orm)
-	MaxNumber := CompanyCnf["good_class"]
+	CompanyCnf := business.GetCompanyCnf(userDto.CId, "goods_class", e.Orm)
+	MaxNumber := CompanyCnf["goods_class"]
 
 	if countAll >= int64(MaxNumber) {
 		e.Error(500, errors.New(fmt.Sprintf("分类最多只可创建%v个", MaxNumber)), fmt.Sprintf("分类最多只可创建%v个", MaxNumber))

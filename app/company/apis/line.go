@@ -301,7 +301,7 @@ func (e Line) Insert(c *gin.Context) {
 	var countAll int64
 	e.Orm.Model(&models.Line{}).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&countAll)
 
-	CompanyCnf := business.GetCompanyCnf(userDto.CId, "good_class", e.Orm)
+	CompanyCnf := business.GetCompanyCnf(userDto.CId, "line", e.Orm)
 	MaxNumber := CompanyCnf["line"]
 
 	if countAll >= int64(MaxNumber) {

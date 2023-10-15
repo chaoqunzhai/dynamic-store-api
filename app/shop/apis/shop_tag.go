@@ -137,7 +137,7 @@ func (e ShopTag) Insert(c *gin.Context) {
 	var object models.ShopTag
 	e.Orm.Model(&models.ShopTag{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Count(&countAll)
 
-	CompanyCnf := business.GetCompanyCnf(userDto.CId, "good_tag", e.Orm)
+	CompanyCnf := business.GetCompanyCnf(userDto.CId, "shop_tag", e.Orm)
 	MaxNumber:=CompanyCnf["shop_tag"]
 	if countAll >= int64(MaxNumber) {
 		e.Error(500, errors.New(fmt.Sprintf("分类最多只可创建%v个", MaxNumber)), fmt.Sprintf("分类最多只可创建%v个", MaxNumber))

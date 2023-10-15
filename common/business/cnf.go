@@ -46,9 +46,9 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 			switch key {
 			case "role":
 				v = global.CompanyMaxRole
-			case "good_class":
+			case "goods_class":
 				v = global.CompanyMaxGoodsClass
-			case "good_tag":
+			case "goods_tag":
 				v = global.CompanyMaxGoodsTag
 			case "shop_tag":
 				v = global.CompanyUserTag
