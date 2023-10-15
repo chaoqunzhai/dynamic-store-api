@@ -234,6 +234,10 @@ func (e Company) RegisterCnfInfo(c *gin.Context) {
 	}
 	var object models2.CompanyRegisterRule
 	e.Orm.Model(&models2.CompanyRegisterRule{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
+	if object.Id == 0 {
+		e.OK(1, "successful")
+		return
+	}
 	e.OK(object.UserRule, "successful")
 	return
 }
@@ -260,11 +264,11 @@ func (e Company) RegisterCnf(c *gin.Context) {
 
 		e.Orm.Create(&models2.CompanyRegisterRule{
 			CId: userDto.CId,
-			UserRule: req.Rule,
+			UserRule: req.Type,
 		})
 	}else {
 		e.Orm.Model(&models2.CompanyRegisterRule{}).Where("c_id = ?",userDto.CId).Updates(map[string]interface{}{
-			"user_rule":req.Rule,
+			"user_rule":req.Type,
 		})
 	}
 	e.OK("", "successful")
@@ -685,11 +689,17 @@ func (e Company) QuotaCnf(c *gin.Context)   {
 		var object models2.OfflinePay
 		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)
 		msg = "个线下支付可以创建"
+	case "role":
+		CompanyCnf := business.GetCompanyCnf(userDto.CId, "role", e.Orm)
+		MaxNumber = CompanyCnf["role"]
+		var object models2.CompanyRole
+		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)
+		msg = "个角色可以创建"
 
 	}
 	res["msg"] = msg
 	if int(dbCount) < MaxNumber {
-		//还有可以创建的路线
+
 		res["show"] = true
 		res["count"] =  MaxNumber - int(dbCount)
 	}else {
