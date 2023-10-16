@@ -60,6 +60,7 @@ type CompanyEmsRecordLog struct {
 	Model
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	CId int `gorm:"index;comment:大BID"`
+	Source string `gorm:"size:15;comment:发送源头"`
 	Phone string `gorm:"size:11;comment:手机号"`
 	Code string `gorm:"size:6;comment:验证码"`
 }

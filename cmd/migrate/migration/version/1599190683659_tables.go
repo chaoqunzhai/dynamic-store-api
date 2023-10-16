@@ -60,6 +60,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.CompanyRole),
 			//大B配置
 			new(models.CompanyRegisterRule),
+			new(models.CompanyRegisterUserVerify),
 			//new(models.CompanyRegisterCnf),
 			new(models.CompanyWeAppCnf),
 			new(models.CompanyQuotaCnf),
