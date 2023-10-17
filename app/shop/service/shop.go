@@ -128,6 +128,7 @@ func (e *Shop) Insert(userDto *sys.SysUser, c *dto.ShopInsertReq) error {
 
 // Update 修改Shop对象
 func (e *Shop) Update(c *dto.ShopUpdateReq, p *actions.DataPermission) error {
+
 	var err error
 	var data = models.Shop{}
 	e.Orm.Scopes(
@@ -151,9 +152,9 @@ func (e *Shop) Update(c *dto.ShopUpdateReq, p *actions.DataPermission) error {
 	}
 
 	//修改小B用户名更改
-	var shopUserObject sys.SysShopUser
-	e.Orm.Model(&shopUserObject).Where("c_id = ? and phone = ?",data.CId,data.Phone).Limit(1).Find(&shopUserObject)
 
+	var shopUserObject sys.SysShopUser
+	e.Orm.Model(&shopUserObject).Where("c_id = ? and user_id = ?",data.CId,data.UserId).Limit(1).Find(&shopUserObject)
 	//保存的是小B的用户ID
 	var shopUserId int
 	if shopUserObject.UserId == 0 {
@@ -174,7 +175,7 @@ func (e *Shop) Update(c *dto.ShopUpdateReq, p *actions.DataPermission) error {
 		shopUserId = shopUserDto.UserId
 	}else {
 		shopUserId = shopUserObject.UserId
-		e.Orm.Model(&sys.SysShopUser{}).Where("c_id = ? and phone = ?",data.CId,data.Phone).Updates(map[string]interface{}{
+		e.Orm.Model(&sys.SysShopUser{}).Where("c_id = ? and user_id = ?",data.CId,data.UserId).Updates(map[string]interface{}{
 			"username":data.UserName,
 			"phone":data.Phone,
 		})

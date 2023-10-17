@@ -2,6 +2,7 @@ package models
 
 import (
     "go-admin/common/models"
+    "gorm.io/gorm"
 )
 
 type Shop struct {
@@ -51,4 +52,22 @@ func (e *Shop) Generate() models.ActiveRecord {
 
 func (e *Shop) GetId() interface{} {
     return e.Id
+}
+
+
+type CompanyRegisterUserVerify struct {
+    models.Model
+    CreatedAt models.XTime `json:"created_at" gorm:"comment:创建时间"`
+    DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
+    CId int `json:"-" gorm:"index;comment:大BID"`
+    AdoptTime models.XTime `json:"adopt_time" gorm:"通过时间"`
+    AdoptUser string `json:"adopt_user" gorm:"size:11;comment:审批人"`
+    Source string `json:"source" gorm:"size:6;comment:注册方式 user | mobile"`
+    Value string `json:"value" gorm:"size:15;comment:注册数据,用户名或者手机号"`
+    AppTypeName string `json:"app_type_name" gorm:"size:6;comment:注册来源例如H5,WECHAT,ALI等"`
+    Status int `json:"status" gorm:"default:0;index;comment:0:审核中, 1:通过 -1:驳回"`
+    Info string `json:"info" gorm:"size:10;comment:备注"`
+}
+func (CompanyRegisterUserVerify) TableName() string {
+    return "company_register_user_verify"
 }

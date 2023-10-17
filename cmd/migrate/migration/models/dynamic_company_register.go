@@ -1,5 +1,9 @@
 package models
-import "time"
+
+import (
+	"gorm.io/gorm"
+	"time"
+)
 type CompanyRegisterRule struct {
 	Model
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
@@ -16,12 +20,16 @@ func (CompanyRegisterRule) TableName() string {
 
 type CompanyRegisterUserVerify struct {
 	Model
-	ControlBy
-	ModelTime
-	CId int `gorm:"index;comment:大BID"`
-	Source string `gorm:"size:6;comment:注册方式 user | mobile"`
-	Value string `gorm:"size:15;comment:注册数据,用户名或者手机号"`
-	Status int `gorm:"default:0;index;comment:0:不通过 1:通过"`
+	CreatedAt time.Time      `json:"created_at" gorm:"comment:创建时间"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
+	CId int `json:"-" gorm:"index;comment:大BID"`
+	AdoptTime time.Time `json:"adopt_time" gorm:"通过时间"`
+	AdoptUser string `json:"adopt_user" gorm:"size:11;comment:审批人"`
+	Source string `json:"source" gorm:"size:6;comment:注册方式 user | mobile"`
+	Value string `json:"value" gorm:"size:15;comment:注册数据,用户名或者手机号"`
+	AppTypeName string `json:"app_type_name" gorm:"size:6;comment:注册来源例如H5,WECHAT,ALI等"`
+	Status int `json:"status" gorm:"default:0;index;comment:0:审核中, 1:通过 -1:驳回"`
+	Info string `json:"info" gorm:"size:10;comment:备注"`
 }
 func (CompanyRegisterUserVerify) TableName() string {
 	return "company_register_user_verify"
