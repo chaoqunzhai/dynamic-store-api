@@ -255,6 +255,7 @@ func (e Shop) Insert(c *gin.Context) {
 		return
 	}
 
+
 	if req.Phone != ""{
 		var userCount int64
 		e.Orm.Model(&sys.SysShopUser{}).Where("phone = ? ",req.Phone).Count(&userCount)
@@ -262,10 +263,18 @@ func (e Shop) Insert(c *gin.Context) {
 			e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
 			return
 		}
+
+		var userShopCount int64
+		e.Orm.Model(&models.Shop{}).Where("phone = ? ",req.Phone).Count(&userShopCount)
+		if userShopCount > 0 {
+			e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
+			return
+		}
 	}
 
 	var userNameCount int64
-	e.Orm.Model(&sys.SysShopUser{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("username = ? ",req.UserName).Count(&userNameCount)
+	var SysShopUserObject sys.SysShopUser
+	e.Orm.Model(&sys.SysShopUser{}).Scopes(actions.PermissionSysUser(SysShopUserObject.TableName(), userDto)).Where("username = ? ",req.UserName).Count(&userNameCount)
 	if userNameCount > 0 {
 		e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
 		return
@@ -343,27 +352,35 @@ func (e Shop) Update(c *gin.Context) {
 	}
 	//手机号发生了变化
 	if req.Phone !="" {
-		if parentShopRow.Phone != req.Phone {
-			//检测手机号是否已经存在
-			var validUser sys.SysShopUser
-			//查询大B下 + 新手机号
-			e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("phone = ? ",req.Phone).Limit(1).Find(&validUser)
 
-			if validUser.UserId > 0 {
-				if validUser.UserId != parentShopRow.UserId {
-					e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
-					return
-				}
-			}
-		}
-	}
-	//用户名发生了变化
-	if parentShopRow.UserName != req.UserName {
 		//检测手机号是否已经存在
 		var validUser sys.SysShopUser
 		//查询大B下 + 新手机号
-		e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("username = ? ",req.UserName).Limit(1).Find(&validUser)
+		e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("phone = ? ",req.Phone).Limit(1).Find(&validUser)
 
+		if validUser.UserId > 0 {
+			if validUser.UserId != parentShopRow.UserId {
+				e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
+				return
+			}
+		}
+		//商城的手机号也要保持唯一
+		var userShop models.Shop
+		e.Orm.Model(&userShop).Select("user_id").Where("phone = ? ",req.Phone).Limit(1).Find(&userShop)
+		if userShop.UserId > 0 {
+			if userShop.UserId != parentShopRow.UserId {
+				e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
+				return
+			}
+		}
+
+	}
+	//用户名发生了变化
+	if parentShopRow.UserName != req.UserName {
+
+		var validUser sys.SysShopUser
+
+		e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("username = ? ",req.UserName).Limit(1).Find(&validUser)
 		if validUser.UserId > 0 {
 			if validUser.UserId != parentShopRow.UserId {
 				e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
@@ -668,9 +685,9 @@ func (e Shop) UpPass(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-
-	var sysDto sys.SysUser
-	e.Orm.Model(&sys.SysUser{}).Scopes(actions.PermissionSysUser(sysDto.TableName(), userDto)).Where("user_id = ? ",req.Id).Limit(1).Find(&sysDto)
+	//更新的是小B的用户
+	var sysDto sys.SysShopUser
+	e.Orm.Model(&sys.SysShopUser{}).Scopes(actions.PermissionSysUser(sysDto.TableName(), userDto)).Where("user_id = ? ",req.Id).Limit(1).Find(&sysDto)
 
 	if sysDto.UserId == 0 {
 		e.Error(500,nil,"用户不存在")
@@ -682,7 +699,7 @@ func (e Shop) UpPass(c *gin.Context) {
 		e.Error(500,err,"密码更新失败")
 		return
 	}
-	e.Orm.Model(&sys.SysUser{}).Scopes(actions.PermissionSysUser(sysDto.TableName(), userDto)).Where("user_id = ? ",req.Id).Updates(map[string]interface{}{
+	e.Orm.Model(&sys.SysShopUser{}).Scopes(actions.PermissionSysUser(sysDto.TableName(), userDto)).Where("user_id = ? ",req.Id).Updates(map[string]interface{}{
 		"password":string(hash),
 	})
 

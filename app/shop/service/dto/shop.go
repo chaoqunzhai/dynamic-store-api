@@ -56,7 +56,7 @@ type ShopInsertReq struct {
 	Enable        bool    `json:"enable" comment:"开关"`
 	Desc          string  `json:"desc" comment:"描述信息"`
 	Name          string  `json:"name" comment:"小B名称" binding:"required"`
-	Phone         string  `json:"phone" comment:"联系手机号" binding:"required"` //小B的手机号
+	Phone         string  `json:"phone" comment:"联系手机号"` //小B的手机号
 	UserName      string  `json:"username" comment:"小B负责人名称" binding:"required"`
 	Address       string  `json:"address" comment:"小B收货地址" `
 	Password string `json:"password"`
@@ -130,7 +130,7 @@ type ShopUpdateReq struct {
 	Desc          string  `json:"desc" comment:"描述信息"`
 	UserId        int     `json:"userId" comment:"管理员ID"`
 	Name          string  `json:"name" comment:"小B名称" binding:"required"`
-	Phone         string  `json:"phone" comment:"联系手机号" binding:"required"`
+	Phone         string  `json:"phone" comment:"联系手机号" `
 	UserName      string  `json:"username" comment:"小B负责人名称" binding:"required"`
 	Address       string  `json:"address" comment:"小B收货地址"`
 	Longitude     float64 `json:"longitude" comment:""`

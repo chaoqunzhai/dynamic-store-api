@@ -44,3 +44,10 @@
 {"level":"info","time":"2023-10-18 00:25:36","caller":"/Users/zhaichaoqun/workespace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
 {"level":"info","time":"2023-10-18 00:26:48","caller":"/Users/zhaichaoqun/workespace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
 {"level":"info","time":"2023-10-18 00:27:58","caller":"/Users/zhaichaoqun/workespace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-18 22:04:29","caller":"/Users/zhaichaoqun/workespace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-18 22:22:02","caller":"/Users/zhaichaoqun/workespace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-18 22:22:41","caller":"/Users/zhaichaoqun/workespace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-18 22:42:24","caller":"/Users/zhaichaoqun/workespace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-19 00:09:01","caller":"/Users/zhaichaoqun/workespace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-19 00:10:19","caller":"/Users/zhaichaoqun/workespace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-19 00:21:25","caller":"/Users/zhaichaoqun/workespace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
