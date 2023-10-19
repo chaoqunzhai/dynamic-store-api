@@ -5,7 +5,7 @@ settings:
     # 服务器ip，默认使用 0.0.0.0
     host: 0.0.0.0
     # 服务名称
-    name: dynamic
+    name: dynamic-store
     # 端口号
     port: 8099 # 服务端口号
     readtimeout: 1
@@ -23,7 +23,7 @@ settings:
     enableddb: false
   jwt:
     # token 密钥，生产环境时及的修改
-    secret: dynamic
+    secret: dynamic-store
     # token 过期时间 单位：秒
     #默认过期时间 5个小时
     timeout: 180000

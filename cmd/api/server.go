@@ -19,9 +19,8 @@ import (
 	"github.com/go-admin-team/go-admin-core/sdk/runtime"
 	"github.com/spf13/cobra"
 
-	"go-admin/app/admin/models"
 	"go-admin/app/admin/router"
-	"go-admin/app/jobs"
+
 	"go-admin/common/database"
 	"go-admin/common/global"
 	common "go-admin/common/middleware"
@@ -66,12 +65,6 @@ func setup() {
 		database.Setup,
 		storage.Setup,
 	)
-	//注册监听函数
-	queue := sdk.Runtime.GetMemoryQueue("")
-	queue.Register(global.LoginLog, models.SaveLoginLog)
-	queue.Register(global.OperateLog, models.SaveOperaLog)
-	queue.Register(global.ApiCheck, models.SaveSysApi)
-	go queue.Run()
 
 	usageStr := `starting api server...`
 	log.Println(usageStr)
@@ -92,14 +85,12 @@ func run() error {
 		Handler: sdk.Runtime.GetEngine(),
 	}
 
-	go func() {
-		jobs.InitJob()
-		jobs.Setup(sdk.Runtime.GetDb())
+	//go func() {
+	//	jobs.InitJob()
+	//	jobs.Setup(sdk.Runtime.GetDb())
+	//
+	//}()
 
-	}()
-	Initialization()
-	InitializationWeApp()
-	redis_db.RedisConn()
 	if apiCheck {
 		var routers = sdk.Runtime.GetRouter()
 		q := sdk.Runtime.GetMemoryQueue("")
@@ -129,14 +120,11 @@ func run() error {
 			}
 		}
 	}()
-	fmt.Println(pkg.Red(string(global.LogoContent)))
-	tip()
+	redis_db.RedisConn()
 	fmt.Println(pkg.Green("Server run at:"))
 	fmt.Printf("-  Local:   http://localhost:%d/ \r\n", config.ApplicationConfig.Port)
 	fmt.Printf("-  Network: http://%s:%d/ \r\n", pkg.GetLocaHonst(), config.ApplicationConfig.Port)
-	fmt.Println(pkg.Green("Swagger run at:"))
-	fmt.Printf("-  Local:   http://localhost:%d/swagger/admin/index.html \r\n", config.ApplicationConfig.Port)
-	fmt.Printf("-  Network: http://%s:%d/swagger/admin/index.html \r\n", pkg.GetLocaHonst(), config.ApplicationConfig.Port)
+
 	fmt.Printf("%s Enter Control + C Shutdown Server \r\n", pkg.GetCurrentTimeStr())
 	// 等待中断信号以优雅地关闭服务器（设置 5 秒的超时时间）
 	quit := make(chan os.Signal, 1)

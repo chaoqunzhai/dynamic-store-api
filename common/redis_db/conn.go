@@ -3,6 +3,7 @@ package redis_db
 import (
 	"context"
 	"fmt"
+	"github.com/go-admin-team/go-admin-core/sdk/pkg"
 	"github.com/go-redis/redis/v8"
 	"go-admin/config"
 	"runtime"
@@ -34,5 +35,6 @@ func RedisConn() {
 		fmt.Println("redis链接失败", err)
 		panic(err)
 	}
-	fmt.Println("成功连接到Redis")
+	fmt.Println(pkg.Green("Redis conn at:"))
+	fmt.Println("Redis链接成功")
 }

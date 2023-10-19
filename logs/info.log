@@ -55,3 +55,11 @@
 {"level":"info","time":"2023-10-19 12:50:42","caller":"/Users/zhaichaoqun/workspace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
 {"level":"info","time":"2023-10-19 12:51:24","caller":"/Users/zhaichaoqun/workspace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
 {"level":"info","time":"2023-10-19 12:54:06","caller":"/Users/zhaichaoqun/workspace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-19 12:57:36","caller":"/Users/zhaichaoqun/workspace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-19 12:58:42","caller":"/Users/zhaichaoqun/workspace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-19 12:59:03","caller":"/Users/zhaichaoqun/workspace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-19 13:05:10","caller":"/Users/zhaichaoqun/workspace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-19 13:05:19","caller":"/Users/zhaichaoqun/workspace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-19 13:05:55","caller":"/Users/zhaichaoqun/workspace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-19 13:06:45","caller":"/Users/zhaichaoqun/workspace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-19 13:07:09","caller":"/Users/zhaichaoqun/workspace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
