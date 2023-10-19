@@ -145,28 +145,7 @@ func run() error {
 
 var Router runtime.Router
 
-func tip() {
-	usageStr := `欢迎使用 ` + pkg.Green(`go-admin `+global.Version) + ` 可以使用 ` + pkg.Red(`-h`) + ` 查看命令`
-	fmt.Printf("%s \n\n", usageStr)
-}
-func Cors() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		method := c.Request.Method
 
-		c.Header("Access-Control-Allow-Origin", "*")
-		c.Header("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
-		c.Header("Access-Control-Allow-Headers", "*")
-		c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Cache-Control, Content-Language, Content-Type")
-		c.Header("Access-Control-Allow-Credentials", "true")
-
-		//放行所有OPTIONS方法
-		if method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusNoContent)
-		}
-		// 处理请求
-		c.Next()
-	}
-}
 
 func initRouter() {
 	var r *gin.Engine
@@ -185,7 +164,7 @@ func initRouter() {
 	if config.SslConfig.Enable {
 		r.Use(handler.TlsHandler())
 	}
-	//.Use(common.SentinelContext()) 需要测试
+
 	r.Use(common.RequestId(pkg.TrafficKey)).
 		Use(api.SetRequestLogger)
 	common.InitMiddleware(r)

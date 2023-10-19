@@ -25,7 +25,9 @@ func sysBaseRouter(r *gin.RouterGroup) {
 	go ws.WebsocketManager.SendService()
 	go ws.WebsocketManager.SendAllService()
 
-	r.GET("/", apis.GoAdmin)
+	adminBase :=apis.GoAdminSystem{}
+	r.GET("", adminBase.GoAdmin)
+	r.GET("/api/v1/captcha", adminBase.GenerateCaptchaHandler)
 	r.GET("/image/:type/:cid/:name", handler.ImageShow)
 }
 
