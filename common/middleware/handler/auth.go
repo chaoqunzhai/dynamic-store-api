@@ -165,12 +165,13 @@ func Authorizator(data interface{}, c *gin.Context) bool {
 
 	if v, ok := data.(map[string]interface{}); ok {
 		u, _ := v["user"].(models.SysUser)
-		r, _ := v["role"].(models.SysRole)
-		c.Set("role", r.RoleName)
-		c.Set("roleIds", r.RoleId)
+		//r, _ := v["role"].(models.SysRole)
+		//c.Set("role", r.RoleName)
+		//c.Set("roleIds", r.RoleId)
+		//c.Set("dataScope", r.DataScope)
 		c.Set("userId", u.UserId)
 		c.Set("userName", u.Username)
-		c.Set("dataScope", r.DataScope)
+
 		return true
 	}
 	return false

@@ -63,3 +63,4 @@
 {"level":"info","time":"2023-10-19 13:05:55","caller":"/Users/zhaichaoqun/workspace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
 {"level":"info","time":"2023-10-19 13:06:45","caller":"/Users/zhaichaoqun/workspace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
 {"level":"info","time":"2023-10-19 13:07:09","caller":"/Users/zhaichaoqun/workspace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
+{"level":"info","time":"2023-10-19 15:40:48","caller":"/Users/zhaichaoqun/workspace/goProjects/src/dynamic-store-api/global/initialization/initialization.go:101","msg":"日志开始记录！","api":"dynamic-weapp-api"}
