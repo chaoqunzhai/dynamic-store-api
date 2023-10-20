@@ -24,3 +24,4 @@ go.sum
 config/settings.deva.yml
 dynamic-store
 goods
+logs/*
