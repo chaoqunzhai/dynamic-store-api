@@ -5,7 +5,6 @@
 package systemChan
 
 import (
-	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -39,7 +38,7 @@ func watchSysChannel()  {
 			continue
 		}
 
-		fmt.Printf("读取到了消息:%v\n",message)
+
 		switch message.Table {
 		case "sys_login_log":
 			saveLoginLog(message)

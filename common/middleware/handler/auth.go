@@ -3,13 +3,15 @@ package handler
 import (
 	"errors"
 	"go-admin/app/admin/models"
+	"go-admin/common"
+	"go-admin/common/systemChan"
+	"go-admin/global"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
-	"github.com/go-admin-team/go-admin-core/sdk/config"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/captcha"
 	jwt "github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 )
@@ -79,24 +81,47 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 
 		return nil, ErrMissingLoginValues
 	}
-	if config.ApplicationConfig.Mode != "dev" {
-		if !captcha.Verify(loginVals.UUID, loginVals.Code, true) {
 
-			return nil, ErrInvalidVerificationode
-		}
-	}
 	if loginVals.Phone != "" {
 		userRow, role, e := loginVals.GetUserPhone(db)
+		messageData:=map[string]interface{}{
+			"ipaddr":common.GetClientIP(c),
+			"user":loginVals.Phone,
+			"login_time":time.Now(),
+			"source":"PC",
+			"client":global.LogIngPC,
+			"user_type":global.LogIngPhoneType,
+			"role":"大B",
+		}
 		if e == nil {
-
+			messageData["c_id"] = userRow.CId
+			systemChan.SendMessage(&systemChan.Message{
+				Table: "sys_login_log",
+				Data: messageData,
+				Orm: db,
+			})
 			return map[string]interface{}{"user": userRow, "role": role}, nil
 		} else {
 			log.Warnf("%s login failed!", loginVals.Phone)
 		}
 	} else {
 		userRow, role, e := loginVals.GetUser(db)
+		messageData:=map[string]interface{}{
+			"ipaddr":common.GetClientIP(c),
+			"user":loginVals.UserName,
+			"login_time":time.Now(),
+			"source":"PC",
+			"role":"大B",
+			"client":global.LogIngPC,
+			"user_type":global.LogIngUserType,
+		}
 		if e == nil {
-
+			messageData["c_id"] = userRow.CId
+			systemChan.SendMessage(&systemChan.Message{
+				Table: "sys_login_log",
+				Data: messageData,
+				Orm: db,
+			})
 			return map[string]interface{}{"user": userRow, "role": role}, nil
 		} else {
 			log.Warnf("%s login failed!", loginVals.Phone)

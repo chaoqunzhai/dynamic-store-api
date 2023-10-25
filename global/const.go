@@ -8,7 +8,10 @@ import (
 const (
 	StdOut   = "./logs/info.log"
 	StdError = "./logs/error.log"
-
+	LogIngWeApp = "移动客户端,weapp-api"
+	LogIngPC = "PC端,store-api"
+	LogIngUserType = "用户名登录"
+	LogIngPhoneType = "手机号登录"
 	ExpressStore     = 1 //门店自提
 	ExpressLocal     = 2 //同城配送
 	ExpressLogistics = 3 //物流配送

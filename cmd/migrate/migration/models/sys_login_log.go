@@ -6,18 +6,15 @@ import (
 
 type SysLoginLog struct {
 	Model
-	Username      string    `json:"username" gorm:"type:varchar(128);comment:用户名"`
-	Status        string    `json:"status" gorm:"type:varchar(4);comment:状态"`
-	Ipaddr        string    `json:"ipaddr" gorm:"type:varchar(255);comment:ip地址"`
-	LoginLocation string    `json:"loginLocation" gorm:"type:varchar(255);comment:归属地"`
-	Browser       string    `json:"browser" gorm:"type:varchar(255);comment:浏览器"`
-	Os            string    `json:"os" gorm:"type:varchar(255);comment:系统"`
-	Platform      string    `json:"platform" gorm:"type:varchar(255);comment:固件"`
-	LoginTime     time.Time `json:"loginTime" gorm:"type:timestamp;comment:登录时间"`
-	Remark        string    `json:"remark" gorm:"type:varchar(255);comment:备注"`
-	Msg           string    `json:"msg" gorm:"type:varchar(255);comment:信息"`
-	CreatedAt     time.Time `json:"createdAt" gorm:"comment:创建时间"`
-	UpdatedAt     time.Time `json:"updatedAt" gorm:"comment:最后更新时间"`
+	CId int `json:"c_id" gorm:"index;comment:大BID"`
+	User      string    `json:"user" gorm:"type:varchar(18);comment:登录的用户名称/手机号"`
+	UserType string `json:"user_type" gorm:"type:varchar(10);comment:登录的类型"`
+	Client string `json:"client" gorm:"type:varchar(15);comment:端"`
+	Ipaddr        string    `json:"ipaddr" gorm:"type:varchar(15);comment:ip地址"`
+	Source        string    `json:"source" gorm:"type:varchar(12);comment:登录来源"`
+	LoginTime     time.Time `json:"login_time" gorm:"type:timestamp;comment:登录时间"`
+	Remark        string    `json:"remark" gorm:"type:varchar(6);comment:备注"`
+	Role string `json:"role" gorm:"type:varchar(6);comment:角色"`
 	ControlBy
 }
 
