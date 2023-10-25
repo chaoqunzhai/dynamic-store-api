@@ -19,8 +19,8 @@ settings:
     stdout: '' #控制台日志，启用后，不输出到文件
     # 日志等级, trace, debug, info, warn, error, fatal
     level: trace
-    # 数据库日志开关
-    enableddb: false
+    # 操作数据库的记录开关
+    enableddb: true
   jwt:
     # token 密钥，生产环境时及的修改
     secret: dynamic-store
@@ -52,13 +52,6 @@ settings:
       ip: "152.136.36.253"
       port: "26379"
       password: "dcyTestRedis@2023"
-    fyPayClient: #客户端支付
-      inscd: "08K0054880" #机构号
-      payDomain: "https://spay-mc.fuioupay.com/wxPreCreate"
-      paySearch: "https://spay-mc.fuioupay.com/commonQuery"
-      mchntcd:  "0007910F5902365"
-      orderRandom: "hfWUxQiqPx"
-      openId: "o5TLF5YfLbL97r50xA157B9GOR3k"
     tx:
       cosSecretID: "AKIDuc92sDKFwPiwymMisoVxCF5h5FBtMbcO"
       cosSecretKey: "byAQSFpAHApGSQAiVBdrreDZhaFm9LI3"

@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	OperaStatusEnabel  = "1" // 状态-正常
+	OperaStatusEnable  = "1" // 状态-正常
 	OperaStatusDisable = "2" // 状态-关闭
 )
 
