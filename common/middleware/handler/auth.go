@@ -3,19 +3,15 @@ package handler
 import (
 	"errors"
 	"go-admin/app/admin/models"
-	"go-admin/common"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/go-admin-team/go-admin-core/sdk"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/config"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/captcha"
 	jwt "github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/response"
-	"github.com/mssola/user_agent"
-	"go-admin/common/global"
 )
 
 var (
@@ -107,40 +103,6 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 		}
 	}
 	return nil, ErrFailedAuthentication
-}
-
-// LoginLogToDB Write log to database
-func LoginLogToDB(c *gin.Context, status string, msg string, username string) {
-	if !config.LoggerConfig.EnabledDB {
-		return
-	}
-	log := api.GetRequestLogger(c)
-	l := make(map[string]interface{})
-
-	ua := user_agent.New(c.Request.UserAgent())
-	l["ipaddr"] = common.GetClientIP(c)
-	l["loginLocation"] = "" // pkg.GetLocation(common.GetClientIP(c),gaConfig.ExtConfig.AMap.Key)
-	l["loginTime"] = pkg.GetCurrentTime()
-	l["status"] = status
-	l["remark"] = c.Request.UserAgent()
-	browserName, browserVersion := ua.Browser()
-	l["browser"] = browserName + " " + browserVersion
-	l["os"] = ua.OS()
-	l["platform"] = ua.Platform()
-	l["username"] = username
-	l["msg"] = msg
-
-	q := sdk.Runtime.GetMemoryQueue(c.Request.Host)
-	message, err := sdk.Runtime.GetStreamMessage("", global.LoginLog, l)
-	if err != nil {
-		log.Errorf("GetStreamMessage error, %s", err.Error())
-		//日志报错错误，不中断请求
-	} else {
-		err = q.Append(message)
-		if err != nil {
-			log.Errorf("Append message error, %s", err.Error())
-		}
-	}
 }
 
 // LogOut

@@ -22,7 +22,6 @@ import (
 	"go-admin/app/admin/router"
 
 	"go-admin/common/database"
-	"go-admin/common/global"
 	common "go-admin/common/middleware"
 	"go-admin/common/middleware/handler"
 	"go-admin/common/storage"
@@ -90,23 +89,6 @@ func run() error {
 	//	jobs.Setup(sdk.Runtime.GetDb())
 	//
 	//}()
-
-	if apiCheck {
-		var routers = sdk.Runtime.GetRouter()
-		q := sdk.Runtime.GetMemoryQueue("")
-		mp := make(map[string]interface{}, 0)
-		mp["List"] = routers
-		message, err := sdk.Runtime.GetStreamMessage("", global.ApiCheck, mp)
-		if err != nil {
-			log.Printf("GetStreamMessage error, %s \n", err.Error())
-			//日志报错错误，不中断请求
-		} else {
-			err = q.Append(message)
-			if err != nil {
-				log.Printf("Append message error, %s \n", err.Error())
-			}
-		}
-	}
 
 	go func() {
 		// 服务连接

@@ -3,7 +3,6 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	jwt "github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/ws"
 	"go-admin/app/admin/apis"
 
 	"go-admin/common/middleware/handler"
@@ -21,10 +20,6 @@ func InitSysRouter(r *gin.Engine, authMiddleware *jwt.GinJWTMiddleware) *gin.Rou
 
 func sysBaseRouter(r *gin.RouterGroup) {
 
-	go ws.WebsocketManager.Start()
-	go ws.WebsocketManager.SendService()
-	go ws.WebsocketManager.SendAllService()
-
 	adminBase :=apis.GoAdminSystem{}
 	r.GET("", adminBase.GoAdmin)
 	r.GET("/api/v1/captcha", adminBase.GenerateCaptchaHandler)
@@ -38,8 +33,7 @@ func sysCheckRoleRouterInit(r *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 	v1 := r.Group("/api/v1")
 	{
 		v1.POST("/login", authMiddleware.LoginHandler)
-		// Refresh time can be longer than token timeout
-		v1.GET("/refresh_token", authMiddleware.RefreshHandler)
+
 	}
 	registerBaseRouter(v1, authMiddleware)
 }
