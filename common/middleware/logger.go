@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"go-admin/app/admin/service/dto"
 	"go-admin/common"
 	"io"
 	"io/ioutil"
@@ -91,7 +90,10 @@ func LoggerToFile() gin.HandlerFunc {
 		log.WithFields(logData).Info()
 
 		if c.Request.Method != "OPTIONS" && config.LoggerConfig.EnabledDB && statusCode != 404 {
-			SetDBOpenerLog(c, clientIP, statusCode, reqUri, reqMethod, latencyTime, body, result, statusBus)
+			//只记录数据更改的操作
+			if c.Request.Method == "POST" ||  c.Request.Method == "PUT	"{
+				SetDBOpenerLog(c, clientIP, statusCode, reqUri, reqMethod, latencyTime, body, result, statusBus)
+			}
 		}
 	}
 }
@@ -101,6 +103,7 @@ func SetDBOpenerLog(c *gin.Context, clientIP string, statusCode int, reqUri stri
 
 	l := make(map[string]interface{})
 	l["_fullPath"] = c.FullPath()
+	l["source"] = "大B端"
 	l["operUrl"] = reqUri
 	l["operIp"] = clientIP
 	l["operName"] = user.GetUserName(c)
@@ -114,9 +117,9 @@ func SetDBOpenerLog(c *gin.Context, clientIP string, statusCode int, reqUri stri
 	l["createBy"] = user.GetUserId(c)
 	l["updateBy"] = user.GetUserId(c)
 	if status == http.StatusOK {
-		l["status"] = dto.OperaStatusEnable
+		l["status"] = "正常"
 	} else {
-		l["status"] = dto.OperaStatusDisable
+		l["status"] ="异常"
 	}
 
 	fmt.Println("lll!!",l)
