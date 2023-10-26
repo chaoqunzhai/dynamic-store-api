@@ -8,6 +8,7 @@ import (
 const (
 	StdOut   = "./logs/info.log"
 	StdError = "./logs/error.log"
+	DebugError = "./logs/debug.log"
 	LogIngWeApp = "移动客户端,weapp-api"
 	LogIngPC = "PC端,store-api"
 	LogIngUserType = "用户名登录"

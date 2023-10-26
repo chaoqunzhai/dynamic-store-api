@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"go-admin/common"
+	"go.uber.org/zap"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -122,5 +122,6 @@ func SetDBOpenerLog(c *gin.Context, clientIP string, statusCode int, reqUri stri
 		l["status"] ="异常"
 	}
 
-	fmt.Println("lll!!",l)
+	data,_:=json.Marshal(l)
+	zap.S().Debugln(string(data))
 }

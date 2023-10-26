@@ -33,6 +33,13 @@ func InitLogger() {
 		MaxAge:     14,               // 文件最多保存多少天
 		Compress:   true,            // 是否压缩
 	}
+	debugError :=lumberjack.Logger{
+		Filename:   global.DebugError, // 日志文件路径
+		MaxSize:    128,             // 每个日志文件保存的最大尺寸 单位：M
+		MaxBackups: 30,              // 日志文件最多保存多少个备份
+		MaxAge:     14,               // 文件最多保存多少天
+		Compress:   true,            // 是否压缩
+	}
 	encoderConfig := zapcore.EncoderConfig{
 		TimeKey:        "time",
 		LevelKey:       "level",
@@ -57,7 +64,9 @@ func InitLogger() {
 	errorLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
 		return lvl >= zapcore.ErrorLevel
 	})
-
+	debugLevel := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+		return lvl >= zapcore.DebugLevel
+	})
 	var level zapcore.Level
 	switch Level {
 	case "info":
@@ -86,6 +95,7 @@ func InitLogger() {
 	core := zapcore.NewTee(
 		zapcore.NewCore(encoder, zapcore.AddSync(&hookInfo), infoLevel),
 		zapcore.NewCore(encoder, zapcore.AddSync(&hookError), errorLevel),
+		zapcore.NewCore(encoder,zapcore.AddSync(&debugError),debugLevel),
 	)
 	//config = config
 	_,_ = config.Build()
@@ -94,7 +104,7 @@ func InitLogger() {
 	// 开启文件及行号
 	development := zap.Development()
 	// 设置初始化字段
-	filed := zap.Fields(zap.String("api", "dynamic-weapp-api"))
+	filed := zap.Fields(zap.String("api", "dynamic-store-api"))
 	logger := zap.New(core, caller, development, filed)
 
 	zap.ReplaceGlobals(logger)
