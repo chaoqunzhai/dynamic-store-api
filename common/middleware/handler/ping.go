@@ -6,6 +6,7 @@ import (
 
 func Ping(c *gin.Context) {
 	c.JSON(200, gin.H{
-		"message": "dcy-store.api",
+		"code":200,
+		"msg": "dcy-store.api",
 	})
 }

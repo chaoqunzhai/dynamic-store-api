@@ -1,7 +1,9 @@
 package models
 
 //大B的业务信息
-import "time"
+import (
+	"time"
+)
 
 // todo:大B信息
 type Company struct {
@@ -16,6 +18,8 @@ type Company struct {
 	Image          string    `gorm:"size:80;comment:logo图片"`
 	RenewalTime    time.Time `json:"renewal_time" gorm:"comment:续费时间"`
 	ExpirationTime time.Time `json:"expiration_time" gorm:"comment:到期时间"`
+	LoginTime time.Time     `json:"login_time" gorm:"type:datetime(3);comment:登录时间"`
+
 }
 
 func (Company) TableName() string {

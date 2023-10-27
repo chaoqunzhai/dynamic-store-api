@@ -1,10 +1,13 @@
 package handler
 
 import (
+	"errors"
 	log "github.com/go-admin-team/go-admin-core/logger"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg"
+	"go-admin/cmd/migrate/migration/models"
 	"go-admin/global"
 	"gorm.io/gorm"
+	"time"
 )
 
 type Login struct {
@@ -13,6 +16,22 @@ type Login struct {
 	Password string `form:"password" json:"password" binding:"required"`
 	Code     string `form:"Code" json:"code" binding:"required"`
 	UUID     string `form:"UUID" json:"uuid" binding:"required"`
+}
+
+func LoginValidCompany(cId int,tx *gorm.DB) error {
+
+	var companyObject models.Company
+	tx.Model(&models.Company{}).Select("id,expiration_time").Where("id = ? and enable = ?", cId, true).First(&companyObject)
+	if companyObject.Id == 0 {
+
+
+		return errors.New("您的系统已下线")
+	}
+	if companyObject.ExpirationTime.Before(time.Now()) {
+
+		return errors.New("账号已到期,请及时续费")
+	}
+	return nil
 }
 
 func (u *Login) GetUserPhone(tx *gorm.DB) (user SysUser, role SysRole, err error) {
@@ -32,6 +51,7 @@ func (u *Login) GetUserPhone(tx *gorm.DB) (user SysUser, role SysRole, err error
 		log.Errorf("get role error, %s", err.Error())
 		return
 	}
+	err =LoginValidCompany(user.CId,tx)
 	return
 }
 func (u *Login) GetUser(tx *gorm.DB) (user SysUser, role SysRole, err error) {

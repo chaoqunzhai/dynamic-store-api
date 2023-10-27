@@ -58,19 +58,5 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.GET("/user/mini", api.MiniList)
 		r.POST("/user/code", api.MakeCode)
 	}
-	//只有超管有权限
-	r2 := v1.Group("/company").Use(authMiddleware.MiddlewareFunc()).
-		Use(middleware.AuthCheckRole()).Use(actions.PermissionSuperRole())
-	{
-		//进行续费,大B的续费最好是通过这个接口来统一进行续费
-		r2.POST("/renew", api.Renew)
-		//续费日志
-		r2.GET("/renew", api.RenewPage)
-		r2.GET("", api.GetPage)
-		r2.GET("/:id", api.Get)
-		r2.POST("", api.Insert)
-		r2.PUT("/:id", api.Update)
-		r2.DELETE("", api.Delete)
-	}
 
 }

@@ -22,6 +22,7 @@ func sysBaseRouter(r *gin.RouterGroup) {
 
 	adminBase :=apis.GoAdminSystem{}
 	r.GET("", adminBase.GoAdmin)
+	r.GET("/info", handler.Ping)
 	r.GET("/api/v1/captcha", adminBase.GenerateCaptchaHandler)
 	r.GET("/image/:type/:cid/:name", handler.ImageShow)
 }

@@ -102,7 +102,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 			})
 			return map[string]interface{}{"user": userRow, "role": role}, nil
 		} else {
-			log.Warnf("%s login failed!", loginVals.Phone)
+			return nil, e
 		}
 	} else {
 		userRow, role, e := loginVals.GetUser(db)
@@ -124,10 +124,10 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 			})
 			return map[string]interface{}{"user": userRow, "role": role}, nil
 		} else {
-			log.Warnf("%s login failed!", loginVals.Phone)
+			return nil, e
 		}
 	}
-	return nil, ErrFailedAuthentication
+
 }
 
 // LogOut
