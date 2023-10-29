@@ -8,6 +8,7 @@ import (
 // todo:大B信息
 type Company struct {
 	RichGlobal
+	LeaderId uint `json:"leader_id"`
 	Name           string    `gorm:"index;size:30;comment:公司(大B)名称"`
 	Phone          string    `gorm:"size:11;comment:负责人联系手机号"`
 	UserName       string    `gorm:"size:20;comment:大B负责人名称"`

@@ -18,10 +18,10 @@ type Login struct {
 	UUID     string `form:"UUID" json:"uuid" binding:"required"`
 }
 
-func LoginValidCompany(cId int,tx *gorm.DB) error {
+func LoginValidCompany(userId int,tx *gorm.DB) error {
 
 	var companyObject models.Company
-	tx.Model(&models.Company{}).Select("id,expiration_time").Where("id = ? and enable = ?", cId, true).First(&companyObject)
+	tx.Model(&models.Company{}).Select("id,expiration_time").Where("leader_id = ? and enable = ?", userId, true).First(&companyObject)
 	if companyObject.Id == 0 {
 
 
@@ -51,7 +51,7 @@ func (u *Login) GetUserPhone(tx *gorm.DB) (user SysUser, role SysRole, err error
 		log.Errorf("get role error, %s", err.Error())
 		return
 	}
-	err =LoginValidCompany(user.CId,tx)
+	err =LoginValidCompany(user.UserId,tx)
 	return
 }
 func (u *Login) GetUser(tx *gorm.DB) (user SysUser, role SysRole, err error) {
