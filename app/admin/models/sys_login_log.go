@@ -16,17 +16,14 @@ type SysLoginLog struct {
 	Source        string    `json:"source" gorm:"type:varchar(12);comment:登录来源"`
 	LoginTime     time.Time `json:"login_time" gorm:"type:timestamp;comment:登录时间"`
 	Remark        string    `json:"remark" gorm:"type:varchar(6);comment:备注"`
-	models.ControlBy
+	Role int `json:"role" gorm:"type:varchar(1);comment:0:超管 1:大B 2:小B"`
 }
 
 func (SysLoginLog) TableName() string {
 	return "sys_login_log"
 }
 
-func (e *SysLoginLog) Generate() models.ActiveRecord {
-	o := *e
-	return &o
-}
+
 
 func (e *SysLoginLog) GetId() interface{} {
 	return e.Id

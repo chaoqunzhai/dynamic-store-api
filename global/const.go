@@ -10,6 +10,9 @@ const (
 	StdError = "./logs/error.log"
 	DebugError = "./logs/debug.log"
 	LogIngWeApp = "移动客户端,weapp-api"
+	LoginRoleSuper = 0
+	LoginRoleCompany = 1
+	LoginRoleShop = 2
 	LogIngPC = "PC端,store-api"
 	LogIngUserType = "用户名登录"
 	LogIngPhoneType = "手机号登录"

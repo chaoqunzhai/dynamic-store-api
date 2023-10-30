@@ -297,7 +297,7 @@ func (e Company) Info(c *gin.Context) {
 			return
 		}
 		var object models.Company
-		e.Orm.Model(&models.Company{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("enable = 1 ").First(&object)
+		e.Orm.Model(&models.Company{}).Where("enable = 1 and id = ? ",userDto.CId).First(&object)
 
 		if object.Id == 0 {
 			storeInfo["store_name"] = "已经下线"

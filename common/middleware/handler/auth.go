@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	"github.com/go-admin-team/go-admin-core/sdk/pkg/captcha"
 	"go-admin/app/admin/models"
 	"go-admin/common"
 	"go-admin/common/systemChan"
@@ -17,9 +18,9 @@ import (
 )
 
 var (
-	ErrMissingLoginValues     = errors.New("请输入手机号或者密码以及验证码")
-	ErrFailedAuthentication   = errors.New("手机号或者密码错误")
-	ErrInvalidVerificationode = errors.New("验证码错误")
+	ErrMissingLoginValues   = errors.New("请输入手机号或者密码以及验证码")
+	ErrFailedAuthentication = errors.New("手机号或者密码错误")
+	ErrInvalidVerification  = errors.New("验证码错误")
 )
 
 // 设置完权限后,需要重新登录,因为一些信息是从token中解析的
@@ -81,7 +82,10 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 
 		return nil, ErrMissingLoginValues
 	}
+	if !captcha.Verify(loginVals.UUID, loginVals.Code, true) {
 
+		return nil, ErrInvalidVerification
+	}
 	if loginVals.Phone != "" {
 		userRow, role, e := loginVals.GetUserPhone(db)
 		messageData:=map[string]interface{}{
@@ -91,10 +95,11 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 			"source":"PC",
 			"client":global.LogIngPC,
 			"user_type":global.LogIngPhoneType,
-			"role":"大B",
+			"role":global.LoginRoleCompany,
 		}
 		if e == nil {
 			messageData["c_id"] = userRow.CId
+			messageData["user_id"] = userRow.UserId
 			systemChan.SendMessage(&systemChan.Message{
 				Table: "sys_login_log",
 				Data: messageData,
@@ -111,12 +116,13 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 			"user":loginVals.UserName,
 			"login_time":time.Now(),
 			"source":"PC",
-			"role":"大B",
+			"role":global.LoginRoleCompany,
 			"client":global.LogIngPC,
 			"user_type":global.LogIngUserType,
 		}
 		if e == nil {
 			messageData["c_id"] = userRow.CId
+			messageData["user_id"] = userRow.UserId
 			systemChan.SendMessage(&systemChan.Message{
 				Table: "sys_login_log",
 				Data: messageData,

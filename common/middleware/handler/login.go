@@ -21,7 +21,7 @@ type Login struct {
 func LoginValidCompany(userId int,tx *gorm.DB) error {
 
 	var companyObject models.Company
-	tx.Model(&models.Company{}).Select("id,expiration_time").Where("leader_id = ? and enable = ?", userId, true).First(&companyObject)
+	tx.Model(&models.Company{}).Select("id,expiration_time").Where("leader_id = ? and enable = ?", userId, true).Limit(1).Find(&companyObject)
 	if companyObject.Id == 0 {
 
 
