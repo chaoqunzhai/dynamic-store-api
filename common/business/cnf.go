@@ -59,7 +59,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 				v = global.CompanyMaxShop
 			case "line":
 				var lineCnf models.CompanyLineCnf
-				orm.Model(&models.CompanyLineCnf{}).Where("c_id = ?",cid).Limit(1).Find(&lineCnf)
+				orm.Model(&models.CompanyLineCnf{}).Select("number").Where("c_id = ?",cid).Limit(1).Find(&lineCnf)
 				if lineCnf.Id == 0 {
 					v = global.CompanyLine
 				}else {

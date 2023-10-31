@@ -14,6 +14,14 @@ type MiniGlobal struct {
 	Layer     int            `gorm:"size:1;index;comment:排序"` //排序,默认是0,从0开始倒序排列
 	Enable    bool           `gorm:"comment:开关"`
 }
+//todo:更简单的字段，一般用来记录日志
+type MiniLog struct {
+	Model
+	CreateBy  int            `json:"createBy" gorm:"index;comment:创建者"`
+	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
+	Desc   string `json:"desc" gorm:"size:30;comment:描述信息"` //描述
+}
 
 // todo: 公共字段更丰富的
 type RichGlobal struct {

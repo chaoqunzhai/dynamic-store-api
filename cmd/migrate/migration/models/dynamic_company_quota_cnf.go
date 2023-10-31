@@ -7,13 +7,11 @@ import "time"
 
 // todo:大B续费信息
 type CompanyRenewalTimeLog struct {
-	Model
-	ModelTime
-	CreateBy       int       `json:"create_by" gorm:"index;comment:创建者"`
+	MiniLog
 	CId            int       `json:"-" gorm:"index;comment:公司(大B)ID"`
 	Money          float64   `json:"money" gorm:"comment:续费金额"`
-	Desc           string    `json:"desc" gorm:"size:50;comment:描述信息"`
 	ExpirationTime time.Time `json:"expiration_time" gorm:"comment:续费到期时间"`
+	ExpirationStr string `json:"expiration_str" gorm:"size:12;comment:续费时长,文案"`
 }
 
 func (CompanyRenewalTimeLog) TableName() string {
@@ -40,6 +38,16 @@ type CompanyLineCnf struct {
 func (CompanyLineCnf) TableName() string {
 	return "company_line_cnf"
 }
+// todo:大B可用线路充值记录
+type CompanyLineCnfLog struct {
+	MiniLog
+	Number int     `gorm:"comment:购买条数"`
+	Money  float32 `gorm:"comment:费用"`
+}
+
+func (CompanyLineCnfLog) TableName() string {
+	return "company_line_cnf_log"
+}
 // todo:大B短信可用条数配置
 type CompanyEmsQuotaCnf struct {
 	BigBRichGlobal
@@ -53,7 +61,7 @@ func (CompanyEmsQuotaCnf) TableName() string {
 
 // todo:大B短信充值记录
 type CompanyEmsQuotaCnfLog struct {
-	BigBRichGlobal
+	MiniLog
 	Number int     `gorm:"comment:充值条数"`
 	Money  float32 `gorm:"comment:费用"`
 }
@@ -64,8 +72,7 @@ func (CompanyEmsQuotaCnfLog) TableName() string {
 
 //todo:大B短信消费记录, 这个是开关,如果大B需要记录就
 type CompanyEmsRecordLog struct {
-	Model
-	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
+	MiniLog
 	CId int `gorm:"index;comment:大BID"`
 	Source string `gorm:"size:15;comment:发送源头"`
 	Phone string `gorm:"size:11;comment:手机号"`
