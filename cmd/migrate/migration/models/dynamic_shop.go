@@ -30,6 +30,7 @@ type Shop struct {
 	GradeId   int       `gorm:"index;comment:会员等级"`
 	Platform  string    `json:"platform" gorm:"size:10;comment:注册来源"`
 	SuggestId int       `gorm:"index;comment:推荐人ID"`
+	LoginTime time.Time     `json:"login_time" gorm:"type:datetime(3);comment:登录时间"`
 }
 
 func (Shop) TableName() string {

@@ -37,6 +37,8 @@ type Shop struct {
     TagName []string `json:"tag_name" gorm:"-"`
     DefaultAddress string `json:"default_address" gorm:"-"`
     OrderCount int64 `json:"order_count" gorm:"-"`
+    LoginTime models.XTime     `json:"login_time" gorm:"type:datetime(3);comment:登录时间"`
+
     models.ModelTime
     models.ControlBy
 }
