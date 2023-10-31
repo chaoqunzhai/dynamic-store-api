@@ -32,7 +32,14 @@ type CompanyQuotaCnf struct {
 func (CompanyQuotaCnf) TableName() string {
 	return "company_quota_cnf"
 }
-
+//todo: 大B可用线路
+type CompanyLineCnf struct {
+	BigBRichGlobal
+	Number      int    `gorm:"comment:可用的线路"`
+}
+func (CompanyLineCnf) TableName() string {
+	return "company_line_cnf"
+}
 // todo:大B短信可用条数配置
 type CompanyEmsQuotaCnf struct {
 	BigBRichGlobal

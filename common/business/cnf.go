@@ -9,6 +9,7 @@ import (
 
 
 func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
+	//默认的配置
 	defaultCnf := map[string]int{
 		"line":       global.CompanyLine,
 		"vip":        global.CompanyVip,
@@ -19,7 +20,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 		"shop_tag":   global.CompanyUserTag,
 		"shop":       global.CompanyMaxShop,
 		"goods":       global.CompanyMaxGoods,
-		"ems_number" :global.CompanyEmsNumber,
+
 		"offline_pay":global.OffLinePay,
 	}
 	var cnf []models.CompanyQuotaCnf
@@ -57,12 +58,16 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 			case "shop":
 				v = global.CompanyMaxShop
 			case "line":
-				v = global.CompanyLine
+				var lineCnf models.CompanyLineCnf
+				orm.Model(&models.CompanyLineCnf{}).Where("c_id = ?",cid).Limit(1).Find(&lineCnf)
+				if lineCnf.Id == 0 {
+					v = global.CompanyLine
+				}else {
+					v = lineCnf.Number
+				}
+
 			case "offline_pay":
 				v = global.OffLinePay
-			case "ems_number":
-				v = global.CompanyEmsNumber
-
 			}
 			result[key] = v
 		}
