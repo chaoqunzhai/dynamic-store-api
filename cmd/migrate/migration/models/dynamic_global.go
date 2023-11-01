@@ -17,6 +17,7 @@ type MiniGlobal struct {
 //todo:更简单的字段，一般用来记录日志
 type MiniLog struct {
 	Model
+	CId            int       `json:"c_id" gorm:"index;comment:公司(大B)ID"`
 	CreateBy  int            `json:"createBy" gorm:"index;comment:创建者"`
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`

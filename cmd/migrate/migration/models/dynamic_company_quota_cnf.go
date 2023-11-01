@@ -2,13 +2,15 @@ package models
 
 //大B的配置信息表
 
-import "time"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
 
 // todo:大B续费信息
 type CompanyRenewalTimeLog struct {
 	MiniLog
-	CId            int       `json:"-" gorm:"index;comment:公司(大B)ID"`
 	Money          float64   `json:"money" gorm:"comment:续费金额"`
 	ExpirationTime time.Time `json:"expiration_time" gorm:"comment:续费到期时间"`
 	ExpirationStr string `json:"expiration_str" gorm:"size:12;comment:续费时长,文案"`
@@ -49,35 +51,37 @@ func (CompanyLineCnfLog) TableName() string {
 	return "company_line_cnf_log"
 }
 // todo:大B短信可用条数配置
-type CompanyEmsQuotaCnf struct {
+type CompanySmsQuotaCnf struct {
 	BigBRichGlobal
 	Available int `gorm:"comment:可用次数"`
 	Record bool `gorm:"comment:是否开启消费记录"`
 }
 
-func (CompanyEmsQuotaCnf) TableName() string {
-	return "company_ems_cnf"
+func (CompanySmsQuotaCnf) TableName() string {
+	return "company_sms_cnf"
 }
 
 // todo:大B短信充值记录
-type CompanyEmsQuotaCnfLog struct {
+type CompanySmsQuotaCnfLog struct {
 	MiniLog
 	Number int     `gorm:"comment:充值条数"`
-	Money  float32 `gorm:"comment:费用"`
+	Money  float64 `gorm:"comment:费用"`
 }
 
-func (CompanyEmsQuotaCnfLog) TableName() string {
-	return "company_ems_cnf_log"
+func (CompanySmsQuotaCnfLog) TableName() string {
+	return "company_sms_cnf_log"
 }
 
 //todo:大B短信消费记录, 这个是开关,如果大B需要记录就
-type CompanyEmsRecordLog struct {
-	MiniLog
-	CId int `gorm:"index;comment:大BID"`
+type CompanySmsRecordLog struct {
+	Model
+	CId            int       `json:"c_id" gorm:"index;comment:公司(大B)ID"`
+	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
 	Source string `gorm:"size:15;comment:发送源头"`
 	Phone string `gorm:"size:11;comment:手机号"`
 	Code string `gorm:"size:6;comment:验证码"`
 }
-func (CompanyEmsRecordLog) TableName() string {
-	return "company_ems_record_log"
+func (CompanySmsRecordLog) TableName() string {
+	return "company_sms_record_log"
 }
