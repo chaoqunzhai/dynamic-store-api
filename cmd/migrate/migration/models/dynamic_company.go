@@ -2,6 +2,7 @@ package models
 
 //大B的业务信息
 import (
+	"go-admin/common/models"
 	"time"
 )
 
@@ -46,7 +47,8 @@ func (GradeVip) TableName() string {
 type Line struct {
 	BigBRichGlobal
 	Name     string `gorm:"index;size:16;comment:路线名称"`
-	ExpiresTime time.Time  `json:"expires_time" gorm:"路线到期时间"`
+	RenewalTime    models.XTime     `json:"renewal_time" gorm:"type:datetime(3);comment:续费时间"`
+	ExpirationTime models.XTime      `json:"expiration_time" gorm:"type:datetime(3);comment:到期时间"`
 	DriverId int    `gorm:"index;comment:关联司机"`
 }
 
