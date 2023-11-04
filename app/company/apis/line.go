@@ -19,12 +19,41 @@ import (
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
 	"go-admin/app/company/service/dto"
-	shopModels "go-admin/app/shop/models"
 	"go-admin/common/actions"
 )
 
 type Line struct {
 	api.Api
+}
+
+
+func (e Line) UnusedOneLine(c *gin.Context) {
+
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	p := actions.GetPermissionFromContext(c)
+	var object models.Line
+	e.Orm.Model(&models.Line{}).Where("enable = ? and driver_id = 0",true).Scopes(
+		actions.Permission(object.TableName(), p),
+	).Limit(1).Find(&object)
+
+	if object.Id == 0 {
+		e.Error(500, errors.New("路线不存在"), "路线不存在")
+		return
+	}
+	result :=map[string]interface{}{
+		"id":object.Id,
+		"name":object.Name,
+	}
+
+	e.OK(result, "successful")
+	return
 }
 func (e Line) BindShop(c *gin.Context) {
 	req := dto.BindLineUserReq{}
@@ -182,20 +211,7 @@ func (e Line) MiniApi(c *gin.Context) {
 	e.OK(result,"successful")
 	return
 }
-// GetPage 获取Line列表
-// @Summary 获取Line列表
-// @Description 获取Line列表
-// @Tags Line
-// @Param layer query string false "排序"
-// @Param enable query string false "开关"
-// @Param cId query string false "大BID"
-// @Param name query string false "路线名称"
-// @Param driverId query string false "关联司机"
-// @Param pageSize query int false "页条数"
-// @Param pageIndex query int false "页码"
-// @Success 200 {object} response.Response{data=response.Page{list=[]models.Line}} "{"code": 200, "data": [...]}"
-// @Router /api/v1/line [get]
-// @Security Bearer
+
 func (e Line) GetPage(c *gin.Context) {
 	req := dto.LineGetPageReq{}
 	s := service.Line{}
@@ -221,15 +237,25 @@ func (e Line) GetPage(c *gin.Context) {
 	}
 	result := make([]interface{}, 0)
 	for _, row := range list {
-		var driverObject models.Driver
-		e.Orm.Model(&models.Driver{}).Select("name,phone,id").Where("id = ? and enable = ?", row.DriverId, true).Limit(1).Find(&driverObject)
+		if row.DriverId > 0 {
+			var driverObject models.Driver
+			e.Orm.Model(&models.Driver{}).Select("name,phone,id").Where("id = ? and enable = ?", row.DriverId, true).Limit(1).Find(&driverObject)
 
-		if driverObject.Id > 0 {
-			row.DriverName = fmt.Sprintf("%v-%v", driverObject.Name, driverObject.Phone)
+			if driverObject.Id > 0 {
+				row.DriverName = fmt.Sprintf("%v-%v", driverObject.Name, driverObject.Phone)
+			}
 		}
 		var shopCount int64
 		e.Orm.Model(&models2.Shop{}).Where("line_id = ? and enable = ?", row.Id, true).Count(&shopCount)
 		row.ShopCount = shopCount
+		if !row.ExpirationTime.Time.IsZero() {
+
+
+			row.ExpirationDay = int(row.ExpirationTime.Sub(time.Now()).Hours() / 24)
+			row.ExpirationTimeStr = row.ExpirationTime.Format("2006-01-02 15:04:05")
+		}else {
+			row.ExpirationTimeStr = "无期限"
+		}
 		result = append(result, row)
 	}
 
@@ -397,51 +423,4 @@ func (e Line) Update(c *gin.Context) {
 	e.OK(req.GetId(), "修改成功")
 }
 
-// Delete 删除Line
-// @Summary 删除Line
-// @Description 删除Line
-// @Tags Line
-// @Param data body dto.LineDeleteReq true "body"
-// @Success 200 {object} response.Response	"{"code": 200, "message": "删除成功"}"
-// @Router /api/v1/line [delete]
-// @Security Bearer
-func (e Line) Delete(c *gin.Context) {
-	s := service.Line{}
-	req := dto.LineDeleteReq{}
-	err := e.MakeContext(c).
-		MakeOrm().
-		Bind(&req).
-		MakeService(&s.Service).
-		Errors
-	if err != nil {
-		e.Logger.Error(err)
-		e.Error(500, err, err.Error())
-		return
-	}
 
-	userDto, err := customUser.GetUserDto(e.Orm, c)
-	if err != nil {
-		e.Error(500, err, err.Error())
-		return
-	}
-	p := actions.GetPermissionFromContext(c)
-	newIds := make([]int, 0)
-	for _, line := range req.Ids {
-		var count int64
-		e.Orm.Model(&shopModels.Shop{}).Where("line_id = ? and c_id = ?", line, userDto.CId).Count(&count)
-		if count == 0 {
-			newIds = append(newIds, line)
-		}
-	}
-	if len(newIds) == 0 {
-		e.Error(500, errors.New("存在关联不可删除！"), "存在关联不可删除！")
-		return
-	}
-	req.Ids = newIds
-	err = s.Remove(&req, p)
-	if err != nil {
-		e.Error(500, err, fmt.Sprintf("路线删除失败,%s", err.Error()))
-		return
-	}
-	e.OK(req.GetId(), "删除成功")
-}

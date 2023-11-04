@@ -43,8 +43,11 @@ func (CompanyLineCnf) TableName() string {
 // todo:大B可用线路充值记录
 type CompanyLineCnfLog struct {
 	MiniLog
-	Number int     `gorm:"comment:购买条数"`
-	Money  float32 `gorm:"comment:费用"`
+	LineId int `json:"line_id" gorm:"comment:线路ID"`
+	Money  float64 `gorm:"comment:费用"`
+	BuyType     int    `json:"buy_type" gorm:"size:1;index;"` //排序,默认是0:购买 1:续费
+	ExpirationTime time.Time `json:"expiration_time" gorm:"comment:续费到期时间"`
+	ExpirationStr string `json:"expiration_str" gorm:"size:12;comment:续费时长,文案"`
 }
 
 func (CompanyLineCnfLog) TableName() string {
@@ -78,7 +81,7 @@ type CompanySmsRecordLog struct {
 	CId            int       `json:"c_id" gorm:"index;comment:公司(大B)ID"`
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
-	Source string `gorm:"size:15;comment:发送源头"`
+	Source string `gorm:"size:10;comment:发送源头"`
 	Phone string `gorm:"size:11;comment:手机号"`
 	Code string `gorm:"size:6;comment:验证码"`
 }

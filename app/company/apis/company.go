@@ -304,9 +304,13 @@ func (e Company) Info(c *gin.Context) {
 			e.OK(storeInfo, "successful")
 			return
 		}
+		ShopName:=object.Name
+		if object.ShopName != ""{
+			ShopName = object.ShopName
+		}
 		storeInfo = map[string]interface{}{
 			"store_id":      object.Id,
-			"store_name":    object.Name,
+			"store_name":    ShopName,
 			"describe":      object.Desc,
 			"logo_image_id": 0,
 			"sort":          object.Layer,
@@ -360,6 +364,7 @@ func (e Company) QuotaCnf(c *gin.Context)   {
 	switch quotaType {
 	case "line":
 		CompanyCnf := business.GetCompanyCnf(userDto.CId, "line", e.Orm)
+		fmt.Printf("CompanyCnf:%v",CompanyCnf)
 		MaxNumber = CompanyCnf["line"]
 		var object models.Line
 		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)

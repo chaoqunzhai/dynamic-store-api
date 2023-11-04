@@ -327,3 +327,17 @@ func DifferenceInt(slice1, slice2 []int) []int {
 	}
 	return nn
 }
+
+
+//随机字符串
+func GetRandStr(n int)  string {
+	rand.Seed(time.Now().UnixNano())
+
+	// 生成4位随机字母
+	letters := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	result := make([]byte, n)
+	for i := 0; i < n; i++ {
+		result[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(result)
+}

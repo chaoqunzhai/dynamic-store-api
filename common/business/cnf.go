@@ -11,7 +11,6 @@ import (
 func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 	//默认的配置
 	defaultCnf := map[string]int{
-		"line":       global.CompanyLine,
 		"vip":        global.CompanyVip,
 		"role":       global.CompanyMaxRole,
 		"goods_image": global.CompanyMaxGoodsImage,
@@ -20,8 +19,32 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 		"shop_tag":   global.CompanyUserTag,
 		"shop":       global.CompanyMaxShop,
 		"goods":       global.CompanyMaxGoods,
-
 		"offline_pay":global.OffLinePay,
+	}
+
+	//如果查询线路,线路是单独的表中 做的限制
+	//线路,短信 都是单独表做的限制,因为是花钱单独购买
+	var lineNumber int
+	var smsNumber int
+	switch key {
+	case "line":
+		var lineCnf models.CompanyLineCnf
+		orm.Model(&models.CompanyLineCnf{}).Select("number,id").Where("c_id = ?",cid).Limit(1).Find(&lineCnf)
+		if lineCnf.Id == 0 {
+			lineNumber = global.CompanyLine
+		}else {
+			lineNumber = lineCnf.Number
+		}
+		defaultCnf["line"] = lineNumber
+	case "sms":
+		var smsCnf models.CompanySmsQuotaCnf
+		orm.Model(&models.CompanySmsQuotaCnf{}).Select("available,id").Where("c_id = ?",cid).Limit(1).Find(&smsCnf)
+		if smsCnf.Id == 0 {
+			smsNumber = global.CompanySmsNumber
+		}else {
+			smsNumber = smsCnf.Available
+		}
+		defaultCnf["sms"] = smsNumber
 	}
 	var cnf []models.CompanyQuotaCnf
 	var sql string
@@ -32,6 +55,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 	}
 	orm.Model(&models.CompanyQuotaCnf{}).Where(sql).Find(&cnf)
 	//没有进行特殊配置,那就都返回系统初始化配置的值
+
 	if len(cnf) == 0 {
 		return defaultCnf
 	}
@@ -57,17 +81,12 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 				v = global.CompanyMaxGoods
 			case "shop":
 				v = global.CompanyMaxShop
-			case "line":
-				var lineCnf models.CompanyLineCnf
-				orm.Model(&models.CompanyLineCnf{}).Select("number").Where("c_id = ?",cid).Limit(1).Find(&lineCnf)
-				if lineCnf.Id == 0 {
-					v = global.CompanyLine
-				}else {
-					v = lineCnf.Number
-				}
 
 			case "offline_pay":
 				v = global.OffLinePay
+			case "line":
+				v = lineNumber
+
 			}
 			result[key] = v
 		}

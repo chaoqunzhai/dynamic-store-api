@@ -39,7 +39,7 @@ const (
 
 	//大B资源限制
 	CompanyVip           = 6   //大B最多可以设置6个VIP
-	CompanyLine          = 3   //大B最多只能有3个路线
+	CompanyLine          = 2   //默认2个路线
 	CompanyMaxRole       = 10  //大B最多可以设置10个角色
 	CompanyMaxGoods      = 100 //大B最多可以创建50个商品
 	CompanyMaxShop       = 30  //大B最多可以创建30个客户
@@ -47,7 +47,7 @@ const (
 	CompanyMaxGoodsTag   = 20  //大B最多可以设置标签个数
 	CompanyMaxGoodsImage = 4   //大B最多可以设置单个商品做多6张图片
 	CompanyUserTag       = 30  //大B最多可以设置客户标签个数
-	CompanyEmsNumber = 100 //大B默认的可用短信条数
+	CompanySmsNumber = 100 //大B默认的可用短信条数
 	OffLinePay = 6 //大B最多可以设置线下支付的个数
 	OrderLayerKey    = "layer desc"
 	OrderTimeKey     = "created_at desc"

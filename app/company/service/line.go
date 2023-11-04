@@ -92,20 +92,3 @@ func (e *Line) Update(c *dto.LineUpdateReq, p *actions.DataPermission) error {
     return nil
 }
 
-// Remove 删除Line
-func (e *Line) Remove(d *dto.LineDeleteReq, p *actions.DataPermission) error {
-	var data models.Line
-
-	db := e.Orm.Model(&data).
-		Scopes(
-			actions.Permission(data.TableName(), p),
-		).Delete(&data, d.GetId())
-	if err := db.Error; err != nil {
-        e.Log.Errorf("Service RemoveLine error:%s \r\n", err)
-        return err
-    }
-    if db.RowsAffected == 0 {
-        return errors.New("无权删除该数据")
-    }
-	return nil
-}

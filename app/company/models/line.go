@@ -17,6 +17,8 @@ type Line struct {
 	RenewalTime    models.XTime     `json:"renewal_time" gorm:"type:datetime(3);comment:续费时间"`
 	ExpirationTime models.XTime      `json:"expiration_time" gorm:"type:datetime(3);comment:到期时间"`
 	ShopCount int64 `json:"shop_count" gorm:"-"`
+	ExpirationTimeStr string `json:"expiration_time_str" gorm:"-"`
+	ExpirationDay int `json:"expiration_day" gorm:"-"`
 	models.ModelTime
 	models.ControlBy
 }

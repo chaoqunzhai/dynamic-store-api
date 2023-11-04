@@ -221,7 +221,7 @@ func (q *QinUi)PostFile(filePath  string) (name string,err  error)  {
 	}
 	//上传成功后,删除这个压缩的文件
 	defer func() {
-		os.Remove(sizeFilePath)
+		os.RemoveAll(sizeFilePath)
 	}()
 	return fileName, err
 }

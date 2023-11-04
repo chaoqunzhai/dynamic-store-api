@@ -125,11 +125,3 @@ func (s *LineGetReq) GetId() interface{} {
 	return s.Id
 }
 
-// LineDeleteReq 功能删除请求参数
-type LineDeleteReq struct {
-	Ids []int `json:"ids"`
-}
-
-func (s *LineDeleteReq) GetId() interface{} {
-	return s.Ids
-}

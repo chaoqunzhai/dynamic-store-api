@@ -21,7 +21,6 @@ type Company struct {
 	RenewalTime    time.Time `json:"renewal_time" gorm:"comment:续费时间"`
 	ExpirationTime time.Time `json:"expiration_time" gorm:"comment:到期时间"`
 	LoginTime time.Time     `json:"login_time" gorm:"type:datetime(3);comment:登录时间"`
-
 }
 
 func (Company) TableName() string {
