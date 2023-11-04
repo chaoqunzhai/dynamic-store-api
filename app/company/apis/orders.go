@@ -65,7 +65,7 @@ func (e Orders) GetPage(c *gin.Context) {
 		return
 	}
 	//查询是否进行了分表
-	orderTableRes := business.GetTableName(userDto.CId, e.Orm)
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
 	p := actions.GetPermissionFromContext(c)
 
@@ -88,7 +88,7 @@ func (e Orders) GetPage(c *gin.Context) {
 	list := make([]models.Orders, 0)
 	var count int64
 	req.CId = userDto.CId
-	err = s.GetPage(orderTableRes.OrderTable, &req, p, &list, &count)
+	err = s.GetPage(splitTableRes.OrderTable, &req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取订单失败,%s", err.Error()))
 		return
@@ -185,7 +185,7 @@ func (e Orders) GetPage(c *gin.Context) {
 			}
 		}
 		var specCount int64
-		e.Orm.Table(orderTableRes.OrderSpecs).Where("order_id = ?", row.OrderId).Count(&specCount)
+		e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ?", row.OrderId).Count(&specCount)
 
 
 		r := map[string]interface{}{
@@ -247,8 +247,8 @@ func (e Orders) Get(c *gin.Context) {
 	orderId:=c.Param("orderId")
 	var object models.Orders
 
-	orderTableRes := business.GetTableName(userDto.CId, e.Orm)
-	orderErr := e.Orm.Table(orderTableRes.OrderTable).Where("order_id = ?",orderId).First(&object).Error
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	orderErr := e.Orm.Table(splitTableRes.OrderTable).Where("order_id = ?",orderId).First(&object).Error
 	if orderErr != nil && errors.Is(orderErr, gorm.ErrRecordNotFound) {
 
 		e.Error(500, orderErr, "订单不存在")
@@ -316,7 +316,7 @@ func (e Orders) Get(c *gin.Context) {
 	var orderSpecs []models.OrderSpecs
 
 
-	e.Orm.Table(orderTableRes.OrderSpecs).Where("order_id = ?", orderId).Find(&orderSpecs)
+	e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ?", orderId).Find(&orderSpecs)
 
 	specsList := make([]map[string]interface{}, 0)
 	for _, row := range orderSpecs {
@@ -356,13 +356,13 @@ func (e Orders)Cycle(c *gin.Context)  {
 	result:=make([]map[string]interface{},0)
 
 	//fmt.Println("req!!",req)
-	orderTableRes := business.GetTableName(userDto.CId, e.Orm)
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
 	//默认展示最近10条的配送周期
 	datalist := make([]models2.OrderCycleCnf, 0)
 	var count int64
 	e.Orm.Model(&models2.OrderCycleCnf{}).Scopes(
-		actions.PermissionSysUser(orderTableRes.OrderCycle,userDto)).Select("delivery_str,create_str,uid").Order(global.OrderTimeKey).Find(&datalist).Limit(-1).Offset(-1).
+		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Select("delivery_str,create_str,uid").Order(global.OrderTimeKey).Find(&datalist).Limit(-1).Offset(-1).
 		Count(&count)
 	
 	for _,row:=range datalist {
@@ -457,7 +457,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 
 
 
-	orderTableRes := business.GetTableName(userDto.CId, e.Orm)
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 	var DeliveryObject models.CycleTimeConf
 	e.Orm.Model(&models2.CycleTimeConf{}).Scopes(actions.PermissionSysUser(DeliveryObject.TableName(),userDto)).Where("id = ? and enable =? ", req.Cycle, true).Limit(1).Find(&DeliveryObject)
 	if DeliveryObject.Id == 0 {
@@ -467,7 +467,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 
 
 	//获取到统一配送的配送UUID
-	uid:=service.CheckOrderCyCleCnfIsDb(userDto.CId,orderTableRes.OrderCycle,DeliveryObject,e.Orm)
+	uid:=service.CheckOrderCyCleCnfIsDb(userDto.CId,splitTableRes.OrderCycle,DeliveryObject,e.Orm)
 
 	var lineObject models2.Line
 	e.Orm.Model(&models2.Line{}).Scopes(actions.PermissionSysUser(lineObject.TableName(),userDto)).Where("id = ?  and enable = ?", shopObject.LineId, true).Limit(1).Find(&lineObject)
@@ -575,7 +575,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			}else {
 				specRow.Image = goodsSpecs.Image
 			}
-			txRes:=e.Orm.Table(orderTableRes.OrderSpecs).Create(&specRow)
+			txRes:=e.Orm.Table(splitTableRes.OrderSpecs).Create(&specRow)
 			if txRes.Error !=nil{
 				continue
 			}
@@ -613,7 +613,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	orderRow.OrderMoney = orderMoney
 	orderRow.GoodsMoney = orderMoney
 	orderRow.DeductionMoney = orderMoney
-	e.Orm.Table(orderTableRes.OrderTable).Create(&orderRow)
+	e.Orm.Table(splitTableRes.OrderTable).Create(&orderRow)
 
 	for goodsId,goodsRow:=range goodsCacheList{
 		//商品减库存 + 销量
@@ -695,22 +695,22 @@ func (e Orders) ToolsOrders(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	orderTableRes := business.GetTableName(userDto.CId, e.Orm)
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
 	switch req.Type {
 	case global.OrderToolsActionStatus: //状态更新
 
-		e.Orm.Table(orderTableRes.OrderTable).Where("id = ? and enable = ?", req.Id, true).Updates(map[string]interface{}{
+		e.Orm.Table(splitTableRes.OrderTable).Where("id = ? and enable = ?", req.Id, true).Updates(map[string]interface{}{
 			"status":    req.Status,
 			"desc":      req.Desc,
 			"update_by": userDto.UserId,
 		})
-		e.Orm.Table(orderTableRes.OrderSpecs).Where("order_id = ?", req.Id).Updates(map[string]interface{}{
+		e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ?", req.Id).Updates(map[string]interface{}{
 			"status": req.Status,
 		})
 	case global.OrderToolsActionDelivery: //周期更改
 		if req.Delivery > 0 {
-			e.Orm.Table(orderTableRes.OrderTable).Where("id = ? and enable = ?", req.Id, true).Updates(map[string]interface{}{
+			e.Orm.Table(splitTableRes.OrderTable).Where("id = ? and enable = ?", req.Id, true).Updates(map[string]interface{}{
 				"delivery":  req.Delivery,
 				"update_by": userDto.UserId,
 			})
@@ -742,15 +742,15 @@ func (e Orders) OrderCycleList(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	orderTableRes := business.GetTableName(userDto.CId, e.Orm)
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
 	//默认展示最近10条的配送周期
 	datalist := make([]models2.OrderCycleCnf, 0)
 
-	e.Orm.Table(orderTableRes.OrderCycle).Scopes(
-		cDto.MakeSplitTableCondition(req.GetNeedSearch(),orderTableRes.OrderCycle),
+	e.Orm.Table(splitTableRes.OrderCycle).Scopes(
+		cDto.MakeSplitTableCondition(req.GetNeedSearch(),splitTableRes.OrderCycle),
 		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-		actions.PermissionSysUser(orderTableRes.OrderCycle,userDto)).Model(&models2.OrderCycleCnf{}).Order(global.OrderTimeKey).Find(&datalist)
+		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Model(&models2.OrderCycleCnf{}).Order(global.OrderTimeKey).Find(&datalist)
 
 	//下单周期
 	createTime := make([]map[string]interface{}, 0)
@@ -914,8 +914,8 @@ func (e Orders) Update(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	orderTableRes := business.GetTableName(userDto.CId, e.Orm)
-	err = s.Update(orderTableRes.OrderTable, &req, p)
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	err = s.Update(splitTableRes.OrderTable, &req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("修改Orders失败，\r\n失败信息 %s", err.Error()))
 		return
@@ -951,8 +951,8 @@ func (e Orders) Delete(c *gin.Context) {
 		return
 	}
 	p := actions.GetPermissionFromContext(c)
-	orderTableRes := business.GetTableName(userDto.CId, e.Orm)
-	err = s.Remove(orderTableRes.OrderTable, &req, p)
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	err = s.Remove(splitTableRes.OrderTable, &req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除Orders失败，\r\n失败信息 %s", err.Error()))
 		return

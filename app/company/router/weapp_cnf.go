@@ -22,7 +22,7 @@ func init() {
 // registerOrdersRouter
 func registerWeAppCnfRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
 	api := apis.WeApp{}
-	r := v1.Group("/weappp/conf").Use(authMiddleware.MiddlewareFunc()).Use(actions.PermissionSuperRole())
+	r := v1.Group("/weappp/conf").Use(authMiddleware.MiddlewareFunc()).Use(actions.PermissionCompanyRole())
 	{
 
 		//todo:登录列表,暂时关闭
