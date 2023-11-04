@@ -81,7 +81,7 @@ type CompanySmsRecordLog struct {
 	CId            int       `json:"c_id" gorm:"index;comment:公司(大B)ID"`
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
-	Source string `gorm:"size:10;comment:发送源头"`
+	Source string `gorm:"size:18;comment:发送源头"`
 	Phone string `gorm:"size:11;comment:手机号"`
 	Code string `gorm:"size:6;comment:验证码"`
 }

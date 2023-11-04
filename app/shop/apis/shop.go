@@ -197,7 +197,8 @@ func (e Shop) Get(c *gin.Context) {
 	object.TagName = cacheTagName
 
 	var shopOrderCount int64
-	e.Orm.Table(business.GetTableName(userDto.CId,e.Orm)).Where("shop_id = ?",object.Id).Count(&shopOrderCount)
+	orderTableRes := business.GetTableName(userDto.CId, e.Orm)
+	e.Orm.Table(orderTableRes.OrderTable).Where("shop_id = ?",object.Id).Count(&shopOrderCount)
 	object.OrderCount = shopOrderCount
 
 	e.OK( object, "查询成功")

@@ -91,14 +91,15 @@ func (e Orders) Index(c *gin.Context) {
 		return
 	}
 	//根据选择的日期 + 大B配置的自定义配送时间
-	orderTableName := business.GetTableName(userDto.CId, e.Orm)
+	//orderTableName := business.GetTableName(userDto.CId, e.Orm)
+	orderTableRes := business.GetTableName(userDto.CId, e.Orm)
 	//获取指定天数的订单的商家列表
 	//大B + 选择天数 + 待送 + 有用的单子 +
 	//只聚合查询出，哪些客户=哪些路线  哪些商品=商品的配送
 	whereSql := fmt.Sprintf("select shop_id,good_id,line_id from orders where  enable = %v and delivery_time = '%v' and status ='%v' GROUP BY shop_id,good_id,line_id",
 		true, req.Day, global.OrderStatusWaitSend)
 	orderResult := make([]OrderShopResult, 0)
-	e.Orm.Table(orderTableName).Scopes(actions.PermissionSysUser(orderTableName,userDto)).Raw(whereSql).Scan(&orderResult)
+	e.Orm.Table(orderTableRes.OrderTable).Scopes(actions.PermissionSysUser(orderTableRes.OrderTable,userDto)).Raw(whereSql).Scan(&orderResult)
 
 	//todo:统一聚合查询,统一查询资源
 	shopList := make([]int, 0)
@@ -113,21 +114,24 @@ func (e Orders) Index(c *gin.Context) {
 
 	//todo:商品信息,要把查询到对的商品放到指定的路线下
 	goodsModelLists := make([]models2.Goods, 0)
-	e.Orm.Model(&models2.Goods{}).Scopes(actions.PermissionSysUser(orderTableName,userDto)).Select("name,image,id").Where("enable = ?  and id in ?", true, goodsList).Find(&goodsModelLists)
+	var goods models2.Goods
+	e.Orm.Model(&models2.Goods{}).Scopes(actions.PermissionSysUser(goods.TableName(),userDto)).Select("name,image,id").Where("enable = ?  and id in ?", true, goodsList).Find(&goodsModelLists)
 	goodsMapData := make(map[int]models2.Goods, 0)
 	for _, g := range goodsModelLists {
 		goodsMapData[g.Id] = g
 	}
 	//todo:商家的信息
 	shopModelLists := make([]models.Shop, 0)
-	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(orderTableName,userDto)).Select("name,image,line_id,id").Where("enable = ?  and id in ?", true,  shopList).Find(&shopModelLists)
+	var shopDto models.Shop
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(shopDto.TableName(),userDto)).Select("name,image,line_id,id").Where("enable = ?  and id in ?", true,  shopList).Find(&shopModelLists)
 	shopInfoMap := make(map[int]models.Shop)
 	for _, s := range shopModelLists {
 		shopInfoMap[s.LineId] = s
 	}
 	//todo:路线信息
 	lineModelLists := make([]models2.Line, 0)
-	e.Orm.Model(&models2.Line{}).Scopes(actions.PermissionSysUser(orderTableName,userDto)).Select("name,driver_id,id").Where("enable = ?  and id in ?", true, lineList).Find(&lineModelLists)
+	var lineDto models2.Line
+	e.Orm.Model(&models2.Line{}).Scopes(actions.PermissionSysUser(lineDto.TableName(),userDto)).Select("name,driver_id,id").Where("enable = ?  and id in ?", true, lineList).Find(&lineModelLists)
 
 	reportCache := make(map[int]ReportResult, 0)
 	//todo:线路数据汇总
@@ -150,7 +154,7 @@ func (e Orders) Index(c *gin.Context) {
 
 	var list []models2.Orders
 
-	e.Orm.Table(orderTableName).Scopes(actions.PermissionSysUser(orderTableName,userDto)).Select("number,good_id,line_id,money").Where("enable = ? and delivery_time = ? and status =? ",  true, req.Day, global.OrderStatusWaitSend).Find(&list)
+	e.Orm.Table(orderTableRes.OrderTable).Scopes(actions.PermissionSysUser(orderTableRes.OrderTable,userDto)).Select("number,good_id,line_id,money").Where("enable = ? and delivery_time = ? and status =? ",  true, req.Day, global.OrderStatusWaitSend).Find(&list)
 
 	//todo:商品聚合计算
 	//cacheGoods := make(map[int]GoodsRow, 0)

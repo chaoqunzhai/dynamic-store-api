@@ -60,11 +60,15 @@ type BigBMiniGlobal struct {
 
 // todo:公司映射表,起到分表作用
 type SplitTableMap struct {
-	RichGlobal
+	Model
+	Enable bool   `gorm:"default:true;comment:开关"`
+	CreateBy  int            `json:"createBy" gorm:"index;comment:创建者"`
+	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
+	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
 	CId  int    `gorm:"index;comment:公司ID"`                             //公司ID
-	Type int    `gorm:"type:tinyint(1);default:1;index;comment:映射表的类型"` //根据不同的类型,来做细分
-	Name string `gorm:"size:60;index;comment:对应表的名称"`                   //分表的名称
-	Desc string `gorm:"size:30;index;comment:对应表的名称"`
+	OrderTable string `gorm:"size:30;index;comment:订单表"`                   //分表的名称
+	OrderSpecs string `gorm:"size:30;index;comment:订单规格表"`
+	OrderCycle string `gorm:"size:30;index;comment:周期配送下单索引表"`
 }
 
 func (SplitTableMap) TableName() string {
