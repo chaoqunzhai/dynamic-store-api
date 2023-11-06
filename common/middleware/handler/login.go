@@ -36,9 +36,9 @@ func LoginValidCompany(userId int,tx *gorm.DB) error {
 
 func (u *Login) GetUserPhone(tx *gorm.DB) (user SysUser, role SysRole, err error) {
 	err = tx.Table("sys_user").Where("phone = ?  and status = ? and enable = ?",
-		u.Phone, global.SysUserSuccess, true).First(&user).Error
+		u.Phone, global.SysUserSuccess, true).Limit(1).First(&user).Error
 	if err != nil {
-		log.Errorf("get user error, %s", err.Error())
+		err = errors.New("手机号不存在")
 		return
 	}
 	_, loginErr := pkg.CompareHashAndPassword(user.Password, u.Password)
@@ -47,11 +47,7 @@ func (u *Login) GetUserPhone(tx *gorm.DB) (user SysUser, role SysRole, err error
 		err = errors.New("手机号或者密码错误")
 		return
 	}
-	err = tx.Table("sys_role").Where("data_scope = ? ", user.RoleId).First(&role).Error
-	if err != nil {
-		log.Errorf("get role error, %s", err.Error())
-		return
-	}
+
 	err =LoginValidCompany(user.UserId,tx)
 	return
 }
@@ -63,13 +59,9 @@ func (u *Login) GetUser(tx *gorm.DB) (user SysUser, role SysRole, err error) {
 	}
 	_, err = pkg.CompareHashAndPassword(user.Password, u.Password)
 	if err != nil {
-		log.Errorf("user login error, %s", err.Error())
+		err = errors.New("用户名或密码错误")
 		return
 	}
-	err = tx.Table("sys_role").Where("data_scope = ? ", user.RoleId).First(&role).Error
-	if err != nil {
-		log.Errorf("get role error, %s", err.Error())
-		return
-	}
+
 	return
 }
