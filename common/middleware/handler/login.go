@@ -41,9 +41,10 @@ func (u *Login) GetUserPhone(tx *gorm.DB) (user SysUser, role SysRole, err error
 		log.Errorf("get user error, %s", err.Error())
 		return
 	}
-	_, err = pkg.CompareHashAndPassword(user.Password, u.Password)
-	if err != nil {
-		log.Errorf("user login error, %s", err.Error())
+	_, loginErr := pkg.CompareHashAndPassword(user.Password, u.Password)
+	if loginErr != nil {
+		log.Errorf("user login error, %s", loginErr.Error())
+		err = errors.New("手机号或者密码错误")
 		return
 	}
 	err = tx.Table("sys_role").Where("data_scope = ? ", user.RoleId).First(&role).Error

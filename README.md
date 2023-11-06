@@ -89,3 +89,7 @@ systemctl status api.service
 systemctl enable api.service
 
 ```
+
+### 线上curl demo
+https://manage.dongchuangyun.com/store
+返回api型号 
