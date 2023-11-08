@@ -10,6 +10,7 @@ import (
 var (
 	routerNoCheckRole = make([]func(*gin.RouterGroup), 0)
 	routerCheckRole   = make([]func(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware), 0)
+	CompanyRouterCheckRole = make([]func(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware), 0)
 )
 
 // 路由示例
@@ -38,5 +39,8 @@ func examplesCheckRoleRouter(r *gin.Engine, authMiddleware *jwtauth.GinJWTMiddle
 	v1 := r.Group("/api/v1")
 	for _, f := range routerCheckRole {
 		f(v1, authMiddleware)
+	}
+	for _, f := range CompanyRouterCheckRole {
+		f(r.Group("/company/api/v1"), authMiddleware)
 	}
 }

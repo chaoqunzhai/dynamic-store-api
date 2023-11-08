@@ -1,11 +1,11 @@
 package apis
 
 import (
-	"fmt"
+
 	"go-admin/app/admin/models"
 	"go-admin/global"
 	"net/http"
-	"strconv"
+
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -112,14 +112,9 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 	}
 	super := false
 	//超管是获取所有的菜单的
-	ClaimsData := user.ExtractClaims(c)
-	dataScope := 0
-	if ClaimsData["datascope"] != nil {
 
-		dataScope, _ = strconv.Atoi(fmt.Sprintf("%v", ClaimsData["datascope"]))
-	}
 
-	switch dataScope {
+	switch sysUser.RoleId {
 	case global.RoleSuper:
 		//超管
 		super = true
@@ -133,7 +128,8 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 	case global.RoleCompanyUser:
 		rolesMap["permissionList"] = r.GetCustomById(user.GetUserId(c))
 	default:
-		e.OK("", "您没有权限")
+
+		e.Error(http.StatusUnauthorized, err, "您没有权限")
 		return
 
 	}
