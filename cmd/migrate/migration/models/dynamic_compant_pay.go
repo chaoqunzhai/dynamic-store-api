@@ -52,7 +52,7 @@ func (PayCnf) TableName() string {
 }
 
 //借记卡管理,
-//使用go-admin生成代码
+
 type DebitCard struct {
 	BigBRichGlobal
 	Bank string `json:"bank" gorm:"size:20;comment:银行名称"`

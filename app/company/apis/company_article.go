@@ -1,7 +1,8 @@
 package apis
 
 import (
-    "fmt"
+	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin/binding"
 	models2 "go-admin/cmd/migrate/migration/models"
 	customUser "go-admin/common/jwt/user"
@@ -50,6 +51,7 @@ func (e CompanyArticle) Message(c *gin.Context) {
 	return
 }
 
+
 func (e CompanyArticle) UpdateMessage(c *gin.Context) {
 	req := Message{}
 	err := e.MakeContext(c).
@@ -85,19 +87,30 @@ func (e CompanyArticle) UpdateMessage(c *gin.Context) {
 	return
 
 }
-// GetPage 获取CompanyArticle列表
-// @Summary 获取CompanyArticle列表
-// @Description 获取CompanyArticle列表
-// @Tags CompanyArticle
-// @Param layer query string false "排序"
-// @Param enable query string false "开关"
-// @Param cId query string false "大BID"
-// @Param title query string false "文章标题"
-// @Param pageSize query int false "页条数"
-// @Param pageIndex query int false "页码"
-// @Success 200 {object} response.Response{data=response.Page{list=[]models.CompanyArticle}} "{"code": 200, "data": [...]}"
-// @Router /api/v1/company-article [get]
-// @Security Bearer
+func (e CompanyArticle) Enable(c *gin.Context) {
+	req := dto.UpdateEnableReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	e.Orm.Model(&models.CompanyArticle{}).Where("c_id = ? and id = ?",userDto.CId,req.Id).Updates(map[string]interface{}{
+		"enable":req.Enable,
+	})
+	e.OK("", "更新成功")
+}
+
+
 func (e CompanyArticle) GetPage(c *gin.Context) {
     req := dto.CompanyArticleGetPageReq{}
     s := service.CompanyArticle{}
@@ -181,9 +194,23 @@ func (e CompanyArticle) Insert(c *gin.Context) {
         e.Error(500, err, err.Error())
         return
     }
-	// 设置创建人
-	req.SetCreateBy(user.GetUserId(c))
 
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	req.SetCreateBy(userDto.UserId)
+	req.CId = userDto.CId
+	req.Enable = true
+
+	var count int64
+	e.Orm.Model(&models.CompanyArticle{}).Where("c_id = ? and title = ?",userDto.CId,req.Title).Count(&count)
+	if count > 0 {
+
+		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
+		return
+	}
 	err = s.Insert(&req)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("创建CompanyArticle失败，\r\n失败信息 %s", err.Error()))
@@ -219,7 +246,28 @@ func (e CompanyArticle) Update(c *gin.Context) {
     }
 	req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 
+	var count int64
+	e.Orm.Model(&models.CompanyArticle{}).Where("c_id = ? and id = ?",userDto.CId,req.Id).Count(&count)
+	if count == 0 {
+		e.Error(500, errors.New("数据不存在"), "数据不存在")
+		return
+	}
+	var oldRow models.CompanyArticle
+	e.Orm.Model(&models.CompanyArticle{}).Where("title = ? and c_id = ?", req.Title, userDto.CId).Limit(1).Find(&oldRow)
+
+	if oldRow.Id != 0 {
+		if oldRow.Id != req.Id {
+			e.Error(500, errors.New("名称不可重复"), "名称不可重复")
+			return
+		}
+	}
+	req.CId = userDto.CId
 	err = s.Update(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("修改CompanyArticle失败，\r\n失败信息 %s", err.Error()))
@@ -250,7 +298,7 @@ func (e CompanyArticle) Delete(c *gin.Context) {
         return
     }
 
-	// req.SetUpdateBy(user.GetUserId(c))
+
 	p := actions.GetPermissionFromContext(c)
 
 	err = s.Remove(&req, p)

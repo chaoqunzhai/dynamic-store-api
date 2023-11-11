@@ -168,7 +168,7 @@ func (e Goods) CosSaveImage(c *gin.Context) {
 		res["code"] = -1
 		res["msg"] = "文件上传失败"
 	}
-	fmt.Println("res!!!!!",res)
+	zap.S().Infof("用户%v 上传图片成功,url:%v",userDto.Username,res["url"])
 	e.OK(res,"")
 	return
 }

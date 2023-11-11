@@ -9,6 +9,10 @@ import (
 	common "go-admin/common/models"
 )
 
+type UpdateEnableReq struct {
+	Id             int      `uri:"id" comment:"主键编码"` // 主键编码
+	Enable bool `json:"enable"`
+}
 type CompanyGetPageReq struct {
 	dto.Pagination `search:"-"`
 	Layer          string    `form:"layer"  search:"type:exact;column:layer;table:company" comment:"排序"`

@@ -15,6 +15,9 @@ type CompanyArticleGetPageReq struct {
     Enable string `form:"enable"  search:"type:exact;column:enable;table:company_article" comment:"开关"`
     CId string `form:"cId"  search:"type:exact;column:c_id;table:company_article" comment:"大BID"`
     Title string `form:"title"  search:"type:exact;column:title;table:company_article" comment:"文章标题"`
+    BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:company_article" comment:"创建时间"`
+    EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:company_article" comment:"创建时间"`
+
     CompanyArticleOrder
 }
 
@@ -42,10 +45,10 @@ func (m *CompanyArticleGetPageReq) GetNeedSearch() interface{} {
 
 type CompanyArticleInsertReq struct {
     Id int `json:"-" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"描述信息"`
-    CId string `json:"cId" comment:"大BID"`
+    CId int `json:"-" comment:"大BID"`
     CoverImage string `json:"coverImage" comment:"封面图片"`
     Title string `json:"title" comment:"文章标题"`
     Class string `json:"class" comment:"文章分类"`
@@ -74,10 +77,10 @@ func (s *CompanyArticleInsertReq) GetId() interface{} {
 
 type CompanyArticleUpdateReq struct {
     Id int `uri:"id" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
-    Enable string `json:"enable" comment:"开关"`
+    Layer int `json:"layer" comment:"排序"`
+    Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"描述信息"`
-    CId string `json:"cId" comment:"大BID"`
+    CId int `json:"-" comment:"大BID"`
     CoverImage string `json:"coverImage" comment:"封面图片"`
     Title string `json:"title" comment:"文章标题"`
     Class string `json:"class" comment:"文章分类"`

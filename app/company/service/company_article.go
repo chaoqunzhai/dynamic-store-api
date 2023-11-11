@@ -21,7 +21,7 @@ func (e *CompanyArticle) GetPage(c *dto.CompanyArticleGetPageReq, p *actions.Dat
 	var err error
 	var data models.CompanyArticle
 
-	err = e.Orm.Model(&data).
+	err = e.Orm.Model(&data).Select("class,created_at,title,enable,layer,id").
 		Scopes(
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),

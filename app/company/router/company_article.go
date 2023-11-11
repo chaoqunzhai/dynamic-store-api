@@ -5,8 +5,8 @@ import (
 	jwt "github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth"
 
 	"go-admin/app/company/apis"
-	"go-admin/common/middleware"
 	"go-admin/common/actions"
+	"go-admin/common/middleware"
 )
 
 func init() {
@@ -19,6 +19,8 @@ func registerCompanyArticleRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJW
 	r := v1.Group("/company-article").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
 		r.GET("", actions.PermissionAction(), api.GetPage)
+
+		r.POST("/enable/:id",api.Enable)
 		r.GET("/:id", actions.PermissionAction(), api.Get)
 		r.POST("", api.Insert)
 		r.PUT("/:id", actions.PermissionAction(), api.Update)
