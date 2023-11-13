@@ -27,7 +27,7 @@ type Shop struct {
     Balance    float64   `json:"balance" gorm:"comment:金额"`
     Integral   int       `json:"integral" gorm:"type:bigint(20);comment:可用积分"`
     Tag        []ShopTag `json:"-" gorm:"many2many:shop_mark_tag;foreignKey:id;joinForeignKey:shop_id;references:id;joinReferences:tag_id;"`
-    Credit float64   `gorm:"comment:授信分" json:"credit"`
+    Credit float64   `gorm:"comment:授信余额" json:"credit"`
     CreateUser string    `json:"create_user" gorm:"-"`
     SalesmanUser string `json:"salesman_user" gorm:"-"`
     SalesmanPhone string `json:"salesman_phone" gorm:"-"`

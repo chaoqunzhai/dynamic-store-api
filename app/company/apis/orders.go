@@ -660,10 +660,10 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			"credit":Credit,
 		})
 		//授信变动记录
-		row:=models2.ShopBalanceLog{
+		row:=models2.ShopCreditLog{
 			CId: userDto.CId,
 			ShopId: shopObject.Id,
-			Money: orderMoney,
+			Number: orderMoney,
 			Scene:fmt.Sprintf("用户[%v] 代客下单,使用授信额抵扣费:%v",userDto.Username,orderMoney),
 			Action: global.UserNumberReduce, //抵扣
 			Type: global.ScanShopUse,

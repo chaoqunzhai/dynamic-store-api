@@ -40,3 +40,27 @@ func (e *Company) Generate() models.ActiveRecord {
 func (e *Company) GetId() interface{} {
 	return e.Id
 }
+
+
+type UserApplyPaymentOrder struct {
+	models.Model
+	models.ModelTime
+	models.ControlBy
+	Layer int `json:"layer" gorm:"type:tinyint(4);comment:排序"`
+	Enable bool `json:"enable" gorm:"type:tinyint(1);comment:开关"`
+	Desc string `json:"desc" gorm:"type:varchar(35);comment:描述信息"`
+	CId int `json:"-" gorm:"type:bigint(20);comment:大BID"`
+	TransferDate models.XTime `json:"transfer_date"`
+	Money float64 `json:"money"`
+	UseTo int `json:"use_to" gorm:"size:1;comment:用途 0:记录 1:计入余额 2:计入授信额"`
+	Status int `json:"status" gorm:"size:1;comment:付款单状态 0:提交中  1:确认到账 2:驳回"`
+	Bank string `json:"bank" gorm:"size:20;comment:银行名称"`
+	Name string `json:"name" gorm:"size:20;comment:持卡人名称"`
+	BankName string `json:"bank_name" gorm:"size:15;comment:开户行"`
+	CardNumber string `json:"card_number" gorm:"size:25;comment:银行卡号"`
+	ApproveMsg string `json:"approve_msg" gorm:"size:20;comment:大B审批写的内容"`
+	UserName string `json:"user_name" gorm:"-"`
+}
+func (UserApplyPaymentOrder) TableName() string {
+	return "company_apply_payment_order"
+}

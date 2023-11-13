@@ -183,6 +183,12 @@ func Max(a []float64) float64 {
 	return ParInt(max)
 }
 
+func RoundDecimal(value interface{}) decimal.Decimal {
+	toStr := fmt.Sprintf("%v", value)
+	amount3, _ := decimal.NewFromString(toStr) //0.8
+	return amount3.Round(2)  //0.80
+}
+
 // 处理精度问题
 func DecimalMul(n int, k float32) float32 {
 	a := decimal.NewFromFloat32(k)

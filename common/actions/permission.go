@@ -94,7 +94,7 @@ func PermissionCompanyRole() gin.HandlerFunc {
 				return
 			}
 		}
-		fmt.Printf("pp:%v\n",p)
+		//fmt.Printf("pp:%v\n",p)
 		if !p.Enable {
 			response.Error(c, 401, errors.New("您账户已被停用！"), "您账户已被停用！")
 			c.Abort()
