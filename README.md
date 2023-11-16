@@ -49,9 +49,9 @@ sql_mode=ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_EN
 ```
 ## 构建上传
 测试服务器
-sudo CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o dynamic-store  && scp -P 26622 -i ~/.ssh/id_rsa -r dynamic-store root@152.136.36.253:/home/chaoqun
+sudo CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=2.0"  -o dynamic-store  && scp -P 26622 -i ~/.ssh/id_rsa -r dynamic-store root@152.136.36.253:/home/chaoqun
 线上服务器
-sudo CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o dynamic-store  && scp -P 26622 -i ~/.ssh/id_rsa -r dynamic-store root@159.75.177.143:/home/chaoqun
+sudo CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=2.0"  -o dynamic-store  && scp -P 26622 -i ~/.ssh/id_rsa -r dynamic-store root@159.75.177.143:/home/chaoqun
 ### 项目关联
 1. 获取本机公钥地址:/Users/zhaichaoqun/.ssh/id_rsa.pub
 2. 在github settings中SSH keys / Add new

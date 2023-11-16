@@ -1,16 +1,18 @@
 package apis
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/captcha"
+	"go-admin/common/global"
 )
 
 type GoAdminSystem struct {
 	api.Api
 }
 func (e GoAdminSystem)GoAdmin(c *gin.Context) {
-	c.String(200, "dcy-store.api")
+	c.String(200, fmt.Sprintf( "dcy-store %s",global.Version))
 }
 
 func (e GoAdminSystem)GenerateCaptchaHandler(c *gin.Context) {
