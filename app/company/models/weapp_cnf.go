@@ -31,8 +31,8 @@ func (CompanyRegisterCnf) TableName() string {
 type CompanyNavCnf struct {
 	models.Model
 	Enable    bool
-	GId       int            `gorm:"index;type:tinyint(1);comment:关联的菜单配置ID"`
-	CId       int            `gorm:"index;comment:大B"`
+	GId       int            `json:"g_id" gorm:"index;type:tinyint(1);comment:关联的菜单配置ID"`
+	CId       int            `json:"c_id" gorm:"index;comment:大B"`
 	CreatedAt time.Time      `json:"created_at" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
 }

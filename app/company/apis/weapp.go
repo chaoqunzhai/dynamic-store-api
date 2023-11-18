@@ -12,7 +12,6 @@ import (
 	"go-admin/app/company/service/dto"
 	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/actions"
-	cDto "go-admin/common/dto"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/common/redis_db"
 	"go-admin/common/web_app"
@@ -179,44 +178,38 @@ func (e WeApp) Navbar(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	//查询是否有特殊配置
 	var data models.Company
-	list := make([]models.Company, 0)
 
-	var count int64
-	//获取所有的大B
-	err = e.Orm.Model(&data).
-		Scopes(
-			cDto.MakeCondition(req.GetNeedSearch()),
-			cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order(global.OrderLayerKey).
-		Find(&list).Limit(-1).Offset(-1).
-		Count(&count).Error
+	//大B的系统 只获取大B的菜单配置
+	e.Orm.Model(&data).Select("id").Where("id = ?",userDto.CId).Limit(1).Find(&data)
+
 	navList := make([]models2.WeAppGlobalNavCnf, 0)
 	e.Orm.Model(&models2.WeAppGlobalNavCnf{}).Order("layer asc").Find(&navList)
 
-	result := make([]interface{}, 0)
-	for _, row := range list {
+	navCnf := make([]interface{}, 0)
+	for _, nav := range navList {
+		var object models.CompanyNavCnf
+		e.Orm.Model(&models.CompanyNavCnf{}).Where("g_id = ? and c_id = ?",nav.Id,data.Id).Limit(1).Find(&object)
 
-		navCnf := make([]interface{}, 0)
-		for _, nav := range navList {
-			var object models.CompanyNavCnf
-			e.Orm.Model(&models.CompanyNavCnf{}).Where("g_id = ? and c_id = ?",nav.Id,row.Id).Limit(1).Find(&object)
+		if object.Id > 0 {
+			nav.UserEnable = object.Enable
 
-			if object.Id > 0 {
-				nav.UserEnable = object.Enable
-
-			} else {
-				//设置菜单的默认状态
-				nav.UserEnable = nav.Enable
-			}
-			navCnf = append(navCnf, nav)
+		} else {
+			//设置菜单的默认状态
+			nav.UserEnable = nav.Enable
 		}
-		row.NavList = navCnf
-		result = append(result, row)
+		nav.CId = data.Id
+		navCnf = append(navCnf, nav)
 	}
 
-	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+
+	e.PageOK(navCnf, len(navList), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 	return
 }
 
@@ -261,7 +254,7 @@ func (e WeApp) UpdateNavbar(c *gin.Context) {
 	}
 
 	web_app.SearchAndLoadData(req.CId,e.Orm)
-	e.OK("", "successful")
+	e.OK("", "操作成功")
 	return
 }
 
@@ -276,43 +269,39 @@ func (e WeApp) Quick(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	var data models.Company
-	list := make([]models.Company, 0)
-	var count int64
-	//获取所有的大B
-	err = e.Orm.Model(&data).
-		Scopes(
-			cDto.MakeCondition(req.GetNeedSearch()),
-			cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-		).Order(global.OrderLayerKey).
-		Find(&list).Limit(-1).Offset(-1).
-		Count(&count).Error
+
+	//大B的系统 只获取大B的菜单配置
+	e.Orm.Model(&data).Select("id").Where("id = ?",userDto.CId).Limit(1).Find(&data)
+
+
 	navList := make([]models2.WeAppQuickTools, 0)
-	e.Orm.Model(&models2.WeAppQuickTools{}).Where("enable = true").Find(&navList)
+	e.Orm.Model(&models2.WeAppQuickTools{}).Find(&navList)
 
-	result := make([]interface{}, 0)
-	for _, row := range list {
 
-		navCnf := make([]interface{}, 0)
-		for _, nav := range navList {
-			var object models.CompanyQuickTools
-			e.Orm.Model(&models.CompanyQuickTools{}).Select("id,enable").Where("c_id = ? and quick_id = ?", row.Id, nav.Id).Limit(1).Find(&object)
 
-			if object.Id > 0 {
-				nav.UserEnable = object.Enable
+	navCnf := make([]interface{}, 0)
+	for _, nav := range navList {
+		var object models.CompanyQuickTools
+		e.Orm.Model(&models.CompanyQuickTools{}).Select("id,enable").Where("c_id = ? and quick_id = ?", data.Id, nav.Id).Limit(1).Find(&object)
 
-			} else {
+		if object.Id > 0 {
+			nav.UserEnable = object.Enable
 
-				nav.UserEnable = nav.DefaultShow
-			}
-			navCnf = append(navCnf, nav)
+		} else {
+
+			nav.UserEnable = nav.DefaultShow
 		}
-		row.NavList = navCnf
-		result = append(result, row)
+		nav.CId = data.Id
+		navCnf = append(navCnf, nav)
 	}
 
-	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	e.PageOK(navCnf, len(navList), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 	return
 
 }
@@ -356,7 +345,7 @@ func (e WeApp) UpdateQuick(c *gin.Context) {
 		e.Orm.Save(&CompanyNavCnf)
 	}
 	navList := make([]models2.WeAppQuickTools, 0)
-	e.Orm.Model(&models2.WeAppQuickTools{}).Where("enable = true").Find(&navList)
+	e.Orm.Model(&models2.WeAppQuickTools{}).Find(&navList)
 
 
 	quickToolsData := make([]interface{}, 0)

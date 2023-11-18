@@ -14,6 +14,7 @@ type WeAppGlobalNavCnf struct {
 	WapUrl           string `gorm:"size:50;" json:"wap_url"`
 	IconClass        string `gorm:"size:50;" json:"icon_class"`
 	Layer string   `gorm:"size:3;" json:"layer"`
+	CId int `gorm:"-" json:"c_id"` //只是用来渲染,不做创建字段
 }
 
 func (WeAppGlobalNavCnf) TableName() string {
@@ -76,6 +77,7 @@ type WeAppQuickTools struct {
 	Enable   bool   `json:"-" gorm:"type:tinyint(1);default:1;comment:是否开启"`
 	ImageUrl string `json:"image_url" gorm:"size:60;comment:图片路径"`
 	WapUrl   string `gorm:"size:50;" json:"wap_url"`
+	CId int `gorm:"-" json:"c_id"` //只是用来渲染前段,不做创建字段
 }
 
 func (WeAppQuickTools) TableName() string {

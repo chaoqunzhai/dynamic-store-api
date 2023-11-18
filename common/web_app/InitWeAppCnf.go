@@ -202,6 +202,11 @@ func (m *MakeWeAppInitConf)SearchRun()  {
 			if !object.Enable {
 				continue
 			}
+		}else {
+			//没有单独配置,那就走全局的策略
+			if !row.Enable{
+				continue
+			}
 		}
 		navLibMap := make(map[string]interface{}, 0)
 		_ = json.Unmarshal([]byte(NavDefine), &navLibMap)

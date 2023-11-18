@@ -277,33 +277,11 @@ func (e Company) Info(c *gin.Context) {
 		"update_time":   time.Now().Format("2006-01-02 15:04:05"),
 		"logoImage":     "",
 	}
-	if userDto.RoleId == global.RoleSuper {
-		storeInfo = map[string]interface{}{
-			"store_id":      0,
-			"store_name":    global.SysName,
-			"describe":      global.Describe,
-			"logo_image_id": 0,
-			"sort":          100,
-			"is_recycle":    0,
-			"is_delete":     0,
-			"create_time":   time.Now().Format("2006-01-02 15:04:05"),
-			"update_time":   time.Now().Format("2006-01-02 15:04:05"),
-			"logoImage":     "",
-		}
-	} else {
-		if userDto.CId == 0 {
 
-			e.OK(storeInfo, "successful")
-			return
-		}
-		var object models.Company
-		e.Orm.Model(&models.Company{}).Where("enable = 1 and id = ? ",userDto.CId).First(&object)
+	var object models.Company
+	e.Orm.Model(&models.Company{}).Where("enable = 1 and leader_id = ? ",userDto.UserId).First(&object)
 
-		if object.Id == 0 {
-			storeInfo["store_name"] = "已经下线"
-			e.OK(storeInfo, "successful")
-			return
-		}
+	if object.Id > 0 {
 		ShopName:=object.Name
 		if object.ShopName != ""{
 			ShopName = object.ShopName
@@ -319,6 +297,22 @@ func (e Company) Info(c *gin.Context) {
 			"create_time":   object.CreatedAt.Format("2006-01-02 15:04:05"),
 			"update_time":   object.UpdatedAt.Format("2006-01-02 15:04:05"),
 			"logoImage":     "",
+		}
+
+	}else {
+		if userDto.RoleId == global.RoleSuper {
+			storeInfo = map[string]interface{}{
+				"store_id":      0,
+				"store_name":    global.SysName,
+				"describe":      global.Describe,
+				"logo_image_id": 0,
+				"sort":          100,
+				"is_recycle":    0,
+				"is_delete":     0,
+				"create_time":   time.Now().Format("2006-01-02 15:04:05"),
+				"update_time":   time.Now().Format("2006-01-02 15:04:05"),
+				"logoImage":     "",
+			}
 		}
 	}
 
