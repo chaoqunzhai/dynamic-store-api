@@ -558,7 +558,8 @@ func (e Goods) Insert(c *gin.Context) {
 			//1.上传到cos中
 			fileName,cosErr :=buckClient.PostFile(goodsImagePath)
 			if cosErr !=nil{
-				zap.S().Errorf("用户:%v,商品规格保存失败:%v",userDto.UserId,cosErr)
+				zap.S().Errorf("用户:%v,CID:%v 商品规格保存失败:%v",userDto.UserId,userDto.CId,cosErr)
+				continue
 			}
 			//只保留文件名称,防止透露服务器地址
 			fileList = append(fileList, fileName)
@@ -572,8 +573,8 @@ func (e Goods) Insert(c *gin.Context) {
 	//存储规格的图片
 	//根据索引来创建
 	specFiles := fileForm.File["spec_files"]
-	fmt.Println("规格DB",specDbMap)
-	fmt.Println("规格图片",specFiles)
+	//fmt.Println("规格DB",specDbMap)
+	//fmt.Println("规格图片",specFiles)
 	for index, file := range specFiles {
 		fmt.Println("规格索引",index)
 		specId,specOk:=specDbMap[index]

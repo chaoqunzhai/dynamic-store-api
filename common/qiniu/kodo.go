@@ -168,8 +168,8 @@ func (q *QinUi)InitClient()  {
 	//
 	q.Cfg = cfg
 
-	//统一创建dcy-用户ID的桶
-	q.BucketName = fmt.Sprintf("dcy-%v",q.CId)
+	//存储图片的桶
+	q.BucketName = "dcy-goods"
 
 	putPolicy:=storage.PutPolicy{
 		Scope: q.BucketName,
@@ -188,6 +188,7 @@ func (q *QinUi)CreateBucket()  {
 }
 
 //上传文件
+//不同的大B做不同的桶,
 func (q *QinUi)PostFile(filePath  string) (name string,err  error)  {
 	//filePath := "/Users/zhaichaoqun/workespace/goProjects/src/test/70e3f85b.jpg"
 
@@ -198,7 +199,7 @@ func (q *QinUi)PostFile(filePath  string) (name string,err  error)  {
 		//return "",errors.New(fmt.Sprintf("压缩失败%v",sizeError.Error()))
 		sizeFilePath =SizeFile(filePath)
 	}
-	fmt.Println("sizeFilePath",sizeFilePath)
+	//fmt.Println("sizeFilePath",sizeFilePath)
 	//sizeFilePath:是压缩后的文件
 	_,fileName := path.Split(sizeFilePath)
 
@@ -216,7 +217,7 @@ func (q *QinUi)PostFile(filePath  string) (name string,err  error)  {
 	//保留全路径 会在七牛云上创建目录
 	err = formUploader.PutFile(context.Background(), &ret, q.Token, sizeFilePath, sizeFilePath, &putExtra)
 	if err != nil {
-		zap.S().Infof("七牛云图片上传失败:%v",err)
+		zap.S().Infof("BackName:%v 七牛云图片上传文件：%v 失败:%v",q.BucketName,sizeFilePath,err,)
 		return "", errors.New(fmt.Sprintf("图片上传失败:%v",err))
 	}
 	//上传成功后,删除这个压缩的文件
