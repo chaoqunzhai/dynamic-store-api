@@ -396,7 +396,7 @@ func (e Line) Update(c *gin.Context) {
 
 	if oldRow.Id != 0 {
 		if oldRow.Id != req.Id {
-			e.Error(500, errors.New("名称不可重复"), "名称不可重复")
+			e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 			return
 		}
 	}
@@ -417,7 +417,7 @@ func (e Line) Update(c *gin.Context) {
 	}
 	err = s.Update(&req, p)
 	if err != nil {
-		e.Error(500, err, fmt.Sprintf("修改Line失败，\r\n失败信息 %s", err.Error()))
+		e.Error(500, err, fmt.Sprintf("修改路线失败, %s", err.Error()))
 		return
 	}
 	e.OK(req.GetId(), "修改成功")

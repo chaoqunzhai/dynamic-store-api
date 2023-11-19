@@ -24,6 +24,7 @@ func registerLineRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewar
 		r.GET("/mini",api.MiniApi)
 		r.GET("/:id", api.Get)
 
+		//路线更新,路线名字必须唯一
 		r.PUT("/:id",  api.Update)
 		//大B路线不能删除了,因为有过期时间
 		//r.DELETE("", api.Delete)
