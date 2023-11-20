@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/go-admin-team/go-admin-core/sdk/service"
+	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/global"
 	"gorm.io/gorm"
 	"time"
@@ -38,6 +39,26 @@ func (e *CompanyCoupon) GetPage(c *dto.CompanyCouponGetPageReq, p *actions.DataP
 	return nil
 }
 
+func (e *CompanyCoupon) GetReceivePage(c *dto.CompanyCouponReceiveGetPageReq, p *actions.DataPermission, list *[]models2.ReceiveCouponLog, count *int64) error {
+	var err error
+	var data models2.ReceiveCouponLog
+
+	err = e.Orm.Model(&data).
+		Scopes(
+			cDto.MakeCondition(c.GetNeedSearch()),
+			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
+			actions.Permission(data.TableName(), p),
+		).Order(global.OrderLayerKey).
+		Find(list).Limit(-1).Offset(-1).
+		Count(count).Error
+	if err != nil {
+		e.Log.Errorf("CompanyCouponService GetPage error:%s \r\n", err)
+		return err
+	}
+	return nil
+}
+
+
 // Get 获取CompanyCoupon对象
 func (e *CompanyCoupon) Get(d *dto.CompanyCouponGetReq, p *actions.DataPermission, model *models.CompanyCoupon) error {
 	var data models.CompanyCoupon
@@ -66,7 +87,6 @@ func (e *CompanyCoupon) Insert(cid int, c *dto.CompanyCouponInsertReq) error {
 	c.Generate(&data)
 	data.CId = cid
 	//todo:时间处理
-
 	if c.Start > 0 {
 		data.StartTime = sql.NullTime{
 			Time:  time.Unix(c.Start , 0),

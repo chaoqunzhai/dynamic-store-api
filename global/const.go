@@ -125,7 +125,10 @@ const (
 	ReceiveCoupon2    = 2      //客户自己手动领取的
 	ReceiveCoupon3    = 3      //活动领取的
 
-
+	CouponState1 = 1 //未使用
+	CouponState2 = 2 //已使用
+	CouponState3 = 3 //过期
+	CouponState4 = 4 //作废
 	GoodsPreview = 0 //全部用户可以预览
 	GoodsAuthVip = 1 //只有VIP可以购买
 

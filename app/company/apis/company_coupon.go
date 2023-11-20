@@ -3,7 +3,9 @@ package apis
 import (
 	"errors"
 	"fmt"
+	models2 "go-admin/cmd/migrate/migration/models"
 	customUser "go-admin/common/jwt/user"
+	"go-admin/global"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -96,6 +98,77 @@ func (e CompanyCoupon) GetPage(c *gin.Context) {
 
 	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
+
+func (e CompanyCoupon) Receive(c *gin.Context) {
+	req := dto.CompanyCouponReceiveGetPageReq{}
+	s := service.CompanyCoupon{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	p := actions.GetPermissionFromContext(c)
+	list := make([]models2.ReceiveCouponLog, 0)
+	var count int64
+
+	err = s.GetReceivePage(&req, p, &list, &count)
+	if err != nil {
+		e.Error(500, err, fmt.Sprintf("获取领劵记录失败,%s", err.Error()))
+		return
+	}
+	result := make([]map[string]interface{}, 0)
+
+	for _, row := range list {
+		var shopUser models2.SysShopUser
+		e.Orm.Model(&shopUser).Select("user_id,username").Where("c_id = ? and user_id = ?",row.CId,row.UserId).Limit(1).Find(&shopUser)
+		var counpon models.CompanyCoupon
+		e.Orm.Model(&counpon).Select("id,name").Where("c_id = ? and id = ?",row.CId,row.CouponId).Limit(1).Find(&counpon)
+		var typeName string
+		switch row.Type {
+		case global.ReceiveCoupon1:
+			typeName = "订单领取"
+		case global.ReceiveCoupon2:
+			typeName = "直接领取"
+		case global.ReceiveCoupon3:
+			typeName = "活动领取"
+		}
+		var statusName string
+		switch row.Status {
+		case global.CouponState1:
+			statusName = "未使用"
+		case global.CouponState2:
+			statusName = "已使用"
+		case global.CouponState3:
+			statusName = "过期"
+		case global.CouponState4:
+			statusName = "作废"
+		}
+		r := map[string]interface{}{
+			"id":row.Id,
+			"created_at":  row.CreatedAt.Format("2006-01-02 15:04:05"),
+			"coupon_type":global.GetCouponType(row.CouponType),
+			"type":typeName, //1订单2.直接领取3.活动领取
+			"status_name":statusName,
+			"status":row.Status,
+		}
+		if shopUser.UserId > 0 {
+			r["username"] = shopUser.Username
+		}
+		if counpon.Id > 0 {
+			r["name"] = counpon.Name
+		}
+		result = append(result, r)
+	}
+
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+}
+
 
 // Get 获取CompanyCoupon
 // @Summary 获取CompanyCoupon

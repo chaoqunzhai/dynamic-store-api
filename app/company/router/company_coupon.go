@@ -5,8 +5,8 @@ import (
 	jwt "github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth"
 
 	"go-admin/app/company/apis"
-	"go-admin/common/middleware"
 	"go-admin/common/actions"
+	"go-admin/common/middleware"
 )
 
 func init() {
@@ -23,5 +23,10 @@ func registerCompanyCouponRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWT
 		r.POST("", api.Insert)
 		r.PUT("/:id", api.Update)
 		r.DELETE("", api.Delete)
+	}
+
+	{
+		//领劵记录
+		r.GET("/receive",api.Receive)
 	}
 }

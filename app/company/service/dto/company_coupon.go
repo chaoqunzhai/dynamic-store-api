@@ -22,6 +22,17 @@ type CompanyCouponGetPageReq struct {
 	CompanyCouponOrder
 }
 
+
+type CompanyCouponReceiveGetPageReq struct {
+	dto.Pagination `search:"-"`
+	Name           string    `form:"name"  search:"type:contains;column:name;table:company_coupon" comment:"优惠卷名称"`
+	StartTime      time.Time `form:"startTime"  search:"type:gte;column:start_time;table:company_coupon" comment:"开始使用时间"`
+	EndTime        time.Time `form:"endTime"  search:"type:lte;column:end_time;table:company_coupon" comment:"截止使用时间"`
+
+}
+func (m *CompanyCouponReceiveGetPageReq) GetNeedSearch() interface{} {
+	return *m
+}
 type CompanyCouponOrder struct {
 	Id        string `form:"idOrder"  search:"type:order;column:id;table:company_coupon"`
 	CreateBy  string `form:"createByOrder"  search:"type:order;column:create_by;table:company_coupon"`
