@@ -52,12 +52,13 @@ func (m *ShopGetPageReq) GetNeedSearch() interface{} {
 
 type ShopInsertReq struct {
 	Id            int     `json:"-" comment:"主键编码"` // 主键编码
+	ApproveId int `json:"approve_id" comment:"用户审批ID"`
 	Layer         int     `json:"layer" comment:"排序"`
 	Enable        bool    `json:"enable" comment:"开关"`
 	Desc          string  `json:"desc" comment:"描述信息"`
-	Name          string  `json:"name" comment:"小B名称" binding:"required"`
+	Name          string  `json:"name" comment:"小B名称"`
 	Phone         string  `json:"phone" comment:"联系手机号"` //小B的手机号
-	UserName      string  `json:"username" comment:"小B负责人名称" binding:"required"`
+	UserName      string  `json:"username" comment:"小B负责人名称"`
 	Address       string  `json:"address" comment:"小B收货地址" `
 	Password string `json:"password"`
 	Longitude     float64 `json:"longitude" comment:""`

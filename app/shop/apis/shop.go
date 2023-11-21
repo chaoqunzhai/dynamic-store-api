@@ -204,16 +204,9 @@ func (e Shop) Get(c *gin.Context) {
 	e.OK( object, "查询成功")
 }
 
-// Insert 创建Shop
-// @Summary 创建Shop
-// @Description 创建Shop
-// @Tags Shop
-// @Accept application/json
-// @Product application/json
-// @Param data body dto.ShopInsertReq true "data"
-// @Success 200 {object} response.Response	"{"code": 200, "message": "添加成功"}"
-// @Router /api/v1/shop [post]
-// @Security Bearer
+//门店创建 分为2种情况
+//1.自主创建 上来的表单,有用户名和密码
+//2.通过审批列表通过后,点击创建门店,填的表单上来的数据。
 func (e Shop) Insert(c *gin.Context) {
     req := dto.ShopInsertReq{}
     s := service.Shop{}
@@ -257,29 +250,52 @@ func (e Shop) Insert(c *gin.Context) {
 	}
 
 
-	if req.Phone != ""{
-		var userCount int64
-		e.Orm.Model(&sys.SysShopUser{}).Where("phone = ? ",req.Phone).Count(&userCount)
-		if userCount > 0 {
-			e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
+
+	if req.ApproveId > 0 {
+
+		var data models.CompanyRegisterUserVerify
+		e.Orm.Model(&models.CompanyRegisterUserVerify{}).Where("c_id = ? and id = ?",userDto.CId, req.ApproveId).Limit(1).Find(&data)
+
+		if data.Id == 0 {
+			e.Error(500, errors.New("无此用户"), "无此用户")
+			return
+		}
+		if data.Status != 1 {
+			e.Error(500, errors.New("未审批通过"), "未审批通过")
 			return
 		}
 
-		var userShopCount int64
-		e.Orm.Model(&models.Shop{}).Where("phone = ? ",req.Phone).Count(&userShopCount)
-		if userShopCount > 0 {
-			e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
+		//TODO: 111
+		TODO:继续开发
+	}else {
+		if req.Phone != ""{
+			var userCount int64
+			e.Orm.Model(&sys.SysShopUser{}).Where("phone = ? ",req.Phone).Count(&userCount)
+			if userCount > 0 {
+				e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
+				return
+			}
+
+			var userShopCount int64
+			e.Orm.Model(&models.Shop{}).Where("phone = ? ",req.Phone).Count(&userShopCount)
+			if userShopCount > 0 {
+				e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
+				return
+			}
+		}
+
+		var userNameCount int64
+		var SysShopUserObject sys.SysShopUser
+		e.Orm.Model(&sys.SysShopUser{}).Scopes(actions.PermissionSysUser(SysShopUserObject.TableName(), userDto)).Where("username = ? ",req.UserName).Count(&userNameCount)
+		if userNameCount > 0 {
+			e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
 			return
 		}
+
+
 	}
 
-	var userNameCount int64
-	var SysShopUserObject sys.SysShopUser
-	e.Orm.Model(&sys.SysShopUser{}).Scopes(actions.PermissionSysUser(SysShopUserObject.TableName(), userDto)).Where("username = ? ",req.UserName).Count(&userNameCount)
-	if userNameCount > 0 {
-		e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
-		return
-	}
+
 	//推荐人是一个大B的用户
 	var userSymanObject sys.SysUser
 	e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? and enable = ?",req.SalesmanPhone,true).Limit(1).Find(&userSymanObject)

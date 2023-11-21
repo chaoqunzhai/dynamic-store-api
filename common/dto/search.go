@@ -90,7 +90,7 @@ func MakeSplitTableCondition(q interface{},table string) func(db *gorm.DB) *gorm
 			if join == nil {
 				continue
 			}
-			fmt.Println("join",join)
+			//fmt.Println("join",join)
 			db = db.Joins(join.JoinOn)
 			for k, v := range join.Where {
 				db = db.Where(k, v...)

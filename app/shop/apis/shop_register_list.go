@@ -9,6 +9,7 @@ import (
 	"go-admin/app/shop/models"
 	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/actions"
+	"go-admin/common/business"
 	cDto "go-admin/common/dto"
 	customUser "go-admin/common/jwt/user"
 	models3 "go-admin/common/models"
@@ -21,7 +22,7 @@ type ShopRegisterList struct {
 }
 type ShopRegisterListGetPageReq struct {
 	cDto.Pagination `search:"-"`
-	Value          string `form:"value"  search:"type:exact;column:value;table:company_register_user_verify" `
+	Phone          string `form:"phone"  search:"type:contains;column:phone;table:company_register_user_verify" `
 	Status           string `form:"status"  search:"type:exact;column:status;table:company_register_user_verify" `
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:company_register_user_verify" `
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:company_register_user_verify"`
@@ -70,6 +71,37 @@ func (e ShopRegisterList) GetPage(c *gin.Context) {
 		Count(&count).Error
 
 	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+}
+
+func (e ShopRegisterList) Detail(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	approveId :=c.Param("id")
+	var data models.CompanyRegisterUserVerify
+	e.Orm.Model(&models.CompanyRegisterUserVerify{}).Where("c_id = ? and id = ?",userDto.CId, approveId).Limit(1).Find(&data)
+
+	if data.Id == 0 {
+		e.OK(business.Response{Code:-1,Msg: "无此用户"},"")
+		return
+	}
+
+	if data.Status != 1{
+		e.OK(business.Response{Code:-1,Msg: "未审批通过"},"")
+		return
+	}
+	e.OK(business.Response{Code:0,Data: data},"")
+	return
 }
 
 func (e ShopRegisterList) Update(c *gin.Context) {

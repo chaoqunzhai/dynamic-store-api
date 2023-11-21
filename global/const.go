@@ -9,11 +9,11 @@ const (
 	StdOut   = "./logs/info.log"
 	StdError = "./logs/error.log"
 	DebugError = "./logs/debug.log"
-	LogIngWeApp = "移动客户端,weapp-api"
+	LogIngWeApp = "mobile-client"
 	LoginRoleSuper = 0
 	LoginRoleCompany = 1
 	LoginRoleShop = 2
-	LogIngPC = "PC端,store-api"
+	LogIngPC = "company-pc"
 	LogIngUserType = "用户名登录"
 	LogIngPhoneType = "手机号登录"
 	ExpressStore     = 1 //门店自提
