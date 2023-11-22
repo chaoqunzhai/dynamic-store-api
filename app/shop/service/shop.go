@@ -74,34 +74,52 @@ func (e *Shop) getShopTagModels(ids []int) (list []models.ShopTag) {
 	return list
 }
 
-// Insert 创建Shop对象
-func (e *Shop) Insert(userDto *sys.SysUser, c *dto.ShopInsertReq) error {
-	//创建小B用户
-	shopUserDto:=sys.SysShopUser{
-		Username: c.UserName,
-		NickName: c.UserName,
-		Phone: c.Phone,
-		Password: c.Password,
-		Enable: true,
-		CId: userDto.CId,
-		Status:global.SysUserSuccess,
-		RoleId:global.RoleShop,
-	}
-	//设置创建用户为大B的名字
-	shopUserDto.CreateBy = userDto.UserId
 
-	e.Orm.Create(&shopUserDto)
+func (e *Shop) Insert(userDto *sys.SysUser, c *dto.ShopInsertReq) error {
+	var userId int
 	var err error
 	var data models.Shop
+
+	//先设置请求的默认值
 	c.Generate(&data)
+
+	//后面根据选择进行重新赋值
+	//到这里一定是检测通过的
+	if c.ApproveId > 0 {
+		var RegisterUser models.CompanyRegisterUserVerify
+		e.Orm.Model(&RegisterUser).Where("c_id = ? and id = ?",userDto.CId, c.ApproveId).Limit(1).Find(&RegisterUser)
+
+		data.Phone = RegisterUser.Phone
+		data.UserName = RegisterUser.Value
+		//创建的用户ID赋值给大B
+		userId = RegisterUser.ShopUserId
+	}else {
+		//创建小B用户
+		shopUserDto:=sys.SysShopUser{
+			Username: c.UserName,
+			NickName: c.UserName,
+			Phone: c.Phone,
+			Password: c.Password,
+			Enable: true,
+			CId: userDto.CId,
+			Status:global.SysUserSuccess,
+			RoleId:global.RoleShop,
+		}
+		//设置创建用户为大B的名字
+		shopUserDto.CreateBy = userDto.UserId
+		e.Orm.Create(&shopUserDto)
+		userId = shopUserDto.UserId
+	}
+
 	//把创建的用户关联到这个小B上面来
-	data.UserId = shopUserDto.UserId
+	data.UserId = userId
 	//关联的ID
 	data.CId = userDto.CId
 
 	if len(c.Tags) > 0 {
 		data.Tag = e.getShopTagModels(c.Tags)
 	}
+
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("ShopService Insert error:%s \r\n", err)
@@ -119,9 +137,16 @@ func (e *Shop) Insert(userDto *sys.SysUser, c *dto.ShopInsertReq) error {
 		IsDefault: true,
 	}
 	//存储的是创建小B的用户ID,因为这个地址是小B的
-	userAddress.UserId = shopUserDto.UserId
+	userAddress.UserId = userId
 	userAddress.CId = userDto.CId
-	e.Orm.Create(&userAddress)
+	createErr:=e.Orm.Create(&userAddress).Error
+	if createErr==nil{
+		if c.ApproveId > 0 {
+			e.Orm.Model(&models.CompanyRegisterUserVerify{}).Where("id = ?",c.ApproveId).Updates(map[string]interface{}{
+				"status":2,
+			})
+		}
+	}
 
 	return nil
 }
@@ -157,23 +182,7 @@ func (e *Shop) Update(c *dto.ShopUpdateReq, p *actions.DataPermission) error {
 	e.Orm.Model(&shopUserObject).Where("c_id = ? and user_id = ?",data.CId,data.UserId).Limit(1).Find(&shopUserObject)
 	//保存的是小B的用户ID
 	var shopUserId int
-	if shopUserObject.UserId == 0 {
-		shopUserDto:=sys.SysShopUser{
-			Username: c.UserName,
-			NickName: c.UserName,
-			Phone: c.Phone,
-			Password:"123456",
-			Enable: true,
-			CId: data.CId,
-			Status:global.SysUserSuccess,
-			RoleId:global.RoleShop,
-		}
-		//设置创建用户为大B的名字
-		shopUserDto.CreateBy = data.CreateBy
-
-		e.Orm.Create(&shopUserDto)
-		shopUserId = shopUserDto.UserId
-	}else {
+	if shopUserObject.UserId > 0  {
 		shopUserId = shopUserObject.UserId
 		e.Orm.Model(&sys.SysShopUser{}).Where("c_id = ? and user_id = ?",data.CId,data.UserId).Updates(map[string]interface{}{
 			"username":data.UserName,

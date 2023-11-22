@@ -7,7 +7,6 @@ import (
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 	sys "go-admin/app/admin/models"
 	"go-admin/app/shop/models"
-	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/actions"
 	"go-admin/common/business"
 	cDto "go-admin/common/dto"
@@ -135,53 +134,35 @@ func (e ShopRegisterList) Update(c *gin.Context) {
 	}
 	data.Status  = req.Status
 	data.Info = req.Info
-	saveErr:=e.Orm.Save(&data).Error
-	if saveErr != nil{
-		e.Error(500, saveErr,"审核失败,请联系管理员")
-		return
-	}
 
 	if data.Status == 1 {
 		data.AdoptUser = userDto.Username
 		data.AdoptTime = models3.XTime{
 			Time:time.Now(),
 		}
-		saveErr2:=e.Orm.Save(&data).Error
-		if saveErr2 != nil{
-			e.Error(500, saveErr2,"审核更新失败,请联系管理员")
+
+		//检测用户名是否已经存在
+		var userCount int64
+		e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("c_id = ? and username = ? ",data.CId,data.Value).Count(&userCount)
+		if userCount > 0 {
+			e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
 			return
 		}
-		var UserName string
-		var Phone string
-		switch data.Source {
-		case "user":
-			UserName = data.Value
-			//检测用户名是否已经存在
-			var validUser sys.SysShopUser
-			e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("c_id = ? and username = ? ",data.CId,UserName).Limit(1).Find(&validUser)
-			if validUser.UserId > 0 {
-				e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
-				return
-			}
-		case "mobile":
-			UserName =global.RandomName(data.Value)
-			Phone = data.Value
-			//检测手机号是否已经存在
-			var validUser sys.SysShopUser
-			e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("phone = ? ",Phone).Limit(1).Find(&validUser)
-			if validUser.UserId > 0 {
-				e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
-				return
-			}
+
+		//检测手机号是否已经存在
+		var phoneCount int64
+		e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("phone = ? ",data.Phone).Count(&phoneCount)
+		if phoneCount > 0 {
+			e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
+			return
 		}
 
 		//创建用户
-
 		shopUserDto:=sys.SysShopUser{
-			Username: UserName,
-			NickName:UserName,
-			Phone: Phone,
-			Password:"123456",
+			Username: data.Value,
+			NickName:data.Value,
+			Phone: data.Phone,
+			Password:data.Password,
 			Enable: true,
 			CId: data.CId,
 			Status:global.SysUserSuccess,
@@ -191,20 +172,15 @@ func (e ShopRegisterList) Update(c *gin.Context) {
 		shopUserDto.CreateBy = userDto.UserId
 
 		e.Orm.Create(&shopUserDto)
+		//创建的ID保存进去
+		data.ShopUserId = shopUserDto.UserId
 
-		//创建小B资源
-		shopDto:=models2.Shop{
-			Phone:  Phone,
-			Name: UserName,
-			Platform: data.AppTypeName,
-			UserName:UserName,
-		}
-		shopDto.UserId =shopUserDto.UserId
-		shopDto.CId =data.CId
-		e.Orm.Create(&shopDto)
-		e.OK("", "审核成功,已成功创建用户")
+
+	}
+	saveErr2:=e.Orm.Save(&data).Error
+	if saveErr2 != nil{
+		e.Error(500, saveErr2,"审核更新失败,请联系管理员")
 		return
-
 	}
 	e.OK("", "审核成功")
 }

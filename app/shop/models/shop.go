@@ -67,9 +67,11 @@ type CompanyRegisterUserVerify struct {
     Source string `json:"source" gorm:"size:6;comment:注册方式 user | mobile"`
     Value string `json:"value" gorm:"size:15;comment:注册数据,用户名"`
     Phone string `json:"phone" gorm:"size:15;comment:注册数据,手机号"`
+    Password string `json:"password" gorm:"size:20;comment:密码"`
     AppTypeName string `json:"app_type_name" gorm:"size:6;comment:注册来源例如H5,WECHAT,ALI等"`
-    Status int `json:"status" gorm:"default:0;index;comment:0:审核中, 1:通过 -1:驳回"`
+    Status int `json:"status" gorm:"default:0;index;comment:0:审核中, 1:通过 -1:驳回 2:已经创建门店"`
     Info string `json:"info" gorm:"size:10;comment:备注"`
+    ShopUserId int `json:"shop_user_id" gorm:"comment:创建成功的大B用户ID" `
 }
 func (CompanyRegisterUserVerify) TableName() string {
     return "company_register_user_verify"

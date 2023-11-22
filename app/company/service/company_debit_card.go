@@ -62,6 +62,7 @@ func (e *CompanyDebitCard) Insert(c *dto.CompanyDebitCardInsertReq) error {
     var data models.CompanyDebitCard
     c.Generate(&data)
     data.Layer = "0"
+    data.Enable = true
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("CompanyDebitCardService Insert error:%s \r\n", err)

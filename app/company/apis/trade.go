@@ -7,6 +7,7 @@ import (
 	"go-admin/cmd/migrate/migration/models"
 	"go-admin/common/actions"
 	customUser "go-admin/common/jwt/user"
+	"go-admin/global"
 )
 
 type Trade struct {
@@ -76,6 +77,18 @@ func (e Trade) Detail(c *gin.Context) {
 	var object models.OrderTrade
 	e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Limit(1).Find(&object)
 
+	if object.Id == 0 {
+		object = models.OrderTrade{
+			CloseHours: int(global.OrderExpirationTime.Minutes()),
+			ReceiveDays: global.OrderReceiveDays,
+			RefundDays: global.OrderRefundDays,
+		}
+		object.Enable = true
+		object.CId = userDto.CId
+		e.Orm.Create(&object)
+		e.OK(object,"successful")
+		return
+	}
 
 	e.OK(object,"successful")
 	return

@@ -80,6 +80,16 @@ func (e PayApi) Detail(c *gin.Context) {
 	e.Orm.Model(&models.PayCnf{}).Scopes(actions.PermissionSysUser(PayCnf.TableName(), userDto)).Limit(1).Find(&PayCnf)
 
 
+	if PayCnf.Id == 0 {
+		object := models.PayCnf{
+			Credit: true,
+			BalanceDeduct: true,
+		}
+		object.Enable = true
+		object.CId = userDto.CId
+		e.Orm.Create(&object)
+		e.OK(object,"successful")
+	}
 	e.OK(PayCnf,"successful")
 	return
 }
