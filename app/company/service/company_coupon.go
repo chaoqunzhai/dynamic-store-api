@@ -101,7 +101,8 @@ func (e *CompanyCoupon) Insert(cid int, c *dto.CompanyCouponInsertReq) error {
 		}
 	}
 
-
+	//优惠卷默认都是全部可用
+	data.Range = 2
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("CompanyCouponService Insert error:%s \r\n", err)
@@ -134,7 +135,8 @@ func (e *CompanyCoupon) Update(c *dto.CompanyCouponUpdateReq, p *actions.DataPer
 		}
 	}
 	data.ExpireDay = 0
-
+	//优惠卷默认都是全部可用
+	data.Range = 2
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("CompanyCouponService Save error:%s \r\n", err)
