@@ -81,11 +81,10 @@ func newName(name string, size int) string {
 	_, file := filepath.Split(name)
 	return fmt.Sprintf("%d%s", size, file)
 }
-func SizeFile(filePath string) string {
+func SizeFile(filePath string,resizeHeight int) string {
 	// 打开要压缩的图片文件
 	file, err := os.Open(filePath)
 	if err != nil {
-
 		return filePath
 	}
 
@@ -100,29 +99,26 @@ func SizeFile(filePath string) string {
 		_=file.Close()
 	}()
 	// 设置压缩后的宽度和高度，这里是压缩为原图宽度和高度的 1/4
-
 	newWidth := uint(img.Bounds().Dx() )
 	newHeight :=  uint(img.Bounds().Dy() )
-
-
 	if newHeight < 400 {
 		return filePath
 	}
-	resizeHeight:=400
 
 	h:=(uint(resizeHeight) * newWidth) / newHeight
-
+	fmt.Println(h)
 	// 压缩图片
-
 	resizedImg := resize.Resize(h, uint(resizeHeight), img, resize.Lanczos3)
-
 	// 创建输出文件
-
 	//文件名
-
 	uuidName:=strings.Split(uuid.New().String(), "-")[0]
 
-	newFileName:=  fmt.Sprintf("%v.%v",uuidName,format)
+	var newFileName string
+	if resizeHeight > 400 {
+		newFileName =  fmt.Sprintf("%v.%v",uuidName,format)
+	}else {
+		newFileName =  fmt.Sprintf("%v.%v",uuidName,format)
+	}
 
 	newFilePath	:=path.Join(fileDir,newFileName)
 
@@ -135,12 +131,7 @@ func SizeFile(filePath string) string {
 		_=outFile.Close()
 	}()
 	// 根据原图格式进行输出
-	if format == "jpeg" {
-		jpeg.Encode(outFile, resizedImg, &jpeg.Options{Quality: 80})
-	} else if format == "png" {
-		png.Encode(outFile, resizedImg)
-	}
-	fmt.Println("图片压缩成功！！！",newFilePath)
+	err = jpeg.Encode(outFile, resizedImg, &jpeg.Options{Quality: 70})
 	return newFilePath
 
 }
@@ -194,11 +185,7 @@ func (q *QinUi)PostFile(filePath  string) (name string,err  error)  {
 
 	//压缩下文件
 	//细致压缩失败,那就用第二种
-	sizeFilePath,sizeError :=CompressImg(filePath,400)
-	if sizeError!=nil{
-		//return "",errors.New(fmt.Sprintf("压缩失败%v",sizeError.Error()))
-		sizeFilePath =SizeFile(filePath)
-	}
+	sizeFilePath :=SizeFile(filePath,700)
 	//fmt.Println("sizeFilePath",sizeFilePath)
 	//sizeFilePath:是压缩后的文件
 	_,fileName := path.Split(sizeFilePath)
