@@ -405,10 +405,15 @@ func (e Company) QuotaCnf(c *gin.Context)   {
 		var object models2.CompanyRole
 		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)
 		msg = "个角色可以创建"
-
+	case "index_message":
+		CompanyCnf := business.GetCompanyCnf(userDto.CId, "index_message", e.Orm)
+		MaxNumber = CompanyCnf["index_message"]
+		var object models2.Message
+		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)
+		msg = "条公告消息可以创建"
 	}
 	res["msg"] = msg
-	if int(dbCount) < MaxNumber {
+	if int(dbCount) <= MaxNumber {
 
 		res["show"] = true
 		res["count"] =  MaxNumber - int(dbCount)

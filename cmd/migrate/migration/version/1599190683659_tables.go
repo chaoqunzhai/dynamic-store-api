@@ -106,6 +106,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 
 			new(models.Article),
 			new(models.Message),
+			new(models.Ads),
 			//小程序配置
 			new(models.WeAppGlobalNavCnf),
 			new(models.CompanyNavCnf),

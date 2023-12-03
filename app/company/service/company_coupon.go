@@ -103,6 +103,8 @@ func (e *CompanyCoupon) Insert(cid int, c *dto.CompanyCouponInsertReq) error {
 
 	//优惠卷默认都是全部可用
 	data.Range = 2
+	//默认下单自动领取
+	data.Automatic = true
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("CompanyCouponService Insert error:%s \r\n", err)
