@@ -42,6 +42,7 @@ type GoodsClassInsertReq struct {
 	Desc   string `json:"desc" comment:"描述信息"`
 	Name   string `json:"name" comment:"商品分类名称" binding:"required"`
 	Image string `json:"image" comment:"商品分类图片路径"`
+	Recommend bool `json:"recommend"`
 	common.ControlBy
 }
 
@@ -55,6 +56,7 @@ func (s *GoodsClassInsertReq) Generate(model *models.GoodsClass) {
 	model.Desc = s.Desc
 	model.Name = s.Name
 	model.Image = s.Image
+	model.Recommend = s.Recommend
 }
 
 func (s *GoodsClassInsertReq) GetId() interface{} {
@@ -67,6 +69,7 @@ type GoodsClassUpdateReq struct {
 	Enable bool   `json:"enable" comment:"开关"`
 	Desc   string `json:"desc" comment:"描述信息"`
 	Name   string `json:"name" comment:"商品分类名称" binding:"required"`
+	Recommend bool `json:"recommend"`
 	Image string `json:"image" comment:"商品分类图片路径"`
 	common.ControlBy
 }
@@ -80,6 +83,7 @@ func (s *GoodsClassUpdateReq) Generate(model *models.GoodsClass) {
 	model.Enable = s.Enable
 	model.Desc = s.Desc
 	model.Name = s.Name
+	model.Recommend = s.Recommend
 	model.Image = s.Image
 }
 

@@ -83,6 +83,7 @@ func (GoodsSales) TableName() string {
 // todo:商品分类
 type GoodsClass struct {
 	BigBRichGlobal
+	Recommend bool `json:"recommend" gorm:"default:false;comment:是否推荐"`
 	Name  string `gorm:"index;size:8;comment:商品分类名称"`
 	Image string `gorm:"size:60;comment:商品分类图片路径"`
 }
