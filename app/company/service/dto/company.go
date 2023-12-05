@@ -188,4 +188,5 @@ func (s *CompanyDeleteReq) GetId() interface{} {
 }
 type RegisterRule struct {
 	Type int  `json:"type"`
+	Text string `json:"text"`
 }

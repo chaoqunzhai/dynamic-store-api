@@ -9,6 +9,7 @@ type CompanyRegisterRule struct {
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	CId int `gorm:"index;comment:大BID"`
 	UserRule int `gorm:"default:1;index;comment:1:需要审核通过才可以登录 2:不需要审核直接注册"`
+	Text string `json:"text" gorm:"size:120;comment:消息内容"`
 
 }
 func (CompanyRegisterRule) TableName() string {

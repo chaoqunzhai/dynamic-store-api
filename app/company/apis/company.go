@@ -186,13 +186,19 @@ func (e Company) RegisterCnfInfo(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	data :=map[string]interface{}{
+		"userRule": 1,
+		"text":     "",
+	}
 	var object models2.CompanyRegisterRule
 	e.Orm.Model(&models2.CompanyRegisterRule{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
 	if object.Id == 0 {
-		e.OK(1, "successful")
+		e.OK(data, "successful")
 		return
 	}
-	e.OK(object.UserRule, "successful")
+	data["userRule"] = object.UserRule
+	data["text"] = object.Text
+	e.OK(data, "successful")
 	return
 }
 func (e Company) RegisterCnf(c *gin.Context) {
@@ -219,12 +225,15 @@ func (e Company) RegisterCnf(c *gin.Context) {
 		e.Orm.Create(&models2.CompanyRegisterRule{
 			CId: userDto.CId,
 			UserRule: req.Type,
+			Text: req.Text,
 		})
 	}else {
 		e.Orm.Model(&models2.CompanyRegisterRule{}).Where("c_id = ?",userDto.CId).Updates(map[string]interface{}{
 			"user_rule":req.Type,
+			"text":req.Text,
 		})
 	}
+
 	e.OK("", "successful")
 	return
 }
@@ -411,6 +420,13 @@ func (e Company) QuotaCnf(c *gin.Context)   {
 		var object models2.Message
 		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)
 		msg = "条公告消息可以创建"
+	case "index_ads":
+		CompanyCnf := business.GetCompanyCnf(userDto.CId, "index_ads", e.Orm)
+		MaxNumber = CompanyCnf["index_ads"]
+		var object models2.Ads
+		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)
+		msg = "条广告可以创建"
+
 	}
 	res["msg"] = msg
 	if int(dbCount) <= MaxNumber {

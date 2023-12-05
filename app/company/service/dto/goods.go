@@ -19,9 +19,9 @@ type GoodsGetPageReq struct {
 
 type GoodCountOrder struct {
 	Count  int64
-	GoodId int
+	GoodId int 
 }
-type GoodsRemove struct {
+type GoodsRemove struct { 
 	Image string `json:"image"`
 }
 type GoodsOrder struct {

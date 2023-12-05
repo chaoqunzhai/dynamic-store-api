@@ -21,6 +21,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 		"goods":       global.CompanyMaxGoods,
 		"offline_pay":global.OffLinePay,
 		"index_message":global.CompanyIndexMessage,
+		"index_ads":global.CompanyIndexAds,
 	}
 
 	//如果查询线路,线路是单独的表中 做的限制
@@ -86,6 +87,8 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 				v = global.OffLinePay
 			case "index_message":
 				v=  global.CompanyIndexMessage
+			case "index_ads":
+				v = global.CompanyIndexAds
 			case "line":
 				v = lineNumber
 

@@ -108,6 +108,7 @@ func (e CompanyMessAge) Insert(c *gin.Context) {
 		Link: req.Link,
 		Context: req.Context,
 	}
+	dat.Layer = 0
 	dat.Desc = req.Desc
 	dat.CId = userDto.CId
 	dat.CreateBy = userDto.UserId
@@ -144,7 +145,7 @@ func (e CompanyMessAge) Update(c *gin.Context) {
 		return
 	}
 
-	e.Orm.Model(&models2.Message{}).Where("id = ?",req.Id).Updates(map[string]interface{}{
+	e.Orm.Model(&models2.Message{}).Where("id = ? and c_id = ?",req.Id,userDto.CId).Updates(map[string]interface{}{
 		"context":req.Context,
 		"link":req.Link,
 		"desc":req.Desc,
