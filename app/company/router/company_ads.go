@@ -24,7 +24,7 @@ func registerAdsRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware
 
 		r.POST("", api.Insert)
 
-		r.PUT("/:id",api.Update)
+		r.POST("/:id",api.Update)
 
 		r.DELETE("", api.Delete)
 

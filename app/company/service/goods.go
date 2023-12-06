@@ -378,7 +378,7 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 			e.Orm.Model(&models.GoodsSpecs{}).Select("id,image").Where("id = ?",specId).Limit(1).Find(&goodsSpec)
 			if goodsSpec.Id > 0 && goodsSpec.Image != ""{
 				fmt.Println("删除有差别规格的图片",goodsSpec.Image)
-				buckClient.RemoveFile(business.GetSiteGoodsPath(cid,goodsSpec.Image))
+				buckClient.RemoveFile(business.GetSiteCosPath(cid,global.GoodsPath,goodsSpec.Image))
 			}
 			e.Orm.Model(&models.GoodsSpecs{}).Unscoped().Where("id = ?",specId).Delete(&models.GoodsSpecs{})
 		}
@@ -459,7 +459,7 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,CId interface{}, p *actions.DataPer
 		//如果有图片,删除图片
 		for _,image :=range removeFileList{
 			//_ = os.Remove(business.GetGoodPathName(goods.CId) + image)
-			buckClient.RemoveFile(business.GetSiteGoodsPath(CId,image))
+			buckClient.RemoveFile(business.GetSiteCosPath(CId,global.GoodsPath,image))
 		}
 		//如果有商品详细,那就匹配图片路径
 		var goodsDesc models.GoodsDesc

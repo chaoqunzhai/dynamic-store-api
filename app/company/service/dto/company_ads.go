@@ -21,14 +21,15 @@ func (m *CompanyAdsGetPageReq) GetNeedSearch() interface{} {
 
 
 type CompanyAdsInsertReq struct {
-	Id int `json:"-" comment:"主键编码"` // 主键编码
-	Layer int `json:"layer" comment:"排序"`
-	Enable bool `json:"enable" comment:"开关"`
-	Desc string `json:"desc" comment:"描述信息"`
-	CId int `json:"-" comment:"大BID"`
-	LinkName string `json:"link_name"`
-	LinkUrl string `json:"link_url"`
-	ImageUrl string `json:"image_url"`
+	Id int `form:"-" comment:"主键编码"` // 主键编码
+	Type int `form:"type"`
+	Layer int `form:"layer" comment:"排序"`
+	Enable bool `form:"enable" comment:"开关"`
+	Desc string `form:"desc" comment:"描述信息"`
+	CId int `form:"-" comment:"大BID"`
+	LinkName string `form:"link_name"`
+	LinkUrl string `form:"link_url"`
+	ImageUrl string `form:"image_url"`
 	common.ControlBy
 }
 type CompanyAdsDeleteReq struct {
@@ -38,11 +39,13 @@ type CompanyAdsDeleteReq struct {
 
 
 type CompanyAdsUpdateReq struct {
-	Id     int    `uri:"id" comment:"主键编码"` // 主键编码
-	Layer  int    `json:"layer" comment:"排序"`
-	Enable bool   `json:"enable" comment:"开关"`
-	Desc   string `json:"desc" comment:"备注信息"`
-	LinkName string `json:"link_name"`
-	LinkUrl string `json:"link_url"`
-	ImageUrl string `json:"image_url"`
+	Type int `form:"type"`
+	Layer  int    `form:"layer" comment:"排序"`
+	Enable bool   `form:"enable" comment:"开关"`
+	Desc   string `form:"desc" comment:"备注信息"`
+	LinkName string `form:"link_name"`
+	LinkUrl string `form:"link_url"`
+	ImageUrl string `form:"image_url"`
+	FileClear int    `form:"file_clear" comment:"是否清空照片"`
+	BaseFiles string `form:"base_files" comment:"原有图片"`
 }

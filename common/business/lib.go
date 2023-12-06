@@ -9,20 +9,23 @@ import (
 	"strings"
 )
 
-func GetGoodsPathFirst(uid interface{},value string) string  {
+func GetGoodsPathFirst(uid interface{},value,imageConst string) string  {
 
 	imagList:=strings.Split(value,",")[0]
 
-	return GetDomainGoodPathName(uid,imagList,false)
+	return GetDomainCosEncodePathName(imageConst,uid,imagList,false)
 }
-//return:大B用户ID/goods/WechatIMG950.jpg
+//return:大B用户ID/常量定义{goods,ads}/WechatIMG950.jpg
 //这个路径是存在服务端的
-func GetSiteGoodsPath(uid interface{},image string) string  {
 
-	goodsImagePath := path.Join( fmt.Sprintf("%v", uid),global.GoodsPath,image)
+func GetSiteCosPath(uid interface{},imageConst,image string) string  {
+
+	goodsImagePath := path.Join( fmt.Sprintf("%v", uid),imageConst,image)
 
 	return goodsImagePath
 }
+
+
 //return:image/大B用户ID/goods/WechatIMG950.jpg
 func GetGoodPathName(uid interface{}) string {
 	goodsImagePath := path.Join(config.ExtConfig.ImageBase,fmt.Sprintf("%v", uid), global.GoodsPath) + "/"
@@ -31,18 +34,20 @@ func GetGoodPathName(uid interface{}) string {
 }
 //返回照片的域名
 //直接返回的对象存储API地址
-func GetDomainGoodPathName(uid interface{}, image string,local bool) string {
+func GetDomainCosEncodePathName(imageConst string,uid interface{}, image string,local bool) string {
+	//imageType: 是const常量
 	if image == ""{
 		return ""
 	}
 	if local{
 		//旧逻辑,直接返回本地的文件路径
 		goodsImagePath := config.ExtConfig.ImageUrl +  path.Join(config.ExtConfig.ImageBase,
-			global.GoodsPath, fmt.Sprintf("%v", uid)) + "/" + image
+			imageConst, fmt.Sprintf("%v", uid)) + "/" + image
 		return goodsImagePath
 	}
+
 	//文件路径进行编码
-	encodeUrl:=url.QueryEscape(GetSiteGoodsPath(uid,image))
+	encodeUrl:=url.QueryEscape(GetSiteCosPath(uid,imageConst,image))
 	//cos域名桶的地址,防止后期更换导致的图片查不到
 	imageUrl:=config.ExtConfig.ImageUrl
 	//返回的图片路径

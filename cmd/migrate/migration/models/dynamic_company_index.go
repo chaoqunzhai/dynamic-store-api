@@ -20,6 +20,7 @@ type Ads struct {
 	LinkName string `json:"link_name" gorm:"size:30;comment:名称"`
 	LinkUrl string `json:"link_url" gorm:"size:50;comment:链接地址"`
 	ImageUrl string `json:"image_url" gorm:"size:30;comment:图片地址"`
+	ShowImage string `json:"image" gorm:"-"` //展示字段
 }
 func (Ads) TableName() string {
 	return "company_ads"

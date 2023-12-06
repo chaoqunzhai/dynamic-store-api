@@ -22,6 +22,7 @@ const (
 
 	//商品目录
 	GoodsPath       = "goods"
+	AdsPath = "ads"
 	SysName         = "动创云订货配送"
 	Describe        = "致力于解决订货渠道"
 	RoleSuper       = 80 //超管

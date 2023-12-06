@@ -96,7 +96,7 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 				if row.Image == "" {
 					return ""
 				}
-				return business.GetGoodsPathFirst(row.CId,row.Image)
+				return business.GetGoodsPathFirst(row.CId,row.Image,global.GoodsPath)
 			}(),
 			GoodsName:  row.Name,
 			GoodsPrice: row.Money,
@@ -112,10 +112,15 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 	return
 
 }
-func GetImagePath(fileName string,CId interface{})  (filePath,goodsImagePath string) {
+func getFileName(fileName string) string {
 	guid := strings.Split(uuid.New().String(), "-")
-	filePath = guid[0] + utils.GetExt(fileName)
-	goodsImagePath = business.GetSiteGoodsPath(CId,filePath)
+
+	return  guid[0] + utils.GetExt(fileName)
+}
+func GetCosImagePath(imageConst,fileName string,CId interface{})  (filePath,goodsImagePath string) {
+
+
+	goodsImagePath = business.GetSiteCosPath(CId,imageConst,getFileName(fileName))
 
 	return
 }
@@ -141,7 +146,7 @@ func (e Goods) CosSaveImage(c *gin.Context) {
 
 	filePath := guid[0] + utils.GetExt(file.Filename)
 
-	goodsImagePath := business.GetSiteGoodsPath(userDto.CId,filePath)
+	goodsImagePath := business.GetSiteCosPath(userDto.CId,global.GoodsPath,filePath)
 	fmt.Println("goodsImagePath",goodsImagePath)
 	////1.文件先存本地
 	if saveErr :=c.SaveUploadedFile(file,goodsImagePath);saveErr==nil{
@@ -160,7 +165,7 @@ func (e Goods) CosSaveImage(c *gin.Context) {
 		////3.上传成功后删除本地文件
 		res["code"] = 0
 		res["msg"] = "文件上传成功"
-		res["url"] = business.GetDomainGoodPathName(userDto.CId,fileName,false)
+		res["url"] = business.GetDomainCosEncodePathName(global.GoodsPath,userDto.CId,fileName,false)
 		_=os.Remove(goodsImagePath)
 
 	}else {
@@ -305,7 +310,7 @@ func (e Goods) GetPage(c *gin.Context) {
 				if row.Image == "" {
 					return ""
 				}
-				return business.GetGoodsPathFirst(row.CId,row.Image)
+				return business.GetGoodsPathFirst(row.CId,row.Image,global.GoodsPath)
 			}(),
 			"sale":       row.Sale,
 			"created_at": row.CreatedAt,
@@ -395,7 +400,7 @@ func (e Goods) Get(c *gin.Context) {
 			}
 			for _, im := range strings.Split(object.Image, ",") {
 
-				imagePath :=business.GetDomainGoodPathName(object.CId,im,false)
+				imagePath :=business.GetDomainCosEncodePathName(global.GoodsPath,object.CId,im,false)
 				i = append(i, map[string]string{
 					"url":imagePath,
 					"name":im,
@@ -425,7 +430,7 @@ func (e Goods) Get(c *gin.Context) {
 			"enable":    specs.Enable,
 			"layer":     specs.Layer,
 			"unit":      specs.Unit,
-			"image":business.GetDomainGoodPathName(object.CId,specs.Image,false),
+			"image":business.GetDomainCosEncodePathName(global.GoodsPath,object.CId,specs.Image,false),
 		}
 		specData = append(specData, specRow)
 		vipMap := map[string]interface{}{
@@ -552,7 +557,7 @@ func (e Goods) Insert(c *gin.Context) {
 	//商品信息创建成功,才会保存客户的商品照片
 	for _, file := range files {
 		// 逐个存
-		_,goodsImagePath  :=GetImagePath(file.Filename,userDto.CId)
+		_,goodsImagePath  :=GetCosImagePath(global.GoodsPath,file.Filename,userDto.CId)
 		if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 
 			//1.上传到cos中
@@ -564,7 +569,7 @@ func (e Goods) Insert(c *gin.Context) {
 			//只保留文件名称,防止透露服务器地址
 			fileList = append(fileList, fileName)
 			//本地删除
-			_=os.Remove(goodsImagePath)
+			_=os.RemoveAll(goodsImagePath)
 		}
 		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?", goodId, userDto.CId).Updates(map[string]interface{}{
 			"image": strings.Join(fileList, ","),
@@ -582,7 +587,7 @@ func (e Goods) Insert(c *gin.Context) {
 			continue
 		}
 		// 逐个存
-		_,goodsImagePath  :=GetImagePath(file.Filename,userDto.CId)
+		_,goodsImagePath  :=GetCosImagePath(global.GoodsPath,file.Filename,userDto.CId)
 		if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 
 			//1.上传到cos中
@@ -691,12 +696,9 @@ func (e Goods) Update(c *gin.Context) {
 	//商品的图片处理
 	if req.FileClear == 1 {
 
-		goodsObj :=models.Goods{}
-		e.Orm.Model(&models.Goods{}).Select("image").Where("id = ? and c_id = ?",
-			req.Id, userDto.CId).Limit(1).Find(&goodsObj)
-		if goodsObj.Image != ""{
-			for _, image := range strings.Split(goodsObj.Image,",") {
-				buckClient.RemoveFile(business.GetSiteGoodsPath(userDto.CId,image))
+		if goodsObject.Image != ""{
+			for _, image := range strings.Split(goodsObject.Image,",") {
+				buckClient.RemoveFile(business.GetSiteCosPath(userDto.CId,global.GoodsPath,image))
 			}
 		}
 
@@ -721,13 +723,13 @@ func (e Goods) Update(c *gin.Context) {
 
 		for _, image := range diffList {
 
-			buckClient.RemoveFile(business.GetSiteGoodsPath(userDto.CId,image))
+			buckClient.RemoveFile(business.GetSiteCosPath(userDto.CId,global.GoodsPath,image))
 		}
 		for _, file := range files {
 			// 逐个存
 			//index
 
-			_,goodsImagePath  :=GetImagePath(file.Filename,userDto.CId)
+			_,goodsImagePath  :=GetCosImagePath(global.GoodsPath,file.Filename,userDto.CId)
 
 			if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 				//只保留文件名称,防止透露服务器地址
@@ -753,7 +755,7 @@ func (e Goods) Update(c *gin.Context) {
 
 		for _,row:=range specsList{
 			if row.Image != ""{
-				buckClient.RemoveFile(business.GetSiteGoodsPath(userDto.CId,row.Image))
+				buckClient.RemoveFile(business.GetSiteCosPath(userDto.CId,global.GoodsPath,row.Image))
 			}
 			e.Orm.Model(&models.GoodsSpecs{}).Select("image").Where("goods_id = ? and c_id = ? ", req.Id, userDto.CId).Updates(map[string]interface{}{
 				"image":"",
@@ -766,7 +768,7 @@ func (e Goods) Update(c *gin.Context) {
 		specFiles := fileForm.File["spec_files"]
 		for index, file := range specFiles {
 			// 逐个存
-			_,goodsImagePath  :=GetImagePath(file.Filename,userDto.CId)
+			_,goodsImagePath  :=GetCosImagePath(global.GoodsPath,file.Filename,userDto.CId)
 
 			if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 				//只保留文件名称,防止透露服务器地址
@@ -784,7 +786,7 @@ func (e Goods) Update(c *gin.Context) {
 						GoodsImageSpecs:=models.GoodsSpecs{}
 						e.Orm.Model(&models.GoodsSpecs{}).Select("id,image").Where("goods_id = ? and c_id = ? and id = ?", req.Id, userDto.CId,specIdKey).Limit(1).Find(&GoodsImageSpecs)
 						if GoodsImageSpecs.Id > 0 && GoodsImageSpecs.Image !=""{
-							buckClient.RemoveFile(business.GetSiteGoodsPath(userDto.CId,GoodsImageSpecs.Image))
+							buckClient.RemoveFile(business.GetSiteCosPath(userDto.CId,global.GoodsPath,GoodsImageSpecs.Image))
 						}
 
 						e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id = ? and c_id = ? and id = ?", req.Id, userDto.CId,specIdKey).Updates(map[string]interface{}{
