@@ -18,6 +18,8 @@ type PayWechat struct {
 	api.Api
 }
 type WechatPayReq struct {
+	AppId string `json:"app_id"`
+	AppSecret string `json:"app_secret"`
 	MchId string  `json:"mch_id" `
 	ApiV2 string `json:"api_v2"`
 	ApiV3 string `json:"api_v3"`
@@ -42,6 +44,27 @@ func (e *PayWechat) Create(c *gin.Context) {
 	if err != nil {
 		e.Error(500, err, err.Error())
 		return
+	}
+
+	var AppCnf models.WeChatAppIdCnf
+	e.Orm.Model(&AppCnf).Scopes(actions.PermissionSysUser(AppCnf.TableName(),userDto)).Limit(1).First(&AppCnf)
+
+
+	if AppCnf.Id > 0 {
+
+		AppCnf.AppId = req.AppId
+		AppCnf.AppSecret = req.AppSecret
+		e.Orm.Save(&AppCnf)
+	}else {
+		cnf :=models.WeChatAppIdCnf{
+			AppId: req.AppId,
+			AppSecret: req.AppSecret,
+		}
+		cnf.Enable = true
+		cnf.Layer = 0
+		cnf.CreateBy = userDto.UserId
+		cnf.CId = userDto.CId
+		e.Orm.Create(&cnf)
 	}
 	var PayCnf models.WeChatPay
 
@@ -69,6 +92,7 @@ func (e *PayWechat) Create(c *gin.Context) {
 		trade.CId = userDto.CId
 		trade.Enable = req.Enable
 		trade.Refund = req.Refund
+		trade.Layer = 0
 		e.Orm.Create(&trade)
 	}
 	e.OK("","successful")
@@ -95,6 +119,15 @@ func (e *PayWechat) Detail(c *gin.Context) {
 	var data models.WeChatPay
 	e.Orm.Model(&models.WeChatPay{}).Scopes(actions.PermissionSysUser(data.TableName(),userDto)).Limit(1).Find(&data)
 
+	var appCnf models.WeChatAppIdCnf
+	e.Orm.Model(&models.WeChatAppIdCnf{}).Scopes(actions.PermissionSysUser(appCnf.TableName(),userDto)).Limit(1).Find(&appCnf)
+
+	//result:=map[string]interface{}{
+	//	"pay":data,
+	//	"app":appCnf,
+	//}
+	data.AppId = appCnf.AppId
+	data.AppSecret = appCnf.AppSecret
 	e.OK(data,"successful")
 	return
 }

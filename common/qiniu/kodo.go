@@ -101,12 +101,12 @@ func SizeFile(filePath string,resizeHeight int) string {
 	// 设置压缩后的宽度和高度，这里是压缩为原图宽度和高度的 1/4
 	newWidth := uint(img.Bounds().Dx() )
 	newHeight :=  uint(img.Bounds().Dy() )
-	if newHeight < 400 {
-		return filePath
-	}
+	//if newHeight < 400 {
+	//	return filePath
+	//}
 
 	h:=(uint(resizeHeight) * newWidth) / newHeight
-	fmt.Println(h)
+
 	// 压缩图片
 	resizedImg := resize.Resize(h, uint(resizeHeight), img, resize.Lanczos3)
 	// 创建输出文件
@@ -131,7 +131,7 @@ func SizeFile(filePath string,resizeHeight int) string {
 		_=outFile.Close()
 	}()
 	// 根据原图格式进行输出
-	err = jpeg.Encode(outFile, resizedImg, &jpeg.Options{Quality: 70})
+	err = jpeg.Encode(outFile, resizedImg, &jpeg.Options{Quality: 80})
 	return newFilePath
 
 }

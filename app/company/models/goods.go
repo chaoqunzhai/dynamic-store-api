@@ -20,6 +20,7 @@ type Goods struct {
 	Sale      int          `json:"sale" gorm:"comment:销量"`
 	Money     string       `gorm:"size:30;comment:价格区间"`
 	Recommend bool         `json:"recommend" gorm:"comment:是否推荐"`
+	RubikCube bool         `json:"rubik_cube" gorm:"comment:支持魔方"`
 	Tag       []GoodsTag   `gorm:"many2many:goods_mark_tag;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:tag_id;"`
 	Class     []GoodsClass `gorm:"many2many:goods_mark_class;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:class_id;"`
 	models.ModelTime

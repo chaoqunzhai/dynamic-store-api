@@ -64,6 +64,7 @@ type GoodsInsertReq struct {
 	Class    string `form:"class"  comment:"分类"`
 	Specs    string `form:"specs"  comment:"分类"`
 	Recommend bool `form:"recommend" json:"recommend"`
+	RubikCube bool  `form:"rubik_cube" json:"rubik_cube"`
 	Content string `form:"content"  json:"content"`
 
 	common.ControlBy
@@ -142,6 +143,7 @@ func (s *GoodsInsertReq) Generate(model *models.Goods) {
 	model.Quota = s.Quota
 	model.VipSale = s.VipSale
 	model.Recommend = s.Recommend
+	model.RubikCube = s.RubikCube
 }
 
 func (s *GoodsInsertReq) GetId() interface{} {
@@ -165,6 +167,7 @@ type GoodsUpdateReq struct {
 	SpecFileClear int    `form:"spec_file_clear" comment:"是否清空规格照片"`
 	BaseFiles string `form:"base_files" comment:"原有图片"`
 	Recommend bool `form:"recommend" json:"recommend"`
+	RubikCube bool  `form:"rubik_cube" json:"rubik_cube"`
 	Content string `form:"content"  json:"content"  comment:"商品详情"`
 	SpecImageMap string `form:"spec_image_map" comment:"规格图片映射表"`
 	common.ControlBy
@@ -184,6 +187,8 @@ func (s *GoodsUpdateReq) Generate(model *models.Goods) {
 	model.VipSale = s.VipSale
 	model.SpecName = s.SpecName
 	model.Recommend = s.Recommend
+
+	model.RubikCube = s.RubikCube
 }
 
 func (s *GoodsUpdateReq) GetId() interface{} {

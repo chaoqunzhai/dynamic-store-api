@@ -393,6 +393,7 @@ func (e Goods) Get(c *gin.Context) {
 		"layer":    object.Layer,
 		"spec_name":object.SpecName,
 		"recommend":object.Recommend,
+		"rubik_cube":object.RubikCube,
 		"image": func() []map[string]string {
 			i := make([]map[string]string, 0)
 			if object.Image == "" {
