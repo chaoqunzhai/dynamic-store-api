@@ -230,6 +230,7 @@ func (e Line) GetPage(c *gin.Context) {
 	list := make([]models.Line, 0)
 	var count int64
 
+
 	err = s.GetPage(&req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取Line失败，\r\n失败信息 %s", err.Error()))

@@ -19,6 +19,7 @@ type Driver struct {
     Name string `json:"name" gorm:"type:varchar(12);comment:司机名称"` 
     Phone string `json:"phone" gorm:"type:varchar(11);comment:联系手机号"`
     LineName string `json:"line_name" gorm:"-"`
+    Disable bool `json:"disable" gorm:"-"`
 	models.ModelTime
     models.ControlBy
 }

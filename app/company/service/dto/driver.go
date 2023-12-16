@@ -16,6 +16,7 @@ type DriverGetPageReq struct {
 	Phone          string `form:"phone"  search:"type:contains;column:phone;table:driver" comment:"联系手机号"`
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:driver" comment:"创建时间"`
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:driver" comment:"创建时间"`
+	Exclude bool `form:"exclude" json:"exclude" search:"-"`
 	DriverOrder
 }
 

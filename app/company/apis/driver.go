@@ -89,9 +89,14 @@ func (e Driver) GetPage(c *gin.Context) {
 	}
 	result := make([]interface{}, 0)
 	for _, row := range list {
+
 		var bindLine models.Line
 		e.Orm.Model(&models.Line{}).Select("name,id").Where("driver_id = ? and enable = ?", row.Id,true).Limit(1).Find(&bindLine)
 		if bindLine.Id > 0 {
+			//如果开启了过滤 已经绑定的司机 那就不返回
+			if req.Exclude {
+				row.Disable = true
+			}
 			row.LineName = bindLine.Name
 
 		}
