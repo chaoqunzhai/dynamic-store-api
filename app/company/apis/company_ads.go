@@ -280,11 +280,9 @@ func (e CompanyAds) Delete(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	p := actions.GetPermissionFromContext(c)
+
 	var data models2.Ads
-	e.Orm.Model(&data).Scopes(
-		actions.Permission(data.TableName(), p),
-	).Limit(1).Find(&data)
+	e.Orm.Model(&data).Where("id = ?",req.Id).Find(&data)
 	//删除图片
 	if data.ImageUrl != ""{
 		//删除cos存储
@@ -296,8 +294,6 @@ func (e CompanyAds) Delete(c *gin.Context) {
 		buckClient.RemoveFile(business.GetSiteCosPath(userDto.CId,global.AdsPath,data.ImageUrl))
 	}
 	//直接删除数据
-	e.Orm.Model(&data).Scopes(
-		actions.Permission(data.TableName(), p),
-	).Unscoped().Delete(&data, req.Id)
+	e.Orm.Model(&models2.Ads{}).Unscoped().Where("id = ?",req.Id).Delete(&models2.Ads{})
 	e.OK("", "删除成功")
 }
