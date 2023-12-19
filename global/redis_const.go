@@ -21,7 +21,10 @@ const (
 	SmallBMemberToolsDB //6
 
 	//待支付的订单详细
-	OrderDetailDB
+	OrderDetailDB //7
+
+	//全局的公司一些信息配置
+	AllGlobalCnf //8
 
 	//订单的过期时间,设置为半个小时
 	OrderExpirationTime = 30 * time.Minute
