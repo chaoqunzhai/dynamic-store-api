@@ -61,6 +61,7 @@ type Orders struct {
 	AddressId int `json:"user_address_id" gorm:"index;comment:用户的收货地址,或者自提的店家地址"`
 	CouponMoney float64 `json:"coupon_money" gorm:"comment:优惠卷金额"`
 	Buyer string `json:"buyer" gorm:"size:24;comment:留言"`
+	Desc string `json:"desc" gorm:"size:16;comment:备注"`
 }
 
 func (Orders) TableName() string {

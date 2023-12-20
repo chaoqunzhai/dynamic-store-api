@@ -43,6 +43,8 @@ settings:
     domain: "http://localhost:8098"
 #    imageUrl: "https://dcy-1318497773.cos.ap-nanjing.myqcloud.com/"
     imageUrl: "http://qiniu.dongchuangyun.com/"
+    #移动端地址
+    h5Url: "https://weapp.dongchuangyun.com/"
     #本地文件路径
     imageBase: "./image/"
     qiniu:

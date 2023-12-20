@@ -18,6 +18,7 @@ type Extend struct {
 	WxUser      WxUserLogin   `json:"wxUser"`
 	WxOfficial  WxOfficial    `json:"wxOfficial"`
 	ImageUrl string  `json:"imageUrl"`
+	H5Url string `json:"h5Url"`
 	Domain      string        `json:"domain"`
 	ImageBase string        `json:"imageBase"`
 	CityAdv     string        `json:"cityAdv"`

@@ -13,6 +13,7 @@ import (
 	customUser "go-admin/common/jwt/user"
 	models3 "go-admin/common/models"
 	"go-admin/common/utils"
+	"go-admin/config"
 	"go-admin/global"
 	"gorm.io/gorm"
 	"strconv"
@@ -275,6 +276,12 @@ func (e Orders) Get(c *gin.Context) {
 		"shop_phone":     shopRow.Phone,
 		"shop_address":   shopRow.Address,
 		"delivery_type":object.DeliveryType,
+		"day":time.Now().Format("2006-01-02"),
+		"now":time.Now().Format("2006-01-02 15:04:05"),
+		"this_user":userDto.Username,
+		//https://weapp.dongchuangyun.com/d1#/'
+		"url":fmt.Sprintf("%vd%v#/",config.ExtConfig.H5Url,userDto.CId),
+		"desc":object.Desc,
 	}
 	//如果是同城配送那就获取
 	switch object.DeliveryType {
