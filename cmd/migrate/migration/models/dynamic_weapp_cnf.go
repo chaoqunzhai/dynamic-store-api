@@ -128,6 +128,7 @@ type WeAppExtendCnf struct {
 	MarketPriceShow bool `json:"market_price_show" `//市场价展示
 	RecommendShow bool `json:"recommend_show"` //是否显示推荐产品
 	ServerShow bool `json:"server_show"` //是否展示产品服务
+	PriceShow bool `json:"price_show"` //是否展示售价
 }
 func (WeAppExtendCnf) TableName() string {
 	return "company_weapp_extend_cnf"
