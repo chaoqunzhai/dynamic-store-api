@@ -13,12 +13,13 @@ import (
 	customUser "go-admin/common/jwt/user"
 	models3 "go-admin/common/models"
 	"go-admin/common/utils"
-	"go-admin/config"
+	"time"
+
 	"go-admin/global"
-	"gorm.io/gorm"
+
 	"strconv"
 	"strings"
-	"time"
+
 
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
@@ -244,103 +245,38 @@ func (e Orders) Get(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-
 	orderId:=c.Param("orderId")
-	var object models.Orders
-
-	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
-	orderErr := e.Orm.Table(splitTableRes.OrderTable).Where("order_id = ?",orderId).First(&object).Error
-	if orderErr != nil && errors.Is(orderErr, gorm.ErrRecordNotFound) {
-
-		e.Error(500, orderErr, "订单不存在")
+	result,err :=s.DetailOrder(orderId,userDto)
+	if err!=nil{
+		e.Error(500, err, err.Error())
 		return
 	}
-	if orderErr != nil {
-		e.Error(500, orderErr, "订单不存在")
-		return
-	}
-	var shopRow models2.Shop
-	e.Orm.Model(&models2.Shop{}).Scopes(actions.PermissionSysUser(shopRow.TableName(),userDto)).Where("id = ? ", object.ShopId).Limit(1).Find(&shopRow)
-
-	result := map[string]interface{}{
-		"order_id":       object.Id,
-		"created_at":     object.CreatedAt.Format("2006-01-02 15:04:05"),
-		"cycle_time":object.CreatedAt.Format("2006-01-02"),
-		"delivery_time":     object.DeliveryTime.Format("2006-01-02"),
-		"delivery_str":      object.DeliveryStr,
-		"pay":            global.GetPayType(object.PayType),
-		"pay_status_str": global.GetOrderPayStatus(object.PayStatus),
-		"pay_status":     object.PayStatus,
-		"shop_name":      shopRow.Name,
-		"shop_username":  shopRow.UserName,
-		"shop_phone":     shopRow.Phone,
-		"shop_address":   shopRow.Address,
-		"delivery_type":object.DeliveryType,
-		"day":time.Now().Format("2006-01-02"),
-		"now":time.Now().Format("2006-01-02 15:04:05"),
-		"this_user":userDto.Username,
-		//https://weapp.dongchuangyun.com/d1#/'
-		"url":fmt.Sprintf("%vd%v#/",config.ExtConfig.H5Url,userDto.CId),
-		"desc":object.Desc,
-	}
-	//如果是同城配送那就获取
-	switch object.DeliveryType {
-	case global.ExpressLocal:
-		var userAddress models2.DynamicUserAddress
-		e.Orm.Model(&models2.DynamicUserAddress{}).Scopes(actions.PermissionSysUser(userAddress.TableName(),userDto)).Select("id,address").Where(" id = ?",
-			 object.AddressId).Limit(1).Find(&userAddress)
-		if userAddress.Id > 0{
-			result["address"] = map[string]interface{}{
-				"address":userAddress.Address,
-			}
-		}
-
-	case global.ExpressStore:
-		var expressStore models2.CompanyExpressStore
-		e.Orm.Model(&models2.CompanyExpressStore{}).Scopes(actions.PermissionSysUser(expressStore.TableName(),userDto)).Select("id,address,name").Where(" id = ?",
-			object.AddressId).Limit(1).Find(&expressStore)
-		if expressStore.Id > 0{
-			result["address"] = map[string]interface{}{
-				"name":expressStore.Name,
-				"address":expressStore.Address,
-			}
-		}
-
-	}
-
-
-	//var orderExtend models.OrderExtend
-	//orderExtendTable:=business.OrderExtendTableName(orderTableName)
-	//e.Orm.Table(orderExtendTable).Where("order_id = ?",orderId).Limit(1).Find(&orderExtend)
-
-	var driverCnf models.Driver
-	e.Orm.Model(&driverCnf).Scopes(actions.PermissionSysUser(driverCnf.TableName(),userDto)).Where("id = ? ",object.DriverId).Limit(1).Find(&driverCnf)
-	if driverCnf.Id > 0 {
-		result["driver_name"] = driverCnf.Name
-		result["driver_phone"] = driverCnf.Phone
-	}
-
-	var orderSpecs []models.OrderSpecs
-
-
-	e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ?", orderId).Find(&orderSpecs)
-
-	specsList := make([]map[string]interface{}, 0)
-	for _, row := range orderSpecs {
-		ss := map[string]interface{}{
-			"id":         row.Id,
-			"name":       row.SpecsName,
-			"goods_name":row.GoodsName,
-			"created_at": row.CreatedAt.Format("2006-01-02 15:04:05"),
-			"specs":      fmt.Sprintf("%v%v", row.Number, row.Unit),
-			"status":     global.OrderStatus(row.Status),
-			"money":      row.Money,
-		}
-		specsList = append(specsList, ss)
-	}
-	result["specs_list"] = specsList
 	e.OK(result, "查询成功")
+	return
 }
+
+
+func (e Orders)RichData(c *gin.Context) {
+	req := dto.RichOrderDataReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		fmt.Println("err!", err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	fmt.Println("userDto",userDto.CId)
+	return
+}
+
 
 func (e Orders)Cycle(c *gin.Context)  {
 	req := dto.OrderCyCleReq{}

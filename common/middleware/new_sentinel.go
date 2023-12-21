@@ -29,7 +29,7 @@ func SentinelInit() {
 			TokenCalculateStrategy: flow.Direct,
 			ControlBehavior:        flow.Throttling, // 流控效果为匀速排队
 			Threshold:              100,              // 请求的间隔控制在 1000/10=100 ms
-			MaxQueueingTimeMs:      100,             // 最长排队等待时间
+			MaxQueueingTimeMs:      1000,             // 最长排队等待时间
 			StatIntervalInMs:       1000,            //一秒作为统计周期
 		},
 		{
@@ -39,7 +39,7 @@ func SentinelInit() {
 			TokenCalculateStrategy: flow.Direct,
 			//Reject表示超过阈值直接拒绝，Throttling表示匀速排队
 			ControlBehavior:  flow.Reject, //直接拒绝
-			Threshold:        10,          //阈值
+			Threshold:        100,          //阈值
 			StatIntervalInMs: 1000,        //一秒作为统计周期，1秒内最多100个请求过来
 		},
 	})
@@ -51,13 +51,11 @@ func SentinelContext() gin.HandlerFunc {
 		sentE, b := sentinel.Entry("throttling", sentinel.WithTrafficType(base.Inbound))
 		if b != nil {
 			// 请求被流控，可以从 BlockError 中获取限流详情
-			fmt.Println("限流生效",b.Error(),b.BlockMsg())
+			//fmt.Println("限流生效",b.Error(),b.BlockMsg())
 			response.Error(c, 500, errors.New("请求过于频繁,请稍后重试"), "请求过于频繁,请稍后重试")
 			c.Abort()
 			return
-
 		}
-
 		sentE.Exit()
 		// 处理请求
 		c.Next()

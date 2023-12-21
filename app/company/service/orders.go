@@ -5,12 +5,16 @@ import (
 	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk/service"
 	"github.com/google/uuid"
+	sys "go-admin/app/admin/models"
 	"go-admin/app/company/models"
 	"go-admin/app/company/service/dto"
 	"go-admin/common/actions"
+	"go-admin/common/business"
 	cDto "go-admin/common/dto"
 	models2 "go-admin/common/models"
+	models3 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/utils"
+	"go-admin/config"
 	"go-admin/global"
 	"gorm.io/gorm"
 	"time"
@@ -211,4 +215,101 @@ func (e *Orders) Remove(tableName string, d *dto.OrdersDeleteReq, p *actions.Dat
 		return errors.New("无权删除该数据")
 	}
 	return nil
+}
+
+func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[string]interface{},err error)  {
+	nowTimeObj :=time.Now()
+	var object models.Orders
+
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	orderErr := e.Orm.Table(splitTableRes.OrderTable).Where("order_id = ?",orderId).First(&object).Error
+	if orderErr != nil && errors.Is(orderErr, gorm.ErrRecordNotFound) {
+
+		return nil,errors.New("订单不存在")
+	}
+	if orderErr != nil {
+		return nil,errors.New("订单不存在")
+	}
+
+	var shopRow models3.Shop
+	e.Orm.Model(&models3.Shop{}).Scopes(actions.PermissionSysUser(shopRow.TableName(),userDto)).Where("id = ? ", object.ShopId).Limit(1).Find(&shopRow)
+
+	result = map[string]interface{}{
+		"order_id":       object.Id,
+		"created_at":     object.CreatedAt.Format("2006-01-02 15:04:05"),
+		"cycle_time":object.CreatedAt.Format("2006-01-02"),
+		"delivery_time":     object.DeliveryTime.Format("2006-01-02"),
+		"delivery_str":      object.DeliveryStr,
+		"pay":            global.GetPayType(object.PayType),
+		"pay_status_str": global.GetOrderPayStatus(object.PayStatus),
+		"pay_status":     object.PayStatus,
+		"shop_name":      shopRow.Name,
+		"shop_username":  shopRow.UserName,
+		"shop_phone":     shopRow.Phone,
+		"shop_address":   shopRow.Address,
+		"delivery_type":object.DeliveryType,
+		"day":nowTimeObj.Format("2006-01-02"),
+		"now":nowTimeObj.Format("2006-01-02 15:04:05"),
+		"this_user":userDto.Username,
+		//https://weapp.dongchuangyun.com/d1#/'
+		"url":fmt.Sprintf("%vd%v#/",config.ExtConfig.H5Url,userDto.CId),
+		"desc":object.Desc,
+		"run_time":"",
+	}
+	//如果是同城配送那就获取
+	switch object.DeliveryType {
+	case global.ExpressLocal:
+		var userAddress models3.DynamicUserAddress
+		e.Orm.Model(&models3.DynamicUserAddress{}).Scopes(actions.PermissionSysUser(userAddress.TableName(),userDto)).Select("id,address").Where(" id = ?",
+			object.AddressId).Limit(1).Find(&userAddress)
+		if userAddress.Id > 0{
+			result["address"] = map[string]interface{}{
+				"address":userAddress.Address,
+			}
+		}
+
+	case global.ExpressStore:
+		var expressStore models3.CompanyExpressStore
+		e.Orm.Model(&models3.CompanyExpressStore{}).Scopes(actions.PermissionSysUser(expressStore.TableName(),userDto)).Select("id,address,name").Where(" id = ?",
+			object.AddressId).Limit(1).Find(&expressStore)
+		if expressStore.Id > 0{
+			result["address"] = map[string]interface{}{
+				"name":expressStore.Name,
+				"address":expressStore.Address,
+			}
+		}
+
+	}
+
+	var driverCnf models.Driver
+	e.Orm.Model(&driverCnf).Scopes(actions.PermissionSysUser(driverCnf.TableName(),userDto)).Where("id = ? ",object.DriverId).Limit(1).Find(&driverCnf)
+	if driverCnf.Id > 0 {
+		result["driver_name"] = driverCnf.Name
+		result["driver_phone"] = driverCnf.Phone
+	}
+
+	var orderSpecs []models.OrderSpecs
+
+
+	e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ?", orderId).Find(&orderSpecs)
+
+	specsList := make([]map[string]interface{}, 0)
+	for _, row := range orderSpecs {
+		ss := map[string]interface{}{
+			"id":         row.Id,
+			"name":       row.SpecsName,
+			"goods_name":row.GoodsName,
+			"created_at": row.CreatedAt.Format("2006-01-02 15:04:05"),
+			"specs":      fmt.Sprintf("%v%v", row.Number, row.Unit),
+			"status":     global.OrderStatus(row.Status),
+			"money":      row.Money,
+		}
+		specsList = append(specsList, ss)
+	}
+	result["run_time"] = time.Since(nowTimeObj)
+	result["specs_list"] = specsList
+
+
+	return result,nil
+
 }

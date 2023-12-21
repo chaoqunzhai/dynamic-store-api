@@ -107,6 +107,11 @@ func (s *OrdersInsertReq) GetId() interface{} {
 	return s.Id
 }
 
+type RichOrderDataReq struct {
+	OrderId []string `json:"order_id"`
+}
+
+
 type OrderCyCleReq struct {
 	dto.Pagination `search:"-"`
 	CyCle int ` form:"cycle"`
