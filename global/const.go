@@ -153,6 +153,10 @@ const (
 	PayTypeOnlineAli = 4 //线上支付宝支付
 	PayTypeOffline = 5 //线下支付
 
+	ExportDeliveryOrder = 0 //配送订单
+	ExportSelfOrder = 1 //自提订单
+	ExportReportOrder =2 //配送报表
+
 )
 
 func GetRoleCname(v int) string  {

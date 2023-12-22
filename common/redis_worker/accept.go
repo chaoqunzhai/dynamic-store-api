@@ -6,9 +6,9 @@ package redis_worker
 
 import (
 	"encoding/json"
-	"github.com/xuri/excelize/v2"
 	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk"
+	"github.com/xuri/excelize/v2"
 	"go-admin/cmd/migrate/migration/models"
 	"go-admin/common/redis_db"
 	"go-admin/global"
@@ -53,7 +53,7 @@ func LoopRedisWorker()  {
 //开始解析
 func GetExportQueueInfo(key string,data []string)   {
 	for _,dat:=range data{
-		//睡眠500毫秒,换届压力
+		//睡眠500毫秒,缓解压力
 		time.Sleep(500*time.Millisecond)
 		var err error
 		row:=ExportReq{}
@@ -61,7 +61,6 @@ func GetExportQueueInfo(key string,data []string)   {
 		if err!=nil{
 			continue
 		}
-
 		zipFunc:=ExportObj{
 			RedisKey: key,
 			Dat: row,
@@ -73,12 +72,12 @@ func GetExportQueueInfo(key string,data []string)   {
 		}
 		successTag:=true
 		errorMsg :=""
-		if err =zipFunc.ReadOrderDetail();err!=nil{
-			successTag =false
-			errorMsg = err.Error()
-			zap.S().Errorf("读取redis 解析导出任务数据 ReadOrderDetail,错误:%v",err)
-
-		}
+		//if err =zipFunc.ReadOrderDetail();err!=nil{
+		//	successTag =false
+		//	errorMsg = err.Error()
+		//	zap.S().Errorf("读取redis 解析导出任务数据 ReadOrderDetail,错误:%v",err)
+		//
+		//}
 		if err = zipFunc.SaveExportZIP();err!=nil{
 			successTag =false
 			errorMsg = err.Error()
@@ -109,17 +108,17 @@ func (e *ExportObj)ReadOrderDetail() error  {
 	if err != nil {
 		return err
 	}
-	for _,order:=range e.Dat.Order{
+	for index,order:=range e.Dat.Order{
 		fmt.Println("order",order)
 
-		cell, _ := excelize.CoordinatesToCellName(1, i+1)
+		cell, _ := excelize.CoordinatesToCellName(1, index+1)
 		//添加的数据
 		writer.SetRow(cell, []interface{}{"商品名称", "商品规格", "商品数量", "商品单价", "客户名称", "提交时间","订单状态"})
 
 	}
 	//结束流式写入
 	writer.Flush()
-	xlsxName:=fmt.Sprintf("%v订单数据.xlsx",time.Now().Format("20060102-150405"))
+	xlsxName:=fmt.Sprintf("%v-订单数据.xlsx",time.Now().Format("20060102-150405"))
 	file.SaveAs(xlsxName)
 	//保存的订单数据,存对象存储中即可
 	//保存成功后 上传到对象存储中
