@@ -16,6 +16,7 @@ type Login struct {
 	Password string `form:"password" json:"password" binding:"required"`
 	Code     string `form:"Code" json:"code" binding:"required"`
 	UUID     string `form:"UUID" json:"uuid" binding:"required"`
+	Role string `form:"role" json:"role"`
 }
 
 func LoginValidCompany(userId int,tx *gorm.DB) error {

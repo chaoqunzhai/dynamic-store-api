@@ -1,6 +1,7 @@
 package database
 
 import (
+	"fmt"
 	"time"
 
 	log "github.com/go-admin-team/go-admin-core/logger"
@@ -19,6 +20,7 @@ import (
 
 // Setup 配置数据库
 func Setup() {
+
 	for k := range toolsConfig.DatabasesConfig {
 		setupSimpleDatabase(k, toolsConfig.DatabasesConfig[k])
 	}
@@ -60,6 +62,7 @@ func setupSimpleDatabase(host string, c *toolsConfig.Database) {
 
 	e := mycasbin.Setup(db, "")
 
+	fmt.Println("host设置DB",host)
 	sdk.Runtime.SetDb(host, db)
 	sdk.Runtime.SetCasbin(host, e)
 }

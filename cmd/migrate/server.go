@@ -24,7 +24,6 @@ var (
 	configYml string
 	generate  bool
 	goAdmin   bool
-	host      string
 	StartCmd  = &cobra.Command{
 		Use:     "migrate",
 		Short:   "Initialize the database",
@@ -40,7 +39,6 @@ func init() {
 	StartCmd.PersistentFlags().StringVarP(&configYml, "config", "c", "config/settings.yml", "Start server with provided configuration file")
 	StartCmd.PersistentFlags().BoolVarP(&generate, "generate", "g", false, "generate migration file")
 	StartCmd.PersistentFlags().BoolVarP(&goAdmin, "goAdmin", "a", false, "generate go-admin migration file")
-	StartCmd.PersistentFlags().StringVarP(&host, "domain", "d", "*", "select tenant host")
 }
 
 func run() {
@@ -59,9 +57,8 @@ func run() {
 }
 
 func migrateModel() error {
-	if host == "" {
-		host = "*"
-	}
+	host := "*"
+	//默认*即可,因为其他地方获取orm链接 也是通过*获取的
 	db := sdk.Runtime.GetDbByKey(host)
 	if config.DatabasesConfig[host].Driver == "mysql" {
 		//初始化数据库时候用

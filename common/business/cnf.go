@@ -22,6 +22,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 		"offline_pay":global.OffLinePay,
 		"index_message":global.CompanyIndexMessage,
 		"index_ads":global.CompanyIndexAds,
+		"export_worker":global.CompanyExportWorker,
 	}
 
 	//如果查询线路,线路是单独的表中 做的限制
@@ -89,6 +90,8 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 				v=  global.CompanyIndexMessage
 			case "index_ads":
 				v = global.CompanyIndexAds
+			case "export_worker":
+				v = global.CompanyExportWorker
 			case "line":
 				v = lineNumber
 

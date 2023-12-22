@@ -26,6 +26,7 @@ const (
 	//全局的公司一些信息配置
 	AllGlobalCnf //8
 
+	AllQueueChannel //9
 	//订单的过期时间,设置为半个小时
 	OrderExpirationTime = 30 * time.Minute
 	//如果在期间未确认收货，系统自动完成收货，默认7天自动收货

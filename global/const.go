@@ -52,6 +52,7 @@ const (
 	OffLinePay = 6 //大B最多可以设置线下支付的个数
 	CompanyIndexMessage = 3 //首页消息条目
 	CompanyIndexAds = 3 //广告数量
+	CompanyExportWorker = 5 //导出任务队列个数
 	OrderLayerKey    = "layer desc"
 	OrderTimeKey     = "created_at desc"
 	UserNumberAdd    = "add"    //增加

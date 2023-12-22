@@ -426,7 +426,10 @@ func (e Company) QuotaCnf(c *gin.Context)   {
 		var object models2.Ads
 		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)
 		msg = "条广告可以创建"
-
+	case "export_worker":
+		CompanyCnf := business.GetCompanyCnf(userDto.CId, "export_worker", e.Orm)
+		MaxNumber = CompanyCnf["export_worker"]
+		msg = fmt.Sprintf("最多同时支持%v个任务执行",MaxNumber)
 	}
 	res["msg"] = msg
 	if int(dbCount) <= MaxNumber {
