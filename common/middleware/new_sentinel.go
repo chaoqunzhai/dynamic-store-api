@@ -23,14 +23,16 @@ func SentinelInit() {
 	}
 	fmt.Println("初始化测试流控配置成功！！！！！")
 	_, _ = flow.LoadRules([]*flow.Rule{
+		//下面测试就是: 1秒内最多10个请求,超出的请求 都需要等待800毫秒
 		{
 			//Threshold 是 10，Sentinel 默认使用1s作为控制周期，表示1秒内10个请求匀速排队，所以排队时间就是 1000ms/10 = 100ms；
 			Resource:               "throttling",
 			TokenCalculateStrategy: flow.Direct,
 			ControlBehavior:        flow.Throttling, // 流控效果为匀速排队
-			Threshold:              100,              // 请求的间隔控制在 1000/10=100 ms
-			MaxQueueingTimeMs:      1000,             // 最长排队等待时间
-			StatIntervalInMs:       1000,            //一秒作为统计周期
+			// 请求的间隔控制在  例如 1000(StatIntervalInMs:周期)/10(10个请求Threshold)=100 ms (100毫秒通过一个请求)
+			Threshold:              10,		 //StatIntervalInMs周期内多个请求通过
+			MaxQueueingTimeMs:      1000,             // 最长排队等待时间,客户请求等待时间 等待1000秒
+			StatIntervalInMs:       1000,            //指定多少秒为统计一个周期
 		},
 		{
 			// Threshold + StatIntervalInMs 可组合出多长时间限制通过多少请求，这里相当于限制为 10 qps
