@@ -403,6 +403,7 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 	}()
 
 	data.Inventory = inventory
+	//fmt.Println("新的库存是，",inventory)
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("GoodsService Save error:%s \r\n", err)
