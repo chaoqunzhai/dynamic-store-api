@@ -95,6 +95,8 @@ func GetExportQueueInfo(key string,data []string)   {
 
 //开始执行数据导出
 //多个订单save为一个excel文件
+//多个订单 同一个小B放到一个sheet中
+
 func (e *ExportObj)ReadOrderDetail() error  {
 	file := excelize.NewFile()
 	//设置表名
@@ -128,13 +130,15 @@ func (e *ExportObj)ReadOrderDetail() error  {
 }
 
 
-//导出数据保存在本地zip压缩包
+//导出数据保存在云端
+
 func (e *ExportObj)SaveExportZIP() error {
 	fmt.Println("保存到本地zip文件",e.Dat)
 	return nil
 }
 
 //更新table中状态
+
 func (e *ExportObj)SaveExportDb(successTag bool,msg string)  error{
 	var status int
 	if !successTag{
@@ -157,6 +161,7 @@ func (e *ExportObj)SaveExportDb(successTag bool,msg string)  error{
 
 }
 //如果key下的list位空 ,那就支持清空这个key
+
 func  (e *ExportObj)EmptyKey(keyLen int) {
 	err :=redis_db.RedisCli.LTrim(RedisCtx,e.RedisKey,1,int64(keyLen)).Err()
 	if err!=nil{
