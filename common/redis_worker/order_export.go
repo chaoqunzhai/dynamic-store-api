@@ -21,6 +21,7 @@ type OrderExportObj struct {
 	FileName string
 }
 type SheetRow struct {
+	OrderA2 string //索引标记而已
 	SheetName string //分页名称 小B名称
 	OrderCreateTime string //订单创建时间
 	ShopAddress string //小B地址
@@ -45,7 +46,7 @@ func (e *OrderExportObj)ReadOrderDetail() error  {
 	fmt.Println("开始解析",e.Dat)
 	//多个订单 同一个小B的数据放在一起
 
-	siteMap:=map[int]interface{}{}
+	siteMap:=make(map[int][]*SheetRow,0)
 	//
 	nowTimeObj :=time.Now()
 	var orderList []models.Orders
@@ -53,12 +54,30 @@ func (e *OrderExportObj)ReadOrderDetail() error  {
 	splitTableRes := business.GetTableName(e.Dat.CId, e.Orm)
 	e.Orm.Table(splitTableRes.OrderTable).Where("order_id in ?",e.Dat.Order).Find(&orderList)
 
-	for _,orderRow:=range orderList{
+	for index,orderRow:=range orderList{
 		var shopRow models.Shop
 		e.Orm.Model(&models.Shop{}).Where("id = ? ", orderRow.ShopId).Limit(1).Find(&shopRow)
 		if shopRow.Id == 0 {
 			continue
 		}
+		sheetRow:=&SheetRow{
+			OrderA2: fmt.Sprintf("DCY.%v.%v",nowTimeObj.Format("20060102"),index + 1),
+			ExportTime: nowTimeObj.Format("2006-01-02 15:04:05"),
+			SheetName: shopRow.Name,
+			ShopPhone: shopRow.Phone,
+			ShopAddress: shopRow.Address,
+			ShopUserValue: shopRow.UserName,
+			OrderCreateTime: orderRow.CreatedAt.Format("2006-01-02 15:04"),
+		}
+		data,ok:=siteMap[orderRow.ShopId]
+		if ok{
+			data = append(data, sheetRow)
+		}else {
+			data = make([]*SheetRow,0)
+			data = append(data, sheetRow)
+
+		}
+		siteMap[orderRow.ShopId] = data
 
 	}
 
