@@ -20,7 +20,7 @@ func init() {
 // registerLineRouter
 func registerSystemRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
 	api := apis.Worker{}
-	r := v1.Group("/sys").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
+	r := v1.Group("/q/order").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
 		//数据导出队列
 		r.GET("/export/worker",api.Get)

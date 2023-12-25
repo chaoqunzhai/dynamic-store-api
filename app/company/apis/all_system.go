@@ -98,7 +98,8 @@ func (e *Worker)Create(c *gin.Context)  {
 	//查询队列限制
 	CompanyCnf := business.GetCompanyCnf(userDto.CId, "export_worker", e.Orm)
 	MaxNumber := CompanyCnf["export_worker"]
-	thisWorker:=redis_worker.GetExportQueueLength(userDto.CId)
+	//获取订单的导出队列
+	thisWorker:=redis_worker.GetExportQueueLength(userDto.CId,redis_worker.WorkerOrderStartName)
 	if thisWorker >= MaxNumber {
 		e.Error(500, nil,fmt.Sprintf("最多同时支持%v个任务执行,请稍后重试",MaxNumber))
 		return
@@ -116,6 +117,7 @@ func (e *Worker)Create(c *gin.Context)  {
 		CId: userDto.CId,
 		Order: req.Order,
 		OrmId: taskTable.Id,
+		Queue: redis_worker.WorkerOrderStartName,
 	}
 	//先发送到redis中
 	redis_worker.SendExportQueue(exportReq)

@@ -249,10 +249,6 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 		"pay":            global.GetPayType(object.PayType),
 		"pay_status_str": global.GetOrderPayStatus(object.PayStatus),
 		"pay_status":     object.PayStatus,
-		"shop_name":      shopRow.Name,
-		"shop_username":  shopRow.UserName,
-		"shop_phone":     shopRow.Phone,
-		"shop_address":   shopRow.Address,
 		"delivery_type":object.DeliveryType,
 		"day":nowTimeObj.Format("2006-01-02"),
 		"now":nowTimeObj.Format("2006-01-02 15:04:05"),
@@ -264,6 +260,12 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 		"all_money_cn":utils.ConvertNumToCny(object.GoodsMoney),
 		"order_money_cn":utils.ConvertNumToCny(object.OrderMoney),
 		"run_time":"",
+	}
+	if shopRow.Id > 0{
+		result["shop_name"] =shopRow.Name
+		result["shop_username"] =shopRow.UserName
+		result["shop_phone"] =shopRow.Phone
+		result["shop_address"] =shopRow.Address
 	}
 
 	//如果是同城配送那就获取

@@ -6,30 +6,35 @@ package redis_worker
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"go-admin/common/redis_db"
 	"go-admin/global"
 )
 
-func getExportWorkerName(cid int) string  {
+func getExportWorkerName(cid int,q string) string  {
 
-	return 	fmt.Sprintf("%v.export.%v",WorkerStartName,cid)
+	return 	fmt.Sprintf("%v.export.%v",q,cid)
 }
 //发送数据到队列中
-func SendExportQueue(r ExportReq)  {
+func SendExportQueue(r ExportReq)  error {
 
 	data,err :=json.Marshal(r)
 	if err!=nil{
-		return
+		return err
 	}
 
+	if r.Queue == ""{
+		return errors.New("请选择Queue")
+	}
 	redis_db.RedisCli.Do(RedisCtx, "select", global.AllQueueChannel)
-	redis_db.RedisCli.LPush(RedisCtx,getExportWorkerName(r.CId),string(data))
+	redis_db.RedisCli.LPush(RedisCtx,getExportWorkerName(r.CId,r.Queue),string(data))
+	return nil
 }
 
-func GetExportQueueLength(cid int) int {
+func GetExportQueueLength(cid int,q string) int {
 	redis_db.RedisCli.Do(RedisCtx, "select", global.AllQueueChannel)
-	length, err :=redis_db.RedisCli.LLen(RedisCtx,getExportWorkerName(cid)).Result()
+	length, err :=redis_db.RedisCli.LLen(RedisCtx,getExportWorkerName(cid,q)).Result()
 	if err!=nil{
 		return 0
 	}

@@ -7,21 +7,26 @@ package redis_worker
 import "context"
 
 const (
-	WorkerStartName = "task"
+	WorkerOrderStartName = "order" //订单选中导出
+	WorkerReportStartName = "report" //配送报表
 
 )
 var (
 	RedisCtx context.Context
-
+	QueueGroup []string
 
 )
 func init()  {
 	RedisCtx = context.Background()
+	QueueGroup =[]string{
+		WorkerOrderStartName,WorkerReportStartName,
+	}
 	go LoopRedisWorker()
 }
 
 
 type ExportReq struct {
+	Queue string `json:"queue"`
 	Order []string `json:"order"`
 	CId int `json:"c_id"`
 	OrmId int `json:"orm_id"`
