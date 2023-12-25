@@ -38,6 +38,7 @@ type TimeConfResponse struct {
 	StartTime models2.XTime
 	EndTime models2.XTime
 }
+
 //生成核销码
 
 func DeliveryCode() string {
@@ -235,6 +236,11 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 	e.Orm.Model(&models3.Shop{}).Scopes(actions.PermissionSysUser(shopRow.TableName(),userDto)).Where("id = ? ", object.ShopId).Limit(1).Find(&shopRow)
 
 	result = map[string]interface{}{
+		"order_money":fmt.Sprintf("%v", utils.StringDecimal(object.OrderMoney)),
+		"order_goods_money":fmt.Sprintf("%v", utils.StringDecimal(object.GoodsMoney)),
+		"coupon_money":fmt.Sprintf("%v", utils.StringDecimal(object.CouponMoney)),
+		"delivery_money":fmt.Sprintf("%v", utils.StringDecimal(object.DeliveryMoney)),
+		"order_number":object.Number,
 		"order_id":       object.Id,
 		"created_at":     object.CreatedAt.Format("2006-01-02 15:04:05"),
 		"cycle_time":object.CreatedAt.Format("2006-01-02"),
@@ -254,8 +260,12 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 		//https://weapp.dongchuangyun.com/d1#/'
 		"url":fmt.Sprintf("%vd%v#/",config.ExtConfig.H5Url,userDto.CId),
 		"desc":object.Desc,
+		"buyer":object.Buyer,
+		"all_money_cn":utils.ConvertNumToCny(object.GoodsMoney),
+		"order_money_cn":utils.ConvertNumToCny(object.OrderMoney),
 		"run_time":"",
 	}
+
 	//如果是同城配送那就获取
 	switch object.DeliveryType {
 	case global.ExpressLocal:
@@ -295,17 +305,22 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 
 	specsList := make([]map[string]interface{}, 0)
 	for _, row := range orderSpecs {
+		allMoney := utils.RoundDecimalFlot64(row.Money  * float64(row.Number))
 		ss := map[string]interface{}{
 			"id":         row.Id,
 			"name":       row.SpecsName,
 			"goods_name":row.GoodsName,
 			"created_at": row.CreatedAt.Format("2006-01-02 15:04:05"),
 			"specs":      fmt.Sprintf("%v%v", row.Number, row.Unit),
+			"unit":row.Unit,
 			"status":     global.OrderStatus(row.Status),
-			"money":      row.Money,
+			"money":     utils.StringDecimal(row.Money),
+			"number":row.Number,
+			"all_money":fmt.Sprintf("%v", utils.StringDecimal(allMoney)),
 		}
 		specsList = append(specsList, ss)
 	}
+
 	result["run_time"] = time.Since(nowTimeObj)
 	result["specs_list"] = specsList
 

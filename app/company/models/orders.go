@@ -72,7 +72,7 @@ type OrderSpecs struct {
 	Unit      string         `json:"unit" gorm:"type:varchar(8);comment:单位"`
 	Number    int            `gorm:"comment:下单规格数"`
 	Status    int            `gorm:"type:tinyint(1);default:1;index;comment:配送状态"`
-	Money     float64        `gorm:"comment:规格的价格"`
+	Money     float64        `gorm:"comment:订单成交的规格价格"`
 	Image     string  `gorm:"size:15;comment:商品图片路径"`
 }
 
