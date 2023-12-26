@@ -41,7 +41,7 @@ func GetDomainCosEncodePathName(imageConst string,uid interface{}, image string,
 	}
 	if local{
 		//旧逻辑,直接返回本地的文件路径
-		goodsImagePath := config.ExtConfig.ImageUrl +  path.Join(config.ExtConfig.ImageBase,
+		goodsImagePath := config.ExtConfig.CloudObsUrl +  path.Join(config.ExtConfig.ImageBase,
 			imageConst, fmt.Sprintf("%v", uid)) + "/" + image
 		return goodsImagePath
 	}
@@ -49,7 +49,7 @@ func GetDomainCosEncodePathName(imageConst string,uid interface{}, image string,
 	//文件路径进行编码
 	encodeUrl:=url.QueryEscape(GetSiteCosPath(uid,imageConst,image))
 	//cos域名桶的地址,防止后期更换导致的图片查不到
-	imageUrl:=config.ExtConfig.ImageUrl
+	imageUrl:=config.ExtConfig.CloudObsUrl
 	//返回的图片路径
 	//示例地址: "https://dcy-1318497773.cos.ap-nanjing.myqcloud.com/goods%2F1%2FWechatIMG954.jpg"
 	domainUrl:=fmt.Sprintf("%v%v",imageUrl,encodeUrl)
@@ -59,7 +59,7 @@ func GetDomainCosEncodePathName(imageConst string,uid interface{}, image string,
 func GetDomainSplitFilePath(url string)  string {
 	//https://dcy-1318497773.cos.ap-nanjing.myqcloud.com/goods/1/38ab9d1e.jpg
 
-	c:=strings.Replace(url,config.ExtConfig.ImageUrl,"",-1)
+	c:=strings.Replace(url,config.ExtConfig.CloudObsUrl,"",-1)
 	return c
 
 }

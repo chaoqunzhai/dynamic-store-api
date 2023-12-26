@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"github.com/shopspring/decimal"
 	"math/rand"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -346,4 +348,30 @@ func GetRandStr(n int)  string {
 		result[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(result)
+}
+
+func RemoveDirectory(dir string) error {
+	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			err := os.RemoveAll(path) // 递归删除目录及其内容
+			fmt.Println("删除path",path)
+			if err != nil {
+				return err
+			}
+		} else {
+			err := os.Remove(path) // 删除文件
+			fmt.Println("删除文件",path)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return os.Remove(dir) // 删除空目录本身
 }

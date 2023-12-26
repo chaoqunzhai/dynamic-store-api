@@ -153,7 +153,7 @@ func (e Goods) CosSaveImage(c *gin.Context) {
 		//2.上传到cos中
 		cos :=qiniu.QinUi{CId: userDto.CId}
 		cos.InitClient()
-		fileName,cosErr:=cos.PostFile(goodsImagePath)
+		fileName,cosErr:=cos.PostImageFile(goodsImagePath)
 		fmt.Println("七牛保存的返回",fileName,cosErr)
 		if cosErr !=nil{
 			zap.S().Errorf("商品图片上传COS失败:%v",cosErr.Error())
@@ -562,7 +562,7 @@ func (e Goods) Insert(c *gin.Context) {
 		if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 
 			//1.上传到cos中
-			fileName,cosErr :=buckClient.PostFile(goodsImagePath)
+			fileName,cosErr :=buckClient.PostImageFile(goodsImagePath)
 			if cosErr !=nil{
 				zap.S().Errorf("用户:%v,CID:%v 商品规格保存失败:%v",userDto.UserId,userDto.CId,cosErr)
 				continue
@@ -592,7 +592,7 @@ func (e Goods) Insert(c *gin.Context) {
 		if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 
 			//1.上传到cos中
-			fileName,cosErr :=buckClient.PostFile(goodsImagePath)
+			fileName,cosErr :=buckClient.PostImageFile(goodsImagePath)
 			if cosErr !=nil{
 				zap.S().Errorf("用户:%v,商品规格保存失败:%v",userDto.UserId,cosErr)
 			}
@@ -734,7 +734,7 @@ func (e Goods) Update(c *gin.Context) {
 
 			if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 				//只保留文件名称,防止透露服务器地址
-				fileName,cosErr:=buckClient.PostFile(goodsImagePath)
+				fileName,cosErr:=buckClient.PostImageFile(goodsImagePath)
 				if cosErr !=nil{
 					continue
 				}
@@ -773,7 +773,7 @@ func (e Goods) Update(c *gin.Context) {
 
 			if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 				//只保留文件名称,防止透露服务器地址
-				fileName,cosErr:=buckClient.PostFile(goodsImagePath)
+				fileName,cosErr:=buckClient.PostImageFile(goodsImagePath)
 				if cosErr !=nil{
 					continue
 				}

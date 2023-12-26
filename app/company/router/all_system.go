@@ -24,7 +24,10 @@ func registerSystemRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 	{
 		//数据导出队列
 		r.GET("/export/worker",api.Get)
+		//获取下载链接
+		r.GET("/download/:uid",api.Download)
 		//创建数据导出任务
 		r.POST("/export/worker",api.Create)
+		r.DELETE("/:uid",api.Remove)
 	}
 }

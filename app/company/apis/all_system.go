@@ -5,6 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
+	"go-admin/common/qiniu"
+	"go-admin/config"
+	"go-admin/global"
+	"path"
 
 	models2 "go-admin/cmd/migrate/migration/models"
 
@@ -70,9 +74,40 @@ func (e *Worker)Get(c *gin.Context)  {
 			"path":row.Path,
 			"status":row.Status,
 			"type":row.Type,
+			"id":row.Id,
 		})
 	}
-	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), fmt.Sprintf("云端文件最多保留%v天",config.ExtConfig.ExportDay))
+}
+
+
+func (e *Worker)Download(c *gin.Context)  {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	uid:=c.Param("uid")
+	var data models2.CompanyTasks
+	e.Orm.Model(&models2.CompanyTasks{}).Where("c_id = ? and id = ?",userDto.CId,uid).Limit(1).Find(&data)
+	if data.Id == 0 {
+		e.Error(500, nil,"数据不存在")
+		return
+	}
+
+	downloadUrl :=config.ExtConfig.CloudObsUrl + path.Join(fmt.Sprintf("%v",userDto.CId),global.ExportOrderFilePath,data.Path)
+
+	e.OK(downloadUrl,"")
+	return
+
 }
 
 func (e *Worker)Create(c *gin.Context)  {
@@ -99,7 +134,7 @@ func (e *Worker)Create(c *gin.Context)  {
 	CompanyCnf := business.GetCompanyCnf(userDto.CId, "export_worker", e.Orm)
 	MaxNumber := CompanyCnf["export_worker"]
 	//获取订单的导出队列
-	thisWorker:=redis_worker.GetExportQueueLength(userDto.CId,redis_worker.WorkerOrderStartName)
+	thisWorker:=redis_worker.GetExportQueueLength(userDto.CId,global.WorkerOrderStartName)
 	if thisWorker >= MaxNumber {
 		e.Error(500, nil,fmt.Sprintf("最多同时支持%v个任务执行,请稍后重试",MaxNumber))
 		return
@@ -113,14 +148,54 @@ func (e *Worker)Create(c *gin.Context)  {
 	//记录在DB中
 	e.Orm.Create(&taskTable)
 
-	exportReq :=redis_worker.ExportReq{
+	exportReq :=global.ExportReq{
 		CId: userDto.CId,
 		Order: req.Order,
 		OrmId: taskTable.Id,
-		Queue: redis_worker.WorkerOrderStartName,
+		Queue: global.WorkerOrderStartName,
+		ExportUser: userDto.Username,
 	}
 	//先发送到redis中
 	redis_worker.SendExportQueue(exportReq)
 	e.OK("","任务创建成功.请前往任务中心查看 ！")
 	return
+}
+
+
+func (e *Worker)Remove(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	uid:=c.Param("uid")
+	var data models2.CompanyTasks
+	e.Orm.Model(&models2.CompanyTasks{}).Where("c_id = ? and id = ?",userDto.CId,uid).Limit(1).Find(&data)
+	if data.Id == 0 {
+		e.Error(500, nil,"数据不存在")
+		return
+	}
+
+	e.Orm.Model(&data).Where("id = ?",data.Id).Delete(&data)
+	//
+	obsUrl :=path.Join(fmt.Sprintf("%v",userDto.CId),global.ExportOrderFilePath,data.Path)
+
+	//数据删除
+	buckClient:=qiniu.QinUi{
+		CId: userDto.CId,
+	}
+	buckClient.InitClient()
+
+	buckClient.RemoveFile(obsUrl)
+	e.OK("","删除成功")
+	return
+
 }

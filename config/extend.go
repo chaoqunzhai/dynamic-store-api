@@ -17,8 +17,9 @@ type Extend struct {
 	WxLeader    WxLeaderLogin `json:"wxLeader"`
 	WxUser      WxUserLogin   `json:"wxUser"`
 	WxOfficial  WxOfficial    `json:"wxOfficial"`
-	ImageUrl string  `json:"imageUrl"`
+	CloudObsUrl string  `json:"cloudObsUrl"` //云对象存储
 	H5Url string `json:"h5Url"`
+	ExportDay int `json:"exportDay"`
 	Domain      string        `json:"domain"`
 	ImageBase string        `json:"imageBase"`
 	CityAdv     string        `json:"cityAdv"`

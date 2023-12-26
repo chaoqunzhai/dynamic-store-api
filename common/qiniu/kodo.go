@@ -180,7 +180,7 @@ func (q *QinUi)CreateBucket()  {
 
 //上传文件
 //不同的大B做不同的桶,
-func (q *QinUi)PostFile(filePath  string) (name string,err  error)  {
+func (q *QinUi)PostImageFile(filePath  string) (name string,err  error)  {
 	//filePath := "/Users/zhaichaoqun/workespace/goProjects/src/test/70e3f85b.jpg"
 
 	//压缩下文件
@@ -211,6 +211,30 @@ func (q *QinUi)PostFile(filePath  string) (name string,err  error)  {
 	defer func() {
 		os.RemoveAll(sizeFilePath)
 	}()
+	return fileName, err
+}
+
+
+func (q *QinUi)PostFile(filePath  string) (name string,err  error)  {
+
+	//对文件进行压缩
+
+	formUploader := storage.NewFormUploader(&q.Cfg)
+	_,fileName := path.Split(filePath)
+
+	ret := storage.PutRet{}
+
+	//绝对路径
+
+	putExtra := storage.PutExtra{}
+
+	//保留全路径 会在七牛云上创建目录
+	err = formUploader.PutFile(context.Background(), &ret, q.Token, filePath, filePath, &putExtra)
+	if err != nil {
+		zap.S().Infof("BackName:%v 七牛云图片上传文件：%v 失败:%v",q.BucketName,filePath,err,)
+		return "", errors.New(fmt.Sprintf("图片上传失败:%v",err))
+	}
+
 	return fileName, err
 }
 func (q *QinUi)MakeUrl(fileName string) string  {

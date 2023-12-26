@@ -17,7 +17,7 @@ func getExportWorkerName(cid int,q string) string  {
 	return 	fmt.Sprintf("%v.export.%v",q,cid)
 }
 //发送数据到队列中
-func SendExportQueue(r ExportReq)  error {
+func SendExportQueue(r global.ExportReq)  error {
 
 	data,err :=json.Marshal(r)
 	if err!=nil{
@@ -27,14 +27,14 @@ func SendExportQueue(r ExportReq)  error {
 	if r.Queue == ""{
 		return errors.New("请选择Queue")
 	}
-	redis_db.RedisCli.Do(RedisCtx, "select", global.AllQueueChannel)
-	redis_db.RedisCli.LPush(RedisCtx,getExportWorkerName(r.CId,r.Queue),string(data))
+	redis_db.RedisCli.Do(global.RedisCtx, "select", global.AllQueueChannel)
+	redis_db.RedisCli.LPush(global.RedisCtx,getExportWorkerName(r.CId,r.Queue),string(data))
 	return nil
 }
 
 func GetExportQueueLength(cid int,q string) int {
-	redis_db.RedisCli.Do(RedisCtx, "select", global.AllQueueChannel)
-	length, err :=redis_db.RedisCli.LLen(RedisCtx,getExportWorkerName(cid,q)).Result()
+	redis_db.RedisCli.Do(global.RedisCtx, "select", global.AllQueueChannel)
+	length, err :=redis_db.RedisCli.LLen(global.RedisCtx,getExportWorkerName(cid,q)).Result()
 	if err!=nil{
 		return 0
 	}
