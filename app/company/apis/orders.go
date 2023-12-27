@@ -297,14 +297,15 @@ func (e Orders)Cycle(c *gin.Context)  {
 
 	result:=make([]map[string]interface{},0)
 
-	//fmt.Println("req!!",req)
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
 	//默认展示最近10条的配送周期
 	datalist := make([]models2.OrderCycleCnf, 0)
 	var count int64
-	e.Orm.Model(&models2.OrderCycleCnf{}).Scopes(
-		cDto.MakeCondition(req.GetNeedSearch()),
+
+
+	e.Orm.Table(splitTableRes.OrderCycle).Scopes(
+		cDto.MakeSplitTableCondition(req.GetNeedSearch(),splitTableRes.OrderCycle),
 		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Select("delivery_str,create_str,uid,id").Order(global.OrderTimeKey).Find(&datalist).Limit(-1).Offset(-1).
 		Count(&count)
 	
@@ -693,7 +694,7 @@ func (e Orders) OrderCycleList(c *gin.Context) {
 	e.Orm.Table(splitTableRes.OrderCycle).Scopes(
 		cDto.MakeSplitTableCondition(req.GetNeedSearch(),splitTableRes.OrderCycle),
 		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Model(&models2.OrderCycleCnf{}).Order(global.OrderTimeKey).Find(&datalist)
+		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Order(global.OrderTimeKey).Find(&datalist)
 
 	//下单周期
 	createTime := make([]map[string]interface{}, 0)

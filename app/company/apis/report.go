@@ -48,7 +48,7 @@ type GoodsRow struct {
 	Money  float64 `json:"money"`
 }
 
-type SummaryReq struct {
+type CycleBaseReq struct {
 	Cycle int `json:"cycle" form:"cycle"`
 }
 type SummaryCnfRow struct {
@@ -57,9 +57,10 @@ type SummaryCnfRow struct {
 	GoodsNumber int `json:"goods_number"`
 	GoodsId int `json:"goods_id"`
 }
-// 通过配送周期 汇总下当前周期的总数
+// 汇总指定配送周期下的商品总数
+
 func (e Orders)Summary(c *gin.Context)  {
-	req := SummaryReq{}
+	req := CycleBaseReq{}
 	err := e.MakeContext(c).
 		Bind(&req).
 		MakeOrm().
@@ -120,6 +121,31 @@ func (e Orders)Summary(c *gin.Context)  {
 	e.OK(business.Response{Code: 1,Msg: "successful",Data: SummaryMap},"")
 	return
 }
+
+
+// 查询指定配送周期下的路线列表
+
+func (e Orders)Line(c *gin.Context){
+	req := CycleBaseReq{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+
+	return
+}
+
 // 获取指定日期的报表
 // 按配送员区分,每个配送员
 // 下订单是和商家关联的，而且商家都有一个关联的路线,所以反查即可

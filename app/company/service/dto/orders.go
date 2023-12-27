@@ -114,7 +114,7 @@ type RichOrderDataReq struct {
 
 type OrderCyCleReq struct {
 	dto.Pagination `search:"-"`
-	CyCle int ` form:"cycle"`
+	CyCle int ` json:"cycle" form:"cycle" search:"-"`
 	DeliveryStr           string `json:"delivery_str" form:"delivery_str"  search:"type:contains;column:delivery_str;table:order_cycle_cnf" comment:"商品名称"`
 }
 
