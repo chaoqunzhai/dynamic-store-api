@@ -9,6 +9,7 @@ import (
 	"go-admin/config"
 	"go-admin/global"
 	"path"
+	"time"
 
 	models2 "go-admin/cmd/migrate/migration/models"
 
@@ -22,8 +23,9 @@ import (
 type Worker struct {
 	api.Api
 }
-type WorkerOrderId struct {
+type WorkerExportReq struct {
 	Order   []string   `json:"order"`
+	Cycle int `json:"cycle"`
 	Type int `json:"type"`
 }
 type GetPageReq struct {
@@ -103,7 +105,7 @@ func (e *Worker)Download(c *gin.Context)  {
 		return
 	}
 
-	downloadUrl :=config.ExtConfig.CloudObsUrl + path.Join(fmt.Sprintf("%v",userDto.CId),global.ExportOrderFilePath,data.Path)
+	downloadUrl :=config.ExtConfig.CloudObsUrl + path.Join(fmt.Sprintf("%v",userDto.CId),global.CloudExportOrderFilePath,data.Path)
 
 	e.OK(downloadUrl,"")
 	return
@@ -111,7 +113,7 @@ func (e *Worker)Download(c *gin.Context)  {
 }
 
 func (e *Worker)Create(c *gin.Context)  {
-	req:=WorkerOrderId{}
+	req:=WorkerExportReq{}
 	err := e.MakeContext(c).
 		MakeOrm().
 		Bind(&req).
@@ -121,9 +123,11 @@ func (e *Worker)Create(c *gin.Context)  {
 		e.Error(500, err, err.Error())
 		return
 	}
-	if len(req.Order) == 0 {
-		e.Error(500, nil, "请选择订单ID")
-		return
+	if req.Type == 0 {
+		if len(req.Order) == 0 {
+			e.Error(500, nil, "请选择订单ID")
+			return
+		}
 	}
 	userDto, err := user.GetUserDto(e.Orm, c)
 	if err != nil {
@@ -139,24 +143,57 @@ func (e *Worker)Create(c *gin.Context)  {
 		e.Error(500, nil,fmt.Sprintf("最多同时支持%v个任务执行,请稍后重试",MaxNumber))
 		return
 	}
+	//用一个key来做防止大量的重复提交,给DB带来非必要的查询
+	//如果是订单 那就查询 当前时间戳  精确到分 ,查询到这个key 已经存在 + 处理中   = 返回请一分钟后重试
+
+	//如果是汇总 查询cid:周期ID
+	var Queue string
+	//2分钟限制一次
+	mathKey := time.Now().Add(-2 * time.Minute).Format("200601021504")
+
+	switch req.Type {
+	case global.ExportTypeOrder:
+		Queue = global.WorkerOrderStartName
+		mathKey = fmt.Sprintf("%v_order",mathKey)
+	case global.ExportTypeSummary:
+		Queue = global.WorkerReportSummaryStartName
+		mathKey = fmt.Sprintf("%v_summary",mathKey)
+	case global.ExportTypeLine:
+		Queue = global.WorkerReportLineStartName
+		mathKey = fmt.Sprintf("%v_line",mathKey)
+	case global.ExportTypeShopDelivery:
+		Queue = global.WorkerReportDeliveryStartName
+		mathKey = fmt.Sprintf("%v_delivery",mathKey)
+	}
+	var count int64
+
+	e.Orm.Model(&models2.CompanyTasks{}).Where("`key` = ? and c_id = ? and status = 0 and type = ?",mathKey,userDto.CId,req.Type).Count(&count)
+
+	if count > 0 {
+		e.Error(500, nil,"请勿在一分钟内重复提交相同任务")
+		return
+	}
+
 	taskTable:=models2.CompanyTasks{
 		CreateBy: userDto.UserId,
-		CId:userDto.CId,
-		Type: req.Type,
-		Status: 0,
+		CId:      userDto.CId,
+		Type:     req.Type,
+		Key:      mathKey,
+		Status:   0,
 	}
 	//记录在DB中
 	e.Orm.Create(&taskTable)
-
-	exportReq :=global.ExportReq{
+	exportReq :=global.ExportRedisInfo{
 		CId: userDto.CId,
 		Order: req.Order,
+		Cycle: req.Cycle,
 		OrmId: taskTable.Id,
-		Queue: global.WorkerOrderStartName,
 		ExportUser: userDto.Username,
+		Queue: Queue,
 	}
+
 	//先发送到redis中
-	redis_worker.SendExportQueue(exportReq)
+	_=redis_worker.SendExportQueue(exportReq)
 	e.OK("","任务创建成功.请前往任务中心查看 ！")
 	return
 }
@@ -186,7 +223,7 @@ func (e *Worker)Remove(c *gin.Context) {
 
 	e.Orm.Model(&data).Where("id = ?",data.Id).Delete(&data)
 	//
-	obsUrl :=path.Join(fmt.Sprintf("%v",userDto.CId),global.ExportOrderFilePath,data.Path)
+	obsUrl :=path.Join(fmt.Sprintf("%v",userDto.CId),global.CloudExportOrderFilePath,data.Path)
 
 	//数据删除
 	buckClient:=qiniu.QinUi{

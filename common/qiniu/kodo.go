@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/nfnt/resize"
 	"go-admin/config"
+	"go-admin/global"
 	"image"
 	"image/jpeg"
 	"image/png"
@@ -228,11 +229,13 @@ func (q *QinUi)PostFile(filePath  string) (name string,err  error)  {
 
 	putExtra := storage.PutExtra{}
 
-	//保留全路径 会在七牛云上创建目录
-	err = formUploader.PutFile(context.Background(), &ret, q.Token, filePath, filePath, &putExtra)
+	//创建全路径 会在七牛云上创建目录
+	pathValue :=path.Join(fmt.Sprintf("%v",q.CId),global.CloudExportOrderFilePath,filePath)
+
+	err = formUploader.PutFile(context.Background(), &ret, q.Token, pathValue, filePath, &putExtra)
 	if err != nil {
-		zap.S().Infof("BackName:%v 七牛云图片上传文件：%v 失败:%v",q.BucketName,filePath,err,)
-		return "", errors.New(fmt.Sprintf("图片上传失败:%v",err))
+		zap.S().Infof("BackName:%v 七牛云上传文件：%v 失败:%v",q.BucketName,filePath,err,)
+		return "", errors.New(fmt.Sprintf("上传失败:%v",err))
 	}
 
 	return fileName, err

@@ -27,6 +27,7 @@ func registerSystemRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 		//获取下载链接
 		r.GET("/download/:uid",api.Download)
 		//创建数据导出任务
+		//通用请求入口，支持选中导出，汇总导出,路线导出等等
 		r.POST("/export/worker",api.Create)
 		r.DELETE("/:uid",api.Remove)
 	}

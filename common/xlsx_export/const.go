@@ -6,6 +6,7 @@ package xlsx_export
 
 var XlsxIndexRowMap map[int]string
 
+
 func init()  {
 	XlsxIndexRowMap =map[int]string{
 		0:"A",

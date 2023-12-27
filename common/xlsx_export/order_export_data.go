@@ -10,25 +10,27 @@ import (
 	"go-admin/cmd/migrate/migration/models"
 	"go-admin/common/business"
 	"go-admin/common/qiniu"
-	"go-admin/common/redis_db"
 	"go-admin/common/utils"
 	"go-admin/global"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"os"
 	"time"
 )
 
 type OrderExportObj struct {
 	Orm *gorm.DB
-	Dat global.ExportReq
+	Dat global.ExportRedisInfo
 	RedisKey string
 	FileName string
 
 	UpCloud bool //是否保存云端
 }
+
+
 type SheetRow struct {
 	OrderA2 string //索引标记而已
 	SheetName string //分页名称 小B名称
+	TitleVal string //标题的内容
 	OrderCreateTime string //订单创建时间
 	ShopAddress string //小B地址
 	ShopPhone string //联系电话
@@ -134,14 +136,14 @@ func (e *OrderExportObj)ReadOrderDetail() (dat map[int]*SheetRow,err error )  {
 
 //导出数据保存在云端
 
-func (e *OrderExportObj)SaveExportXlsx(redisRow global.ExportReq,sheetData map[int]*SheetRow)  {
+func (e *OrderExportObj)SaveExportXlsx(redisRow global.ExportRedisInfo,sheetData map[int]*SheetRow)  {
 	//fmt.Println("保存到本地zip文件",e.Dat)
 
-	export :=XlsxOrderExport{
+	export :=XlsxBaseExport{
 		ExportUser: redisRow.ExportUser,
 	}
 	// 大B/order_export/2023年12月26日15:46:06.xlsx
-	xlsxPath,FileName := export.SetXlsxRun(redisRow.CId,sheetData)
+	FileName := export.SetXlsxRun(redisRow.CId,sheetData)
 
 	//上传云端
 	if e.UpCloud {
@@ -150,47 +152,14 @@ func (e *OrderExportObj)SaveExportXlsx(redisRow global.ExportReq,sheetData map[i
 		buckClient.InitClient()
 		fileName,_:=buckClient.PostFile(FileName)
 		e.FileName = fileName
+		defer func() {
+
+			_=os.Remove(FileName)
+		}()
 	}else {
 		e.FileName = FileName
 	}
-	defer func() {
 
-		_=utils.RemoveDirectory(xlsxPath)
-	}()
 
 	return
-}
-
-//更新table中状态
-
-func (e *OrderExportObj)SaveExportDb(successTag bool,msg string)  error{
-	var status int
-	if !successTag{
-		status = 2
-	}else {
-		status = 1
-	}
-	if msg !=""{
-		if len(msg) > 60{
-			msg = msg[:60]
-		}
-	}
-	e.Orm.Model(&models.CompanyTasks{}).Where("id = ? and c_id = ?",
-		e.Dat.OrmId,e.Dat.CId).Updates(map[string]interface{}{
-		"status":status,
-		"path":e.FileName,
-		"msg":msg,
-	})
-	return nil
-
-}
-//如果key下的list位空 ,那就支持清空这个key
-
-func  (e *OrderExportObj)EmptyKey(keyLen int) {
-	err :=redis_db.RedisCli.LTrim(global.RedisCtx,e.RedisKey,1,int64(keyLen)).Err()
-	if err!=nil{
-		zap.S().Errorf("清理redis key:%v 数据清理失败:%v",e.RedisKey,err)
-	}else {
-		zap.S().Infof("redis key:%v 消费完毕,数据清理成功",e.RedisKey)
-	}
 }

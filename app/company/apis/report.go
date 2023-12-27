@@ -48,6 +48,78 @@ type GoodsRow struct {
 	Money  float64 `json:"money"`
 }
 
+type SummaryReq struct {
+	Cycle int `json:"cycle" form:"cycle"`
+}
+type SummaryCnfRow struct {
+	GoodsName string `json:"goods_name"`
+	GoodsImage string `json:"goods_image"`
+	GoodsNumber int `json:"goods_number"`
+	GoodsId int `json:"goods_id"`
+}
+// 通过配送周期 汇总下当前周期的总数
+func (e Orders)Summary(c *gin.Context)  {
+	req := SummaryReq{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+
+	SummaryMap:=make(map[int]*SummaryCnfRow,0)
+	var data models2.OrderCycleCnf
+	e.Orm.Table(splitTableRes.OrderCycle).Select("uid,id").Scopes(
+		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Model(
+			&models2.OrderCycleCnf{}).Where("id = ?",req.Cycle).Limit(1).Find(&data)
+	if data.Id == 0 {
+		e.OK(business.Response{Code: -1,Msg: "暂无周期订单数据"},"")
+		return
+	}
+
+	orderList:=make([]models2.Orders,0)
+	//根据配送UID 统一查一下
+	e.Orm.Table(splitTableRes.OrderTable).Select("order_id").Where("uid = ?", data.Uid).Find(&orderList)
+	orderIds:=make([]string,0)
+	for _,k:=range orderList{
+		orderIds = append(orderIds,k.OrderId)
+	}
+	orderSpecs:=make([]models2.OrderSpecs,0)
+	//查下数据 获取规格 在做一次统计
+	e.Orm.Table(splitTableRes.OrderSpecs).Select("goods_name,goods_id,number,image").Where("order_id in ?",orderIds).Find(&orderSpecs)
+
+	for _,specs:=range orderSpecs{
+		cnf,ok:=SummaryMap[specs.GoodsId]
+		if !ok{
+			cnf = &SummaryCnfRow{
+				GoodsName: specs.GoodsName,
+				GoodsImage: func() string {
+					if specs.Image == "" {
+						return ""
+					}
+					return business.GetGoodsPathFirst(userDto.CId,specs.Image,global.GoodsPath)
+				}(),
+				GoodsNumber: specs.Number,
+				GoodsId: specs.GoodsId,
+			}
+		}
+		cnf.GoodsNumber +=specs.Number
+		SummaryMap[specs.GoodsId] = cnf
+		
+	}
+	e.OK(business.Response{Code: 1,Msg: "successful",Data: SummaryMap},"")
+	return
+}
 // 获取指定日期的报表
 // 按配送员区分,每个配送员
 // 下订单是和商家关联的，而且商家都有一个关联的路线,所以反查即可

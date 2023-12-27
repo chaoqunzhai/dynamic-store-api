@@ -7,16 +7,13 @@ package xlsx_export
 import (
 	"fmt"
 	"github.com/xuri/excelize/v2"
-	"go-admin/global"
 	"go.uber.org/zap"
-	"os"
-	"path"
 	"time"
 )
 
 //订单导出的模板
 
-type XlsxOrderExport struct {
+type XlsxBaseExport struct {
 	File *excelize.File
 	XlsxRowIndex int //行的索引 只要插入了新的数据 就增1
 	ExportUser string //操作人
@@ -28,7 +25,7 @@ type XlsxOrderExport struct {
 
 }
 
-func (x *XlsxOrderExport)NewStyle()  {
+func (x *XlsxBaseExport)NewStyle()  {
 
 	x.XlsxName =fmt.Sprintf("%v-订单数据.xlsx",time.Now().Format("2006-01-02 15-04-05"))
 	StyleTitle, _ := x.File.NewStyle(&excelize.Style{
@@ -115,11 +112,15 @@ func (x *XlsxOrderExport)NewStyle()  {
 	x.StyleRowInfoId = styleId4
 
 }
-func (x *XlsxOrderExport)SetXlsxRun(cid int,data map[int]*SheetRow) (pathName,fileName string)  {
+func (x *XlsxBaseExport)NewFile()  {
 	//实例化对象
 	x.File = excelize.NewFile()
 	//设置样式
 	x.NewStyle()
+}
+func (x *XlsxBaseExport)SetXlsxRun(cid int,data map[int]*SheetRow) string  {
+	//实例化对象
+	x.NewFile()
 	thisTime :=""
 	for _,row:=range data {
 		var err error
@@ -137,7 +138,7 @@ func (x *XlsxOrderExport)SetXlsxRun(cid int,data map[int]*SheetRow) (pathName,fi
 
 		x.SetCellRow(row.SheetName,row.Table)
 
-		x.SetTotal(row)
+		x.SetTotal(true,row)
 
 		thisTime = row.ExportTime
 
@@ -146,13 +147,10 @@ func (x *XlsxOrderExport)SetXlsxRun(cid int,data map[int]*SheetRow) (pathName,fi
 	_=x.File.DeleteSheet("Sheet1")
 
 
-	xlsxPath:=path.Join(fmt.Sprintf("%v",cid),global.ExportOrderFilePath)
-
-	os.MkdirAll(xlsxPath, 0755)
-	xlsxName:=path.Join(xlsxPath,fmt.Sprintf("%v-订单导出.xlsx",thisTime))
+	xlsxName:=fmt.Sprintf("%v-订单导出.xlsx",thisTime)
 	if err := x.File.SaveAs(xlsxName); err != nil {
 		zap.S().Errorf("配送订单 大B:%v选中数据导出错误,err%v",cid,err.Error())
-		return xlsxPath,""
+		return""
 	}
 	//释放文件
 	defer func() {
@@ -161,11 +159,11 @@ func (x *XlsxOrderExport)SetXlsxRun(cid int,data map[int]*SheetRow) (pathName,fi
 		}
 	}()
 
-	return xlsxPath,xlsxName
+	return xlsxName
 
 }
 //进行合并长度等设置
-func (x *XlsxOrderExport)SetCell(row string)  {
+func (x *XlsxBaseExport)SetCell(row string)  {
 
 	//第一行 合并表头
 	x.File.MergeCell(row,"A1","H1")
@@ -228,7 +226,7 @@ func (x *XlsxOrderExport)SetCell(row string)  {
 }
 
 //设置副标题
-func (x *XlsxOrderExport)SetSubtitleValue(sheetRow *SheetRow)  {
+func (x *XlsxBaseExport)SetSubtitleValue(sheetRow *SheetRow)  {
 
 	x.File.SetCellValue(sheetRow.SheetName,"A2",sheetRow.OrderA2)
 
@@ -245,7 +243,7 @@ func (x *XlsxOrderExport)SetSubtitleValue(sheetRow *SheetRow)  {
 
 //内容合并
 
-func (x *XlsxOrderExport)SetCellRow(row string,table []*XlsxTableRow)  {
+func (x *XlsxBaseExport)SetCellRow(row string,table []*XlsxTableRow)  {
 	x.File.SetCellValue(row,"A1",fmt.Sprintf("%v 订货单",row))
 
 	x.File.SetCellStyle(row,"A1","H1",x.StyleTitleId)
@@ -275,7 +273,8 @@ func (x *XlsxOrderExport)SetCellRow(row string,table []*XlsxTableRow)  {
 }
 
 //设置总计
-func (x *XlsxOrderExport)SetTotal(sheetRow *SheetRow)  {
+func (x *XlsxBaseExport)SetTotal(freight bool,sheetRow *SheetRow)  {
+	fmt.Println("设置total.SheetName",sheetRow.SheetName,"sheetRow",sheetRow.ExportTime,"freight",freight)
 	//最后开始
 	x.XlsxRowIndex += 1
 	start:=x.XlsxRowIndex
@@ -293,8 +292,11 @@ func (x *XlsxOrderExport)SetTotal(sheetRow *SheetRow)  {
 	x.File.MergeCell(sheetRow.SheetName,fmt.Sprintf("A%v",x.XlsxRowIndex),fmt.Sprintf("H%v",x.XlsxRowIndex))
 	x.XlsxRowIndex += 1
 
+
 	x.File.SetCellValue(sheetRow.SheetName,fmt.Sprintf("A%v",x.XlsxRowIndex),"备注:")
-	x.File.SetCellValue(sheetRow.SheetName,fmt.Sprintf("G%v",x.XlsxRowIndex),"运费:")
+	if freight {
+		x.File.SetCellValue(sheetRow.SheetName,fmt.Sprintf("G%v",x.XlsxRowIndex),"运费:")
+	}
 	//结束
 	x.XlsxRowIndex+=1
 	//最后2行进行合并
@@ -305,5 +307,4 @@ func (x *XlsxOrderExport)SetTotal(sheetRow *SheetRow)  {
 	end:=x.XlsxRowIndex
 	x.File.SetCellStyle(sheetRow.SheetName,fmt.Sprintf("A%v",start),
 		fmt.Sprintf("H%v",end),x.StyleRowInfoId)
-	x.File.DeleteSheet("Sheet1")
 }

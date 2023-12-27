@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	ExportOrderFilePath = "order_export" //订单导出目录 这个目录 会在云端也存在
+	CloudExportOrderFilePath = "order_export" //云端目录
 	//手机号验证DB
 	PhoneMobileCodeDB = iota //0
 	SmallBLoginCnfDB         //1
@@ -54,18 +54,27 @@ const (
 	SmallBCategoryKey = "category_"
 
 	WorkerOrderStartName = "order" //订单选中导出
-	WorkerReportStartName = "report" //配送报表
+	WorkerReportDeliveryStartName = "report_shop_delivery" //配送报表
+	WorkerReportSummaryStartName = "report_summary" //汇总
+	WorkerReportLineStartName = "report_line" //路线
 
+
+	ExportTypeOrder = 0 //配送订单选中导出类型
+	ExportTypeSummary = 1 //汇总导出类型
+	ExportTypeLine = 2 //路线导出
+	ExportTypeShopDelivery = 3 //小B配送单导出
 )
 
-type ExportReq struct {
+type ExportRedisInfo struct {
 	Queue string `json:"queue"`
 	Order []string `json:"order"`
+	Cycle int `json:"cycle"` //配送周期ID
 	CId int `json:"c_id"`
 	OrmId int `json:"orm_id"`
 	ExportUser string `json:"export_user"`
 	Type string `json:"type"` //类型 0:配送订单导出 1:自提订单导出 2:总汇总表导出 3:基于路线导出
 }
+
 type GetQueueReq struct {
 	CId int `json:"c_id"`
 	Name string `json:"name"`
@@ -80,7 +89,8 @@ var (
 func init()  {
 	RedisCtx = context.Background()
 	QueueGroup =[]string{
-		WorkerOrderStartName,WorkerReportStartName,
+		WorkerOrderStartName,WorkerReportDeliveryStartName,
+		WorkerReportSummaryStartName,WorkerReportLineStartName,
 	}
 }
 

@@ -18,6 +18,9 @@ func registerReportOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTM
 	api := apis.Orders{}
 	r := v1.Group("/report").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
+		//汇总报表的汇总表
+		r.GET("/summary",api.Summary)
+
 		//todo:配送报表
 		r.GET("", api.Index)
 		//todo:配送报表详情
