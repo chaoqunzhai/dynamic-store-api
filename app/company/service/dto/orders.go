@@ -115,6 +115,7 @@ type RichOrderDataReq struct {
 type OrderCyCleReq struct {
 	dto.Pagination `search:"-"`
 	CyCle int ` form:"cycle"`
+	DeliveryStr           string `json:"delivery_str" form:"delivery_str"  search:"type:contains;column:delivery_str;table:order_cycle_cnf" comment:"商品名称"`
 }
 
 func (m *OrderCyCleReq) GetNeedSearch() interface{} {

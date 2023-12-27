@@ -286,7 +286,6 @@ func (e Orders)Cycle(c *gin.Context)  {
 		Errors
 	if err != nil {
 		e.Logger.Error(err)
-		fmt.Println("err!",err)
 		e.Error(500, err, err.Error())
 		return
 	}
@@ -305,7 +304,8 @@ func (e Orders)Cycle(c *gin.Context)  {
 	datalist := make([]models2.OrderCycleCnf, 0)
 	var count int64
 	e.Orm.Model(&models2.OrderCycleCnf{}).Scopes(
-		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Select("delivery_str,create_str,uid").Order(global.OrderTimeKey).Find(&datalist).Limit(-1).Offset(-1).
+		cDto.MakeCondition(req.GetNeedSearch()),
+		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Select("delivery_str,create_str,uid,id").Order(global.OrderTimeKey).Find(&datalist).Limit(-1).Offset(-1).
 		Count(&count)
 	
 	for _,row:=range datalist {
@@ -321,7 +321,7 @@ func (e Orders)Cycle(c *gin.Context)  {
 		dd :=map[string]interface{}{
 			"value":value,
 			"uid":row.Uid,
-			//"count":"1",
+			"id":row.Id,
 		}
 		result = append(result,dd)
 	}
