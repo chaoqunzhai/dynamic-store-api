@@ -66,8 +66,8 @@ func LoopRedisWorker()  {
 //开始解析
 func GetExportQueueInfo(key string,data []string)   {
 	for _,dat:=range data{
-		//睡眠500毫秒,缓解压力
-		time.Sleep(500*time.Millisecond)
+
+		time.Sleep(600*time.Millisecond)
 		var err error
 		row:=global.ExportRedisInfo{}
 		err =json.Unmarshal([]byte(dat),&row)
@@ -112,8 +112,8 @@ func GetExportQueueInfo(key string,data []string)   {
 
 func GetSummaryExportQueueInfo(key string,data []string)   {
 	for _,dat:=range data{
-		//睡眠500毫秒,缓解压力
-		time.Sleep(500*time.Millisecond)
+		//睡眠600毫秒,缓解压力
+		time.Sleep(700*time.Millisecond)
 		var err error
 		row:=global.ExportRedisInfo{}
 		err =json.Unmarshal([]byte(dat),&row)
@@ -162,11 +162,11 @@ func GetSummaryExportQueueInfo(key string,data []string)   {
 
 func GetReportLineExportQueueInfo(key string,data []string) {
 
-	fmt.Println("开始路线数据导出",key,"DATA",data)
+	//fmt.Println("开始路线数据导出",key,"DATA",data)
 
 	for _,dat:=range data{
 		//睡眠500毫秒,缓解压力
-		time.Sleep(500*time.Millisecond)
+		time.Sleep(800*time.Millisecond)
 		var err error
 		row:=global.ExportRedisInfo{}
 		err =json.Unmarshal([]byte(dat),&row)
@@ -211,6 +211,10 @@ func GetReportLineExportQueueInfo(key string,data []string) {
 }
 func GetReportLineDeliveryExportQueueInfo(key string,data []string) {
 	fmt.Println("开始路线配送数据导出",key,"DATA",data)
+
+	//查询线路下不同的小B列表
+	//先查一波路线 -> 路线下的小B
+	//不同的是 路线是一个大的点，如果多个路线 那就是多个文件了里面有多个小B
 
 
 
