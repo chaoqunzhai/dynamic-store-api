@@ -227,7 +227,7 @@ func (e Orders)Line(c *gin.Context){
 	ResultMap:=make(map[int]*TableLineRow,0)
 	for _,l:=range lineList{
 		var DriverObj models2.Driver
-		e.Orm.Model(&models2.Driver{}).Where("c_id = ? and id = ?",userDto.CId,l.DriverId).Limit(1).Find(&DriverObj)
+		e.Orm.Model(&models2.Driver{}).Select("id,name,phone").Where("c_id = ? and id = ?",userDto.CId,l.DriverId).Limit(1).Find(&DriverObj)
 		LineRow := &TableLineRow{
 			LineName: l.Name,
 			Desc: l.Desc,

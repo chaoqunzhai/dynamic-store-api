@@ -27,10 +27,12 @@ type WorkerExportReq struct {
 	Order   []string   `json:"order"`
 	Cycle int `json:"cycle"`
 	Type int `json:"type"`
+	LineId []int `json:"line_id"`
+	LineName []string `json:"line_name"`
 }
 type GetPageReq struct {
 	dto.Pagination `search:"-"`
-	Type int `json:"type" form:"type" search:"type:exact;column:type;table:company_tasks" `
+	Type string `json:"type" form:"type" search:"-" `
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:company_tasks" comment:"创建时间"`
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:company_tasks" comment:"创建时间"`
 
@@ -59,14 +61,21 @@ func (e *Worker)Get(c *gin.Context)  {
 	var data models2.CompanyTasks
 	list:=make([]models2.CompanyTasks,0)
 	var count int64
-	err = e.Orm.Model(&data).Where("c_id = ?",userDto.CId).
+	orm:=e.Orm.Model(&data).Where("c_id = ?",userDto.CId).
 		Scopes(
-		cDto.MakeCondition(req.GetNeedSearch()),
+			cDto.MakeCondition(req.GetNeedSearch()),
 			cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-		).Order("id desc").
+		)
+
+	switch req.Type {
+	case "report":
+		orm.Where("`type` > ?",global.ExportTypeOrder)
+	case "export":
+		orm.Where("`type` = ?",global.ExportTypeOrder)
+	}
+	err = orm.Order("id desc").
 		Find(&list).Limit(-1).Offset(-1).
 		Count(&count).Error
-
 	//直接读取DB中的数据
 
 	result:=make([]map[string]interface{},0)
@@ -77,6 +86,7 @@ func (e *Worker)Get(c *gin.Context)  {
 			"status":row.Status,
 			"type":row.Type,
 			"id":row.Id,
+			"title":row.Title,
 		})
 	}
 	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), fmt.Sprintf("云端文件最多保留%v天",config.ExtConfig.ExportDay))
@@ -148,26 +158,42 @@ func (e *Worker)Create(c *gin.Context)  {
 
 	//如果是汇总 查询cid:周期ID
 	var Queue string
+	var title string
+	var LineExport int
 	//2分钟限制一次
 	mathKey := time.Now().Add(-2 * time.Minute).Format("200601021504")
 
 	switch req.Type {
 	case global.ExportTypeOrder:
 		Queue = global.WorkerOrderStartName
+		title = "选中导出配送订单"
 		mathKey = fmt.Sprintf("%v_order",mathKey)
 	case global.ExportTypeSummary:
+		title = "导出配送汇总表"
 		Queue = global.WorkerReportSummaryStartName
 		mathKey = fmt.Sprintf("%v_summary",mathKey)
 	case global.ExportTypeLine:
+		if len(req.LineName) > 1{
+			title = fmt.Sprintf("导出【%v】条路线表",len(req.LineName))
+		}else {
+			title = fmt.Sprintf("导出【%v】路线表",req.LineName[0])
+		}
+		LineExport = 0
 		Queue = global.WorkerReportLineStartName
 		mathKey = fmt.Sprintf("%v_line",mathKey)
-	case global.ExportTypeShopDelivery:
-		Queue = global.WorkerReportDeliveryStartName
+	case global.ExportTypeLineShopDelivery:
+		if len(req.LineName) > 1{
+			title = fmt.Sprintf("导出【%v】条路线配送表",len(req.LineName))
+		}else {
+			title = fmt.Sprintf("导出【%v】路线配送表",req.LineName[0])
+		}
+		LineExport = 1
+		Queue = global.WorkerReportLineDeliveryStartName
 		mathKey = fmt.Sprintf("%v_delivery",mathKey)
 	}
 	var count int64
 
-	e.Orm.Model(&models2.CompanyTasks{}).Where("`key` = ? and c_id = ? and status = 0 and type = ?",mathKey,userDto.CId,req.Type).Count(&count)
+	e.Orm.Model(&models2.CompanyTasks{}).Where("`key` = ? and c_id = ? and type = ?",mathKey,userDto.CId,req.Type).Count(&count)
 
 	if count > 0 {
 		e.Error(500, nil,"请勿在2分钟内重复提交相同任务")
@@ -175,6 +201,7 @@ func (e *Worker)Create(c *gin.Context)  {
 	}
 
 	taskTable:=models2.CompanyTasks{
+		Title: title,
 		CreateBy: userDto.UserId,
 		CId:      userDto.CId,
 		Type:     req.Type,
@@ -188,8 +215,11 @@ func (e *Worker)Create(c *gin.Context)  {
 		Order: req.Order,
 		Cycle: req.Cycle,
 		OrmId: taskTable.Id,
+		LineId: req.LineId,
 		ExportUser: userDto.Username,
+		ExportTime: time.Now().Format("2006-01-02 15:04:05"),
 		Queue: Queue,
+		LineExport: LineExport,
 	}
 
 	//先发送到redis中

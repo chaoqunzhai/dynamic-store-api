@@ -29,13 +29,12 @@ type OrderExportObj struct {
 
 type SheetRow struct {
 	OrderA2 string //索引标记而已
-	SheetName string //分页名称 小B名称
+	SheetName string //分页名称 小B名称 或者路线名称
 	TitleVal string //标题的内容
 	OrderCreateTime string //订单创建时间
 	ShopAddress string //小B地址
 	ShopPhone string //联系电话
 	ShopUserValue string //联系人信息
-	ExportTime string `json:"export_time"` //导出操作时间
 	DeliveryMoney string //运费
 	AllNumber int `json:"all_number"`//总数
 	AllMoney float64 `json:"all_money"` //总价
@@ -84,7 +83,6 @@ func (e *OrderExportObj)ReadOrderDetail() (dat map[int]*SheetRow,err error )  {
 			}
 			sheetRow =&SheetRow{
 				OrderA2: fmt.Sprintf("DCY.%v.%v",nowTimeObj.Format("20060102"),index + 1),
-				ExportTime: nowTimeObj.Format("2006-01-02 15:04:05"),
 				SheetName: shopRow.Name,
 				ShopPhone: shopRow.Phone,
 				ShopAddress: shopRow.Address,
@@ -141,6 +139,7 @@ func (e *OrderExportObj)SaveExportXlsx(redisRow global.ExportRedisInfo,sheetData
 
 	export :=XlsxBaseExport{
 		ExportUser: redisRow.ExportUser,
+		ExportTime: redisRow.ExportTime,
 	}
 	// 大B/order_export/2023年12月26日15:46:06.xlsx
 	FileName := export.SetXlsxRun(redisRow.CId,sheetData)

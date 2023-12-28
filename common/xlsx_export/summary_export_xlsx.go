@@ -22,43 +22,9 @@ func (x *XlsxBaseExport)SetSummaryXlsxRun(cid int,data *SheetRow) string {
 	x.File.SetCellValue(row,"A1",fmt.Sprintf("%v 汇总表",data.TitleVal))
 
 	//第二行 表头
-	x.File.SetCellValue(row,"A2","行号")
-	x.File.SetCellValue(row,"B2","商品名称")
-	x.File.SetCellValue(row,"C2","商品规格")
-	x.File.SetCellValue(row,"D2","单位")
-	x.File.SetCellValue(row,"E2","数量")
-	x.File.SetCellValue(row,"F2","单价")
-	x.File.SetCellValue(row,"G2","小计(元)")
-	x.File.SetCellValue(row,"H2","备注")
-	x.File.SetRowHeight(row,2,21.95)
-	x.File.SetCellStyle(row,"A2","H2",x.StyleRowSubtitleId)
-	if err =x.File.SetColWidth(row,"A","A",10.2);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"B","B",40.23);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"C","C",16.23);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"D","D",8.98);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"E","E",14.09);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"F","F",11.36);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"G","G",16.16);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"G","G",15.73);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"H","H",16.73);err!=nil{
-		fmt.Println("err1",err)
-	}
+	x.SetRowBackGroundCellValue(2,row)
+
+
 	//第三行 数据开始
 
 	for index,datRow:=range data.Table{
@@ -85,7 +51,7 @@ func (x *XlsxBaseExport)SetSummaryXlsxRun(cid int,data *SheetRow) string {
 
 	x.SetTotal(false,data)
 
-	xlsxName:=fmt.Sprintf("%v-配送周期导出.xlsx",data.ExportTime)
+	xlsxName:=fmt.Sprintf("%v-配送周期导出.xlsx",x.ExportTime)
 	if err = x.File.SaveAs(xlsxName); err != nil {
 		zap.S().Errorf("配送周期导出 大B:%v选中数据导出错误,err%v",cid,err.Error())
 		return ""

@@ -108,14 +108,15 @@ func (CompanyFreight) TableName() string {
 //任务队列状态
 type CompanyTasks struct {
 	Model
-	Key string `json:"key" gorm:"size:25;comment:唯一的key"` // 可以用这个key 来进行校验, 同一个key 如果还在处理中就不在接受
+	Key string `json:"key" gorm:"size:30;comment:唯一的key"` // 可以用这个key 来进行校验, 同一个key 如果还在处理中就不在接受
+	Title string `json:"title" gorm:"size:30;"` //保存一些标题信息
 	CreateBy  int            `json:"createBy" gorm:"index;comment:创建者"`
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	UpdatedAt time.Time      `json:"updatedAt" gorm:"comment:最后更新时间"`
 	CId int `json:"c_id" gorm:"index;comment:大BID"`
-	Type int `json:"type" gorm:"type:tinyint(1);comment:任务类型 0:订单数据导出 1:汇总 2:配送报表"`
+	Type int `json:"type" gorm:"type:tinyint(1);comment:任务类型 0:订单数据导出 1:汇总 2:路线报表 3:路线配送表"`
 	Path string `json:"path" gorm:"size:60;comment:路径"`
-	Msg string `json:"msg" gorm:"size:60;comment:路径"`
+	Msg string `json:"msg" gorm:"size:60;"`
 	Status int `json:"status" gorm:"type:tinyint(1);comment:任务状态,0:执行中 1:成功 2:失败"`
 }
 func (CompanyTasks) TableName() string {

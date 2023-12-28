@@ -33,8 +33,8 @@ func registerReportRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 		//创建数据导出任务 通用请求入口，
 		//支持选中导出，[OK]
 		//汇总导出,[OK]
-		//路线导出,
-		//
+		//单条路线导出,
+		//单条路线配送导出
 		r.POST("/export/worker",api.Create)
 
 	}

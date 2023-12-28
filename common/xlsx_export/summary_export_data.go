@@ -13,7 +13,6 @@ import (
 	"go-admin/global"
 	"gorm.io/gorm"
 	"os"
-	"time"
 )
 
 type SummaryExportObj struct {
@@ -28,7 +27,6 @@ type SummaryExportObj struct {
 func (e *SummaryExportObj)ReadSummaryDetail() (dat *SheetRow,err error )  {
 	dat = &SheetRow{
 		Table: make([]*XlsxTableRow,0),
-		ExportTime: time.Now().Format("2006-01-02 15:04:05"),
 		SheetName:"Sheet1",//汇总表就一个分页
 
 	}
@@ -83,6 +81,7 @@ func (e *SummaryExportObj)SaveExportXlsx(redisRow global.ExportRedisInfo,sheetDa
 
 	export :=XlsxBaseExport{
 		ExportUser: redisRow.ExportUser,
+		ExportTime: redisRow.ExportTime,
 
 	}
 	// 大B/order_export/2023年12月26日15:46:06.xlsx

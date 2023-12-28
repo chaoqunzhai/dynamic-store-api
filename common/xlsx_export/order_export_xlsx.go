@@ -17,6 +17,7 @@ type XlsxBaseExport struct {
 	File *excelize.File
 	XlsxRowIndex int //行的索引 只要插入了新的数据 就增1
 	ExportUser string //操作人
+	ExportTime string //操作时间 也就是录入redis的时间
 	StyleTitleId int `json:"style_title_id"` //标题
 	StyleSubtitleId int `json:"style_subtitle_id"` //副标题
 	StyleRowSubtitleId int `json:"style_row_subtitle_id"` //行标头样式
@@ -25,6 +26,48 @@ type XlsxBaseExport struct {
 
 }
 
+func (x *XlsxBaseExport)SetRowBackGroundCellValue(index int,row string)  {
+	var err error
+	//设置:长度
+	if err =x.File.SetColWidth(row,"A","A",10.2);err!=nil{
+		fmt.Println("err1",err)
+	}
+	if err =x.File.SetColWidth(row,"B","B",40.23);err!=nil{
+		fmt.Println("err1",err)
+	}
+	if err =x.File.SetColWidth(row,"C","C",16.23);err!=nil{
+		fmt.Println("err1",err)
+	}
+	if err =x.File.SetColWidth(row,"D","D",8.98);err!=nil{
+		fmt.Println("err1",err)
+	}
+	if err =x.File.SetColWidth(row,"E","E",14.09);err!=nil{
+		fmt.Println("err1",err)
+	}
+	if err =x.File.SetColWidth(row,"F","F",11.36);err!=nil{
+		fmt.Println("err1",err)
+	}
+	if err =x.File.SetColWidth(row,"G","G",16.16);err!=nil{
+		fmt.Println("err1",err)
+	}
+	if err =x.File.SetColWidth(row,"G","G",15.73);err!=nil{
+		fmt.Println("err1",err)
+	}
+	if err =x.File.SetColWidth(row,"H","H",16.73);err!=nil{
+		fmt.Println("err1",err)
+	}
+	x.File.SetRowHeight(row,index,21.95)
+	x.File.SetCellValue(row,fmt.Sprintf("A%v",index),"行号")
+	x.File.SetCellValue(row,fmt.Sprintf("B%v",index),"商品名称")
+	x.File.SetCellValue(row,fmt.Sprintf("C%v",index),"商品规格")
+	x.File.SetCellValue(row,fmt.Sprintf("D%v",index),"单位")
+	x.File.SetCellValue(row,fmt.Sprintf("F%v",index),"数量")
+	x.File.SetCellValue(row,fmt.Sprintf("G%v",index),"单价")
+	x.File.SetCellValue(row,fmt.Sprintf("H%v",index),"小计(元)")
+	x.File.SetCellValue(row,fmt.Sprintf("H%v",index),"备注")
+	x.File.SetCellStyle(row,fmt.Sprintf("A%v",index),fmt.Sprintf("H%v",index),x.StyleRowSubtitleId)
+
+}
 func (x *XlsxBaseExport)NewStyle()  {
 
 	x.XlsxName =fmt.Sprintf("%v-订单数据.xlsx",time.Now().Format("2006-01-02 15-04-05"))
@@ -51,8 +94,6 @@ func (x *XlsxBaseExport)NewStyle()  {
 			Family: "微软雅黑",
 			Size:   12,
 			Color:  "",
-		},
-		Border:[]excelize.Border{
 		},
 		Alignment:&excelize.Alignment{
 			Vertical: "center",
@@ -121,7 +162,6 @@ func (x *XlsxBaseExport)NewFile()  {
 func (x *XlsxBaseExport)SetXlsxRun(cid int,data map[int]*SheetRow) string  {
 	//实例化对象
 	x.NewFile()
-	thisTime :=""
 	for _,row:=range data {
 		var err error
 		//创建sheet页面
@@ -140,14 +180,13 @@ func (x *XlsxBaseExport)SetXlsxRun(cid int,data map[int]*SheetRow) string  {
 
 		x.SetTotal(true,row)
 
-		thisTime = row.ExportTime
 
 	}
 
 	_=x.File.DeleteSheet("Sheet1")
 
 
-	xlsxName:=fmt.Sprintf("%v-订单导出.xlsx",thisTime)
+	xlsxName:=fmt.Sprintf("%v-订单导出.xlsx",x.ExportTime)
 	if err := x.File.SaveAs(xlsxName); err != nil {
 		zap.S().Errorf("配送订单 大B:%v选中数据导出错误,err%v",cid,err.Error())
 		return""
@@ -180,45 +219,8 @@ func (x *XlsxBaseExport)SetCell(row string)  {
 	x.File.MergeCell(row,"D3","H3")
 
 
-	var err error
-	//设置:长度
-	if err =x.File.SetColWidth(row,"A","A",10.2);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"B","B",40.23);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"C","C",16.23);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"D","D",8.98);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"E","E",14.09);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"F","F",11.36);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"G","G",16.16);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"G","G",15.73);err!=nil{
-		fmt.Println("err1",err)
-	}
-	if err =x.File.SetColWidth(row,"H","H",16.73);err!=nil{
-		fmt.Println("err1",err)
-	}
 	//设置副标题
-	x.File.SetCellValue(row,"A4","行号")
-	x.File.SetCellValue(row,"B4","商品名称")
-	x.File.SetCellValue(row,"C4","商品规格")
-	x.File.SetCellValue(row,"D4","单位")
-	x.File.SetCellValue(row,"E4","数量")
-	x.File.SetCellValue(row,"F4","单价")
-	x.File.SetCellValue(row,"G4","小计(元)")
-	x.File.SetCellValue(row,"H4","备注")
-
+	x.SetRowBackGroundCellValue(4,row)
 
 	//设置高度
 	x.File.SetRowHeight(row,2,21.95)
@@ -238,7 +240,6 @@ func (x *XlsxBaseExport)SetSubtitleValue(sheetRow *SheetRow)  {
 	x.File.SetCellValue(sheetRow.SheetName,"D3",fmt.Sprintf("收货地址：%v",sheetRow.ShopAddress))
 
 	x.File.SetCellStyle(sheetRow.SheetName,"A2","D3",x.StyleSubtitleId)
-	x.File.SetCellStyle(sheetRow.SheetName,"A4","H4",x.StyleRowSubtitleId)
 }
 
 //内容合并
@@ -274,7 +275,7 @@ func (x *XlsxBaseExport)SetCellRow(row string,table []*XlsxTableRow)  {
 
 //设置总计
 func (x *XlsxBaseExport)SetTotal(freight bool,sheetRow *SheetRow)  {
-	fmt.Println("设置total.SheetName",sheetRow.SheetName,"sheetRow",sheetRow.ExportTime,"freight",freight)
+	//fmt.Println("设置total.SheetName",sheetRow.SheetName,"sheetRow",sheetRow.ExportTime,"freight",freight)
 	//最后开始
 	x.XlsxRowIndex += 1
 	start:=x.XlsxRowIndex
@@ -302,7 +303,7 @@ func (x *XlsxBaseExport)SetTotal(freight bool,sheetRow *SheetRow)  {
 	//最后2行进行合并
 	x.File.MergeCell(sheetRow.SheetName,fmt.Sprintf("A%v",x.XlsxRowIndex),fmt.Sprintf("C%v",x.XlsxRowIndex))
 	x.File.MergeCell(sheetRow.SheetName,fmt.Sprintf("D%v",x.XlsxRowIndex),fmt.Sprintf("H%v",x.XlsxRowIndex))
-	x.File.SetCellValue(sheetRow.SheetName,fmt.Sprintf("A%v",x.XlsxRowIndex),fmt.Sprintf("操作时间:%v",sheetRow.ExportTime))
+	x.File.SetCellValue(sheetRow.SheetName,fmt.Sprintf("A%v",x.XlsxRowIndex),fmt.Sprintf("操作时间:%v",x.ExportTime))
 	x.File.SetCellValue(sheetRow.SheetName,fmt.Sprintf("E%v",x.XlsxRowIndex),fmt.Sprintf("操作员:%v",x.ExportUser))
 	end:=x.XlsxRowIndex
 	x.File.SetCellStyle(sheetRow.SheetName,fmt.Sprintf("A%v",start),

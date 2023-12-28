@@ -54,15 +54,14 @@ const (
 	SmallBCategoryKey = "category_"
 
 	WorkerOrderStartName = "order" //订单选中导出
-	WorkerReportDeliveryStartName = "report_shop_delivery" //配送报表
 	WorkerReportSummaryStartName = "report_summary" //汇总
 	WorkerReportLineStartName = "report_line" //路线
-
+	WorkerReportLineDeliveryStartName = "report_line_delivery" //路线配送报表
 
 	ExportTypeOrder = 0 //配送订单选中导出类型
 	ExportTypeSummary = 1 //汇总导出类型
 	ExportTypeLine = 2 //路线导出
-	ExportTypeShopDelivery = 3 //小B配送单导出
+	ExportTypeLineShopDelivery = 3 //路线下用户配送单导出
 )
 
 type ExportRedisInfo struct {
@@ -72,6 +71,9 @@ type ExportRedisInfo struct {
 	CId int `json:"c_id"`
 	OrmId int `json:"orm_id"`
 	ExportUser string `json:"export_user"`
+	ExportTime string `json:"export_time"`
+	LineId []int `json:"line_id"`
+	LineExport int `json:"line_export"` //0:导出路线  1:导出路线小B配送表
 	Type string `json:"type"` //类型 0:配送订单导出 1:自提订单导出 2:总汇总表导出 3:基于路线导出
 }
 
@@ -89,7 +91,7 @@ var (
 func init()  {
 	RedisCtx = context.Background()
 	QueueGroup =[]string{
-		WorkerOrderStartName,WorkerReportDeliveryStartName,
+		WorkerOrderStartName,WorkerReportLineDeliveryStartName,
 		WorkerReportSummaryStartName,WorkerReportLineStartName,
 	}
 }
