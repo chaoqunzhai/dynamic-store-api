@@ -13,7 +13,9 @@ import (
 	"go-admin/common/actions"
 	"go-admin/common/business"
 	customUser "go-admin/common/jwt/user"
+	"go-admin/common/utils"
 	"go-admin/global"
+	"time"
 )
 
 type IndexReq struct {
@@ -51,13 +53,34 @@ type GoodsRow struct {
 type CycleBaseReq struct {
 	Cycle int `json:"cycle" form:"cycle"`
 }
+
+type CycleLineReq struct {
+	CycleBaseReq
+	LineName string `form:"line_name" json:"line_name"`
+}
 type SummaryCnfRow struct {
 	GoodsName string `json:"goods_name"`
 	GoodsImage string `json:"goods_image"`
 	GoodsNumber int `json:"goods_number"`
+	OrderMoney float64 `json:"order_money"` //订单最终成交价
 	GoodsId int `json:"goods_id"`
 }
-// 汇总指定配送周期下的商品总数
+type CacheMapping struct {
+	LineId int `json:"line_id"`
+	OrderMoney float64 `json:"order_money"` //订单最终成交价
+}
+type TableLineRow struct {
+	LineName string  `json:"line_name"`
+	LineId int `json:"line_id"`
+	LineMoney float64 `json:"line_money"`
+	Desc string `json:"desc"`
+	DriverName string `json:"driver_name"`
+	ExpirationTimeStr string `json:"expiration_time_str" gorm:"-"`
+	ExpirationDay int `json:"expiration_day" gorm:"-"`
+	RenewalTime    string     `json:"renewal_time" gorm:"type:datetime(3);comment:续费时间"`
+	Goods []*SummaryCnfRow `json:"goods"` //路线关联的商品汇总
+}
+// 汇总指定配送周期下的商品总数,基于goods_id做汇总的
 
 func (e Orders)Summary(c *gin.Context)  {
 	req := CycleBaseReq{}
@@ -78,19 +101,19 @@ func (e Orders)Summary(c *gin.Context)  {
 
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
+	queryStart:=time.Now()
 	SummaryMap:=make(map[int]*SummaryCnfRow,0)
 	var data models2.OrderCycleCnf
 	e.Orm.Table(splitTableRes.OrderCycle).Select("uid,id").Scopes(
-		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Model(
-			&models2.OrderCycleCnf{}).Where("id = ?",req.Cycle).Limit(1).Find(&data)
+		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Where("id = ?",req.Cycle).Limit(1).Find(&data)
 	if data.Id == 0 {
 		e.OK(business.Response{Code: -1,Msg: "暂无周期订单数据"},"")
 		return
 	}
 
 	orderList:=make([]models2.Orders,0)
-	//根据配送UID 统一查一下
-	e.Orm.Table(splitTableRes.OrderTable).Select("order_id").Where("uid = ?", data.Uid).Find(&orderList)
+	//根据配送UID 统一查一下 订单的ID
+	e.Orm.Table(splitTableRes.OrderTable).Select("order_id").Where("uid = ? and c_id = ? ", data.Uid,userDto.CId).Find(&orderList)
 	orderIds:=make([]string,0)
 	for _,k:=range orderList{
 		orderIds = append(orderIds,k.OrderId)
@@ -99,6 +122,7 @@ func (e Orders)Summary(c *gin.Context)  {
 	//查下数据 获取规格 在做一次统计
 	e.Orm.Table(splitTableRes.OrderSpecs).Select("goods_name,goods_id,number,image").Where("order_id in ?",orderIds).Find(&orderSpecs)
 
+	//resultTable:=make([]interface{},0)
 	for _,specs:=range orderSpecs{
 		cnf,ok:=SummaryMap[specs.GoodsId]
 		if !ok{
@@ -116,17 +140,18 @@ func (e Orders)Summary(c *gin.Context)  {
 		}
 		cnf.GoodsNumber +=specs.Number
 		SummaryMap[specs.GoodsId] = cnf
-		
 	}
-	e.OK(business.Response{Code: 1,Msg: "successful",Data: SummaryMap},"")
+
+
+	e.OK(business.Response{Code: 1,Msg: "successful",Data: SummaryMap,Extend: fmt.Sprintf("query run time %v",time.Since(queryStart))},"")
 	return
 }
 
 
-// 查询指定配送周期下的路线列表
+// 查询指定配送周期下的路线列表,基于line_id做汇总
 
 func (e Orders)Line(c *gin.Context){
-	req := CycleBaseReq{}
+	req := CycleLineReq{}
 	err := e.MakeContext(c).
 		Bind(&req).
 		MakeOrm().
@@ -141,8 +166,157 @@ func (e Orders)Line(c *gin.Context){
 		e.Error(500, err, err.Error())
 		return
 	}
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
+	queryStart:=time.Now()
 
+	var data models2.OrderCycleCnf
+	e.Orm.Table(splitTableRes.OrderCycle).Select("uid,id").Scopes(
+		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Where("id = ? ",req.Cycle).Limit(1).Find(&data)
+	if data.Id == 0 {
+		e.OK(business.Response{Code: -1,Msg: "暂无周期订单数据"},"")
+		return
+	}
+
+	orderList:=make([]models2.Orders,0)
+	//根据配送UID 统一查一下 线路ID和订单ID
+	//原始搜索
+	orderOrm :=e.Orm.Table(splitTableRes.OrderTable).Select("line_id,order_id").Where("uid = ? and c_id = ? ", data.Uid,userDto.CId)
+
+	//进行路线名称查询
+	//首先查出的路线 必须在订单中
+	if req.LineName != ""{
+		searchLine :=make([]models2.Line,0)
+		likeVal:=fmt.Sprintf("%%%v%%",req.LineName)
+		e.Orm.Model(&models2.Line{}).Select("id").Where("c_id = ? and `name` like ?",userDto.CId,likeVal).Find(&searchLine)
+		searchIds:=make([]int,0)
+		for _,k:=range searchLine{
+			searchIds = append(searchIds,k.Id)
+		}
+		//在基于路线过滤一次
+		orderOrm.Where("line_id in ?",searchIds).Find(&orderList)
+
+	}else {
+		orderOrm.Find(&orderList)
+	}
+
+	queryOrderTime:=time.Since(queryStart)
+
+	lineIds:=make([]int,0)
+	orderIds:=make([]string,0)
+	//订单和线路做一个map,方便把订单放到线路里面
+	orderLinMapping:=make(map[string]CacheMapping,0)
+	for _,k:=range orderList{
+		//统一查询路线
+		lineIds = append(lineIds,k.LineId)
+		//统一查询订单
+		orderIds = append(orderIds,k.OrderId)
+		//路线和订单做一个映射
+		orderLinMapping[k.OrderId] = CacheMapping{
+			LineId: k.LineId,
+			//OrderMoney: k.OrderMoney, 不进行计算
+		}
+	}
+
+	//查询线路信息
+	lineIds = utils.RemoveRepeatInt(lineIds) //去重
+	lineList :=make([]models2.Line,0)
+	e.Orm.Model(&models2.Line{}).Where("c_id = ? and id in ?",userDto.CId,lineIds).Find(&lineList)
+
+	//存放最终返回的数据
+	ResultMap:=make(map[int]*TableLineRow,0)
+	for _,l:=range lineList{
+		var DriverObj models2.Driver
+		e.Orm.Model(&models2.Driver{}).Where("c_id = ? and id = ?",userDto.CId,l.DriverId).Limit(1).Find(&DriverObj)
+		LineRow := &TableLineRow{
+			LineName: l.Name,
+			Desc: l.Desc,
+			RenewalTime:l.RenewalTime.Format("2006-01-02 15:04:05"),
+			Goods: make([]*SummaryCnfRow,0),
+		}
+		if DriverObj.Id > 0 {
+			LineRow.DriverName = fmt.Sprintf("%v/%v",DriverObj.Name,DriverObj.Phone)
+		}
+
+		if !l.ExpirationTime.Time.IsZero() {
+			LineRow.ExpirationDay = int(l.ExpirationTime.Sub(time.Now()).Hours() / 24)
+			LineRow.ExpirationTimeStr = l.ExpirationTime.Format("2006-01-02 15:04:05")
+		}else {
+			LineRow.ExpirationTimeStr = "无期限"
+		}
+		ResultMap[l.Id] = LineRow
+	}
+	queryStart2:=time.Now()
+	orderSpecs:=make([]models2.OrderSpecs,0)
+	//查下数据 获取规格 在做一次统计
+	e.Orm.Table(splitTableRes.OrderSpecs).Select("goods_name,goods_id,number,image,order_id").Where("order_id in ?",orderIds).Find(&orderSpecs)
+
+	queryOrderSpecsTime:=time.Since(queryStart2)
+	//订单商品放到路线中
+	for _,specs:=range orderSpecs{
+
+		//通过订单ID 获取到路线ID
+		getLineMapInfo,ok:=orderLinMapping[specs.OrderId]
+		if !ok{continue}
+
+		//通过路线ID 获取这个路线的大数据
+		lineTableRow,ok:=ResultMap[getLineMapInfo.LineId]
+		if !ok{continue}
+		//规格的商品信息
+		cnf := &SummaryCnfRow{
+			GoodsName: specs.GoodsName,
+			GoodsImage: func() string {
+				if specs.Image == "" {
+					return ""
+				}
+				return business.GetGoodsPathFirst(userDto.CId,specs.Image,global.GoodsPath)
+			}(),
+			GoodsNumber: specs.Number,
+			GoodsId: specs.GoodsId,
+			OrderMoney: getLineMapInfo.OrderMoney,
+		}
+		//直接把商品配置都放路线里面,汇总在统计后 在统一去count
+		lineTableRow.Goods = append(lineTableRow.Goods,cnf)
+
+		ResultMap[getLineMapInfo.LineId] = lineTableRow
+	}
+
+	//对每个路线下的商品数据 在统计count一次
+	resultTable:=make([]interface{},0)
+	for lineId:=range ResultMap{
+		lineRow:=ResultMap[lineId]
+		//对每个路线汇总
+
+		SummaryGoodsMap:=make(map[int]*SummaryCnfRow,0)
+		for _,v:=range lineRow.Goods{
+
+			cnf,ok:=SummaryGoodsMap[v.GoodsId]
+			if !ok{
+				cnf = v
+			}
+			cnf.GoodsNumber +=v.GoodsNumber
+			SummaryGoodsMap[v.GoodsId] = cnf
+
+			//lineRow.LineMoney =utils.RoundDecimalFlot64(cnf.OrderMoney) + utils.RoundDecimalFlot64(lineRow.LineMoney)
+		}
+
+		newTable:=make([]*SummaryCnfRow,0)
+		for goodsId:=range SummaryGoodsMap{
+			newTable = append(newTable,SummaryGoodsMap[goodsId])
+		}
+		//数据还原
+		lineRow.Goods = newTable
+		lineRow.LineId = lineId
+
+		resultTable = append(resultTable,lineRow)
+
+	}
+	ExtendMap:=map[string]interface{}{
+		"run_time":fmt.Sprintf("%v",time.Since(queryStart)),
+		"queryOrderTime":fmt.Sprintf("%v",queryOrderTime),
+		"queryOrderSpecsTime":fmt.Sprintf("%v",queryOrderSpecsTime),
+	}
+	e.OK(business.Response{Code: 1,Msg: "successful",Data: resultTable,Extend:ExtendMap},"")
 	return
 }
 
