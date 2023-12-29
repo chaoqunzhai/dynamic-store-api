@@ -40,10 +40,9 @@ settings:
     # 代码生成是使用前端代码存放位置，需要指定到src文件夹，相对路径
     frontpath: ../go-admin-ui/src
   extend: # 扩展项使用说明
-    #导出的报表 云端保留的天数
+    #云端保留的天数 exportDay+1 为云端保留数据
     exportDay: 7
     domain: "http://localhost:8098"
-#    imageUrl: "https://dcy-1318497773.cos.ap-nanjing.myqcloud.com/"
     cloudObsUrl: "https://qiniu.dongchuangyun.com/"
     #移动端地址
     h5Url: "https://weapp.dongchuangyun.com/"

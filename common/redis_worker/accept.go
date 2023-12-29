@@ -18,13 +18,13 @@ import (
 )
 
 func LoopRedisWorker()  {
-	fmt.Println("异步导出任务启动成功！！！")
+	fmt.Println("异步任务启动成功！！！")
 	for {
 		//读取不同的任务Queue
 		for _,queueName:=range global.QueueGroup{
 
 			randomSleepTime := time.Duration(rand.Intn(8)+1) * time.Second
-			time.Sleep(12 * time.Second + randomSleepTime) //10秒才进行任务处理
+			time.Sleep(10 * time.Second + randomSleepTime) //10秒才进行任务处理
 			redis_db.RedisCli.Do(global.RedisCtx, "select", global.AllQueueChannel)
 			//获取所以key
 			keys,err:=redis_db.RedisCli.Keys(global.RedisCtx,fmt.Sprintf("%v*",queueName)).Result()
@@ -36,6 +36,7 @@ func LoopRedisWorker()  {
 				continue
 			}
 			//所有的大B -Key数据
+			//fmt.Println("queueName",queueName,"keys",keys)
 			for _,key:=range keys{
 				data,keyErr:=redis_db.RedisCli.LRange(global.RedisCtx,key,0,-1).Result()
 
@@ -161,7 +162,7 @@ func GetSummaryExportQueueInfo(key string,data []string)   {
 
 
 func GetReportLineExportQueueInfo(key string,data []string) {
-
+	//fmt.Println("GetReportLineExportQueueInfo",key)
 	//fmt.Println("开始路线数据导出",key,"DATA",data)
 
 	for _,dat:=range data{
@@ -198,7 +199,7 @@ func GetReportLineExportQueueInfo(key string,data []string) {
 		}
 		//保存到云端
 		zipFile:=fmt.Sprintf("%v 多路线表导出.zip",row.ExportTime)
-		FileName :=xlsx_export.SaveLineExportXlsx(zipFile,orderExportFunc.UpCloud,row,sheetData)
+		FileName :=xlsx_export.SaveLineExportXlsx("line",zipFile,orderExportFunc.UpCloud,row,sheetData)
 
 		if err = xlsx_export.SaveExportDb(
 			orderExportFunc.Dat.OrmId,orderExportFunc.Dat.CId,
@@ -213,8 +214,8 @@ func GetReportLineExportQueueInfo(key string,data []string) {
 
 }
 func GetReportLineDeliveryExportQueueInfo(key string,data []string) {
-	fmt.Println("开始路线配送数据导出",key,"DATA",data)
 
+	//fmt.Println("GetReportLineDeliveryExportQueueInfo",key)
 	//查询线路下不同的小B列表
 	//先查一波路线 -> 路线下的小B
 	//不同的是 路线是一个大的点，如果多个路线 那就是多个文件了里面有多个小B
@@ -239,6 +240,7 @@ func GetReportLineDeliveryExportQueueInfo(key string,data []string) {
 			Dat: row,
 			Orm:sdk.Runtime.GetDbByKey("*"),
 			UpCloud: true,
+			CycleUid: row.CycleUid,
 		}
 		if orderExportFunc.Orm == nil{
 			zap.S().Errorf("读取redis 导出[路线配送表] Orm对象为空")
@@ -257,7 +259,8 @@ func GetReportLineDeliveryExportQueueInfo(key string,data []string) {
 
 		}
 		zipFile:=fmt.Sprintf("%v 多路线配送表导出.zip",row.ExportTime)
-		FileName :=xlsx_export.SaveLineExportXlsx(zipFile,orderExportFunc.UpCloud,row,sheetData)
+		fmt.Println("sheetData",sheetData)
+		FileName :=xlsx_export.SaveLineExportXlsx("delivery",zipFile,orderExportFunc.UpCloud,row,sheetData)
 
 		if err = xlsx_export.SaveExportDb(
 			orderExportFunc.Dat.OrmId,orderExportFunc.Dat.CId,

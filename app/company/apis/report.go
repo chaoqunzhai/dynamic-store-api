@@ -120,7 +120,7 @@ func (e Orders)Summary(c *gin.Context)  {
 	}
 	orderSpecs:=make([]models2.OrderSpecs,0)
 	//查下数据 获取规格 在做一次统计
-	e.Orm.Table(splitTableRes.OrderSpecs).Select("goods_name,goods_id,number,image").Where("order_id in ?",orderIds).Find(&orderSpecs)
+	e.Orm.Table(splitTableRes.OrderSpecs).Select("id,goods_name,goods_id,number,image").Where("order_id in ?",orderIds).Find(&orderSpecs)
 
 	//resultTable:=make([]interface{},0)
 	for _,specs:=range orderSpecs{
@@ -134,11 +134,11 @@ func (e Orders)Summary(c *gin.Context)  {
 					}
 					return business.GetGoodsPathFirst(userDto.CId,specs.Image,global.GoodsPath)
 				}(),
-				GoodsNumber: specs.Number,
 				GoodsId: specs.GoodsId,
 			}
 		}
 		cnf.GoodsNumber +=specs.Number
+
 		SummaryMap[specs.GoodsId] = cnf
 	}
 
@@ -221,7 +221,7 @@ func (e Orders)Line(c *gin.Context){
 	//查询线路信息
 	lineIds = utils.RemoveRepeatInt(lineIds) //去重
 	lineList :=make([]models2.Line,0)
-	e.Orm.Model(&models2.Line{}).Where("c_id = ? and id in ?",userDto.CId,lineIds).Find(&lineList)
+	e.Orm.Model(&models2.Line{}).Where("c_id = ? and id in ?",userDto.CId,lineIds).Order(global.OrderLayerKey).Find(&lineList)
 
 	//存放最终返回的数据
 	ResultMap:=make(map[int]*TableLineRow,0)
@@ -293,8 +293,9 @@ func (e Orders)Line(c *gin.Context){
 			cnf,ok:=SummaryGoodsMap[v.GoodsId]
 			if !ok{
 				cnf = v
+				//数据在加一次
+				cnf.GoodsNumber +=v.GoodsNumber
 			}
-			cnf.GoodsNumber +=v.GoodsNumber
 			SummaryGoodsMap[v.GoodsId] = cnf
 
 			//lineRow.LineMoney =utils.RoundDecimalFlot64(cnf.OrderMoney) + utils.RoundDecimalFlot64(lineRow.LineMoney)

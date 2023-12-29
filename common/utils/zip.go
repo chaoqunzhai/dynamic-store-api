@@ -15,7 +15,7 @@ import (
 func ZipFile(zipName string,files []string) (zipOutFile string,err error) {
 
 	// 创建输出文件
-	outputFile, err := os.Create(fmt.Sprintf("%v.zip",zipName))
+	outputFile, err := os.Create(zipName)
 	if err != nil {
 		return "", err
 	}

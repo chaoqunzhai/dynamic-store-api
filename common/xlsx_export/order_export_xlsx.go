@@ -15,6 +15,7 @@ import (
 
 type XlsxBaseExport struct {
 	File *excelize.File
+	DriverVal string //司机信息
 	XlsxRowIndex int //行的索引 只要插入了新的数据 就增1
 	ExportUser string //操作人
 	ExportTime string //操作时间 也就是录入redis的时间
@@ -61,9 +62,9 @@ func (x *XlsxBaseExport)SetRowBackGroundCellValue(index int,row string)  {
 	x.File.SetCellValue(row,fmt.Sprintf("B%v",index),"商品名称")
 	x.File.SetCellValue(row,fmt.Sprintf("C%v",index),"商品规格")
 	x.File.SetCellValue(row,fmt.Sprintf("D%v",index),"单位")
-	x.File.SetCellValue(row,fmt.Sprintf("F%v",index),"数量")
-	x.File.SetCellValue(row,fmt.Sprintf("G%v",index),"单价")
-	x.File.SetCellValue(row,fmt.Sprintf("H%v",index),"小计(元)")
+	x.File.SetCellValue(row,fmt.Sprintf("E%v",index),"数量")
+	x.File.SetCellValue(row,fmt.Sprintf("F%v",index),"单价")
+	x.File.SetCellValue(row,fmt.Sprintf("G%v",index),"小计(元)")
 	x.File.SetCellValue(row,fmt.Sprintf("H%v",index),"备注")
 	x.File.SetCellStyle(row,fmt.Sprintf("A%v",index),fmt.Sprintf("H%v",index),x.StyleRowSubtitleId)
 
@@ -233,7 +234,11 @@ func (x *XlsxBaseExport)SetSubtitleValue(sheetRow *SheetRow)  {
 	x.File.SetCellValue(sheetRow.SheetName,"A2",sheetRow.OrderA2)
 
 	//x.File.SetCellValue(sheetRow.SheetName,"B2",fmt.Sprintf("下单日期：2023-12-23 16:26"))
-	x.File.SetCellValue(sheetRow.SheetName,"B2","")
+
+	if x.DriverVal !=""{
+		x.File.SetCellValue(sheetRow.SheetName,"B2",fmt.Sprintf("配送司机：%v",x.DriverVal))
+	}
+
 	x.File.SetCellValue(sheetRow.SheetName,"D2",fmt.Sprintf("客户名称：%v",sheetRow.SheetName))
 	x.File.SetCellValue(sheetRow.SheetName,"A3",fmt.Sprintf("联系人：%v",sheetRow.ShopUserValue))
 	x.File.SetCellValue(sheetRow.SheetName,"B3",fmt.Sprintf("联系电话：%v",sheetRow.ShopPhone))

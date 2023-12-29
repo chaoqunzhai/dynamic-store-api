@@ -31,6 +31,7 @@ type SheetRow struct {
 	OrderA2 string //索引标记而已
 	SheetName string //分页名称 小B名称 或者路线名称
 	TitleVal string //标题的内容
+	DriverVal string //司机信息
 	OrderCreateTime string //订单创建时间
 	ShopAddress string //小B地址
 	ShopPhone string //联系电话

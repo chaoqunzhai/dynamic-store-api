@@ -20,7 +20,7 @@ type ReportDeliveryLineObj struct {
 	Dat global.ExportRedisInfo
 	RedisKey string
 
-	CycleUid int //配送周期的UID
+	CycleUid string //配送周期的UID
 	UpCloud bool //是否保存云端
 }
 
@@ -40,7 +40,7 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 	splitTableRes := business.GetTableName(e.Dat.CId, e.Orm)
 	//查这个配送周期下 路线的
 	e.Orm.Table(splitTableRes.OrderTable).Select(
-		"order_id,line_id,created_at").Where("line_id in ? and uid = ?",e.Dat.LineId,e.CycleUid).Find(&orderList)
+		"order_id,line_id,created_at,shop_id").Where("line_id in ? and uid = ?",e.Dat.LineId,e.CycleUid).Find(&orderList)
 
 	//线路和司机信息
 	lineList:=make([]models.Line,0)
@@ -85,7 +85,7 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 				ShopAddress: shopRow.Address,
 				ShopUserValue: shopRow.UserName,
 				OrderCreateTime: orderRow.CreatedAt.Format("2006-01-02 15:04"),
-				TitleVal: lineRowsData.DriverVal, //放司机信息
+				DriverVal: lineRowsData.DriverVal, //放司机信息
 			}
 		}
 

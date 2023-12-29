@@ -181,6 +181,7 @@ func (q *QinUi)CreateBucket()  {
 
 //上传文件
 //不同的大B做不同的桶,
+//不设置过期时间
 func (q *QinUi)PostImageFile(filePath  string) (name string,err  error)  {
 	//filePath := "/Users/zhaichaoqun/workespace/goProjects/src/test/70e3f85b.jpg"
 
@@ -215,6 +216,7 @@ func (q *QinUi)PostImageFile(filePath  string) (name string,err  error)  {
 	return fileName, err
 }
 
+//文件都设置了过期时间
 
 func (q *QinUi)PostFile(filePath  string) (name string,err  error)  {
 
@@ -238,6 +240,7 @@ func (q *QinUi)PostFile(filePath  string) (name string,err  error)  {
 		return "", errors.New(fmt.Sprintf("上传失败:%v",err))
 	}
 
+	_=q.BucketManager.DeleteAfterDays(q.BucketName,filePath,config.ExtConfig.ExportDay + 1)
 	return fileName, err
 }
 func (q *QinUi)MakeUrl(fileName string) string  {
@@ -250,5 +253,5 @@ func (q *QinUi)RemoveFile(FileName string)  {
 
 	err:=q.BucketManager.Delete(q.BucketName,FileName)
 
-	fmt.Printf("删除图片:%v 成功,返回:%v\n",FileName,err)
+	zap.S().Infof("删除文件%v 成功,返回:%v\n",FileName,err)
 }

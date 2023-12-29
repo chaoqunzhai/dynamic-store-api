@@ -191,7 +191,7 @@ func (e *Worker)Create(c *gin.Context)  {
 		mathKey = fmt.Sprintf("%v_summary",mathKey)
 	case global.ExportTypeLine:
 		if len(req.LineName) > 1{
-			title = fmt.Sprintf("导出【%v】条路线表",len(req.LineName))
+			title = fmt.Sprintf("批量导出【%v】条路线表",len(req.LineName))
 		}else {
 			title = fmt.Sprintf("导出【%v】路线表",req.LineName[0])
 		}
@@ -200,7 +200,7 @@ func (e *Worker)Create(c *gin.Context)  {
 		mathKey = fmt.Sprintf("%v_line",mathKey)
 	case global.ExportTypeLineShopDelivery:
 		if len(req.LineName) > 1{
-			title = fmt.Sprintf("导出【%v】条路线配送表",len(req.LineName))
+			title = fmt.Sprintf("批量导出【%v】条路线配送表",len(req.LineName))
 		}else {
 			title = fmt.Sprintf("导出【%v】路线配送表",req.LineName[0])
 		}

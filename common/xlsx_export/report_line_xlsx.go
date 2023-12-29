@@ -32,7 +32,7 @@ func (x *XlsxBaseExport)SetLineXlsxRun(cid int,lineName string,data map[int]*She
 		//第二行 司机信息即可
 		x.File.MergeCell(row.SheetName,"A2","H2")
 		x.File.SetCellStyle(row.SheetName,"A2","H2",x.StyleSubtitleId)
-		x.File.SetCellValue(row.SheetName,"A2",fmt.Sprintf("配送司机: %v",row.TitleVal))
+		x.File.SetCellValue(row.SheetName,"A2",fmt.Sprintf("配送司机: %v",row.DriverVal))
 		x.File.SetRowHeight(row.SheetName,2,21.95)
 
 		//第三行: 标头
@@ -68,7 +68,7 @@ func (x *XlsxBaseExport)SetLineXlsxRun(cid int,lineName string,data map[int]*She
 
 
 
-	xlsxName:=fmt.Sprintf("%v-%v.xlsx",x.ExportTime,lineName)
+	xlsxName:=fmt.Sprintf("%v-%v 路线表.xlsx",x.ExportTime,lineName)
 	if err := x.File.SaveAs(xlsxName); err != nil {
 		zap.S().Errorf("路线数据导出 大B%v,错误err%v",cid,err.Error())
 		return ""

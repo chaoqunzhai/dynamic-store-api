@@ -22,6 +22,7 @@ import (
 	"go.uber.org/zap"
 	"net/url"
 	"os"
+	"path"
 	"strconv"
 	"strings"
 )
@@ -119,8 +120,9 @@ func getFileName(fileName string) string {
 }
 func GetCosImagePath(imageConst,fileName string,CId interface{})  (filePath,goodsImagePath string) {
 
+	//增加一层 cache_image 目录,防止因为大量的客户 产生大量的客户目录文件 堆放在程序目录同层级中
 
-	goodsImagePath = business.GetSiteCosPath(CId,imageConst,getFileName(fileName))
+	goodsImagePath = path.Join("cache_image",business.GetSiteCosPath(CId,imageConst,getFileName(fileName)))
 
 	return
 }

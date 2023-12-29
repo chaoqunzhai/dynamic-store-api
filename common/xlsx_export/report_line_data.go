@@ -73,7 +73,7 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 			sheetRow =&SheetRow{
 				SheetName: lineRowsData.LineName,
 				OrderCreateTime: orderRow.CreatedAt.Format("2006-01-02 15:04"),
-				TitleVal: lineRowsData.DriverVal, //放司机信息
+				DriverVal: lineRowsData.DriverVal, //放司机信息
 			}
 		}
 
@@ -140,10 +140,11 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 //多个线路时 就需要做一个压缩包
 
 
-func SaveLineExportXlsx(zipFile string,UpCloud bool,redisRow global.ExportRedisInfo,lineSheetData  map[int]*LineMapping) string {
+func SaveLineExportXlsx(xlsxType,zipFile string,UpCloud bool,redisRow global.ExportRedisInfo,lineSheetData  map[int]*LineMapping) string {
 	export :=XlsxBaseExport{
 		ExportUser: redisRow.ExportUser,
 		ExportTime: redisRow.ExportTime,
+
 
 	}
 	zipList:=make([]string,0)
@@ -152,7 +153,18 @@ func SaveLineExportXlsx(zipFile string,UpCloud bool,redisRow global.ExportRedisI
 		sheetData:=lineSheetData[row].Data
 		lineName :=lineSheetData[row].LineName
 
-		FileName := export.SetLineXlsxRun(redisRow.CId,lineName,sheetData)
+		var FileName string
+
+		switch xlsxType {
+
+		case "line":
+			FileName = export.SetLineXlsxRun(redisRow.CId,lineName,sheetData)
+		case "delivery":
+			FileName = export.SetLineDeliveryXlsxRun(redisRow.CId,lineName,sheetData)
+		default:
+
+			continue
+		}
 
 		zipList = append(zipList,FileName)
 

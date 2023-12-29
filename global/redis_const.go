@@ -54,9 +54,9 @@ const (
 	SmallBCategoryKey = "category_"
 
 	WorkerOrderStartName = "order" //订单选中导出
-	WorkerReportSummaryStartName = "report_summary" //汇总
-	WorkerReportLineStartName = "report_line" //路线
-	WorkerReportLineDeliveryStartName = "report_line_delivery" //路线配送报表
+	WorkerReportSummaryStartName = "summary_report" //汇总
+	WorkerReportLineStartName = "line_report" //路线
+	WorkerReportLineDeliveryStartName = "line_delivery_report" //路线配送报表
 
 	ExportTypeOrder = 0 //配送订单选中导出类型
 	ExportTypeSummary = 1 //汇总导出类型
