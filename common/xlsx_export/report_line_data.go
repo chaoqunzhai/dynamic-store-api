@@ -97,10 +97,11 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 			specsList = append(specsList, xlsx)
 		}
 		sheetRow.Table = append(sheetRow.Table ,specsList...)
-		//放到同路线中
-		linSheetMap[orderRow.LineId] = sheetRow
 
-		lineRowsData.Data = linSheetMap
+		//只把自己的路线 放到里面
+		lineRowsData.Data = map[int]*SheetRow{
+			orderRow.LineId:sheetRow,
+		}
 
 		ResultData[orderRow.LineId] = lineRowsData
 
@@ -110,18 +111,23 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 	for l :=range ResultData{
 		sheetRowObject :=ResultData[l]
 
-		for s :=range sheetRowObject.Data {
-			//对table的数据进行汇总
-			SheetRowVal :=sheetRowObject.Data[s]
-			for index,v :=range SheetRowVal.Table{
-				v.Id = index + 1
-				SheetRowVal.AllNumber+=v.Number
-				SheetRowVal.AllMoney = utils.RoundDecimalFlot64(SheetRowVal.AllMoney) + v.TotalMoney
-			}
-			SheetRowVal.MoneyCn = utils.ConvertNumToCny(SheetRowVal.AllMoney)
-			//回传设置到上层
-			sheetRowObject.Data[s] = SheetRowVal
+		SheetRowVal,ok := sheetRowObject.Data[l]
+
+		if !ok{
+			zap.S().Errorf("导出配送路线时,不在数据Map中,ResultData 和 sheetRowObject.Data 线路数据不匹配")
+			continue
 		}
+		//对table的数据进行汇总
+		for index,v :=range SheetRowVal.Table{
+			v.Id = index + 1
+			SheetRowVal.AllNumber+=v.Number
+			SheetRowVal.AllMoney = utils.RoundDecimalFlot64(SheetRowVal.AllMoney) + v.TotalMoney
+		}
+		SheetRowVal.MoneyCn = utils.ConvertNumToCny(SheetRowVal.AllMoney)
+		//fmt.Println("线路",SheetRowVal.SheetName,SheetRowVal.AllMoney,SheetRowVal.AllNumber,sheetRowObject.LineName,sheetRowObject)
+		//回传设置到上层
+		sheetRowObject.Data[l] = SheetRowVal
+
 		//回传设置到上传
 		ResultData[l] = sheetRowObject
 

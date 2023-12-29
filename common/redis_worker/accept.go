@@ -23,7 +23,7 @@ func LoopRedisWorker()  {
 		//读取不同的任务Queue
 		for _,queueName:=range global.QueueGroup{
 
-			randomSleepTime := time.Duration(rand.Intn(8)+1) * time.Second
+			randomSleepTime := time.Duration(rand.Intn(10)+1) * time.Second
 			time.Sleep(10 * time.Second + randomSleepTime) //10秒才进行任务处理
 			redis_db.RedisCli.Do(global.RedisCtx, "select", global.AllQueueChannel)
 			//获取所以key
@@ -192,11 +192,12 @@ func GetReportLineExportQueueInfo(key string,data []string) {
 		sheetData,detailErr :=orderExportFunc.ReadLineDetail()
 		if detailErr!=nil{
 			successTag =false
-			errorMsg = err.Error()
-			zap.S().Errorf("读取redis 导出[路线数据] ReadOrderDetail,错误:%v",err)
+			errorMsg = detailErr.Error()
+			zap.S().Errorf("读取redis 导出[路线数据] ReadOrderDetail,错误:%v",detailErr)
 			continue
 
 		}
+
 		//保存到云端
 		zipFile:=fmt.Sprintf("%v 多路线表导出.zip",row.ExportTime)
 		FileName :=xlsx_export.SaveLineExportXlsx("line",zipFile,orderExportFunc.UpCloud,row,sheetData)
@@ -253,13 +254,12 @@ func GetReportLineDeliveryExportQueueInfo(key string,data []string) {
 		sheetData,detailErr :=orderExportFunc.ReadLineDeliveryDetail()
 		if detailErr!=nil{
 			successTag =false
-			errorMsg = err.Error()
-			zap.S().Errorf("读取redis 导出[路线配送表] ReadOrderDetail,错误:%v",err)
+			errorMsg = detailErr.Error()
+			zap.S().Errorf("读取redis 导出[路线配送表] ReadOrderDetail,错误:%v",detailErr)
 			continue
 
 		}
 		zipFile:=fmt.Sprintf("%v 多路线配送表导出.zip",row.ExportTime)
-		fmt.Println("sheetData",sheetData)
 		FileName :=xlsx_export.SaveLineExportXlsx("delivery",zipFile,orderExportFunc.UpCloud,row,sheetData)
 
 		if err = xlsx_export.SaveExportDb(

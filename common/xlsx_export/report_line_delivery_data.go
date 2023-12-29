@@ -11,6 +11,7 @@ import (
 	"go-admin/common/business"
 	"go-admin/common/utils"
 	"go-admin/global"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"time"
 )
@@ -27,7 +28,7 @@ type ReportDeliveryLineObj struct {
 type LineMapping struct {
 	DriverVal string `json:"driver_val"` //司机信息
 	LineName string `json:"line_name"` //线路名称
-	Data map[int]*SheetRow //xlsx数据 key:小B value:xlsx数据
+	Data map[int]*SheetRow //xlsx数据 key:小B value:xlsx数据  | key:线路 value:xlsx数据
 }
 func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*LineMapping,err error )   {
 
@@ -109,29 +110,35 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 		}
 		sheetRow.Table = append(sheetRow.Table ,specsList...)
 
-		siteMap[orderRow.ShopId] = sheetRow
 		//上面把数据已经放到小B中了
 		//需要把小B数据 放到指定的路线中
 
-		lineRowsData.Data = siteMap
+		lineRowsData.Data = map[int]*SheetRow{
+			orderRow.LineId:sheetRow,
+		}
 		ResultData[orderRow.LineId] = lineRowsData
 	}
 
 	for l :=range ResultData{
 		sheetRowObject :=ResultData[l]
 
-		for s :=range sheetRowObject.Data {
-			//对table的数据进行汇总
-			SheetRowVal :=sheetRowObject.Data[s]
-			for index,v :=range SheetRowVal.Table{
-				v.Id = index + 1
-				SheetRowVal.AllNumber+=v.Number
-				SheetRowVal.AllMoney = utils.RoundDecimalFlot64(SheetRowVal.AllMoney) + v.TotalMoney
-			}
-			SheetRowVal.MoneyCn = utils.ConvertNumToCny(SheetRowVal.AllMoney)
-			//回传设置到上层
-			sheetRowObject.Data[s] = SheetRowVal
+		SheetRowVal,ok := sheetRowObject.Data[l]
+		if !ok{
+			zap.S().Errorf("导出配送表时,不在数据Map中,ResultData 和 sheetRowObject.Data 线路数据不匹配")
+			continue
 		}
+
+		//对table的数据进行汇总
+		for index,v :=range SheetRowVal.Table{
+			v.Id = index + 1
+			SheetRowVal.AllNumber+=v.Number
+			SheetRowVal.AllMoney = utils.RoundDecimalFlot64(SheetRowVal.AllMoney) + v.TotalMoney
+		}
+		SheetRowVal.MoneyCn = utils.ConvertNumToCny(SheetRowVal.AllMoney)
+		//fmt.Println("小B",SheetRowVal.SheetName,SheetRowVal.AllMoney,SheetRowVal.AllNumber,sheetRowObject.LineName,sheetRowObject)
+		//回传设置到上层
+		sheetRowObject.Data[l] = SheetRowVal
+
 		//回传设置到上传
 		ResultData[l] = sheetRowObject
 
