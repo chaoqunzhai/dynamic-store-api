@@ -108,6 +108,7 @@ func (CompanyFreight) TableName() string {
 //任务队列状态
 type CompanyTasks struct {
 	Model
+	UserName string `json:"user_name" gorm:"size:25;comment:操作用户名称"`
 	Key string `json:"key" gorm:"size:30;comment:唯一的key"` // 可以用这个key 来进行校验, 同一个key 如果还在处理中就不在接受
 	Title string `json:"title" gorm:"size:30;"` //保存一些标题信息
 	CreateBy  int            `json:"createBy" gorm:"index;comment:创建者"`

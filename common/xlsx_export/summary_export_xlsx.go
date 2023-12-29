@@ -51,7 +51,7 @@ func (x *XlsxBaseExport)SetSummaryXlsxRun(cid int,data *SheetRow) string {
 
 	x.SetTotal(false,data)
 
-	xlsxName:=fmt.Sprintf("%v-配送周期导出.xlsx",x.ExportTime)
+	xlsxName:=fmt.Sprintf("%v-配送周期汇总表.xlsx",x.ExportTime)
 	if err = x.File.SaveAs(xlsxName); err != nil {
 		zap.S().Errorf("配送周期导出 大B:%v选中数据导出错误,err%v",cid,err.Error())
 		return ""

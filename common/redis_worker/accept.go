@@ -23,7 +23,7 @@ func LoopRedisWorker()  {
 		//读取不同的任务Queue
 		for _,queueName:=range global.QueueGroup{
 
-			randomSleepTime := time.Duration(rand.Intn(10)+1) * time.Second
+			randomSleepTime := time.Duration(rand.Intn(8)+1) * time.Second
 			time.Sleep(12 * time.Second + randomSleepTime) //10秒才进行任务处理
 			redis_db.RedisCli.Do(global.RedisCtx, "select", global.AllQueueChannel)
 			//获取所以key
@@ -45,15 +45,15 @@ func LoopRedisWorker()  {
 				}
 				switch queueName {
 				case global.WorkerOrderStartName: //订单选中导出
-					GetExportQueueInfo(key,data)
+					go GetExportQueueInfo(key,data)
 				case global.WorkerReportSummaryStartName: //汇总导出
-					GetSummaryExportQueueInfo(key,data)
+					go GetSummaryExportQueueInfo(key,data)
 				case global.WorkerReportLineStartName: //路线导出
-					GetReportLineExportQueueInfo(key,data)
+					go GetReportLineExportQueueInfo(key,data)
 
 				case global.WorkerReportLineDeliveryStartName: //路线配送表导出
 
-					GetReportLineDeliveryExportQueueInfo(key,data)
+					go GetReportLineDeliveryExportQueueInfo(key,data)
 				}
 
 			}
@@ -112,7 +112,7 @@ func GetExportQueueInfo(key string,data []string)   {
 
 func GetSummaryExportQueueInfo(key string,data []string)   {
 	for _,dat:=range data{
-		//睡眠600毫秒,缓解压力
+
 		time.Sleep(700*time.Millisecond)
 		var err error
 		row:=global.ExportRedisInfo{}
@@ -165,7 +165,7 @@ func GetReportLineExportQueueInfo(key string,data []string) {
 	//fmt.Println("开始路线数据导出",key,"DATA",data)
 
 	for _,dat:=range data{
-		//睡眠500毫秒,缓解压力
+
 		time.Sleep(800*time.Millisecond)
 		var err error
 		row:=global.ExportRedisInfo{}
@@ -178,6 +178,7 @@ func GetReportLineExportQueueInfo(key string,data []string) {
 			Dat: row,
 			Orm:sdk.Runtime.GetDbByKey("*"),
 			UpCloud: true,
+			CycleUid: row.CycleUid,
 		}
 		if orderExportFunc.Orm == nil{
 			zap.S().Errorf("读取redis 导出[路线数据] Orm对象为空")
@@ -186,8 +187,9 @@ func GetReportLineExportQueueInfo(key string,data []string) {
 		successTag:=true
 		errorMsg :=""
 		//兼容多条路线同时存放
-		sheetData :=make(map[int]*xlsx_export.SheetRow,0)
-		if sheetData,err =orderExportFunc.ReadLineDetail();err!=nil{
+
+		sheetData,detailErr :=orderExportFunc.ReadLineDetail()
+		if detailErr!=nil{
 			successTag =false
 			errorMsg = err.Error()
 			zap.S().Errorf("读取redis 导出[路线数据] ReadOrderDetail,错误:%v",err)
@@ -195,11 +197,12 @@ func GetReportLineExportQueueInfo(key string,data []string) {
 
 		}
 		//保存到云端
-		orderExportFunc.SaveExportXlsx(row,sheetData)
+		zipFile:=fmt.Sprintf("%v 多路线表导出.zip",row.ExportTime)
+		FileName :=xlsx_export.SaveLineExportXlsx(zipFile,orderExportFunc.UpCloud,row,sheetData)
 
 		if err = xlsx_export.SaveExportDb(
 			orderExportFunc.Dat.OrmId,orderExportFunc.Dat.CId,
-			orderExportFunc.FileName,
+			FileName,
 			successTag,errorMsg,orderExportFunc.Orm);err!=nil{
 			zap.S().Errorf("读取redis 导出[路线数据] SaveExportDb,错误:%v",err)
 			continue
@@ -217,5 +220,53 @@ func GetReportLineDeliveryExportQueueInfo(key string,data []string) {
 	//不同的是 路线是一个大的点，如果多个路线 那就是多个文件了里面有多个小B
 
 
+	//同时要支持多个文件导出的逻辑
+	//1.如果是单个路线 那就是一个excel
+	//2.如果是多个路线 那就是一个zip压缩包
 
+
+	for _,dat:=range data{
+
+		time.Sleep(900*time.Millisecond)
+		var err error
+		row:=global.ExportRedisInfo{}
+		err =json.Unmarshal([]byte(dat),&row)
+		if err!=nil{
+			continue
+		}
+		orderExportFunc:=xlsx_export.ReportDeliveryLineObj{
+			RedisKey: key,
+			Dat: row,
+			Orm:sdk.Runtime.GetDbByKey("*"),
+			UpCloud: true,
+		}
+		if orderExportFunc.Orm == nil{
+			zap.S().Errorf("读取redis 导出[路线配送表] Orm对象为空")
+			continue
+		}
+		successTag:=true
+		errorMsg :=""
+
+
+		sheetData,detailErr :=orderExportFunc.ReadLineDeliveryDetail()
+		if detailErr!=nil{
+			successTag =false
+			errorMsg = err.Error()
+			zap.S().Errorf("读取redis 导出[路线配送表] ReadOrderDetail,错误:%v",err)
+			continue
+
+		}
+		zipFile:=fmt.Sprintf("%v 多路线配送表导出.zip",row.ExportTime)
+		FileName :=xlsx_export.SaveLineExportXlsx(zipFile,orderExportFunc.UpCloud,row,sheetData)
+
+		if err = xlsx_export.SaveExportDb(
+			orderExportFunc.Dat.OrmId,orderExportFunc.Dat.CId,
+			FileName,
+			successTag,errorMsg,orderExportFunc.Orm);err!=nil{
+			zap.S().Errorf("读取redis 导出[路线配送表] SaveExportDb,错误:%v",err)
+			continue
+		}
+		//最后在删除
+		xlsx_export.EmptyKey(key,len(dat))
+	}
 }

@@ -7,41 +7,40 @@ package xlsx_export
 import (
 	"fmt"
 	"go-admin/app/company/models"
+	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/business"
-	"go-admin/common/qiniu"
 	"go-admin/common/utils"
 	"go-admin/global"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
-	"os"
+	"time"
 )
 
-//配送报表中 路线的导出
-//获取路线下商品规格的详细列表
-
-
-type ReportLineObj struct {
+type ReportDeliveryLineObj struct {
 	Orm *gorm.DB
 	Dat global.ExportRedisInfo
 	RedisKey string
-	FileName string
-	CycleUid string //配送周期的UID
+
+	CycleUid int //配送周期的UID
 	UpCloud bool //是否保存云端
 }
 
-func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err error ){
+type LineMapping struct {
+	DriverVal string `json:"driver_val"` //司机信息
+	LineName string `json:"line_name"` //线路名称
+	Data map[int]*SheetRow //xlsx数据 key:小B value:xlsx数据
+}
+func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*LineMapping,err error )   {
 
-	//根据路线获取这个路线的商品
 	//多个路线 进行查询
 	ResultData = make(map[int]*LineMapping,0)
-
+	nowTimeObj :=time.Now()
+	//根据路线获取这个路线的商品
 	var orderList []models.Orders
 
 	splitTableRes := business.GetTableName(e.Dat.CId, e.Orm)
 	//查这个配送周期下 路线的
 	e.Orm.Table(splitTableRes.OrderTable).Select(
 		"order_id,line_id,created_at").Where("line_id in ? and uid = ?",e.Dat.LineId,e.CycleUid).Find(&orderList)
-
 
 	//线路和司机信息
 	lineList:=make([]models.Line,0)
@@ -60,23 +59,35 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 		}
 		ResultData[row.Id] = dd
 	}
-	linSheetMap:=make(map[int]*SheetRow,0)
-	for _,orderRow:=range orderList{
+	//循环所有的订单 ,不同路线的订单应该是
 
+	siteMap:=make(map[int]*SheetRow,0)
+
+	for index,orderRow:=range orderList{
 		//放到一个线路里面
 		lineRowsData,lineDbOk:=ResultData[orderRow.LineId]
 		if !lineDbOk{
 			continue
 		}
-		sheetRow,ok:=linSheetMap[orderRow.LineId]
+		//订单选择了多个,存在订单是同一个小B发起的
+		sheetRow,ok:=siteMap[orderRow.ShopId]
 		if !ok{
+			//新的小B在查一次,防止查多次
+			var shopRow models2.Shop
+			e.Orm.Model(&models2.Shop{}).Where("id = ? ", orderRow.ShopId).Limit(1).Find(&shopRow)
+			if shopRow.Id == 0 {
+				continue
+			}
 			sheetRow =&SheetRow{
-				SheetName: lineRowsData.LineName,
+				OrderA2: fmt.Sprintf("DCY.%v.%v",nowTimeObj.Format("20060102"),index + 1),
+				SheetName: shopRow.Name,
+				ShopPhone: shopRow.Phone,
+				ShopAddress: shopRow.Address,
+				ShopUserValue: shopRow.UserName,
 				OrderCreateTime: orderRow.CreatedAt.Format("2006-01-02 15:04"),
 				TitleVal: lineRowsData.DriverVal, //放司机信息
 			}
 		}
-
 
 		//获取订单关联的具体规格
 		var orderSpecs []models.OrderSpecs
@@ -97,15 +108,14 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 			specsList = append(specsList, xlsx)
 		}
 		sheetRow.Table = append(sheetRow.Table ,specsList...)
-		//放到同路线中
-		linSheetMap[orderRow.LineId] = sheetRow
 
-		lineRowsData.Data = linSheetMap
+		siteMap[orderRow.ShopId] = sheetRow
+		//上面把数据已经放到小B中了
+		//需要把小B数据 放到指定的路线中
 
+		lineRowsData.Data = siteMap
 		ResultData[orderRow.LineId] = lineRowsData
-
 	}
-	//基于上面汇聚的值 在做一次汇总统计
 
 	for l :=range ResultData{
 		sheetRowObject :=ResultData[l]
@@ -130,65 +140,4 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 
 
 	return ResultData, err
-}
-
-//当一条路线的时候,就保留时间文件名
-
-//如果多个路线时候,压缩包是文件名, 里面的excel是路线名称
-//sheetData map[int]*SheetRow
-
-//多个线路时 就需要做一个压缩包
-
-
-func SaveLineExportXlsx(zipFile string,UpCloud bool,redisRow global.ExportRedisInfo,lineSheetData  map[int]*LineMapping) string {
-	export :=XlsxBaseExport{
-		ExportUser: redisRow.ExportUser,
-		ExportTime: redisRow.ExportTime,
-
-	}
-	zipList:=make([]string,0)
-	for row:=range lineSheetData {
-
-		sheetData:=lineSheetData[row].Data
-		lineName :=lineSheetData[row].LineName
-
-		FileName := export.SetLineXlsxRun(redisRow.CId,lineName,sheetData)
-
-		zipList = append(zipList,FileName)
-
-	}
-
-	var FileName string
-	//就一个文件 不做zip压缩包
-	if len(zipList) == 1{
-		FileName = zipList[0]
-	}else {
-		//多个文件 压缩包
-		FileName,_ = utils.ZipFile(zipFile,zipList)
-	}
-	var err error
-	//上传云端
-	if UpCloud {
-		//上传云端
-		buckClient :=qiniu.QinUi{CId: redisRow.CId}
-		buckClient.InitClient()
-
-		if FileName,err =buckClient.PostFile(FileName);err!=nil{
-			zap.S().Errorf("SaveLineExportXlsx 文件:%v 保存云端失败 %v",FileName,err)
-		}
-
-		defer func() {
-
-			_=os.Remove(FileName)
-			if len(zipList) >  1{ //是压缩包 那清理下文件
-				for _,f:=range zipList{
-					os.Remove(f)
-				}
-			}
-		}()
-	}
-	return FileName
-
-
-
 }

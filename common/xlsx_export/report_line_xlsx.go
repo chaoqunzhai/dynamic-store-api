@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (x *XlsxBaseExport)SetLineXlsxRun(cid int,data map[int]*SheetRow) string {
+func (x *XlsxBaseExport)SetLineXlsxRun(cid int,lineName string,data map[int]*SheetRow) string {
 
 	//实例化对象
 	x.NewFile()
@@ -66,7 +66,9 @@ func (x *XlsxBaseExport)SetLineXlsxRun(cid int,data map[int]*SheetRow) string {
 	_=x.File.DeleteSheet("Sheet1")
 
 
-	xlsxName:=fmt.Sprintf("%v-路线导出.xlsx",x.ExportTime)
+
+
+	xlsxName:=fmt.Sprintf("%v-%v.xlsx",x.ExportTime,lineName)
 	if err := x.File.SaveAs(xlsxName); err != nil {
 		zap.S().Errorf("路线数据导出 大B%v,错误err%v",cid,err.Error())
 		return ""

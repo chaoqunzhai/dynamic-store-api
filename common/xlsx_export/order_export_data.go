@@ -68,12 +68,12 @@ func (e *OrderExportObj)ReadOrderDetail() (dat map[int]*SheetRow,err error )  {
 	e.Orm.Table(splitTableRes.OrderTable).Select(
 		"order_id,shop_id,created_at").Where("order_id in ?",e.Dat.Order).Find(&orderList)
 
+
 	//基于订单做一次聚会查询
 	for index,orderRow:=range orderList{
 
 		//订单选择了多个,存在订单是同一个小B发起的
 		sheetRow,ok:=siteMap[orderRow.ShopId]
-
 		if !ok{
 			//新的小B在查一次,防止查多次
 			var shopRow models.Shop
@@ -114,7 +114,7 @@ func (e *OrderExportObj)ReadOrderDetail() (dat map[int]*SheetRow,err error )  {
 		siteMap[orderRow.ShopId] = sheetRow
 
 	}
-	//基于上面汇聚的值 在做一次汇总统计,因为
+	//基于上面汇聚的值 在做一次汇总统计
 
 	for s :=range siteMap{
 		sheetRowObject :=siteMap[s]

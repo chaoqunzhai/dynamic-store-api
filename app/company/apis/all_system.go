@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
+	"go-admin/app/company/models"
 	"go-admin/common/qiniu"
 	"go-admin/config"
 	"go-admin/global"
@@ -87,6 +88,7 @@ func (e *Worker)Get(c *gin.Context)  {
 			"type":row.Type,
 			"id":row.Id,
 			"title":row.Title,
+			"user":row.UserName,
 		})
 	}
 	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), fmt.Sprintf("云端文件最多保留%v天",config.ExtConfig.ExportDay))
@@ -144,6 +146,21 @@ func (e *Worker)Create(c *gin.Context)  {
 		e.Error(500, err, err.Error())
 		return
 	}
+
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	var CycleUid string //配送周期的UID
+	if req.Type != 0 {
+		var CycleCnfObj models.OrderCycleCnf
+		e.Orm.Table(splitTableRes.OrderCycle).Select("uid,id").Model(
+			&models.OrderCycleCnf{}).Where("id = ?",req.Cycle).Limit(1).Find(&CycleCnfObj)
+		if CycleCnfObj.Id == 0 {
+
+			e.Error(500, nil, "暂无周期")
+			return
+		}
+		CycleUid  = CycleCnfObj.Uid
+	}
+
 	//查询队列限制
 	CompanyCnf := business.GetCompanyCnf(userDto.CId, "export_worker", e.Orm)
 	MaxNumber := CompanyCnf["export_worker"]
@@ -201,6 +218,7 @@ func (e *Worker)Create(c *gin.Context)  {
 	}
 
 	taskTable:=models2.CompanyTasks{
+		UserName: userDto.Username,
 		Title: title,
 		CreateBy: userDto.UserId,
 		CId:      userDto.CId,
@@ -214,6 +232,7 @@ func (e *Worker)Create(c *gin.Context)  {
 		CId: userDto.CId,
 		Order: req.Order,
 		Cycle: req.Cycle,
+		CycleUid: CycleUid,
 		OrmId: taskTable.Id,
 		LineId: req.LineId,
 		ExportUser: userDto.Username,

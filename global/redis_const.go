@@ -68,6 +68,7 @@ type ExportRedisInfo struct {
 	Queue string `json:"queue"`
 	Order []string `json:"order"`
 	Cycle int `json:"cycle"` //配送周期ID
+	CycleUid string `json:"cycle_uid"` //配送周期uuid
 	CId int `json:"c_id"`
 	OrmId int `json:"orm_id"`
 	ExportUser string `json:"export_user"`
