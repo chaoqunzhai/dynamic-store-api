@@ -28,8 +28,10 @@ type ReportDeliveryLineObj struct {
 type LineMapping struct {
 	DriverVal string `json:"driver_val"` //司机信息
 	LineName string `json:"line_name"` //线路名称
-	Data map[int]*SheetRow //xlsx数据 key:小B value:xlsx数据  | key:线路 value:xlsx数据
+	LineData map[int]*SheetRow //xlsx数据  | key:线路 value:xlsx数据、
+	DeliveryData  map[int]map[int]*SheetRow //xlsx数据 key:小B value:xlsx数据
 }
+
 func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*LineMapping,err error )   {
 
 	//多个路线 进行查询
@@ -38,6 +40,7 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 	//根据路线获取这个路线的商品
 	var orderList []models.Orders
 
+	//fmt.Println("导出配送表")
 	splitTableRes := business.GetTableName(e.Dat.CId, e.Orm)
 	//查这个配送周期下 路线的
 	e.Orm.Table(splitTableRes.OrderTable).Select(
@@ -51,7 +54,7 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 		e.Orm.Model(&models.Driver{}).Select("id,name,phone").Where("id = ?",row.DriverId).Limit(1).Find(&DriverObj)
 		dd :=&LineMapping{
 			LineName: row.Name,
-			Data: make(map[int]*SheetRow,0),
+			DeliveryData: make(map[int]map[int]*SheetRow,0),
 		}
 		if DriverObj.Id > 0 {
 			dd.DriverVal = fmt.Sprintf("%v/%v",DriverObj.Name,DriverObj.Phone)
@@ -62,7 +65,8 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 	}
 	//循环所有的订单 ,不同路线的订单应该是
 
-	siteMap:=make(map[int]*SheetRow,0)
+	//应该是路线下的大B
+	siteMap:=make(map[string]map[int]*SheetRow,0)
 
 	for index,orderRow:=range orderList{
 		//放到一个线路里面
@@ -70,8 +74,10 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 		if !lineDbOk{
 			continue
 		}
-		//订单选择了多个,存在订单是同一个小B发起的
-		sheetRow,ok:=siteMap[orderRow.ShopId]
+		//保持 路线-商家是一一对应的
+		KEY :=fmt.Sprintf("%v-%v",orderRow.LineId,orderRow.ShopId)
+		//订单关联了商家信息
+		sheetMapRow,ok:=siteMap[KEY]
 		if !ok{
 			//新的小B在查一次,防止查多次
 			var shopRow models2.Shop
@@ -79,7 +85,8 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 			if shopRow.Id == 0 {
 				continue
 			}
-			sheetRow =&SheetRow{
+			sheetRow :=&SheetRow{
+				LineId: orderRow.LineId,
 				OrderA2: fmt.Sprintf("DCY.%v.%v",nowTimeObj.Format("20060102"),index + 1),
 				SheetName: shopRow.Name,
 				ShopPhone: shopRow.Phone,
@@ -88,6 +95,9 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 				OrderCreateTime: orderRow.CreatedAt.Format("2006-01-02 15:04"),
 				DriverVal: lineRowsData.DriverVal, //放司机信息
 			}
+			sheetMapRow =make(map[int]*SheetRow,0)
+			sheetMapRow[orderRow.ShopId] = sheetRow
+			siteMap[KEY] = sheetMapRow
 		}
 
 		//获取订单关联的具体规格
@@ -108,36 +118,51 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 			}
 			specsList = append(specsList, xlsx)
 		}
-		sheetRow.Table = append(sheetRow.Table ,specsList...)
+		sheetMapRow[orderRow.ShopId].Table = append(sheetMapRow[orderRow.ShopId].Table ,specsList...)
+
+		//保存商家信息
+
+		siteMap[KEY] = sheetMapRow
 
 		//上面把数据已经放到小B中了
-		//需要把小B数据 放到指定的路线中
+		//需要把多个小B数据 放到指定的路线中
 
-		lineRowsData.Data = map[int]*SheetRow{
-			orderRow.LineId:sheetRow,
+		//获取路线下的 小BMAP
+		sieShopMap,ok:=lineRowsData.DeliveryData[orderRow.LineId]
+		if !ok{
+			sieShopMap = siteMap[KEY]
 		}
+		//设置订单的商家  = 缓存查询的商家
+		sieShopMap[orderRow.ShopId] = sheetMapRow[orderRow.ShopId]
+		lineRowsData.DeliveryData[orderRow.LineId] = sieShopMap
+		fmt.Println("线路!!!",orderRow.LineId,"名字",orderRow.Line,"商家",KEY)
 		ResultData[orderRow.LineId] = lineRowsData
 	}
 
 	for l :=range ResultData{
 		sheetRowObject :=ResultData[l]
 
-		SheetRowVal,ok := sheetRowObject.Data[l]
+		SheetDataRowMap,ok := sheetRowObject.DeliveryData[l]
 		if !ok{
 			zap.S().Errorf("导出配送表时,不在数据Map中,ResultData 和 sheetRowObject.Data 线路数据不匹配")
 			continue
 		}
-
-		//对table的数据进行汇总
-		for index,v :=range SheetRowVal.Table{
-			v.Id = index + 1
-			SheetRowVal.AllNumber+=v.Number
-			SheetRowVal.AllMoney = utils.RoundDecimalFlot64(SheetRowVal.AllMoney) + v.TotalMoney
+		//循环每一个小B
+		for sheetShopIndex,sheetShop:=range SheetDataRowMap{
+			//对table的数据进行汇总
+			for index,v :=range sheetShop.Table{
+				v.Id = index + 1
+				sheetShop.AllNumber+=v.Number
+				sheetShop.AllMoney = utils.RoundDecimalFlot64(sheetShop.AllMoney) + v.TotalMoney
+			}
+			sheetShop.MoneyCn = utils.ConvertNumToCny(sheetShop.AllMoney)
+			//设置回去
+			SheetDataRowMap[sheetShopIndex] = sheetShop
 		}
-		SheetRowVal.MoneyCn = utils.ConvertNumToCny(SheetRowVal.AllMoney)
+
 		//fmt.Println("小B",SheetRowVal.SheetName,SheetRowVal.AllMoney,SheetRowVal.AllNumber,sheetRowObject.LineName,sheetRowObject)
 		//回传设置到上层
-		sheetRowObject.Data[l] = SheetRowVal
+		sheetRowObject.DeliveryData[l] = SheetDataRowMap
 
 		//回传设置到上传
 		ResultData[l] = sheetRowObject

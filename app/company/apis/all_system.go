@@ -28,6 +28,7 @@ type WorkerExportReq struct {
 	Order   []string   `json:"order"`
 	Cycle int `json:"cycle"`
 	Type int `json:"type"`
+	Detail bool `json:"detail"` //是否单商品导出
 	LineId []int `json:"line_id"`
 	LineName []string `json:"line_name"`
 }
@@ -149,7 +150,7 @@ func (e *Worker)Create(c *gin.Context)  {
 
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 	var CycleUid string //配送周期的UID
-	if req.Type != 0 {
+	if req.Type != 0  {
 		var CycleCnfObj models.OrderCycleCnf
 		e.Orm.Table(splitTableRes.OrderCycle).Select("uid,id").Model(
 			&models.OrderCycleCnf{}).Where("id = ?",req.Cycle).Limit(1).Find(&CycleCnfObj)
@@ -181,10 +182,17 @@ func (e *Worker)Create(c *gin.Context)  {
 	mathKey := time.Now().Add(-2 * time.Minute).Format("200601021504")
 
 	switch req.Type {
+
 	case global.ExportTypeOrder:
+		if req.Detail {
+			title = "配送订单导出"
+			mathKey = fmt.Sprintf("%v_detail_order",mathKey)
+
+		}else {
+			title = "批量导出配送订单"
+			mathKey = fmt.Sprintf("%v_order",mathKey)
+		}
 		Queue = global.WorkerOrderStartName
-		title = "选中导出配送订单"
-		mathKey = fmt.Sprintf("%v_order",mathKey)
 	case global.ExportTypeSummary:
 		title = "导出配送汇总表"
 		Queue = global.WorkerReportSummaryStartName

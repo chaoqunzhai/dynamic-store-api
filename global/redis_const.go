@@ -30,7 +30,7 @@ const (
 	//全局的公司一些信息配置
 	AllGlobalCnf //8
 
-	AllQueueChannel  = 13//9
+	AllQueueChannel //9
 	//订单的过期时间,设置为半个小时
 	OrderExpirationTime = 30 * time.Minute
 	//如果在期间未确认收货，系统自动完成收货，默认7天自动收货
@@ -53,15 +53,16 @@ const (
 	SmallBMemberToolsKey = "member_"
 	SmallBCategoryKey = "category_"
 
-	WorkerOrderStartName = "order" //订单选中导出
+	WorkerOrderStartName = "order" //订单导出
 	WorkerReportSummaryStartName = "summary_report" //汇总
 	WorkerReportLineStartName = "line_report" //路线
 	WorkerReportLineDeliveryStartName = "line_delivery_report" //路线配送报表
 
-	ExportTypeOrder = 0 //配送订单选中导出类型
+	ExportTypeOrder = 0 //订单导出
 	ExportTypeSummary = 1 //汇总导出类型
 	ExportTypeLine = 2 //路线导出
 	ExportTypeLineShopDelivery = 3 //路线下用户配送单导出
+
 )
 
 type ExportRedisInfo struct {

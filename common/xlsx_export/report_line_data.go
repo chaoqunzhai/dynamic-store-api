@@ -51,7 +51,7 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 		e.Orm.Model(&models.Driver{}).Select("id,name,phone").Where("id = ?",row.DriverId).Limit(1).Find(&DriverObj)
 		dd :=&LineMapping{
 			LineName: row.Name,
-			Data: make(map[int]*SheetRow,0),
+			LineData: make(map[int]*SheetRow,0),
 		}
 		if DriverObj.Id > 0 {
 			dd.DriverVal = fmt.Sprintf("%v/%v",DriverObj.Name,DriverObj.Phone)
@@ -60,6 +60,7 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 		}
 		ResultData[row.Id] = dd
 	}
+
 	linSheetMap:=make(map[int]*SheetRow,0)
 	for _,orderRow:=range orderList{
 
@@ -94,13 +95,16 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 				Price: row.Money,
 				TotalMoney: utils.RoundDecimalFlot64(row.Money  * float64(row.Number)),
 			}
+
 			specsList = append(specsList, xlsx)
 		}
 		sheetRow.Table = append(sheetRow.Table ,specsList...)
+		//重新赋值
+		linSheetMap[orderRow.LineId] = sheetRow
 
 		//只把自己的路线 放到里面
-		lineRowsData.Data = map[int]*SheetRow{
-			orderRow.LineId:sheetRow,
+		lineRowsData.LineData = map[int]*SheetRow{
+			orderRow.LineId:linSheetMap[orderRow.LineId],
 		}
 
 		ResultData[orderRow.LineId] = lineRowsData
@@ -111,7 +115,7 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 	for l :=range ResultData{
 		sheetRowObject :=ResultData[l]
 
-		SheetRowVal,ok := sheetRowObject.Data[l]
+		SheetRowVal,ok := sheetRowObject.LineData[l]
 
 		if !ok{
 			zap.S().Errorf("导出配送路线时,不在数据Map中,ResultData 和 sheetRowObject.Data 线路数据不匹配")
@@ -126,7 +130,7 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 		SheetRowVal.MoneyCn = utils.ConvertNumToCny(SheetRowVal.AllMoney)
 		//fmt.Println("线路",SheetRowVal.SheetName,SheetRowVal.AllMoney,SheetRowVal.AllNumber,sheetRowObject.LineName,sheetRowObject)
 		//回传设置到上层
-		sheetRowObject.Data[l] = SheetRowVal
+		sheetRowObject.LineData[l] = SheetRowVal
 
 		//回传设置到上传
 		ResultData[l] = sheetRowObject
@@ -154,19 +158,33 @@ func SaveLineExportXlsx(xlsxType,zipFile string,UpCloud bool,redisRow global.Exp
 
 	}
 	zipList:=make([]string,0)
-	for row:=range lineSheetData {
+	for lineId:=range lineSheetData {
 
-		sheetData:=lineSheetData[row].Data
-		lineName :=lineSheetData[row].LineName
+		lineName :=lineSheetData[lineId].LineName
 
 		var FileName string
 
 		switch xlsxType {
 
 		case "line":
-			FileName = export.SetLineXlsxRun(redisRow.CId,lineName,sheetData)
+			sheetMapData,ok:=lineSheetData[lineId]
+			if !ok{
+				zap.S().Error("警告！路线数据保存失败,线路ID不存在")
+				continue
+			}
+			FileName = export.SetLineXlsxRun(redisRow.CId,lineName,sheetMapData.LineData)
 		case "delivery":
-			FileName = export.SetLineDeliveryXlsxRun(redisRow.CId,lineName,sheetData)
+			sheetShopMapData,ok:=lineSheetData[lineId]
+			if !ok{
+				zap.S().Error("警告！路线配送数据保存失败,线路ID不存在")
+				continue
+			}
+			sheetShop,ok:=sheetShopMapData.DeliveryData[lineId]
+			if !ok{
+				zap.S().Error("警告！路线配送数据保存失败,小B数据线路ID不存在")
+				continue
+			}
+			FileName = export.SetLineDeliveryXlsxRun(redisRow.CId,lineName,sheetShop)
 		default:
 
 			continue

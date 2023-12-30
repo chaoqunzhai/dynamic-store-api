@@ -17,14 +17,20 @@ import (
 	"time"
 )
 
+var (
+	WorkerSleep = 10000 * time.Millisecond //默认睡10秒
+
+)
 func LoopRedisWorker()  {
 	fmt.Println("异步任务启动成功！！！")
 	for {
 		//读取不同的任务Queue
 		for _,queueName:=range global.QueueGroup{
+			//随机睡12S以内的数据
+			randomSleepTime := time.Duration(rand.Intn(12000)) * time.Millisecond
 
-			randomSleepTime := time.Duration(rand.Intn(10)+1) * time.Second
-			time.Sleep(10 * time.Second + randomSleepTime) //10秒才进行任务处理
+			time.Sleep(WorkerSleep + randomSleepTime) //
+
 			redis_db.RedisCli.Do(global.RedisCtx, "select", global.AllQueueChannel)
 			//获取所以key
 			keys,err:=redis_db.RedisCli.Keys(global.RedisCtx,fmt.Sprintf("%v*",queueName)).Result()
@@ -259,6 +265,19 @@ func GetReportLineDeliveryExportQueueInfo(key string,data []string) {
 			continue
 
 		}
+		//
+		//fmt.Println("successTag,",successTag,errorMsg)
+		//for _,k:=range sheetData{
+		//	for _,v:=range k.DeliveryData{
+		//
+		//		for _,s:=range v{
+		//			fmt.Println("线路",k.LineName,"商家",s.SheetName,"数据", len(s.Table))
+		//			for _,b:=range s.Table{
+		//				fmt.Printf("--row:%v\n",b.GoodsName)
+		//			}
+		//		}
+		//	}
+		//}
 		zipFile:=fmt.Sprintf("%v 多路线配送表导出.zip",row.ExportTime)
 		FileName :=xlsx_export.SaveLineExportXlsx("delivery",zipFile,orderExportFunc.UpCloud,row,sheetData)
 

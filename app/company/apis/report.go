@@ -170,6 +170,7 @@ func (e Orders)Line(c *gin.Context){
 
 	queryStart:=time.Now()
 
+	fmt.Println("线路数据！！！")
 	var data models2.OrderCycleCnf
 	e.Orm.Table(splitTableRes.OrderCycle).Select("uid,id").Scopes(
 		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Where("id = ? ",req.Cycle).Limit(1).Find(&data)
@@ -286,16 +287,16 @@ func (e Orders)Line(c *gin.Context){
 	for lineId:=range ResultMap{
 		lineRow:=ResultMap[lineId]
 		//对每个路线汇总
-
 		SummaryGoodsMap:=make(map[int]*SummaryCnfRow,0)
 		for _,v:=range lineRow.Goods{
 
 			cnf,ok:=SummaryGoodsMap[v.GoodsId]
 			if !ok{
 				cnf = v
-				//数据在加一次
+			}else {
 				cnf.GoodsNumber +=v.GoodsNumber
 			}
+
 			SummaryGoodsMap[v.GoodsId] = cnf
 
 			//lineRow.LineMoney =utils.RoundDecimalFlot64(cnf.OrderMoney) + utils.RoundDecimalFlot64(lineRow.LineMoney)

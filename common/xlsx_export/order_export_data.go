@@ -28,6 +28,7 @@ type OrderExportObj struct {
 
 
 type SheetRow struct {
+	LineId int
 	OrderA2 string //索引标记而已
 	SheetName string //分页名称 小B名称 或者路线名称
 	TitleVal string //标题的内容

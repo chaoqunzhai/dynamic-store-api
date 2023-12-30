@@ -200,6 +200,9 @@ func (e Orders) GetPage(c *gin.Context) {
 			"count":          row.Number,
 			"specs_count":specCount,
 			"money":         PayMoney,
+			"coupon_money":row.CouponMoney,
+			"goods_money":row.GoodsMoney,
+			"delivery_money":row.DeliveryMoney,
 			"line":row.Line,
 			"delivery_type":global.GetExpressCn(row.DeliveryType), //配送类型
 			"pay_type":global.GetPayType(row.PayType),//支付类型
