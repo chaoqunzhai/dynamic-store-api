@@ -4,15 +4,12 @@ import (
 	"go-admin/cmd/migrate/migration/models"
 	common "go-admin/common/models"
 	"gorm.io/gorm"
-	"runtime"
 	"strconv"
-
-	"go-admin/cmd/migrate/migration"
 )
 
 func init() {
-	_, fileName, _, _ := runtime.Caller(0)
-	migration.Migrate.SetVersion(migration.GetFilename(fileName), _1653638869132Test)
+	//_, fileName, _, _ := runtime.Caller(0)
+	//migration.Migrate.SetVersion(migration.GetFilename(fileName), _1653638869132Test)
 }
 
 func _1653638869132Test(db *gorm.DB, version string) error {

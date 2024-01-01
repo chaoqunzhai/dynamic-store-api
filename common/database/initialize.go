@@ -44,6 +44,7 @@ func setupSimpleDatabase(host string, c *toolsConfig.Database) {
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true,
 		},
+		SkipDefaultTransaction: true,
 		Logger: New(
 			logger.Config{
 				SlowThreshold: time.Second,

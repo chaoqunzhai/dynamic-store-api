@@ -131,7 +131,7 @@ func (OrderCycleCnf) TableName() string {
 }
 
 
-//todo:订单和Redis的映射表
+//todo:订单和Redis的映射表 用于待支付缓存订单
 type OrderToRedisMap struct {
 	Model
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`

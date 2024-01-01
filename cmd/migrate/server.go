@@ -3,7 +3,6 @@ package migrate
 import (
 	"bytes"
 	"fmt"
-	"github.com/go-admin-team/go-admin-core/sdk"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg"
 	"strconv"
 	"text/template"
@@ -13,11 +12,9 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/go-admin-team/go-admin-core/sdk/config"
-	"go-admin/cmd/migrate/migration"
 	_ "go-admin/cmd/migrate/migration/version"
 	_ "go-admin/cmd/migrate/migration/version-local"
 	"go-admin/common/database"
-	"go-admin/common/models"
 )
 
 var (
@@ -56,28 +53,12 @@ func run() {
 	}
 }
 
-func migrateModel() error {
-	host := "*"
-	//默认*即可,因为其他地方获取orm链接 也是通过*获取的
-	db := sdk.Runtime.GetDbByKey(host)
-	if config.DatabasesConfig[host].Driver == "mysql" {
-		//初始化数据库时候用
-		db.Set("gorm:table_options", "ENGINE=InnoDB CHARSET=utf8mb4")
-	}
-	err := db.Debug().AutoMigrate(&models.Migration{})
-	if err != nil {
-		return err
-	}
-	migration.Migrate.SetDb(db.Debug())
-	migration.Migrate.Migrate()
-	return err
-}
 func initDB() {
 	//3. 初始化数据库链接
 	database.Setup()
 	//4. 数据库迁移
 	fmt.Println("数据库迁移开始")
-	_ = migrateModel()
+	//_ = migrateModel()
 	fmt.Println(`数据库基础数据初始化成功`)
 }
 

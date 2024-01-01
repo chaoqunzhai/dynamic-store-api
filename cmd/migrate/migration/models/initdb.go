@@ -10,6 +10,8 @@ import (
 	"gorm.io/gorm"
 )
 
+
+//
 func InitDb(db *gorm.DB) (err error) {
 	filePath := "config/db.sql"
 	if global.Driver == "postgres" {

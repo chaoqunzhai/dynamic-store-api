@@ -135,7 +135,7 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 		//设置订单的商家  = 缓存查询的商家
 		sieShopMap[orderRow.ShopId] = sheetMapRow[orderRow.ShopId]
 		lineRowsData.DeliveryData[orderRow.LineId] = sieShopMap
-		fmt.Println("线路!!!",orderRow.LineId,"名字",orderRow.Line,"商家",KEY)
+		//fmt.Println("线路!!!",orderRow.LineId,"名字",orderRow.Line,"商家",KEY)
 		ResultData[orderRow.LineId] = lineRowsData
 	}
 
