@@ -22,7 +22,7 @@ type Orders struct {
 	ShopId    int       `gorm:"index;comment:关联客户"`
 	Line      string    `gorm:"size:16;comment:路线名称"`
 	LineId    int       `json:"line_id" gorm:"index;type:bigint;comment:线路ID"`
-	Status    int       `gorm:"type:tinyint(1);default:0;index;comment:订单的状态,0:待配送,1:配送中,2:已配送,3:退回,4:退款"`
+	Status    int       `gorm:"type:tinyint(1);default:0;index;comment:订单的状态,1:待配送,2:配送中,3:退货中,4.已驳回,5:订单完结"`
 	DeliveryCode string `json:"delivery_code" gorm:"size:9;index;comment:核销码"`
 	WriteOffStatus  int `json:"write_off_status" gorm:"type:tinyint(1);default:0;index;comment:核销状态,0:未核销 1:核销"`
 	PayMoney     float64   `gorm:"comment:最终实际支付成功的价"`

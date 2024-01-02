@@ -72,18 +72,18 @@ const (
 
 	OrderStatusClose = -1 //订单关闭
 
+	//订单状态
 	OrderStatusWaitPay = 0 //默认状态，就是待支付
 
-	OrderStatusWaitSend = 1//待发货
+	OrderStatusWaitSend = 1//支持成功: 待发货
 
-	OrderWaitConfirm = 2//待收货
+	OrderDelivery = 2// 配送中 到了配送周期 默认就成了一个配送中
 
-	OrderWaitRefunding  = 3 //售后
+	OrderWaitReturn = 3 // 退货 /退款中
 
-	OrderStatusRefund   = 4 //退款
+	OrderStatusReject   = 4 //已驳回
 
-	OrderStatusReturn = 5 //退货
-
+	OrderStatusOver = 5 //订单收尾,那就是收货了,确认了
 
 	OrderPayStatusOfflineSuccess = 6 	//线下付款已收款
 
@@ -93,7 +93,6 @@ const (
 
 	OrderStatusWaitPayDefault = 9 //下单了,但是没有支付的状态,还是放在redis中的
 
-	OrderStatusOver = 10 //订单收尾,那就是收货了,确认了
 
 	//分表的逻辑
 	SplitOrder                 = 1
@@ -157,6 +156,8 @@ const (
 	ExportSelfOrder = 1 //自提订单
 	ExportReportOrder =2 //配送报表
 
+
+
 )
 
 func GetRoleCname(v int) string  {
@@ -200,14 +201,12 @@ func OrderStatus(v int) string {
 		return "待支付"
 	case OrderStatusWaitSend:
 		return "待发货"
-	case OrderWaitConfirm:
-		return "待收货"
-	case OrderWaitRefunding:
-		return "售后"
-	case OrderStatusRefund:
-		return "退款"
-	case OrderStatusReturn:
+	case OrderDelivery:
+		return "配送中"
+	case OrderWaitReturn:
 		return "退货"
+	case OrderStatusReject:
+		return "已驳回"
 	case OrderPayStatusOfflineSuccess:
 		return "线下付款已收款"
 	case OrderPayStatusOfflineDefault:

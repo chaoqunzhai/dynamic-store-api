@@ -51,4 +51,13 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 		r2.GET("/times", api.Times)
 
 	}
+
+	//订单修改操作
+	r3  := v1.Group("/orders").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole())
+
+	{
+		//todo:对订单进行修改
+		r3.POST("/edit/:orderId")
+
+	}
 }
