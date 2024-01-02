@@ -57,7 +57,7 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 
 	{
 		//todo:对订单进行修改
-		r3.POST("/edit/:orderId")
+		r3.POST("/edit/:orderId",api.EditOrder)
 
 	}
 }

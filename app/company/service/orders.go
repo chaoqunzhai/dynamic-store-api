@@ -8,11 +8,11 @@ import (
 	sys "go-admin/app/admin/models"
 	"go-admin/app/company/models"
 	"go-admin/app/company/service/dto"
+	models3 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/actions"
 	"go-admin/common/business"
 	cDto "go-admin/common/dto"
 	models2 "go-admin/common/models"
-	models3 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/utils"
 	"go-admin/config"
 	"go-admin/global"
@@ -263,6 +263,10 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 		"all_money_cn":utils.ConvertNumToCny(object.GoodsMoney),
 		"order_money_cn":utils.ConvertNumToCny(object.OrderMoney),
 		"run_time":"",
+		"balance":map[string]interface{}{
+			"credit":shopRow.Credit,
+			"balance":shopRow.Balance,
+		},
 	}
 	if shopRow.Id > 0{
 		result["shop_name"] =shopRow.Name

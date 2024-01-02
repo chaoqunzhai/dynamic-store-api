@@ -104,6 +104,13 @@ const (
 
 	//周期配送下单索引表
 	SplitOrderCycleSubTableName = "order_cycle_cnf"
+
+	//订单修改表
+	SplitOrderEdit = "order_edit"
+
+	//订单退换货表
+	SplitOrderReturn = "order_return"
+
 	//Cycle 配送的设置
 	//每天
 	CyCleTimeDay = 1

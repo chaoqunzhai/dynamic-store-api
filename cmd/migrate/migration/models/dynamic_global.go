@@ -69,6 +69,8 @@ type SplitTableMap struct {
 	OrderTable string `gorm:"size:30;index;comment:订单表"`                   //分表的名称
 	OrderSpecs string `gorm:"size:30;index;comment:订单规格表"`
 	OrderCycle string `gorm:"size:30;index;comment:周期配送下单索引表"`
+	OrderEdit string  `gorm:"size:30;index;comment:订单修改表"`
+	OrderReturn string `gorm:"size:30;index;comment:订单退货表"`
 }
 
 func (SplitTableMap) TableName() string {

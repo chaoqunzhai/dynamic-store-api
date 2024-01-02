@@ -62,6 +62,7 @@ type Orders struct {
 	CouponMoney float64 `json:"coupon_money" gorm:"comment:优惠卷金额"`
 	Buyer string `json:"buyer" gorm:"size:24;comment:留言"`
 	Desc string `json:"desc" gorm:"size:16;comment:备注"`
+	Edit bool `json:"edit" gorm:"comment:是否被修改"`
 }
 
 func (Orders) TableName() string {
@@ -81,8 +82,10 @@ type OrderSpecs struct {
 	Unit      string         `json:"unit" gorm:"type:varchar(8);comment:单位"`
 	Number    int            `gorm:"comment:下单规格数"`
 	Status    int            `gorm:"type:tinyint(1);default:1;index;comment:配送状态"`
-	Money     float64        `gorm:"comment:规格的价格"`
+	Money     float64        `gorm:"comment:规格的单价"`
+	AllMoney     float64        `json:"all_money" gorm:"comment:计算的规格价格"` //这里 提交的时候 统一计算好,
 	Image     string  `gorm:"size:15;comment:商品图片路径"`
+	Edit bool `json:"edit" gorm:"comment:是否被修改"`
 }
 
 func (OrderSpecs) TableName() string {
@@ -144,4 +147,61 @@ type OrderToRedisMap struct {
 }
 func (OrderToRedisMap) TableName() string {
 	return "order_to_redis_map"
+}
+
+
+//退货表
+
+type OrderReturn struct {
+	Model
+	Uid string `json:"uid" gorm:"size:8;index;comment:关联的配送周期统一UID"`
+	CreateBy int `json:"createBy" gorm:"index;comment:退货人"`
+	CreatedAt models.XTime `json:"createdAt" gorm:"comment:退货日期"`
+	UpdatedAt models.XTime `json:"updatedAt" gorm:"comment:操作时间"`
+	OrderId string `json:"order_id" gorm:"index;size:20;comment:与退货单相关的原始订单的编号"`
+	ReturnId string `json:"return_id" gorm:"index;size:20;comment:退货单号"`
+	CId       int       `gorm:"index;comment:大BID"`
+	ShopId    int       `gorm:"index;comment:关联小B客户"`
+	LineId    int       `json:"line_id" gorm:"index;type:bigint;comment:退货线路ID"`
+	DriverId    int         `gorm:"index;comment:退货处理司机ID"`
+	AddressId int `json:"user_address_id" gorm:"index;comment:用户的收货地址"`
+	GoodsId int `json:"goods_id" gorm:"comment:退货商品ID"`
+	SpecId int `gorm:"index;comment:规格ID"`
+	SpecsName string         `gorm:"size:30;comment:规格名称"`
+	Unit      string         `json:"unit" gorm:"type:varchar(8);comment:单位"`
+	Number    int            `gorm:"comment:商品数量"`
+	Price     float64        `gorm:"comment:商品单价"`
+	Image     string  `gorm:"size:15;comment:商品图片"`
+	Money float64 `gorm:"comment:退货金额"`
+	SDesc string `json:"s_desc" gorm:"size:24;comment:退货原因"`
+	CDesc string `json:"c_desc" gorm:"size:24;comment:大B处理信息"`
+	Status    int            `gorm:"type:tinyint(1);default:1;index;comment:退货状态, 待处理 处理中 处理完成"`
+	OverStatus int    `gorm:"type:tinyint(1);default:1;index;comment:退货成功、退货失败"`
+
+}
+func (OrderReturn) TableName() string {
+	return "order_return"
+}
+
+
+// 订单修改记录表
+// 只记录数量,其他元素只需去订单中查找即可
+
+type OrderEdit struct {
+	Model
+	CId       int       `gorm:"index;comment:大BID"`
+	CreateBy int `json:"createBy" gorm:"index;comment:修改人"`
+	CreatedAt models.XTime `json:"createdAt" gorm:"comment:修改日期"`
+	OrderId string `json:"order_id" gorm:"index;size:20;comment:订单ID"`
+	SpecId int `json:"spec_id" gorm:"comment:规格表ID"`
+	SourerNumber int `json:"sourer_number" gorm:"comment:原数量"`
+	SourerMoney float64 `json:"sourer_money" gorm:"comment:原价格"`
+	Number    int            `gorm:"comment:新数量"`
+	Money float64 `gorm:"comment:新价格"`
+	Status    int            `gorm:"type:tinyint(1);default:1;index;comment:修改结果"`
+	Desc string  `json:"c_desc" gorm:"size:24;comment:修改内容描述"`
+}
+
+func (OrderEdit) TableName() string {
+	return "order_edit_record"
 }

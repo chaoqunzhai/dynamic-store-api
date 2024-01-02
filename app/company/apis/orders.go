@@ -13,6 +13,8 @@ import (
 	customUser "go-admin/common/jwt/user"
 	models3 "go-admin/common/models"
 	"go-admin/common/utils"
+	"gorm.io/gorm"
+	"math"
 	"time"
 
 	"go-admin/global"
@@ -905,4 +907,129 @@ func (e Orders) Delete(c *gin.Context) {
 		return
 	}
 	e.OK(req.GetId(), "删除成功")
+}
+
+func (e Orders) EditOrder(c *gin.Context) {
+	req := dto.OrdersEditReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	orderId:=c.Param("orderId")
+
+
+
+	fmt.Println("orderId",orderId)
+
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	//分表配置
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+
+
+	var object models.Orders
+
+	orderErr := e.Orm.Table(splitTableRes.OrderTable).Select("id").Where("order_id = ?",orderId).First(&object).Error
+	if orderErr != nil && errors.Is(orderErr, gorm.ErrRecordNotFound) {
+		e.Error(500, nil,"订单不存在")
+		return
+	}
+	if orderErr != nil {
+		e.Error(500, nil,"订单不存在")
+		return
+	}
+
+	var shopRow models2.Shop
+	e.Orm.Model(&models2.Shop{}).Scopes(actions.PermissionSysUser(shopRow.TableName(),userDto)).Where("id = ? ", object.ShopId).Limit(1).Find(&shopRow)
+
+	//如果反复的进行对订单操作,
+	//1.只记录一条记录
+
+	for _,order:=range req.EditList{
+
+		var orderSpecs models2.OrderSpecs
+		//是否已经创建记录
+		e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ? and id = ? and c_id = ?",orderId,order.Id,userDto.CId).Limit(1).Find(&orderSpecs)
+		if orderSpecs.Id == 0 {
+			continue
+		}
+		//只要一直操作就会一直记录
+		editRow:=&models2.OrderEdit{
+			CreateBy: userDto.UserId,
+			OrderId: orderId,
+			SpecId: order.Id,
+			SourerMoney: orderSpecs.AllMoney,
+			SourerNumber: orderSpecs.Number,
+			Number: order.NewAllNumber,
+			Money: order.NewAllMoney,
+			Desc: req.Desc,
+		}
+		e.Orm.Table(splitTableRes.OrderEdit).Create(&editRow)
+
+		//同时修改规格的订单
+		e.Orm.Table(splitTableRes.OrderSpecs).Where("id = ?",orderSpecs.Id).Updates(map[string]interface{}{
+			"edit":true, //修改了
+			"all_money":order.NewAllMoney, //规格用自己的价格
+			"number":order.NewAllNumber, //变更后的数量
+		})
+		//总的大订单Order也是需要进行重新计价
+	}
+
+	var ActionMode string
+	var Scene string
+	Scene = fmt.Sprintf("变更价格为 %v",math.Abs(req.Money))
+	if req.Reduce { //减少数量 那就是返钱
+		ActionMode = global.UserNumberAdd
+	}
+	if req.Increase { //新增数量 那就是需要额外扣钱
+		ActionMode = global.UserNumberReduce
+
+	}
+
+	//操作余额的时候 也是需要进行记录
+	switch req.Deduction {
+	case global.PayTypeBalance:
+
+		shopRow.Balance -=req.Money
+		row:=models2.ShopBalanceLog{
+			CId: userDto.CId,
+			ShopId: shopRow.Id,
+			Desc: req.Desc,
+			Money: math.Abs(req.Money),
+			Scene:fmt.Sprintf("后台管理员[%v] %v",userDto.Username,Scene),
+			Action: ActionMode,
+			Type: global.ScanAdmin,
+		}
+		row.CreateBy = user.GetUserId(c)
+		e.Orm.Create(&row)
+	case global.PayTypeCredit:
+		shopRow.Credit -=req.Money
+		row:=models2.ShopCreditLog{
+			CId: userDto.CId,
+			ShopId: shopRow.Id,
+			Desc: req.Desc,
+			Number: math.Abs(req.Money),
+			Scene:fmt.Sprintf("后台管理员[%v] %v",userDto.Username,Scene),
+			Action: ActionMode,
+			Type: global.ScanAdmin,
+		}
+		row.CreateBy = user.GetUserId(c)
+		e.Orm.Create(&row)
+	}
+	e.Orm.Table(splitTableRes.OrderTable).Select("id").Updates(map[string]interface{}{
+		"edit":true,
+	})
+
+	e.OK("","更新成功")
+	return
+
 }

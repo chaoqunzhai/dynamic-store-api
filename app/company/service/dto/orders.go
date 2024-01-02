@@ -201,3 +201,18 @@ type OrderSpecsRow struct {
 	Number int `json:"number"`
 
 }
+
+type OrdersEditReq struct {
+	EditList []struct {
+		Id       int `json:"id"` //规格ID
+		NewAllNumber   int `json:"new_all_number"` //单规格新的总数量
+		NewAllMoney float64 `json:"new_all_money"` //单规格新的总价格
+	} `json:"editList"`
+	Deduction int    `json:"deduction"` //扣款方式|退还方式 1:余额 2:授信额
+	Reduce    bool   `json:"reduce"` //减少数量
+	Increase  bool   `json:"increase"` //新增数量
+	Number    int    `json:"number"` //数量
+	Money     float64    `json:"money"` //费用 正数:需要补缴  负数:退还费用
+	MoneyStr  string `json:"money_str"` //文字描述
+	Desc      string `json:"desc"` //修改描述
+}

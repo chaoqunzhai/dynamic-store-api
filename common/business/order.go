@@ -20,6 +20,8 @@ type TableRow struct {
 	OrderTable string `json:"order_table"`                   //订单表
 	OrderSpecs string `json:"order_specs"` //订单规格表
 	OrderCycle string `json:"order_cycle"` //周期配送下单索引表
+	OrderEdit string `json:"order_edit"` //订单修改表
+	OrderReturn string `json:"order_return"` //订单退换货表
 }
 func (t *GetSplitTable)GetTableMap() (res TableRow)  {
 	var splitRow models2.SplitTableMap
@@ -27,18 +29,20 @@ func (t *GetSplitTable)GetTableMap() (res TableRow)  {
 		OrderTable: global.SplitOrderDefaultTableName,
 		OrderSpecs: global.SplitOrderDefaultSubTableName,
 		OrderCycle: global.SplitOrderCycleSubTableName,
+		OrderEdit:global.SplitOrderEdit,
+		OrderReturn: global.SplitOrderReturn,
 	}
-	t.Orm.Model(&models2.SplitTableMap{}).Select("order_table,order_specs,order_cycle,id").Where("c_id = ? and enable = ? ", t.CId, true).Limit(1).Find(&splitRow)
+	t.Orm.Model(&models2.SplitTableMap{}).Where("c_id = ? and enable = ? ", t.CId, true).Limit(1).Find(&splitRow)
 
 	if splitRow.Id == 0 {
 		return  res
 	}
-
-
 	return TableRow{
 		OrderTable: splitRow.OrderTable,
 		OrderSpecs: splitRow.OrderSpecs,
 		OrderCycle: splitRow.OrderCycle,
+		OrderEdit:  splitRow.OrderEdit,
+		OrderReturn: splitRow.OrderReturn,
 	}
 }
 
