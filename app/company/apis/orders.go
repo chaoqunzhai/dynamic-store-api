@@ -181,13 +181,7 @@ func (e Orders) GetPage(c *gin.Context) {
 	result := make([]map[string]interface{}, 0)
 	for _, row := range list {
 
-		//如果支付金额为0
-		PayMoney:=row.PayMoney
-		if row.PayMoney == 0  && row.PayType < global.PayTypeOnlineWechat{
-			if row.DeductionMoney > 0 {
-				PayMoney = row.DeductionMoney
-			}
-		}
+
 		var specCount int64
 		e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ?", row.OrderId).Count(&specCount)
 
@@ -201,7 +195,7 @@ func (e Orders) GetPage(c *gin.Context) {
 			"delivery_str": row.DeliveryStr,
 			"count":          row.Number,
 			"specs_count":specCount,
-			"money":         PayMoney,
+			"money":         row.OrderMoney,
 			"coupon_money":row.CouponMoney,
 			"goods_money":row.GoodsMoney,
 			"delivery_money":row.DeliveryMoney,
@@ -213,6 +207,12 @@ func (e Orders) GetPage(c *gin.Context) {
 			"pay_status":     global.GetOrderPayStatus(row.PayStatus),
 			"created_at":     row.CreatedAt,
 			"delivery":row.DeliveryType,
+		}
+		if row.Edit{
+			//订单调整了
+			r["goods_money"] = row.OrderMoney
+			//调整的时候 又把优惠卷加回去了
+			r["money"] = row.OrderMoney - row.CouponMoney
 		}
 		switch row.DeliveryType {
 		case global.ExpressStore:
@@ -923,10 +923,6 @@ func (e Orders) EditOrder(c *gin.Context) {
 
 	orderId:=c.Param("orderId")
 
-
-
-	fmt.Println("orderId",orderId)
-
 	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {
 		e.Error(500, err, err.Error())
@@ -936,9 +932,9 @@ func (e Orders) EditOrder(c *gin.Context) {
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
 
-	var object models.Orders
+	var orderObject models.Orders
 
-	orderErr := e.Orm.Table(splitTableRes.OrderTable).Select("id").Where("order_id = ?",orderId).First(&object).Error
+	orderErr := e.Orm.Table(splitTableRes.OrderTable).Where("order_id = ?",orderId).Limit(1).Find(&orderObject).Error
 	if orderErr != nil && errors.Is(orderErr, gorm.ErrRecordNotFound) {
 		e.Error(500, nil,"订单不存在")
 		return
@@ -949,11 +945,16 @@ func (e Orders) EditOrder(c *gin.Context) {
 	}
 
 	var shopRow models2.Shop
-	e.Orm.Model(&models2.Shop{}).Scopes(actions.PermissionSysUser(shopRow.TableName(),userDto)).Where("id = ? ", object.ShopId).Limit(1).Find(&shopRow)
+	e.Orm.Model(&models2.Shop{}).Where("id = ? ", orderObject.ShopId).Limit(1).Find(&shopRow)
 
 	//如果反复的进行对订单操作,
 	//1.只记录一条记录
 
+
+	sourceOrderNumber := orderObject.Number
+	sourceOrderMoney := orderObject.OrderMoney //订单金额进行操作
+
+	fmt.Printf("原订单 数量:%v 金额:%v\n",sourceOrderNumber,sourceOrderMoney)
 	for _,order:=range req.EditList{
 
 		var orderSpecs models2.OrderSpecs
@@ -962,44 +963,67 @@ func (e Orders) EditOrder(c *gin.Context) {
 		if orderSpecs.Id == 0 {
 			continue
 		}
+		if orderSpecs.AllMoney == 0 {
+			orderSpecs.AllMoney = utils.RoundDecimalFlot64(orderSpecs.Money  * float64(orderSpecs.Number))
+		}
 		//只要一直操作就会一直记录
 		editRow:=&models2.OrderEdit{
 			CreateBy: userDto.UserId,
 			OrderId: orderId,
-			SpecId: order.Id,
+			SpecId: orderSpecs.Id,
 			SourerMoney: orderSpecs.AllMoney,
 			SourerNumber: orderSpecs.Number,
 			Number: order.NewAllNumber,
 			Money: order.NewAllMoney,
 			Desc: req.Desc,
 		}
+		editRow.CId = userDto.CId
 		e.Orm.Table(splitTableRes.OrderEdit).Create(&editRow)
 
 		//同时修改规格的订单
 		e.Orm.Table(splitTableRes.OrderSpecs).Where("id = ?",orderSpecs.Id).Updates(map[string]interface{}{
 			"edit":true, //修改了
-			"all_money":order.NewAllMoney, //规格用自己的价格
+			"all_money":order.NewAllMoney, //规格用自己新的价格
 			"number":order.NewAllNumber, //变更后的数量
 		})
 		//总的大订单Order也是需要进行重新计价
-	}
+		//总价只需要记录多余 还是少于即可,因为总价里面有 优惠卷各种抵扣
+		//新数据 - 原数据
+		sourceOrderNumber +=  order.NewAllNumber -  orderSpecs.Number
+		sourceOrderMoney  +=  order.NewAllMoney - orderSpecs.AllMoney
 
+		fmt.Printf("新的订单 数量:%v 金额:%v\n",sourceOrderNumber,sourceOrderMoney)
+		if sourceOrderNumber < 0 {
+			sourceOrderNumber = 0
+		}
+		if sourceOrderMoney < 0 {
+			sourceOrderMoney = 0
+		}
+	}
+	//把优惠卷的价格也加上, 因为原来的价格是 抛去优惠卷算回来的
+	sourceOrderMoney +=orderObject.CouponMoney
+	fmt.Println("增加了优惠卷",orderObject.CouponMoney)
 	var ActionMode string
 	var Scene string
-	Scene = fmt.Sprintf("变更价格为 %v",math.Abs(req.Money))
+	var EditAction string
 	if req.Reduce { //减少数量 那就是返钱
 		ActionMode = global.UserNumberAdd
+		Scene = fmt.Sprintf("订单编辑退回 %v",math.Abs(req.Money))
+		EditAction = "退回"
 	}
 	if req.Increase { //新增数量 那就是需要额外扣钱
 		ActionMode = global.UserNumberReduce
-
+		Scene = fmt.Sprintf("订单编辑抵扣 %v",math.Abs(req.Money))
+		EditAction = "抵扣"
 	}
 
+	updateMap:=make(map[string]interface{},0)
 	//操作余额的时候 也是需要进行记录
 	switch req.Deduction {
 	case global.PayTypeBalance:
-
+		EditAction = "余额" + EditAction
 		shopRow.Balance -=req.Money
+		updateMap["balance"] = shopRow.Balance
 		row:=models2.ShopBalanceLog{
 			CId: userDto.CId,
 			ShopId: shopRow.Id,
@@ -1012,7 +1036,9 @@ func (e Orders) EditOrder(c *gin.Context) {
 		row.CreateBy = user.GetUserId(c)
 		e.Orm.Create(&row)
 	case global.PayTypeCredit:
+		EditAction = "授信额" + EditAction
 		shopRow.Credit -=req.Money
+		updateMap["credit"] = shopRow.Credit
 		row:=models2.ShopCreditLog{
 			CId: userDto.CId,
 			ShopId: shopRow.Id,
@@ -1025,9 +1051,14 @@ func (e Orders) EditOrder(c *gin.Context) {
 		row.CreateBy = user.GetUserId(c)
 		e.Orm.Create(&row)
 	}
-	e.Orm.Table(splitTableRes.OrderTable).Select("id").Updates(map[string]interface{}{
+	//fmt.Println("小Bid",shopRow.Id,"订单ID",orderObject.Id,"价格",sourceOrderMoney,sourceOrderNumber)
+	e.Orm.Table(splitTableRes.OrderTable).Where("id = ?",orderObject.Id).Updates(map[string]interface{}{
+		"order_money":sourceOrderMoney,
+		"number":sourceOrderNumber,
 		"edit":true,
+		"edit_action":EditAction,
 	})
+	e.Orm.Model(&models2.Shop{}).Where("id = ?",shopRow.Id).Updates(&updateMap)
 
 	e.OK("","更新成功")
 	return

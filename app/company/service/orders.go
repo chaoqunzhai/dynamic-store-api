@@ -314,7 +314,10 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 
 	specsList := make([]map[string]interface{}, 0)
 	for _, row := range orderSpecs {
-		allMoney := utils.RoundDecimalFlot64(row.Money  * float64(row.Number))
+
+		if row.AllMoney == 0 {
+			row.AllMoney = utils.RoundDecimalFlot64(row.Money  * float64(row.Number))
+		}
 		ss := map[string]interface{}{
 			"id":         row.Id,
 			"name":       row.SpecsName,
@@ -324,7 +327,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 			"unit":row.Unit,
 			"money":     utils.StringDecimal(row.Money),
 			"number":row.Number,
-			"all_money":fmt.Sprintf("%v", utils.StringDecimal(allMoney)),
+			"all_money":row.AllMoney,
 		}
 		specsList = append(specsList, ss)
 	}

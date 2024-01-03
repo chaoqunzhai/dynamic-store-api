@@ -167,6 +167,18 @@ const (
 
 )
 
+func GetActionStr(v string) string  {
+	switch v {
+	case UserNumberAdd:
+		return "增加"
+	case UserNumberSet:
+		return "重设"
+	case UserNumberReduce:
+		return "减少"
+
+	}
+	return "未知"
+}
 func GetRoleCname(v int) string  {
 	switch v {
 	case RoleSuper:

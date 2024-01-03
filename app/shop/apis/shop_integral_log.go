@@ -85,6 +85,7 @@ func (e ShopIntegralLog) GetPage(c *gin.Context) {
 			"number":row.Number,
 			"desc":row.Desc,
 			"scene":row.Scene,
+			"action":global.GetActionStr(row.Action),
 			"created_at":row.CreatedAt,
 			"type":global.GetScanStr(row.Type),
 		}

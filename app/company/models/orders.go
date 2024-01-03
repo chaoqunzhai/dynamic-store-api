@@ -26,7 +26,7 @@ type Orders struct {
 	DeliveryCode string `json:"delivery_code" gorm:"size:9;index;comment:核销码"`
 	WriteOffStatus  int `json:"write_off_status" gorm:"type:tinyint(1);default:0;index;comment:核销状态,0:未核销 1:核销"`
 	PayMoney     float64   `gorm:"comment:最终实际支付成功的价"`
-	OrderMoney float64  `gorm:"comment:最终需要支付价"`
+	OrderMoney float64  `gorm:"comment:最终需要支付价,可能会进行优惠卷,运费 统一计算后的价格"`
 	GoodsMoney float64 `gorm:"comment:商品总价格"`
 	DeductionMoney float64  `json:"deduction_money" gorm:"comment:抵扣费用"`
 	Number    int       `gorm:"comment:下单数量"`
@@ -36,7 +36,7 @@ type Orders struct {
 	DeliveryType int `json:"delivery_type" gorm:"comment:配送类型.1:自提 2:配送"`
 	DeliveryID int `json:"delivery_id" gorm:"comment:关联的配送ID,根据配送类型来查询相关数据"`
 	DeliveryStr  string    `json:"delivery_str" gorm:"size:25;comment:配送文案"`
-	DeliveryMoney float64 `json:"delivery_money" gorm:"comment:配送费"`
+	DeliveryMoney float64 `json:"delivery_money" gorm:"comment:运费"`
 	CouponId int `json:"coupon_id" gorm:"comment:使用优惠卷的ID"`
 	DriverId    int         `gorm:"comment:司机ID"`
 	//如果是同城配送,就是保存的小B地址的ID
@@ -45,6 +45,8 @@ type Orders struct {
 	CouponMoney float64 `json:"coupon_money" gorm:"comment:优惠卷金额"`
 	Buyer string `json:"buyer" gorm:"size:24;comment:留言"`
 	Desc string `json:"desc" gorm:"size:16;comment:备注"`
+	Edit bool `json:"edit" gorm:"comment:是否被修改"`
+	EditAction string `json:"edit_action" gorm:"size:16;comment:退回方式说明"`
 }
 
 func (Orders) TableName(tableName string) string {
@@ -74,6 +76,7 @@ type OrderSpecs struct {
 	Status    int            `gorm:"type:tinyint(1);default:1;index;comment:配送状态"`
 	Money     float64        `gorm:"comment:订单成交的规格价格"`
 	Image     string  `gorm:"size:15;comment:商品图片路径"`
+	AllMoney     float64        `json:"all_money" gorm:"comment:计算的规格价格"` //创建时 计算好
 }
 
 func (OrderSpecs) TableName(tableName string) string {

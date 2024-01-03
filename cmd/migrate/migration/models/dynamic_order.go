@@ -63,6 +63,7 @@ type Orders struct {
 	Buyer string `json:"buyer" gorm:"size:24;comment:留言"`
 	Desc string `json:"desc" gorm:"size:16;comment:备注"`
 	Edit bool `json:"edit" gorm:"comment:是否被修改"`
+	EditAction string `json:"edit_action" gorm:"size:16;comment:退回方式说明"`
 }
 
 func (Orders) TableName() string {
@@ -83,7 +84,7 @@ type OrderSpecs struct {
 	Number    int            `gorm:"comment:下单规格数"`
 	Status    int            `gorm:"type:tinyint(1);default:1;index;comment:配送状态"`
 	Money     float64        `gorm:"comment:规格的单价"`
-	AllMoney     float64        `json:"all_money" gorm:"comment:计算的规格价格"` //这里 提交的时候 统一计算好,
+	AllMoney     float64        `json:"all_money" gorm:"comment:计算的规格价格"` //可能后面会改
 	Image     string  `gorm:"size:15;comment:商品图片路径"`
 	Edit bool `json:"edit" gorm:"comment:是否被修改"`
 }

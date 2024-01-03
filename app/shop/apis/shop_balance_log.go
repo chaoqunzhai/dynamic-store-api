@@ -87,6 +87,7 @@ func (e ShopBalanceLog) GetPage(c *gin.Context) {
 			"money":row.Money,
 			"desc":row.Desc,
 			"scene":row.Scene,
+			"action":global.GetActionStr(row.Action),
 			"created_at":row.CreatedAt,
 			"type":global.GetScanStr(row.Type),
 		}
