@@ -216,3 +216,8 @@ type OrdersEditReq struct {
 	MoneyStr  string `json:"money_str"` //文字描述
 	Desc      string `json:"desc"` //修改描述
 }
+
+type OrdersReturnReq struct {
+	OrderId string `json:"order_id"` //订单ID
+	SpecsId int `json:"specs_id"` //规格ID
+}

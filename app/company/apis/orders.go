@@ -202,6 +202,7 @@ func (e Orders) GetPage(c *gin.Context) {
 			"line":row.Line,
 			"delivery_type":global.GetExpressCn(row.DeliveryType), //配送类型
 			"pay_type":global.GetPayType(row.PayType),//支付类型
+			"pay_int":row.PayType,
 			"source_type":global.GetOrderSource(row.SourceType),//订单来源
 			"status":         global.OrderStatus(row.Status), //成为DB的订单都是支付成功的订单
 			"pay_status":     global.GetOrderPayStatus(row.PayStatus),
@@ -954,7 +955,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 	sourceOrderNumber := orderObject.Number
 	sourceOrderMoney := orderObject.OrderMoney //订单金额进行操作
 
-	fmt.Printf("原订单 数量:%v 金额:%v\n",sourceOrderNumber,sourceOrderMoney)
+	//fmt.Printf("原订单 数量:%v 金额:%v\n",sourceOrderNumber,sourceOrderMoney)
 	for _,order:=range req.EditList{
 
 		var orderSpecs models2.OrderSpecs
@@ -1002,7 +1003,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 	}
 	//把优惠卷的价格也加上, 因为原来的价格是 抛去优惠卷算回来的
 	sourceOrderMoney +=orderObject.CouponMoney
-	fmt.Println("增加了优惠卷",orderObject.CouponMoney)
+
 	var ActionMode string
 	var Scene string
 	var EditAction string
@@ -1061,6 +1062,31 @@ func (e Orders) EditOrder(c *gin.Context) {
 	e.Orm.Model(&models2.Shop{}).Where("id = ?",shopRow.Id).Updates(&updateMap)
 
 	e.OK("","更新成功")
+	return
+
+}
+
+func (e Orders)ReturnOrder(c *gin.Context)  {
+	req := dto.OrdersReturnReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	if req.SpecsId > 0 {
+
+		fmt.Println("单个规格退回")
+	}else {
+		fmt.Println("整个订单退回")
+	}
+
+
+	e.OK("","操作成功")
 	return
 
 }
