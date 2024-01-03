@@ -1078,12 +1078,19 @@ func (e Orders)ReturnOrder(c *gin.Context)  {
 		return
 	}
 
+	//给订单加一个标记 已被退回
+	//1.如果整个订单退回, 把支付的order_money 都退回原路
+
+	//2.如果单个规格退回, 把这个规格原路退回  如果就一个规格退回 那就是整个订单退回了,还是操作这个规格就行
 	if req.SpecsId > 0 {
 
 		fmt.Println("单个规格退回")
 	}else {
 		fmt.Println("整个订单退回")
 	}
+
+
+
 
 
 	e.OK("","操作成功")
