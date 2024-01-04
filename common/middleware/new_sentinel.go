@@ -21,7 +21,7 @@ func SentinelInit() {
 	if err != nil {
 		fmt.Println("限流器初始化失败")
 	}
-	fmt.Println("初始化测试流控配置成功！！！！！")
+	fmt.Println("初始化流控配置成功！！！！！")
 	_, _ = flow.LoadRules([]*flow.Rule{
 		//下面测试就是: 1秒内最多10个请求,超出的请求 都需要等待800毫秒
 		{
