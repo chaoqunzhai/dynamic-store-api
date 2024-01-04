@@ -123,3 +123,14 @@ type CompanyTasks struct {
 func (CompanyTasks) TableName() string {
 	return "company_tasks"
 }
+
+//退货配置
+
+type OrderReturnCnf struct {
+	BigBRichGlobal
+	Value string `json:"value" gorm:"size:15;comment:配送文案"`
+	Cost float64 `json:"cost" gorm:";comment:配送费用"`
+}
+func (OrderReturnCnf) TableName() string {
+	return "company_order_return_cnf"
+}

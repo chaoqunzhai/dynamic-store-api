@@ -163,6 +163,7 @@ const (
 	ExportSelfOrder = 1 //自提订单
 	ExportReportOrder =2 //配送报表
 
+	MaxCompanyOrderReturnCnf = 6 //最大的退货原因配置
 
 
 )
