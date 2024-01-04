@@ -47,6 +47,7 @@ type Orders struct {
 	Desc string `json:"desc" gorm:"size:16;comment:备注"`
 	Edit bool `json:"edit" gorm:"comment:是否被修改"`
 	EditAction string `json:"edit_action" gorm:"size:16;comment:退回方式说明"`
+	Return int  `gorm:"type:tinyint(1);default:0;index;comment:退还状态 0:非退货 1:大B退货 2:小B申请退货"`
 }
 
 func (Orders) TableName(tableName string) string {

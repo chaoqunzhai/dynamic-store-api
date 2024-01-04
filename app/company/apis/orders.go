@@ -932,7 +932,6 @@ func (e Orders) EditOrder(c *gin.Context) {
 	//分表配置
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
-
 	var orderObject models.Orders
 
 	orderErr := e.Orm.Table(splitTableRes.OrderTable).Where("order_id = ?",orderId).Limit(1).Find(&orderObject).Error
@@ -947,6 +946,26 @@ func (e Orders) EditOrder(c *gin.Context) {
 
 	var shopRow models2.Shop
 	e.Orm.Model(&models2.Shop{}).Where("id = ? ", orderObject.ShopId).Limit(1).Find(&shopRow)
+
+	var CompareAmount float64
+	switch req.Deduction {
+	case global.PayTypeBalance:
+
+		CompareAmount = shopRow.Balance
+	case global.PayTypeCredit:
+
+		CompareAmount = shopRow.Credit
+	default:
+		CompareAmount = -1
+	}
+	if CompareAmount > 0 {
+		if CompareAmount < req.Money{
+			e.Error(500, nil,"不足以进行费用抵扣")
+
+			return
+		}
+	}
+
 
 	//如果反复的进行对订单操作,
 	//1.只记录一条记录
@@ -993,7 +1012,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 		sourceOrderNumber +=  order.NewAllNumber -  orderSpecs.Number
 		sourceOrderMoney  +=  order.NewAllMoney - orderSpecs.AllMoney
 
-		fmt.Printf("新的订单 数量:%v 金额:%v\n",sourceOrderNumber,sourceOrderMoney)
+		//fmt.Printf("新的订单 数量:%v 金额:%v\n",sourceOrderNumber,sourceOrderMoney)
 		if sourceOrderNumber < 0 {
 			sourceOrderNumber = 0
 		}
@@ -1077,20 +1096,61 @@ func (e Orders)ReturnOrder(c *gin.Context)  {
 		e.Error(500, err, err.Error())
 		return
 	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	orderId:=c.Param("orderId")
 
+
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+
+	var orderObject models.Orders
+
+	orderErr := e.Orm.Table(splitTableRes.OrderTable).Where("order_id = ?",orderId).Limit(1).Find(&orderObject).Error
+	if orderErr != nil && errors.Is(orderErr, gorm.ErrRecordNotFound) {
+		e.Error(500, nil,"订单不存在")
+		return
+	}
+	if orderErr != nil {
+		e.Error(500, nil,"订单不存在")
+		return
+	}
+
+	var shopRow models2.Shop
+	e.Orm.Model(&models2.Shop{}).Where("id = ? ", orderObject.ShopId).Limit(1).Find(&shopRow)
+
+	//统一记录到 OrderReturn 表中
+	
 	//给订单加一个标记 已被退回
+
 	//1.如果整个订单退回, 把支付的order_money 都退回原路
 
-	//2.如果单个规格退回, 把这个规格原路退回  如果就一个规格退回 那就是整个订单退回了,还是操作这个规格就行
+	//2.如果单个规格退回, 那就 把这个规格价格原路退还 + 订单减少金额 即可
+	
+	var returnOrderMoney float64 //退还金额
 	if req.SpecsId > 0 {
 
 		fmt.Println("单个规格退回")
+		
 	}else {
 		fmt.Println("整个订单退回")
 	}
 
+	updateMap:=make(map[string]interface{})
+	//支付方式
+	switch orderObject.PayType {
+
+	case global.PayTypeBalance:
+
+		updateMap["balance"] = shopRow.Balance + returnOrderMoney
+	case global.PayTypeCredit:
+		updateMap["credit"] = shopRow.Credit + returnOrderMoney
+	}
 
 
+	fmt.Println("updateMap",updateMap)
 
 
 	e.OK("","操作成功")
