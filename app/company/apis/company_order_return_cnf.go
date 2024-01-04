@@ -142,7 +142,7 @@ func (e CompanyOrderReturnCnf) Insert(c *gin.Context) {
 
 	var count int64
 	e.Orm.Model(&models.CompanyOrderReturnCnf{}).Where("c_id = ?",userDto.CId).Count(&count)
-	if count > global.MaxCompanyOrderReturnCnf {
+	if count >= global.MaxCompanyOrderReturnCnf {
 		e.Error(500, nil,fmt.Sprintf("最多只能创建 %v个配置",global.MaxCompanyOrderReturnCnf))
 		return
 	}
