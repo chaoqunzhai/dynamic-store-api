@@ -106,7 +106,7 @@ const (
 	SplitOrderCycleSubTableName = "order_cycle_cnf"
 
 	//订单修改表
-	SplitOrderEdit = "order_edit"
+	SplitOrderEdit = "order_edit_record"
 
 	//订单退换货表
 	SplitOrderReturn = "order_return"
@@ -163,10 +163,34 @@ const (
 	ExportSelfOrder = 1 //自提订单
 	ExportReportOrder =2 //配送报表
 
-	MaxCompanyOrderReturnCnf = 6 //最大的退货原因配置
+	MaxCompanyOrderReturnCnf = 6 //支持配置 最多退货原因
+
+
+	//售后状态
+	RefundDefault = 1 //售后处理中
+	RefundOk = 2 //售后处理完成
+	RefundOkOverOk = 3 //大B处理同意
+	RefundOkOverReject = -1 //大B驳回
+	RefundOkCancel = -2 //用户主动撤销
 
 
 )
+
+func GetRefundStatus(v int) string {
+	switch v {
+	case RefundDefault:
+		return "处理中"
+	case RefundOk:
+		return "处理完毕"
+	case RefundOkOverOk:
+		return "审核通过"
+	case RefundOkOverReject:
+		return "驳回"
+	case RefundOkCancel:
+		return "撤销"
+	}
+	return "未知"
+}
 
 func GetActionStr(v string) string  {
 	switch v {

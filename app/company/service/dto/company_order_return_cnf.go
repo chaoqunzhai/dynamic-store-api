@@ -38,7 +38,7 @@ func (m *CompanyOrderReturnCnfGetPageReq) GetNeedSearch() interface{} {
 
 type CompanyOrderReturnCnfInsertReq struct {
     Id int `json:"-" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
+    Layer int `json:"layer" comment:"排序"`
     Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"描述信息"`
     CId int `json:"-" comment:"大BID"`
@@ -66,7 +66,7 @@ func (s *CompanyOrderReturnCnfInsertReq) GetId() interface{} {
 
 type CompanyOrderReturnCnfUpdateReq struct {
     Id int `uri:"id" comment:"主键编码"` // 主键编码
-    Layer string `json:"layer" comment:"排序"`
+    Layer int `json:"layer" comment:"排序"`
     Enable bool `json:"enable" comment:"开关"`
     Desc string `json:"desc" comment:"描述信息"`
     CId int `json:"cId" comment:"大BID"`

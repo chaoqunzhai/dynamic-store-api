@@ -5,7 +5,7 @@ import "time"
 // todo:商品信息
 type Goods struct {
 	BigBRichGlobal
-	Name      string       `gorm:"size:50;comment:商品名称"`
+	Name      string       `gorm:"size:30;comment:商品名称"`
 	Subtitle  string       `gorm:"size:8;comment:商品广告"`
 	Image     string       `gorm:"size:100;comment:商品图片路径"`
 	Quota     bool         `gorm:"comment:是否限购"`
@@ -37,7 +37,7 @@ func (GoodsDesc) TableName() string {
 type GoodsSpecs struct {
 	BigBMiniGlobal
 	GoodsId   int     `gorm:"index;comment:商品ID"`
-	Name      string  `gorm:"size:30;comment:规格名称"`
+	Name      string  `gorm:"size:20;comment:规格名称"`
 	Price     float32 `gorm:"comment:售价"`
 	Market float32 `gorm:"comment:市场价" json:"market"`
 	Original  float32 `gorm:"comment:进货价"`
