@@ -8,6 +8,7 @@ type OrderTrade struct {
 	CloseHours int `json:"close_hours" gorm:"size:1;comment:未支付订单关闭时间"`
 	ReceiveDays int `json:"receive_days" gorm:"size:1;comment:已发货订单,后自动确认收货"`
 	RefundDays int `json:"refund_days" gorm:"size:1;comment:已完成订单,天内允许申请售后"`
+	SubNumber int `json:"sub_number" gorm:"size:1;comment:一个订单最多提交售后次数"`
 }
 func (OrderTrade) TableName() string {
 	return "company_order_trade"

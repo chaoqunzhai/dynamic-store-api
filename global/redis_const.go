@@ -38,6 +38,9 @@ const (
 
 	//订单完成后，用户在指定期限内可申请售后，设置0天不允许申请
 	OrderRefundDays = 3
+
+	//最多提交售后次数
+	OrderRefundSubNumber = 3
 	//关闭的订单只保留20分钟即可
 	OrderCloseExpirationTime = 20 *time.Minute
 

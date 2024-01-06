@@ -17,6 +17,7 @@ type TradeInsertReq struct {
 	CloseHours int `json:"close_hours" gorm:"size:1;comment:是否开启余额支付"`
 	ReceiveDays int `json:"receive_days" gorm:"size:1;comment:是否开启阿里支付"`
 	RefundDays int `json:"refund_days" gorm:"size:1;comment:是否开启微信支付"`
+	SubNumber int `json:"sub_number"`
 
 }
 func (e *Trade) Create(c *gin.Context) {
@@ -45,6 +46,7 @@ func (e *Trade) Create(c *gin.Context) {
 
 		object.CloseHours = req.CloseHours
 		object.RefundDays = req.RefundDays
+		object.SubNumber = req.SubNumber
 		object.ReceiveDays = req.ReceiveDays
 		e.Orm.Save(&object)
 	}else {
@@ -52,6 +54,7 @@ func (e *Trade) Create(c *gin.Context) {
 			CloseHours: req.CloseHours,
 			RefundDays: req.RefundDays,
 			ReceiveDays: req.ReceiveDays,
+			SubNumber: req.SubNumber,
 		}
 		trade.CId = userDto.CId
 		trade.Enable = true
@@ -82,6 +85,7 @@ func (e Trade) Detail(c *gin.Context) {
 			CloseHours: int(global.OrderExpirationTime.Minutes()),
 			ReceiveDays: global.OrderReceiveDays,
 			RefundDays: global.OrderRefundDays,
+			SubNumber: global.OrderRefundSubNumber,
 		}
 		object.Enable = true
 		object.CId = userDto.CId
