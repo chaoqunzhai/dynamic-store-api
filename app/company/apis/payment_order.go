@@ -89,6 +89,7 @@ func (e PaymentOrder) Update(c *gin.Context) {
 		return
 	}
 
+
 	var paymentObject models.UserApplyPaymentOrder
 	e.Orm.Model(&models.UserApplyPaymentOrder{}).Where("c_id = ? and id = ?",userDto.CId,req.Id).Limit(1).Find(&paymentObject)
 	if paymentObject.Id == 0 {
@@ -96,6 +97,10 @@ func (e PaymentOrder) Update(c *gin.Context) {
 		e.Error(500, errors.New("数据不存在"), "数据不存在")
 		return
 	}
+
+	var shopUserObject sys.SysShopUser
+	e.Orm.Model(&shopUserObject).Where("c_id = ? and user_id = ?",userDto.CId,paymentObject.CreateBy).Limit(1).Find(&shopUserObject)
+
 	updateMap:=make(map[string]interface{},0)
 	updateMap["status"] = req.Status
 	updateMap["use_to"] = req.UseTo
@@ -127,8 +132,8 @@ func (e PaymentOrder) Update(c *gin.Context) {
 
 	case 1://加入余额中
 		//价格加入到用户余额中
-		balance := shopObject.Balance + paymentObject.Money
-		Money,_:=utils.RoundDecimal(balance).Float64()
+
+		Money,_:=utils.RoundDecimal(shopObject.Balance + paymentObject.Money).Float64()
 		e.Orm.Model(&models2.Shop{}).Where("c_id = ? and user_id = ?",userDto.CId,paymentObject.CreateBy).Updates(map[string]interface{}{
 			"balance":Money,
 		})
@@ -137,7 +142,7 @@ func (e PaymentOrder) Update(c *gin.Context) {
 			CId: userDto.CId,
 			ShopId: shopObject.Id,
 			Money: paymentObject.Money,
-			Scene:fmt.Sprintf("用户[%v] 提交付款单,审批通过,增加余额:%v",userDto.Username,paymentObject.Money),
+			Scene:fmt.Sprintf("用户[%v] 提交付款单,%v审批通过,增加余额:%v",shopUserObject.Username,userDto.Username,paymentObject.Money),
 			Action: global.UserNumberAdd, //增加
 			Type: global.ScanAdmin,
 		}
@@ -145,8 +150,8 @@ func (e PaymentOrder) Update(c *gin.Context) {
 		e.Orm.Create(&row)
 	case 2://加入到授信额中
 		//价格加入到用户授信额中
-		credit := shopObject.Credit + paymentObject.Money
-		Money,_:=utils.RoundDecimal(credit).Float64()
+
+		Money,_:=utils.RoundDecimal( shopObject.Credit + paymentObject.Money).Float64()
 		e.Orm.Model(&models2.Shop{}).Where("c_id = ? and user_id = ?",userDto.CId,paymentObject.CreateBy).Updates(map[string]interface{}{
 			"credit":Money,
 		})
@@ -155,7 +160,7 @@ func (e PaymentOrder) Update(c *gin.Context) {
 			CId: userDto.CId,
 			ShopId: shopObject.Id,
 			Number: paymentObject.Money,
-			Scene:fmt.Sprintf("用户[%v] 提交付款单,审批通过,增加授信额:%v",userDto.Username,paymentObject.Money),
+			Scene:fmt.Sprintf("用户[%v] 提交付款单,%v审批通过,增加授信额:%v",shopUserObject.Username,userDto.Username,paymentObject.Money),
 			Action: global.UserNumberAdd, //增加
 			Type: global.ScanAdmin,
 		}

@@ -231,8 +231,16 @@ type OrdersRefundPageReq struct {
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:order_return" comment:"创建时间"`
 	ShopId         int `form:"shopId"  search:"type:exact;column:shop_id;table:order_return" comment:"关联客户"`
 	Status         int `form:"status"  search:"type:exact;column:status;table:order_return" comment:"配送状态"`
-	OverStatus         int `form:"over_status"  search:"type:exact;column:over_status;table:order_return" comment:"审批状态"`
 }
 func (m *OrdersRefundPageReq) GetNeedSearch() interface{} {
 	return *m
+}
+
+type RefundAuditReq struct {
+	RefundId string `json:"refund_id"` //订单ID
+	CDesc string `json:"c_desc"`//描述
+	Status int `json:"status"` //审批状态
+	RefundMoney float64 `json:"refund_money"` //退款金额
+	RefundMoneyType int `json:"refund_money_type"` //退款方式
+
 }

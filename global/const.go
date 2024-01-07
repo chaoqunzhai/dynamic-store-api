@@ -169,7 +169,6 @@ const (
 	//售后状态
 	RefundDefault = 1 //售后处理中
 	RefundOk = 2 //售后处理完成
-	RefundOkOverOk = 3 //大B处理同意
 	RefundOkOverReject = -1 //大B驳回
 	RefundOkCancel = -2 //用户主动撤销
 	//大B处理售后
@@ -197,10 +196,8 @@ func GetRefundStatus(v int) string {
 	switch v {
 	case RefundDefault:
 		return "处理中"
-	case RefundOk:
+	case RefundOk: //也就是审核通过
 		return "处理完毕"
-	case RefundOkOverOk:
-		return "审核通过"
 	case RefundOkOverReject:
 		return "驳回"
 	case RefundOkCancel:

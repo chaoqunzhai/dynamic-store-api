@@ -25,8 +25,10 @@ func registerRefundOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTM
 	r := v1.Group("/orders/refund").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 
 	{
-		//todo:订单列表
+
 		r.GET("", api.GetPage)
+
+		r.POST("/audit",api.Audit)
 	}
 
 }

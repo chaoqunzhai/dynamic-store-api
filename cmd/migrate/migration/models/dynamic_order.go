@@ -162,8 +162,10 @@ func (OrderToRedisMap) TableName() string {
 
 type OrderReturn struct {
 	Model
+	PayType        int          `json:"pay_type" gorm:"type:tinyint(1);default:1;comment:订单支付方式"`
 	Uid        string       `json:"uid" gorm:"size:8;index;comment:关联的配送周期统一UID"`
 	CreateBy   int          `json:"createBy" gorm:"index;comment:退货人"`
+	AuditBy int  `json:"audit_by" gorm:"index;comment:审批人"`
 	CreatedAt  models.XTime `json:"createdAt" gorm:"comment:退货日期"`
 	UpdatedAt  models.XTime `json:"updatedAt" gorm:"comment:操作时间"`
 	OrderId    string       `json:"order_id" gorm:"index;size:20;comment:与退货单相关的原始订单的编号"`
@@ -190,7 +192,6 @@ type OrderReturn struct {
 	CDesc      string       `json:"c_desc" gorm:"size:24;comment:大B处理信息"`
 	Reason string `json:"reason"   gorm:"size:15;comment:售后发起原因"`
 	Status     int          `json:"status" gorm:"type:tinyint(1);default:1;index;comment:退货状态, 1:处理中 2:处理完成"`
-	OverStatus int          `json:"over_status" gorm:"type:tinyint(1);default:1;index;comment:  1:处理中 3:大B同意、-1:驳回"`
 }
 
 func (OrderReturn) TableName() string {

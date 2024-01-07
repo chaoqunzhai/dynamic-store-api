@@ -104,8 +104,8 @@ type ShopCreditLog struct {
 	Action    string         `json:"action" gorm:"type:varchar(10);comment:操作"`
 	ShopId    int            `gorm:"index;comment:小BID"`
 	Number    float64        `gorm:"comment:授信额变动数值"`
-	Scene     string         ` gorm:"size:30;comment:变动场景"`
-	Desc      string         ` gorm:"size:50;comment:描述/说明"`
+	Scene     string         ` gorm:"size:60;comment:变动场景"`
+	Desc      string         ` gorm:"size:20;comment:描述/说明"`
 	Type      int            `gorm:"type:tinyint(1);default:1;index;comment:操作类型"`
 }
 
