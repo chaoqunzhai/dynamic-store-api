@@ -13,8 +13,8 @@ import (
 // 费用,积分是给小B的
 type Shop struct {
 	BigBRichUserGlobal
-	Name      string  `gorm:"size:30;comment:小B名称"`
-	Phone     string  `gorm:"size:11;comment:联系手机号"`
+	Name      string  `json:"name" gorm:"size:30;comment:小B名称"`
+	Phone     string  `json:"phone" gorm:"size:11;comment:联系手机号"`
 	UserName  string  `gorm:"size:20;comment:小B负责人名称"`
 	Address   string  `gorm:"size:70;comment:小B收货地址"`
 	Longitude float64 //经度

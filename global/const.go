@@ -172,10 +172,27 @@ const (
 	RefundOkOverOk = 3 //大B处理同意
 	RefundOkOverReject = -1 //大B驳回
 	RefundOkCancel = -2 //用户主动撤销
-
+	//大B处理售后
+	RefundMoneyOriginal = 1 //原路退还
+	RefundMoneyOffline = 2 //线下退款
+	RefundMoneyBalance = 3 //退款到余额
+	RefundMoneyCredit = 4 //退款到授信分
 
 )
+func RefundMoneyTypeStr(v int) string  {
+	switch v {
+	case RefundMoneyOriginal:
+		return "原路退还"
+	case RefundMoneyOffline:
+		return  "线下退款"
+	case RefundMoneyBalance:
 
+		return "退款至余额"
+	case RefundMoneyCredit:
+		return "退款至授信"
+	}
+	return ""
+}
 func GetRefundStatus(v int) string {
 	switch v {
 	case RefundDefault:
@@ -189,7 +206,7 @@ func GetRefundStatus(v int) string {
 	case RefundOkCancel:
 		return "撤销"
 	}
-	return "未知"
+	return "处理中"
 }
 
 func GetActionStr(v string) string  {

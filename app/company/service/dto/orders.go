@@ -221,3 +221,18 @@ type OrdersReturnReq struct {
 	OrderId string `json:"order_id"` //订单ID
 	SpecsId int `json:"specs_id"` //规格ID
 }
+
+
+type OrdersRefundPageReq struct {
+	dto.Pagination `search:"-"`
+	OrderId          string `form:"order_id"  search:"type:exact;column:order_id;table:order_return" comment:"排序"`
+	ReturnId          string `form:"return_id"  search:"type:exact;column:return_id;table:order_return" comment:"排序"`
+	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:order_return" comment:"创建时间"`
+	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:order_return" comment:"创建时间"`
+	ShopId         int `form:"shopId"  search:"type:exact;column:shop_id;table:order_return" comment:"关联客户"`
+	Status         int `form:"status"  search:"type:exact;column:status;table:order_return" comment:"配送状态"`
+	OverStatus         int `form:"over_status"  search:"type:exact;column:over_status;table:order_return" comment:"审批状态"`
+}
+func (m *OrdersRefundPageReq) GetNeedSearch() interface{} {
+	return *m
+}

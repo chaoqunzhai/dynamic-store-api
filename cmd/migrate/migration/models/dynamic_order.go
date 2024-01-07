@@ -176,20 +176,21 @@ type OrderReturn struct {
 	GoodsId    int          `json:"goods_id" gorm:"comment:退货商品ID"`
 	SpecId     int          `gorm:"index;comment:规格ID"`
 	GoodsName string       `json:"goods_name" gorm:"size:30;comment:商品名称"`
-	SpecsName  string       `gorm:"size:20;comment:规格名称"`
+	SpecsName  string       `json:"specs_name" gorm:"size:20;comment:规格名称"`
 	Unit       string       `json:"unit" gorm:"type:varchar(8);comment:单位"`
-	Number     int          `gorm:"comment:商品数量"`
-	Price      float64      `gorm:"comment:商品单价"`
-	Image      string       `gorm:"size:15;comment:商品图片"`
-	Money      float64      `gorm:"comment:退货金额"`
+	Number     int          `json:"number" gorm:"comment:商品数量"`
+	Price      float64      `json:"price" gorm:"comment:商品单价"`
+	Image      string       `json:"image" gorm:"size:15;comment:商品图片"`
+	Money      float64      `json:"money" gorm:"comment:退货金额"`
 	RefundDeliveryMoney    float64   `json:"refund_delivery_money" gorm:"comment:支付运费"` //支付运费
 	RefundApplyMoney float64 `json:"refund_apply_money" gorm:"comment:退款金额"`
-	RefundMoneyType int `json:"refund_money_type" gorm:"type:tinyint(1);default:1;index;comment:退款路径"`
+	RefundMoneyType int `json:"refund_money_type" gorm:"type:tinyint(1);default:0;index;comment:退款路径 默认处理中"`
+	RefundTime models.XTime `json:"refund_time" gorm:"comment:处理时间"`
 	SDesc      string       `json:"s_desc" gorm:"size:24;comment:退货原因"`
 	CDesc      string       `json:"c_desc" gorm:"size:24;comment:大B处理信息"`
-	ReasonId int `json:"reason_id"  gorm:"comment:售后原因"`
-	Status     int          `gorm:"type:tinyint(1);default:1;index;comment:退货状态, 1:处理中 2:处理完成"`
-	OverStatus int          `gorm:"type:tinyint(1);default:0;index;comment: 3:大B同意、-1:驳回"`
+	Reason string `json:"reason"   gorm:"size:15;comment:售后发起原因"`
+	Status     int          `json:"status" gorm:"type:tinyint(1);default:1;index;comment:退货状态, 1:处理中 2:处理完成"`
+	OverStatus int          `json:"over_status" gorm:"type:tinyint(1);default:1;index;comment:  1:处理中 3:大B同意、-1:驳回"`
 }
 
 func (OrderReturn) TableName() string {

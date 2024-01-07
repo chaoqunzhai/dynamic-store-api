@@ -12,11 +12,34 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
+
+func StructToMap(obj interface{}) map[string]interface{} {
+
+	value := reflect.ValueOf(obj)
+	structType := value.Type()
+	structMap := make(map[string]interface{})
+
+	for i := 0; i < structType.NumField(); i++ {
+		field := structType.Field(i)
+		valueField := value.Field(i)
+		jsonTag :=field.Tag.Get("json")
+		key:=""
+		if jsonTag != ""{
+			key = jsonTag
+		}else {
+			key = field.Name
+		}
+		structMap[key] = valueField.Interface()
+	}
+
+	return structMap
+}
 
 //对数值进行补0 或者 带有小数点的数字 只保留2位
 func StringDecimal(value interface{}) string {
@@ -140,7 +163,7 @@ func RemoveRepeatStr(list []string) (result []string) {
 	}
 	return result
 }
-
+// 数值去重
 func RemoveRepeatInt(list []int) (result []int) {
 	// 创建一个临时map用来存储数组元素
 	temp := make(map[int]bool)

@@ -23,6 +23,7 @@ type TableRow struct {
 	OrderEdit string `json:"order_edit"` //订单修改表
 	OrderReturn string `json:"order_return"` //订单退换货表
 }
+//请求频率比较高，需要缓存到redis中
 func (t *GetSplitTable)GetTableMap() (res TableRow)  {
 	var splitRow models2.SplitTableMap
 	res = TableRow{
@@ -37,12 +38,38 @@ func (t *GetSplitTable)GetTableMap() (res TableRow)  {
 	if splitRow.Id == 0 {
 		return  res
 	}
+	//增加无自定义表 默认读取原表
 	return TableRow{
-		OrderTable: splitRow.OrderTable,
-		OrderSpecs: splitRow.OrderSpecs,
-		OrderCycle: splitRow.OrderCycle,
-		OrderEdit:  splitRow.OrderEdit,
-		OrderReturn: splitRow.OrderReturn,
+		OrderTable:  func()  string {
+			if splitRow.OrderTable == ""{
+				return global.SplitOrderDefaultTableName
+			}
+			return splitRow.OrderTable
+		}(),
+		OrderSpecs:  func()  string {
+			if splitRow.OrderSpecs == ""{
+				return global.SplitOrderDefaultSubTableName
+			}
+			return splitRow.OrderSpecs
+		}(),
+		OrderCycle:  func()  string {
+			if splitRow.OrderCycle == ""{
+				return global.SplitOrderCycleSubTableName
+			}
+			return splitRow.OrderCycle
+		}(),
+		OrderEdit:   func()  string {
+			if splitRow.OrderEdit == ""{
+				return global.SplitOrderEdit
+			}
+			return splitRow.OrderEdit
+		}(),
+		OrderReturn: func()  string {
+			if splitRow.OrderReturn == ""{
+				return global.SplitOrderReturn
+			}
+			return splitRow.OrderReturn
+		}(),
 	}
 }
 
