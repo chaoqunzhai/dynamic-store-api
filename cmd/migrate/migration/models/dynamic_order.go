@@ -42,12 +42,12 @@ type Orders struct {
 	ShopId         int          `gorm:"index;comment:关联客户"`
 	Line           string       `gorm:"size:16;comment:路线名称"`
 	LineId         int          `json:"line_id" gorm:"index;type:bigint;comment:线路ID"`
-	Status         int          `gorm:"type:tinyint(1);default:0;index;comment:订单的状态,0:待配送,1:配送中,2:已配送,3:退回,4:退款"`
+	Status         int          `gorm:"type:tinyint(1);default:0;index;comment:订单的状态"`
 	DeliveryCode   string       `json:"delivery_code" gorm:"size:9;index;comment:核销码"`
 	WriteOffStatus int          `json:"write_off_status" gorm:"type:tinyint(1);default:0;index;comment:核销状态,0:未核销 1:核销"`
 	PayMoney       float64      `gorm:"comment:实际支付价"`
-	OrderMoney     float64      `gorm:"comment:需要支付价"`
-	GoodsMoney     float64      `gorm:"comment:商品总价格"`
+	OrderMoney     float64      `json:"order_money" gorm:"comment:需要支付价"`
+	GoodsMoney     float64      `json:"goods_money" gorm:"comment:商品总价格"`
 	DeductionMoney float64      `json:"deduction_money" gorm:"comment:抵扣费用"`
 	Number         int          `gorm:"comment:下单数量"`
 	PayStatus      int          `gorm:"type:tinyint(1);default:0;index;comment:支付状态,0:未付款,1:已付款 2:线下付款，3:下线付款已收款"`
@@ -67,7 +67,7 @@ type Orders struct {
 	Edit           bool         `json:"edit" gorm:"comment:是否被修改"`
 	EditAction     string       `json:"edit_action" gorm:"size:16;comment:退回方式说明"`
 	AfterSales     bool         `json:"after_sales" gorm:";comment:是否申请售后"`
-	AfterStatus    int          `json:"after_status" gorm:"type:tinyint(1);default:0;;comment:售后状态:-2:撤回 -1:驳回, 0:无售后, 1:售后处理中 2:处理完毕  "`
+	AfterStatus    int          `json:"after_status" gorm:"type:tinyint(1);default:0;;comment:售后状态 0是暂无"`
 }
 
 func (Orders) TableName() string {
@@ -90,6 +90,7 @@ type OrderSpecs struct {
 	Money     float64      `gorm:"comment:规格的单价"`
 	Image     string       `gorm:"size:15;comment:商品图片路径"`
 	Edit      bool         `json:"edit" gorm:"comment:是否被修改"`
+	AfterStatus    int          `json:"after_status" gorm:"type:tinyint(1);default:0;;comment:售后状态;0是暂无 "`
 	AllMoney  float64      `json:"all_money" gorm:"comment:计算的规格价格"` //创建时 计算好
 }
 
@@ -180,10 +181,9 @@ type OrderReturn struct {
 	GoodsName string       `json:"goods_name" gorm:"size:30;comment:商品名称"`
 	SpecsName  string       `json:"specs_name" gorm:"size:20;comment:规格名称"`
 	Unit       string       `json:"unit" gorm:"type:varchar(8);comment:单位"`
-	Number     int          `json:"number" gorm:"comment:商品数量"`
+	Number     int          `json:"number" gorm:"comment:退货商品数量"`
 	Price      float64      `json:"price" gorm:"comment:商品单价"`
 	Image      string       `json:"image" gorm:"size:15;comment:商品图片"`
-	Money      float64      `json:"money" gorm:"comment:退货金额"`
 	RefundDeliveryMoney    float64   `json:"refund_delivery_money" gorm:"comment:支付运费"` //支付运费
 	RefundApplyMoney float64 `json:"refund_apply_money" gorm:"comment:退款金额"`
 	RefundMoneyType int `json:"refund_money_type" gorm:"type:tinyint(1);default:0;index;comment:退款路径 默认处理中"`

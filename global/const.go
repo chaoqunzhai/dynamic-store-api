@@ -75,23 +75,44 @@ const (
 	//订单状态
 	OrderStatusWaitPay = 0 //默认状态，就是待支付
 
-	OrderStatusWaitSend = 1//支持成功: 待发货
+	OrderStatusWaitSend = 1 //待发货
 
-	OrderDelivery = 2// 配送中 到了配送周期 默认就成了一个配送中
+	OrderWaitConfirm = 2 //待收货 到了配送周期后自动成为了这个待收货
 
-	OrderWaitReturn = 3 // 退货 /退款中
+	OrderWaitRefunding = 3 //售后处理中
 
-	OrderStatusReject   = 4 //已驳回
+	OrderStatusRefund = 4 //已退款
 
-	OrderStatusOver = 5 //订单收尾,那就是收货了,确认了
+	OrderStatusReturn = 5 //售后处理完毕
 
-	OrderPayStatusOfflineSuccess = 6 	//线下付款已收款
+	OrderPayStatusOfflineSuccess = 6 //线下付款已收款
 
-	OrderPayStatusOfflineDefault = 7 	//线下付款默认状态
+	OrderPayStatusOfflineDefault = 7 //线下付款默认状态
 
-	OrderStatusPaySuccess  = 8 //线上支付成功
+	OrderStatusPaySuccess = 8 //线上支付成功
 
 	OrderStatusWaitPayDefault = 9 //下单了,但是没有支付的状态,还是放在redis中的
+
+	OrderStatusOver = 10 //订单收尾,那就是收货了,确认了
+	//OrderStatusWaitPay = 0 //默认状态，就是待支付
+	//
+	//OrderStatusWaitSend = 1//支持成功: 待发货
+	//
+	//OrderDelivery = 2// 配送中 到了配送周期 默认就成了一个配送中
+	//
+	//OrderWaitReturn = 3 // 退货 /退款中
+	//
+	//OrderStatusReject   = 4 //已驳回
+	//
+	//OrderStatusOver = 5 //订单收尾,那就是收货了,确认了
+	//
+	//OrderPayStatusOfflineSuccess = 6 	//线下付款已收款
+	//
+	//OrderPayStatusOfflineDefault = 7 	//线下付款默认状态
+	//
+	//OrderStatusPaySuccess  = 8 //线上支付成功
+	//
+	//OrderStatusWaitPayDefault = 9 //下单了,但是没有支付的状态,还是放在redis中的
 
 
 	//分表的逻辑
@@ -188,7 +209,7 @@ func RefundMoneyTypeStr(v int) string  {
 
 		return "退款至余额"
 	case RefundMoneyCredit:
-		return "退款至授信"
+		return "退款至授信额"
 	}
 	return ""
 }
@@ -259,12 +280,14 @@ func OrderStatus(v int) string {
 		return "待支付"
 	case OrderStatusWaitSend:
 		return "待发货"
-	case OrderDelivery:
-		return "配送中"
-	case OrderWaitReturn:
-		return "退货"
-	case OrderStatusReject:
-		return "已驳回"
+	case OrderWaitConfirm:
+		return "待收货"
+	case OrderWaitRefunding:
+		return "售后处理中"
+	case OrderStatusRefund:
+		return "已退款"
+	case OrderStatusReturn:
+		return "售后处理完毕"
 	case OrderPayStatusOfflineSuccess:
 		return "线下付款已收款"
 	case OrderPayStatusOfflineDefault:
@@ -276,7 +299,7 @@ func OrderStatus(v int) string {
 	case OrderStatusOver:
 		return "完成"
 	}
-	return fmt.Sprintf("%v",v)
+	return fmt.Sprintf("%v", v)
 }
 func WeekIntToMsg(v int) string {
 	switch v {
