@@ -64,6 +64,8 @@ type RefundOrderRow struct {
 	GoodsName string `json:"goods_name"`
 	SpecName string `json:"spec_name"`
 	Price float64 `json:"price"`
-	Number int `json:"number"`
+	Number int `json:"number"` //售后数量
+	SourceNumber int `json:"source_number"` //编辑后的原数量
+	Edit int `json:"edit"` //为前段编辑 售后数量方便
 	Unit string `json:"unit"`
 }

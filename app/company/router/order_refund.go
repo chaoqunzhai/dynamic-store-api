@@ -29,6 +29,8 @@ func registerRefundOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTM
 		r.GET("", api.GetPage)
 
 		r.POST("/audit",api.Audit)
+
+		r.POST("/edit",api.Edit)
 	}
 
 }

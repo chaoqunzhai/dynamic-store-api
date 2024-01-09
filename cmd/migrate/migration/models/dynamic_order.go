@@ -192,6 +192,8 @@ type OrderReturn struct {
 	CDesc      string       `json:"c_desc" gorm:"size:24;comment:大B处理信息"`
 	Reason string `json:"reason"   gorm:"size:15;comment:售后发起原因"`
 	Status     int          `json:"status" gorm:"type:tinyint(1);default:1;index;comment:退货状态, 1:处理中 2:处理完成"`
+	Edit bool `json:"edit" gorm:"default:false;comment:是否被编辑"`
+	Source int `json:"source" gorm:"comment:原数量"`
 }
 
 func (OrderReturn) TableName() string {

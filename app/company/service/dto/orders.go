@@ -244,3 +244,13 @@ type RefundAuditReq struct {
 	RefundMoneyType int `json:"refund_money_type"` //退款方式
 
 }
+
+type RefundEditReq struct {
+	RefundOrderId string `json:"refund_order_id"`
+	EditList []EditList `json:"edit_list"`
+}
+type EditList struct {
+	EditNumber int `json:"edit_number"`
+	RefundId string `json:"refund_id"`
+	SourceNumber int `json:"source_number"`
+}

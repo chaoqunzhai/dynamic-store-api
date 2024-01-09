@@ -163,9 +163,10 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 			SpecName: row.SpecsName,
 			Price: row.Price,
 			Number: row.Number,
+			Edit: row.Number,
 			Image: 	business.GetGoodsPathFirst(row.CId,row.Image,global.GoodsPath),
 			Unit: row.Unit,
-
+			SourceNumber: row.Source,
 		}
 		if !ok{
 			sortKey = append(sortKey,row.ReturnId)
@@ -504,4 +505,54 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 	e.OK("","successful")
 	return
 
+}
+
+func (e OrdersRefund)Edit(c *gin.Context)  {
+	req := dto.RefundEditReq{}
+	s := service.Orders{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	var refundOrder models.OrderReturn
+
+	e.Orm.Table(splitTableRes.OrderReturn).Where("c_id = ? and return_id = ?",userDto.CId,req.RefundOrderId).Limit(1).Find(&refundOrder)
+	if refundOrder.Id == 0 {
+		e.Error(500,nil,"无售后订单")
+		return
+	}
+
+	for _,row:=range req.EditList{
+		var orderRowRefund models.OrderReturn
+		e.Orm.Table(splitTableRes.OrderReturn).Where("c_id = ? and id = ?",userDto.CId,row.RefundId).Limit(1).Find(&orderRowRefund)
+		if orderRowRefund.Id == 0 {
+			continue
+		}
+		//没有编辑的时候 才会更新source记录
+		updateMap:=map[string]interface{}{
+			"number":row.EditNumber,
+			"edit":true,
+		}
+		if !orderRowRefund.Edit {
+			updateMap["source"] = row.SourceNumber
+		}
+		e.Orm.Table(splitTableRes.OrderReturn).Where("c_id = ? and id = ?",userDto.CId,row.RefundId).Updates(updateMap)
+	}
+
+
+	e.OK("","successful")
+	return
 }
