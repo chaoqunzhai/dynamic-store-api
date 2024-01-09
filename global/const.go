@@ -283,13 +283,13 @@ func OrderStatus(v int) string {
 	case OrderWaitConfirm:
 		return "待收货"
 	case OrderWaitRefunding:
-		return "售后处理中"
+		return "售后处理"
 	case OrderStatusRefund:
 		return "已退款"
 	case OrderStatusReturn:
-		return "售后处理完毕"
+		return "售后完毕"
 	case OrderPayStatusOfflineSuccess:
-		return "线下付款已收款"
+		return "线下已收款"
 	case OrderPayStatusOfflineDefault:
 		return "线下付款"
 	case OrderStatusPaySuccess:

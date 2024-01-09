@@ -17,7 +17,7 @@ type OrdersGetPageReq struct {
 	Delivery       string `form:"delivery"  search:"type:exact;column:delivery;table:orders" comment:"配送周期"`
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:orders" comment:"创建时间"`
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:orders" comment:"创建时间"`
-	DeliveryType int `form:"delivery_type" search:"type:exact;column:delivery_Type;table:orders" comment:""`
+	DeliveryType int `form:"delivery_type" search:"type:exact;column:delivery_type;table:orders" comment:""`
 	SourceType int `form:"source_type" search:"type:exact;column:source_type;table:orders" comment:""`
 	PayType int `form:"pay_type" search:"type:exact;column:pay_type;table:orders" comment:""`
 	Line string `form:"line" search:"type:exact;column:line_id;table:orders" comment:""`
