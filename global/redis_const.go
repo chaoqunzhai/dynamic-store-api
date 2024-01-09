@@ -6,10 +6,10 @@ import (
 )
 
 const (
-	CloudExportOrderFilePath = "order_export" //云端目录
-	//手机号验证DB
+	//手机号验证DB iota上面不能有其他元素 iota是一个计数
 	PhoneMobileCodeDB = iota //0
 	SmallBLoginCnfDB         //1
+
 	//小B小程序颜色插件
 	//底部菜单配置
 	//配置按钮文案和商品库存是否展示的
@@ -31,6 +31,8 @@ const (
 	AllGlobalCnf //8
 
 	AllQueueChannel //9
+
+	CompanySplitTableCnf // 10
 	//订单的过期时间,设置为半个小时
 	OrderExpirationTime = 30 * time.Minute
 	//如果在期间未确认收货，系统自动完成收货，默认7天自动收货
@@ -52,10 +54,11 @@ const (
 
 	SmallBLoginKey  = "login_"
 	SmallBConfigKey = "cnf_"
+
 	SmallBConfigExtendKey = "extend_app_"
 	SmallBMemberToolsKey = "member_"
 	SmallBCategoryKey = "category_"
-
+	CompanySplitKey = "table_split_"
 	WorkerOrderStartName = "order" //订单导出
 	WorkerReportSummaryStartName = "summary_report" //汇总
 	WorkerReportLineStartName = "line_report" //路线
@@ -65,6 +68,8 @@ const (
 	ExportTypeSummary = 1 //汇总导出类型
 	ExportTypeLine = 2 //路线导出
 	ExportTypeLineShopDelivery = 3 //路线下用户配送单导出
+
+	CloudExportOrderFilePath = "order_export" //云端目录
 
 )
 

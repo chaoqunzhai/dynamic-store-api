@@ -170,7 +170,7 @@ func (e Orders)Line(c *gin.Context){
 
 	queryStart:=time.Now()
 
-	fmt.Println("线路数据！！！")
+
 	var data models2.OrderCycleCnf
 	e.Orm.Table(splitTableRes.OrderCycle).Select("uid,id").Scopes(
 		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Where("id = ? ",req.Cycle).Limit(1).Find(&data)

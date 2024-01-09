@@ -5,6 +5,7 @@ import (
 	"go-admin/cmd/migrate/migration/models"
 	"go-admin/common/redis_db"
 	"go-admin/global"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -179,8 +180,9 @@ func (m *MakeWeAppInitConf) SetLoadRedis() map[string]interface{} {
 			"store_business": "shop",
 		},
 	}
-
-	redis_db.SetConfigManyInit(m.CId,  global.SmallBConfigKey,dat)
+	if _,setRedisErr:=redis_db.SetConfigManyInit(m.CId,  global.SmallBConfigKey,dat);setRedisErr!=nil{
+		zap.S().Errorf("Redis操作,设置大B小程序Config失败,原因:%v", setRedisErr.Error())
+	}
 	return dat
 
 }
@@ -221,6 +223,7 @@ func (m *MakeWeAppInitConf)SearchRun()  {
 			"parent":  "MALL_LINK",
 		}
 		navListData = append(navListData, navLibMap)
+
 	}
 
 	m.BottomNav = navListData

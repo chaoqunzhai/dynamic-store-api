@@ -11,7 +11,7 @@ type OrdersGetPageReq struct {
 	Layer          string `form:"layer"  search:"type:exact;column:layer;table:orders" comment:"排序"`
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:orders" comment:"开关"`
 	CId            int    `form:"cId"  search:"type:exact;column:c_id;table:orders" comment:"大BID"`
-	ShopId         string `form:"shopId"  search:"type:exact;column:shop_id;table:orders" comment:"关联客户"`
+	ShopId         string `form:"shop_id"  search:"type:exact;column:shop_id;table:orders" comment:"关联客户"`
 	Status         string `form:"status"  search:"type:exact;column:status;table:orders" comment:"配送状态"`
 	Number         string `form:"number"  search:"type:exact;column:number;table:orders" comment:"下单数量"`
 	Delivery       string `form:"delivery"  search:"type:exact;column:delivery;table:orders" comment:"配送周期"`
@@ -227,9 +227,9 @@ type OrdersRefundPageReq struct {
 	dto.Pagination `search:"-"`
 	OrderId          string `form:"order_id"  search:"type:exact;column:order_id;table:order_return" comment:"排序"`
 	ReturnId          string `form:"return_id"  search:"type:exact;column:return_id;table:order_return" comment:"排序"`
+	ShopId         string `form:"shop_id"  search:"type:exact;column:shop_id;table:order_return" comment:"关联客户"`
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:order_return" comment:"创建时间"`
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:order_return" comment:"创建时间"`
-	ShopId         int `form:"shopId"  search:"type:exact;column:shop_id;table:order_return" comment:"关联客户"`
 	Status         int `form:"status"  search:"type:exact;column:status;table:order_return" comment:"配送状态"`
 }
 func (m *OrdersRefundPageReq) GetNeedSearch() interface{} {

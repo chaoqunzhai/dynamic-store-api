@@ -6,7 +6,10 @@
 package business
 
 import (
+	"encoding/json"
+	"fmt"
 	models2 "go-admin/cmd/migrate/migration/models"
+	"go-admin/common/redis_db"
 	"go-admin/global"
 	"gorm.io/gorm"
 )
@@ -23,8 +26,8 @@ type TableRow struct {
 	OrderEdit string `json:"order_edit"` //订单修改表
 	OrderReturn string `json:"order_return"` //订单退换货表
 }
-//请求频率比较高，需要缓存到redis中
-func (t *GetSplitTable)GetTableMap() (res TableRow)  {
+
+func (t *GetSplitTable)GetDbTableMapCnf() (res TableRow)  {
 	var splitRow models2.SplitTableMap
 	res = TableRow{
 		OrderTable: global.SplitOrderDefaultTableName,
@@ -72,6 +75,42 @@ func (t *GetSplitTable)GetTableMap() (res TableRow)  {
 		}(),
 	}
 }
+//请求频率比较高，需要缓存到redis中
+func (t *GetSplitTable)GetTableMap() (res TableRow)  {
+
+
+	//从redis中读取
+	//如果redis中没有,那就读取DB数据,并把数据load到redis中
+
+	var redisErr error
+	redisData,redisErr:=redis_db.GetSplitTableCnf(t.CId)
+
+	if redisErr !=nil{
+		//读取db 并返回
+		//go 协程写入redis中
+		fmt.Println("redis暂无数据,返回DB数据, 数据开始写入redis中")
+		dbSplitCnf :=t.GetDbTableMapCnf()
+
+		go func() {
+			redis_db.SetCompanyTableSplitCnf(t.CId,dbSplitCnf)
+		}()
+		return dbSplitCnf
+	}else {
+		//序列化成TableRow配置
+		fmt.Println("读取redis分表配置成功！")
+		var tableRow TableRow
+		unbarErr := json.Unmarshal([]byte(redisData),&tableRow)
+		//json 失败 返回
+		if unbarErr !=nil{
+			fmt.Println("splitTableCnf配置反序列化失败,读取DB中配置！")
+			return t.GetDbTableMapCnf()
+		}
+		//如果没有问题 就返回配置
+		return tableRow
+	}
+
+
+}
 
 func GetTableName(cid int, orm *gorm.DB) (res TableRow)  {
 	//先在split分表中查询
@@ -83,41 +122,3 @@ func GetTableName(cid int, orm *gorm.DB) (res TableRow)  {
 	return split.GetTableMap()
 
 }
-//func OrderExtendTableName(orderTable string) string {
-//	//子表默认名称
-//	specsTable := global.SplitOrderExtendSubTableName
-//	//判断是否分表了
-//	//默认是 orders 表名，如果分表后就是 orders_大BID_时间戳后6位
-//
-//	if orderTable != global.SplitOrderDefaultTableName {
-//		//拼接位 order_specs_大BID_时间戳后6位
-//		specsTable = fmt.Sprintf("%v%v", specsTable, strings.Replace(orderTable, global.SplitOrderDefaultTableName, "", -1))
-//
-//	}
-//	return specsTable
-//}
-//func OrderSpecsTableName(orderTable string) string {
-//	//子表默认名称
-//	table := global.SplitOrderDefaultSubTableName
-//	//判断是否分表了
-//	//默认是 orders 表名，如果分表后就是 orders_大BID_时间戳后6位
-//
-//	if orderTable != global.SplitOrderDefaultTableName {
-//		//拼接位 order_specs_大BID_时间戳后6位
-//		table = fmt.Sprintf("%v%v", table, strings.Replace(orderTable, global.SplitOrderDefaultTableName, "", -1))
-//	}
-//	return table
-//}
-//
-//func OrderCycleTableName(orderTable string) string {
-//	//子表默认名称
-//	table := global.SplitOrderCycleSubTableName
-//	//判断是否分表了
-//	//默认是 orders 表名，如果分表后就是 orders_大BID_时间戳后6位
-//
-//	if orderTable != global.SplitOrderDefaultTableName {
-//		//拼接位 order_specs_大BID_时间戳后6位
-//		table = fmt.Sprintf("%v%v", table, strings.Replace(orderTable, global.SplitOrderDefaultTableName, "", -1))
-//	}
-//	return table
-//}

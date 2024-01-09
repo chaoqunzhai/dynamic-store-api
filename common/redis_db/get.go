@@ -14,8 +14,9 @@ func Marsh(data string) (m map[string]interface{}, err error) {
 
 	err = json.Unmarshal([]byte(data), &m)
 
+	fmt.Println("err!",err)
 	if err!=nil{
-		return nil, errors.New("数据异常")
+		return nil, errors.New(fmt.Sprintf("Unmarshal 数据异常 %v",err))
 	}
 	return
 }
@@ -206,4 +207,16 @@ func GetAllGlobalCnf(RedisKey string) string {
 	}
 	return res
 
+}
+
+//获取redis中配置的大B 分表配置
+func GetSplitTableCnf(siteId interface{}) (dat string,err error)  {
+	RedisKey := fmt.Sprintf("%v%v", global.CompanySplitKey, siteId)
+	RedisCli.Do(Ctx, "select", global.CompanySplitTableCnf)
+
+	res, _ := RedisCli.Get(Ctx, RedisKey).Result()
+	if res == "" {
+		return "", errors.New("暂无数据")
+	}
+	return res,nil
 }

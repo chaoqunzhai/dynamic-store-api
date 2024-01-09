@@ -131,7 +131,6 @@ func (e *Orders) ValidTimeConf(cid int) (response *TimeConfResponse) {
 func (e *Orders) GetPage(tableName string, c *dto.OrdersGetPageReq, p *actions.DataPermission, list *[]models.Orders, count *int64) error {
 	var err error
 
-
 	err = e.Orm.Table(tableName).
 		Scopes(
 			cDto.MakeSplitTableCondition(c.GetNeedSearch(),tableName),
