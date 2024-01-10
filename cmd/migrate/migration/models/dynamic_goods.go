@@ -36,7 +36,7 @@ func (GoodsDesc) TableName() string {
 // todo: 规格名称
 type GoodsSpecs struct {
 	BigBMiniGlobal
-	GoodsId   int     `gorm:"index;comment:商品ID"`
+	GoodsId   int     `json:"goods_id" gorm:"index;comment:商品ID"`
 	Name      string  `gorm:"size:20;comment:规格名称"`
 	Price     float32 `gorm:"comment:售价"`
 	Market float32 `gorm:"comment:市场价" json:"market"`

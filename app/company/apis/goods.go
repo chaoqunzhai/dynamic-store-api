@@ -481,6 +481,10 @@ func (e Goods) UpdateState(c *gin.Context) {
 		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?", row, userDto.CId).Updates(map[string]interface{}{
 			"enable": req.Enable,
 		})
+		//规格也进行更新
+		e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id = ? and c_id = ?", row, userDto.CId).Updates(map[string]interface{}{
+			"enable": req.Enable,
+		})
 	}
 	e.OK("更新成功", "更新成功")
 	return

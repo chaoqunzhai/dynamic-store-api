@@ -440,8 +440,8 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		CId:     userDto.CId,
 		SourceType: global.OrderSourceValet, //代客下单
 	}
-	orderId := utils.GenUUID()
-	orderRow.OrderId = fmt.Sprintf("%v",orderId)
+
+	orderRow.OrderId = fmt.Sprintf("%v",utils.GenUUID())
 	//orderRow.Id = orderId
 	//代客下单,需要把配送周期保存，方便周期配送
 
