@@ -5,6 +5,7 @@
 package models
 
 import (
+	models2 "go-admin/common/models"
 	"gorm.io/gorm"
 	"time"
 )
@@ -38,8 +39,8 @@ func (Inventory) TableName() string {
 type InventoryOrder struct {
 	Model
 	CId            int       `json:"c_id" gorm:"index;comment:公司(大B)ID"`
-	CreateBy  string            `json:"createBy" gorm:"size:20;comment:创建者"`
-	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
+	CreateBy  string            `json:"create_by" gorm:"size:20;comment:创建者"`
+	CreatedAt models2.XTime      `json:"created_at" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
 	Desc   string `json:"desc" gorm:"size:50;comment:描述信息"` //描述
 	OrderId string `json:"order_id" gorm:"index;size:20;comment:出入库ID"`

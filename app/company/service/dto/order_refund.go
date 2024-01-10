@@ -19,12 +19,12 @@ type RefundDto struct {
 	Number    int    `json:"number" gorm:"column:number"`
 	Uid    string    `json:"uid" gorm:"column:uid"`
 	RefundTypeAction    []RefundTypeAction    `json:"refund_type_action" gorm:"column:refund_type_action"`
-	RefundMoney float64 `json:"refund_money"`
+	RefundMoney string `json:"refund_money"`
 	AuditBy    int    `json:"audit_by" gorm:"column:audit_by"`
 	Price    int    `json:"price" gorm:"column:price"`
 	CouponMoney    float64    `json:"coupon_money" gorm:"column:coupon_money"`
 	PayType    int    `json:"pay_type" gorm:"column:pay_type"`
-	RefundDeliveryMoney    float64    `json:"refund_delivery_money" gorm:"column:refund_delivery_money"`
+	RefundDeliveryMoney    string    `json:"refund_delivery_money" gorm:"column:refund_delivery_money"`
 	ShopID    int    `json:"ShopId" gorm:"column:ShopId"`
 	UpdatedAt    string    `json:"updatedAt" gorm:"column:updatedAt"`
 	GoodsName    string    `json:"goods_name" gorm:"column:goods_name"`
@@ -63,7 +63,7 @@ type RefundOrderRow struct {
 	Image string `json:"image"`
 	GoodsName string `json:"goods_name"`
 	SpecName string `json:"spec_name"`
-	Price float64 `json:"price"`
+	Price string `json:"price"`
 	Number int `json:"number"` //售后数量
 	SourceNumber int `json:"source_number"` //编辑后的原数量
 	Edit int `json:"edit"` //为前段编辑 售后数量方便

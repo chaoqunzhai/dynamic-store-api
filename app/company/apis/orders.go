@@ -195,10 +195,10 @@ func (e Orders) GetPage(c *gin.Context) {
 			"delivery_str": row.DeliveryStr,
 			"count":          row.Number,
 			"specs_count":specCount,
-			"money":         row.OrderMoney,
-			"coupon_money":row.CouponMoney,
-			"goods_money":row.GoodsMoney,
-			"delivery_money":row.DeliveryMoney,
+			"money":         utils.StringDecimal(row.OrderMoney),
+			"coupon_money":utils.StringDecimal(row.CouponMoney),
+			"goods_money":utils.StringDecimal(row.GoodsMoney),
+			"delivery_money":utils.StringDecimal(row.DeliveryMoney),
 			"line":row.Line,
 			"delivery_type":global.GetExpressCn(row.DeliveryType), //配送类型
 			"pay_type":global.GetPayType(row.PayType),//支付类型
@@ -213,7 +213,7 @@ func (e Orders) GetPage(c *gin.Context) {
 			//订单调整了
 			r["goods_money"] = row.OrderMoney
 			//调整的时候 又把优惠卷加回去了
-			r["money"] = row.OrderMoney - row.CouponMoney
+			r["money"] = utils.StringDecimal(row.OrderMoney - row.CouponMoney)
 		}
 		switch row.DeliveryType {
 		case global.ExpressStore:

@@ -407,7 +407,67 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 
 
 func (e CompanyInventory) WarehousingDetail(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	orderId:=c.Param("orderId")
+	var object models2.InventoryOrder
+	e.Orm.Model(&models2.InventoryOrder{}).Where("c_id = ? and order_id = ?",userDto.CId,orderId).Limit(1).Find(&object)
 
+	if object.Id == 0 {
+		e.Error(500,nil,"数据不存在")
+		return
+	}
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+
+	result:=make(map[string]interface{},0)
+	result["record"] = object
+	RecordLog:=make([]models2.InventoryRecord,0)
+	e.Orm.Table(splitTableRes.InventoryRecordLog).Where("c_id = ? and order_id = ?",userDto.CId,orderId).Find(&RecordLog)
+
+	table:=make([]interface{},0)
+	var number int
+	var classCount int
+	var money float64
+	for _,row:=range RecordLog{
+		thisPrice := utils.RoundDecimalFlot64(float64(row.ActionNumber) * row.OriginalPrice)
+		classCount +=1
+		number +=row.ActionNumber
+		money += thisPrice
+		table = append(table,map[string]interface{}{
+			"image":func() string {
+				if row.Image == "" {
+				return ""
+			}
+				return business.GetGoodsPathFirst(row.CId,row.Image,global.GoodsPath)
+			}(),
+			"id":row.Id,
+			"goods_name":row.GoodsName,
+			"goods_spec_name":row.GoodsSpecName,
+			"unit":row.Unit,
+			"action_number":row.ActionNumber,
+			"original_price":utils.StringDecimal(row.OriginalPrice),
+			"money":utils.StringDecimal(thisPrice),
+		})
+	}
+	result["CountAll"] = map[string]interface{}{
+		"number":number,
+		"class":classCount,
+		"money":utils.StringDecimal(money),
+	}
+	result["table"] = table
+	e.OK(result,"successful")
+	return
 }
 
 

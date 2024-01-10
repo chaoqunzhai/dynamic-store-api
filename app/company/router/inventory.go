@@ -43,7 +43,7 @@ func registerInventoryRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMidd
 		//入库单创建
 		warehousing.POST("/create", api.WarehousingCreate)
 		//入库单记录
-		warehousing.GET("/detail", api.WarehousingDetail)
+		warehousing.GET("/detail/:orderId", api.WarehousingDetail)
 	}
 
 	//出库管理

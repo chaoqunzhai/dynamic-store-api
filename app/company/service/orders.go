@@ -326,7 +326,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 			"unit":row.Unit,
 			"money":     utils.StringDecimal(row.Money),
 			"number":row.Number,
-			"all_money":row.AllMoney,
+			"all_money": utils.StringDecimal(row.AllMoney),
 		}
 		specsList = append(specsList, ss)
 	}
