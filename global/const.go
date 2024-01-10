@@ -132,6 +132,9 @@ const (
 	//订单退换货表
 	SplitOrderReturn = "order_return"
 
+	//出入库记录流水表
+	InventoryRecordLog = "inventory_record"
+
 	//Cycle 配送的设置
 	//每天
 	CyCleTimeDay = 1

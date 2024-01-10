@@ -71,6 +71,7 @@ type SplitTableMap struct {
 	OrderCycle string `gorm:"size:30;index;comment:周期配送下单索引表"`
 	OrderEdit string  `gorm:"size:30;index;comment:订单修改表"`
 	OrderReturn string `gorm:"size:30;index;comment:订单退货表"`
+	InventoryRecordLog string `gorm:"size:30;index;comment:出入库记录流水表"`
 }
 
 func (SplitTableMap) TableName() string {
