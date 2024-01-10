@@ -330,7 +330,13 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 			//规格没有录图片的时候 拿商品的图片
 			imageVal := goodsSpecs.Image
 			if goodsSpecs.Image == ""{
-				imageVal = goods.Image
+				//商品如果有图片,那获取第一张图片即可
+				if goods.Image != ""{
+					imageVal = strings.Split( goods.Image,",")[0]
+				}else {
+					imageVal = ""
+				}
+
 			}
 			//需要使用 规格中的商品总数 方便兼容 数据的融合
 			InventoryObject = models2.Inventory{
