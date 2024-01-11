@@ -69,11 +69,14 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 	).Find(&goodsSpecs).Count(&count)
 
 
+	fmt.Println("goodsCnfMap",goodsCnfMap)
 	//统一在查一次商品
 	//统一查询商品
 	var goodsIds []int
 	var inventoryKey []string
 	for _,row:=range goodsSpecs{
+
+		inventoryKey = append(inventoryKey,fmt.Sprintf("(goods_id = %v and spec_id = %v)",row.GoodsId,row.Id))
 		//已经查询过了,那就不用查询了
 		if _,ok:=goodsCnfMap[row.GoodsId];ok{
 			continue
@@ -81,9 +84,9 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 
 		goodsIds = append(goodsIds,row.GoodsId)
 
-		inventoryKey = append(inventoryKey,fmt.Sprintf("(goods_id = %v and spec_id = %v)",row.GoodsId,row.Id))
-
 	}
+	inventoryKey = utils.RemoveRepeatStr(inventoryKey)
+	fmt.Println("inventoryKey",inventoryKey)
 	//统一查库存
 	InventoryDbMap:=make(map[string]models2.Inventory,0)
 	if len(inventoryKey) > 0 {
@@ -148,8 +151,8 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 
 	return
 }
-func (e CompanyInventory) GetPage(c *gin.Context) {
-	req := dto.CompanyMessageGetPageReq{}
+func (e CompanyInventory) ManageGetPage(c *gin.Context) {
+	req := dto.ManageListGetPageReq{}
 	err := e.MakeContext(c).
 		MakeOrm().
 		Bind(&req).
@@ -159,7 +162,164 @@ func (e CompanyInventory) GetPage(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var count int64
+	result:=make([]interface{},0)
+	list :=make([]models2.Inventory,0)
+	e.Orm.Model(&models2.Inventory{}).Where("c_id = ?",userDto.CId).Scopes(
+		cDto.MakeCondition(req.GetNeedSearch()),
+		cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order("id desc").Find(&list).Count(&count)
 
+
+	for _,row:=range list{
+		data:=map[string]interface{}{
+			"goods_name": fmt.Sprintf("%v %v",row.GoodsName,row.GoodsSpecName),
+			"image":func() string {
+				if row.Image == "" {
+					return ""
+				}
+				return business.GetGoodsPathFirst(row.CId,row.Image,global.GoodsPath)
+			}(),
+			"original_price":utils.StringDecimal(row.OriginalPrice),
+			"time":row.UpdatedAt.Format("2006-01-02 15:04:05"),
+			"stock":row.Stock,
+			"code":row.Code,
+			"art_no":row.ArtNo,
+			"id":row.Id,
+		}
+		result = append(result,data)
+	}
+
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+
+	return
+
+
+}
+
+func (e CompanyInventory) ManageRecords(c *gin.Context) {
+	req := dto.RecordsListGetPageReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	skuId:=c.Param("skuId")
+	if skuId == ""{
+		e.Error(500, nil,"请选择库存条目")
+		return
+	}
+	var  Inventory models2.Inventory
+	e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and id = ?",userDto.CId,skuId).Limit(1).Find(&Inventory)
+	if Inventory.Id == 0 {
+		e.Error(500, nil,"库存不存在")
+		return
+	}
+	var RecordsList []models2.InventoryRecord
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+
+	var count int64
+	result:=make([]interface{},0)
+	e.Orm.Table(splitTableRes.InventoryRecordLog).Where(
+		"c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,Inventory.GoodsId,Inventory.SpecId).Scopes(
+				cDto.MakeSplitTableCondition(req.GetNeedSearch(),splitTableRes.InventoryRecordLog),
+				cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
+			).Order("id desc").Find(&RecordsList).Count(&count)
+
+
+	for _,row:=range RecordsList{
+		data :=map[string]interface{}{
+			"id":row.Id,
+			"create_at":row.CreatedAt.Format("2006-01-02 15:04:05"),
+			"user":row.CreateBy,
+			"source_number":row.SourceNumber,
+			"current_number":row.CurrentNumber,
+			"original_price":utils.StringDecimal(row.OriginalPrice),
+			"source_price":utils.StringDecimal(row.SourcePrice),
+		}
+		switch row.Action {
+		case global.InventoryIn:
+			data["action_number"] = fmt.Sprintf("+%v",row.ActionNumber)
+		case global.InventoryOut:
+			data["action_number"] = fmt.Sprintf("-%v",row.ActionNumber)
+
+		}
+		result = append(result,data)
+	}
+
+
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+
+	return
+}
+
+func (e CompanyInventory) RecordsLog(c *gin.Context) {
+	req := dto.RecordsListGetPageReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+
+	var RecordsList []models2.InventoryRecord
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+
+	var count int64
+	result:=make([]interface{},0)
+	e.Orm.Table(splitTableRes.InventoryRecordLog).Where("c_id = ? ",userDto.CId).Scopes(
+		cDto.MakeSplitTableCondition(req.GetNeedSearch(),splitTableRes.InventoryRecordLog),
+		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
+	).Find(&RecordsList).Count(&count)
+
+
+	for _,row:=range RecordsList{
+		data :=map[string]interface{}{
+			"id":row.Id,
+			"create_at":row.CreatedAt.Format("2006-01-02 15:04:05"),
+			"user":row.CreateBy,
+			"goods_name":fmt.Sprintf("%v %v",row.GoodsName,row.GoodsSpecName),
+			"source_number":row.SourceNumber,
+			"current_number":row.CurrentNumber,
+			"original_price":utils.StringDecimal(row.OriginalPrice),
+			"source_price":utils.StringDecimal(row.SourcePrice),
+		}
+		switch row.Action {
+		case global.InventoryIn:
+			data["action_number"] = fmt.Sprintf("+%v",row.ActionNumber)
+		case global.InventoryOut:
+			data["action_number"] = fmt.Sprintf("-%v",row.ActionNumber)
+
+		}
+		result = append(result,data)
+	}
+
+
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+
+	return
 }
 
 func (e CompanyInventory) Info(c *gin.Context) {
@@ -224,11 +384,9 @@ func (e CompanyInventory) UpdateCnf(c *gin.Context) {
 	e.OK(object.Enable,"操作成功")
 	return
 }
-func (e CompanyInventory) InRecords(c *gin.Context) {
 
-}
-func (e CompanyInventory) Warehousing(c *gin.Context) {
-	req := dto.WarehousingGetPageReq{}
+func (e CompanyInventory) OrderList(c *gin.Context) {
+	req := dto.OrderListGetPageReq{}
 	err := e.MakeContext(c).
 		MakeOrm().
 		Bind(&req).
@@ -246,15 +404,24 @@ func (e CompanyInventory) Warehousing(c *gin.Context) {
 	var count int64
 	result :=make([]interface{},0)
 
-	whereSql :=fmt.Sprintf("c_id = %v and action = %v",userDto.CId,1)
+	whereSql :=fmt.Sprintf("c_id = %v ",userDto.CId)
 	if req.OrderId != ""{
 
 		likeVal:=fmt.Sprintf("%%%v%%",req.OrderId)
 
 		whereSql = fmt.Sprintf("%v and `order_id` like '%v'",whereSql,likeVal)
 	}
+	switch req.Action {
+	case "in":
+		whereSql += fmt.Sprintf(fmt.Sprintf(" and action = %v",1))
+	case "out":
+
+		whereSql += fmt.Sprintf(fmt.Sprintf(" and action = %v",2))
+	}
 	var list []models2.InventoryOrder
-	e.Orm.Model(&models2.InventoryOrder{}).Where(whereSql).Scopes(cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order("id desc").Find(&list).Count(&count)
+	e.Orm.Model(&models2.InventoryOrder{}).Where(whereSql).Scopes(
+		cDto.MakeCondition(req.GetNeedSearch()),
+		cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order("id desc").Find(&list).Count(&count)
 
 	for _,row:=range list{
 		result = append(result,map[string]interface{}{
@@ -273,7 +440,7 @@ func (e CompanyInventory) Warehousing(c *gin.Context) {
 }
 
 func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
-	req := dto.WarehousingCreateReq{}
+	req := dto.InventoryCreateReq{}
 	err := e.MakeContext(c).
 		MakeOrm().
 		Bind(&req).
@@ -308,17 +475,18 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 		if len(rowKeyList) != 2{
 			continue
 		}
-		goodsId,err :=strconv.Atoi(rowKeyList[0])
-		if err!=nil{
+		goodsId,stroveErr :=strconv.Atoi(rowKeyList[0])
+		if stroveErr!=nil{
 			continue
 		}
-		specsId,err :=strconv.Atoi(rowKeyList[1])
-		if err!=nil{
+		specsId,stroveErr :=strconv.Atoi(rowKeyList[1])
+		if stroveErr!=nil{
 			continue
 		}
 		var InventoryObject models2.Inventory
 		e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,goodsId,specsId).Limit(1).Find(&InventoryObject)
-		var SourceNumber int
+		var SourceNumber int //原来数量
+		var OriginalPrice float64 //原来入库价
 		if InventoryObject.Id == 0 {
 			//创建 在查询一次
 			var goods models2.Goods
@@ -352,19 +520,22 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 			InventoryObject.CId = userDto.CId
 			InventoryObject.CreateBy = userDto.UserId
 			if createErr:=e.Orm.Create(&InventoryObject).Error;createErr!=nil{
-				zap.S().Errorf("客户 %v 仓库录入创建数据失败,数据:%v 原因:%v",userDto.UserId,data,createErr.Error())
+				zap.S().Errorf("客户 %v 仓库入库创建数据失败,数据:%v 原因:%v",userDto.UserId,data,createErr.Error())
 				continue
 			}
 			//新数据,那原库存就是0
 			SourceNumber = 0
+			//使用规格的入库价
+			OriginalPrice = float64(goodsSpecs.Original)
 		}else {
 			//原库存
 			SourceNumber = InventoryObject.Stock
+			OriginalPrice = InventoryObject.OriginalPrice
 			//增加覆盖即可
 			InventoryObject.Stock += data.ActionNumber
 			InventoryObject.OriginalPrice = data.CostPrice
 			if saveErr:=e.Orm.Save(&InventoryObject).Error;saveErr!=nil{
-				zap.S().Errorf("客户 %v 仓库录入数据失败,数据:%v 原因:%v",userDto.UserId,data,saveErr.Error())
+				zap.S().Errorf("客户 %v 仓库入库保存数据失败,数据:%v 原因:%v",userDto.UserId,data,saveErr.Error())
 				continue
 			}
 		}
@@ -374,7 +545,7 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 			CId: userDto.CId,
 			CreateBy:userDto.Username,
 			OrderId: OrderId,
-			Action: 1, //入库
+			Action: global.InventoryIn, //入库
 			Image: InventoryObject.Image,
 			GoodsId: InventoryObject.GoodsId,
 			GoodsName: InventoryObject.GoodsName,
@@ -384,6 +555,7 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 			ActionNumber:data.ActionNumber, //操作的库存
 			CurrentNumber:SourceNumber + data.ActionNumber, //那现库存 就是 原库存 + 操作的库存
 			OriginalPrice:data.CostPrice,
+			SourcePrice:OriginalPrice, //原入库价
 			Unit:data.Unit,
 		}
 		e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
@@ -397,7 +569,7 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 	//创建一条入库单记录
 	object :=models2.InventoryOrder{
 		OrderId: OrderId,
-		Action: 1,
+		Action: global.InventoryIn,
 		DocumentMoney:DocumentMoney,
 		Number: Number,
 	}
@@ -412,7 +584,7 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 
 
 
-func (e CompanyInventory) WarehousingDetail(c *gin.Context) {
+func (e CompanyInventory) OrderDetail(c *gin.Context) {
 	err := e.MakeContext(c).
 		MakeOrm().
 		Errors
@@ -476,16 +648,148 @@ func (e CompanyInventory) WarehousingDetail(c *gin.Context) {
 	return
 }
 
-
-
-func (e CompanyInventory) Outbound(c *gin.Context) {
-
-}
-
 func (e CompanyInventory) OutboundCreate(c *gin.Context) {
+	req := dto.InventoryCreateReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
 
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	OrderId:=fmt.Sprintf("%v",utils.GenUUID())
+	//创建出库单的的入库流水
+	DocumentMoney:=0.00
+	Number :=0
+	//循环数据开始入库
+	for rowKey:=range req.Data{
+
+		data,ok :=req.Data[rowKey]
+		if !ok{continue}
+		//负数不处理
+		if data.ActionNumber < 0 || data.CostPrice < 0  {
+			continue
+		}
+		rowKeyList :=strings.Split(rowKey,"_")
+		if len(rowKeyList) != 2{
+			continue
+		}
+		goodsId, stroveErr :=strconv.Atoi(rowKeyList[0])
+		if stroveErr !=nil{
+			continue
+		}
+		specsId, stroveErr :=strconv.Atoi(rowKeyList[1])
+		if stroveErr !=nil{
+			continue
+		}
+		var InventoryObject models2.Inventory
+		e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,goodsId,specsId).Limit(1).Find(&InventoryObject)
+		var SourceNumber int
+		if InventoryObject.Id == 0 {
+			//创建 在查询一次
+			var goods models2.Goods
+			var goodsSpecs models2.GoodsSpecs
+			e.Orm.Model(&models2.Goods{}).Where("c_id = ? and id = ? ",userDto.CId,goodsId).Limit(1).Find(&goods)
+
+			e.Orm.Model(&models2.GoodsSpecs{}).Where("c_id = ? and goods_id = ? and id = ?",userDto.CId,goodsId,specsId).Limit(1).Find(&goodsSpecs)
+
+			//规格没有录图片的时候 拿商品的图片
+			imageVal := goodsSpecs.Image
+			if goodsSpecs.Image == ""{
+				//商品如果有图片,那获取第一张图片即可
+				if goods.Image != ""{
+					imageVal = strings.Split( goods.Image,",")[0]
+				}else {
+					imageVal = ""
+				}
+
+			}
+			if data.ActionNumber > goodsSpecs.Inventory{
+				continue
+			}
+			//需要使用 规格中的商品总数 方便兼容 数据的融合
+			InventoryObject = models2.Inventory{
+				Stock: goodsSpecs.Inventory - data.ActionNumber,
+				OriginalPrice: data.CostPrice,
+				GoodsId: goodsId,
+				GoodsName: goods.Name,
+				GoodsSpecName: goodsSpecs.Name,
+				SpecId: specsId,
+				Image: imageVal,
+			}
+
+			InventoryObject.CId = userDto.CId
+			InventoryObject.CreateBy = userDto.UserId
+			if createErr:=e.Orm.Create(&InventoryObject).Error;createErr!=nil{
+				zap.S().Errorf("客户 %v 仓库出库创建数据失败,数据:%v 原因:%v",userDto.UserId,data,createErr.Error())
+				continue
+			}
+			//新数据,那原库存就是0
+			SourceNumber = 0
+		}else {
+			//原库存
+			SourceNumber = InventoryObject.Stock
+			//进行减少覆盖即可,但是不能超用
+			if data.ActionNumber > InventoryObject.Stock{
+				continue
+			}
+			InventoryObject.Stock -= data.ActionNumber
+			if saveErr:=e.Orm.Save(&InventoryObject).Error;saveErr!=nil{
+				zap.S().Errorf("客户 %v 仓库出库保存数据失败,数据:%v 原因:%v",userDto.UserId,data,saveErr.Error())
+				continue
+			}
+		}
+
+		//流水创建
+		RecordLog:=models2.InventoryRecord{
+			CId: userDto.CId,
+			CreateBy:userDto.Username,
+			OrderId: OrderId,
+			Action: global.InventoryOut, //入库
+			Image: InventoryObject.Image,
+			GoodsId: InventoryObject.GoodsId,
+			GoodsName: InventoryObject.GoodsName,
+			GoodsSpecName: InventoryObject.GoodsSpecName,
+			SpecId: InventoryObject.SpecId,
+			SourceNumber:SourceNumber, //原库存
+			ActionNumber:data.ActionNumber, //操作的库存
+			CurrentNumber:SourceNumber - data.ActionNumber, //那现库存 就是 原库存 - 操作的库存
+			OriginalPrice:data.CostPrice,
+			Unit:data.Unit,
+		}
+		e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
+
+
+		//创建成功 金额叠加
+		DocumentMoney += utils.RoundDecimalFlot64(float64(data.ActionNumber) * data.CostPrice)
+		Number +=data.ActionNumber
+
+	}
+	//创建一条入库单记录
+	object :=models2.InventoryOrder{
+		OrderId: OrderId,
+		Action: global.InventoryOut,
+		DocumentMoney:DocumentMoney,
+		Number: Number,
+	}
+	object.Desc = req.Desc
+	object.CId = userDto.CId
+	object.CreateBy = userDto.Username
+	e.Orm.Create(&object)
+
+	e.OK("","出库成功")
+	return
 }
-
 
 
 func (e CompanyInventory) OutboundDetail(c *gin.Context) {

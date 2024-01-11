@@ -26,6 +26,8 @@ type Inventory struct {
 	GoodsId int `json:"goods_id" gorm:"index;comment:商品ID"`
 	SpecId int `json:"spec_id" gorm:"index;comment:规格ID"`
 	Stock int `json:"stock" gorm:"comment:仓库数量"`
+	ArtNo string `json:"art_no" gorm:"size:20;comment:货架编号"`
+	Code      string  `gorm:"size:20;comment:条形码"`
 	Image     string  `gorm:"size:15;comment:商品图片路径"`
 	OriginalPrice float64 `json:"original_price" gorm:"comment:当前入库价/成本价"`
 	Status     int          `json:"status" gorm:"type:tinyint(1);default:1;index;comment:销售状态  1:销售中 0:下线"`
@@ -72,7 +74,7 @@ type InventoryRecord struct {
 	ActionNumber int `json:"action_number"  gorm:"comment:出入库操作数量"`
 	CurrentNumber int `json:"current_number" gorm:"comment:现库存"`
 	OriginalPrice float64 `json:"original_price" gorm:"comment:入库价/成本价"`
-
+	SourcePrice float64 `json:"source_price" gorm:"comment:原来入库价"`
 }
 func (InventoryRecord) TableName() string {
 	return "inventory_record"

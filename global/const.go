@@ -200,7 +200,8 @@ const (
 	RefundMoneyOffline = 2 //线下退款
 	RefundMoneyBalance = 3 //退款到余额
 	RefundMoneyCredit = 4 //退款到授信分
-
+	InventoryIn = 1
+	InventoryOut = 2
 )
 func RefundMoneyTypeStr(v int) string  {
 	switch v {

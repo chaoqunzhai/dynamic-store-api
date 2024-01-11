@@ -22,14 +22,37 @@ type GoodsSpecs struct {
 	Image string `json:"image"`
 }
 
-
-type WarehousingGetPageReq struct {
+type ManageListGetPageReq struct {
 	dto.Pagination `search:"-"`
-	OrderId string `json:"order_id" form:"order_id"`
-
+	GoodsName string `form:"goods_name" search:"type:contains;column:goods_name;table:inventory" comment:"商品名称"`
+	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:inventory" comment:"创建时间"`
+	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:inventory" comment:"创建时间"`
+}
+func (m *ManageListGetPageReq) GetNeedSearch() interface{} {
+	return *m
 }
 
-type WarehousingCreateReq struct {
+type RecordsListGetPageReq struct {
+	dto.Pagination `search:"-"`
+	GoodsName string `form:"goods_name" search:"type:contains;column:goods_name;table:inventory_record" comment:"商品名称"`
+	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:inventory_record" comment:"创建时间"`
+	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:inventory_record" comment:"创建时间"`
+}
+func (m *RecordsListGetPageReq) GetNeedSearch() interface{} {
+	return *m
+}
+
+type OrderListGetPageReq struct {
+	dto.Pagination `search:"-"`
+	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:inventory_order" comment:"创建时间"`
+	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:inventory_order" comment:"创建时间"`
+	OrderId string `json:"order_id" search:"-" form:"order_id"`
+	Action string `json:"action"  search:"-" form:"action"` //出入库类型
+}
+func (m *OrderListGetPageReq) GetNeedSearch() interface{} {
+	return *m
+}
+type InventoryCreateReq struct {
 	Desc string `json:"desc"`
 	Data map[string]WarehousingRow `json:"data"`
 }
