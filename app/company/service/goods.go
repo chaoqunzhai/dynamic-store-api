@@ -23,6 +23,7 @@ import (
 
 type Goods struct {
 	service.Service
+
 }
 
 // GetPage 获取Goods列表
@@ -293,7 +294,8 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 				specsRow.Max = utils.StringToInt(row.Max)
 				netSpecList = append(netSpecList,specsRow.Id)
 				e.Orm.Save(&specsRow)
-
+				//同步下库存的数据
+				e.SyncInventoryName(cid,c.Id,row.Id,c.Name,row.Name)
 
 			} else {
 				//规格资源的创建
@@ -371,8 +373,8 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 		diffList := utils.DifferenceInt(oldSpecList, netSpecList)
 
 
-		fmt.Println("有差别的规格,",diffList)
-		fmt.Println("新的一个map映射",NewSpecImageMap)
+		//fmt.Println("有差别的规格,",diffList)
+		//fmt.Println("新的一个map映射",NewSpecImageMap)
 		for _,specId:=range diffList{
 			var goodsSpec models.GoodsSpecs
 			e.Orm.Model(&models.GoodsSpecs{}).Select("id,image").Where("id = ?",specId).Limit(1).Find(&goodsSpec)

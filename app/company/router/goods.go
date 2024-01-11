@@ -23,6 +23,7 @@ func registerGoodsRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewa
 		r.GET("/:id", api.Get)
 		r.POST("", api.Insert)
 		r.POST("/state", api.UpdateState)
+
 		r.PUT("/:id", api.Update)
 		r.DELETE("", api.Delete)
 		//根据分类获取分类下的商品

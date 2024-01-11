@@ -262,11 +262,11 @@ func (e Goods) GetPage(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	//userDto, err := customUser.GetUserDto(e.Orm, c)
-	//if err != nil {
-	//	e.Error(500, err, err.Error())
-	//	return
-	//}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 
 	listType := c.Query("listType")
 	fmt.Println("listType", listType)
@@ -284,7 +284,7 @@ func (e Goods) GetPage(c *gin.Context) {
 	p := actions.GetPermissionFromContext(c)
 	list := make([]models.Goods, 0)
 	var count int64
-
+	req.CId = userDto.CId
 	err = s.GetPage(&req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取Goods失败,信息 %s", err.Error()))
@@ -293,7 +293,21 @@ func (e Goods) GetPage(c *gin.Context) {
 
 	//make数据
 	result := make([]map[string]interface{}, 0)
+
+	goodsId:=make([]int,0)
 	for _, row := range list {
+		goodsId = append(goodsId,row.Id)
+
+	}
+	goodsId = utils2.RemoveRepeatInt(goodsId)
+	openInventory,InventoryMap:=s.GetBatchGoodsInventory(userDto.CId,goodsId)
+	for _, row := range list {
+		var Inventory int
+		if openInventory{
+			Inventory = InventoryMap[row.Id]
+		}else {
+			Inventory = row.Inventory
+		}
 		r := map[string]interface{}{
 			"id":       row.Id,
 			"name":     row.Name,
@@ -307,7 +321,7 @@ func (e Goods) GetPage(c *gin.Context) {
 				}
 				return cache
 			}(),
-			"inventory": row.Inventory,
+			"inventory": Inventory,
 			"image": func() string {
 				if row.Image == "" {
 					return ""
@@ -419,6 +433,14 @@ func (e Goods) Get(c *gin.Context) {
 
 	for _, specs := range specsList {
 		now := utils.GetUUID()
+		var inventory int
+		openInventory,getInventory:=s.GetSpecInventory(object.CId,fmt.Sprintf("(goods_id = %v and spec_id = %v)",specs.GoodsId,specs.Id))
+
+		if openInventory{
+			inventory = getInventory
+		}else {
+			inventory = specs.Inventory
+		}
 		specRow := map[string]interface{}{
 			"id":        specs.Id,
 			"key":       now,
@@ -427,7 +449,7 @@ func (e Goods) Get(c *gin.Context) {
 			"price":     specs.Price,
 			"market":specs.Market,
 			"original":  specs.Original,
-			"inventory": specs.Inventory,
+			"inventory": inventory,
 			"limit":     specs.Limit,
 			"max":specs.Max,
 			"enable":    specs.Enable,

@@ -10,6 +10,7 @@ type CompanyInventoryCnfReq struct {
 type InventoryGoodsReq struct {
 	dto.Pagination `search:"-"`
 	Name string `json:"name" form:"name"`
+	Action string `json:"action" form:"action"`
 
 }
 
@@ -20,6 +21,8 @@ type GoodsSpecs struct {
 	Price float64 `json:"price"`
 	Stock int `json:"stock"`
 	Image string `json:"image"`
+	Code string `json:"code"`
+	ArtNo string `json:"art_no"`
 }
 
 type ManageListGetPageReq struct {
@@ -60,4 +63,6 @@ type WarehousingRow struct {
 	ActionNumber int `json:"action_number"`
 	CostPrice float64 `json:"cost_price"`
 	Unit string `json:"unit"`
+	ArtNo string `json:"art_no" `
+	Code      string  `json:"code"`
 }

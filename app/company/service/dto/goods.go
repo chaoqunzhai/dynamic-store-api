@@ -10,7 +10,7 @@ type GoodsGetPageReq struct {
 	dto.Pagination `search:"-"`
 	Layer          string `form:"layer"  search:"type:exact;column:layer;table:goods" comment:"排序"`
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:goods" comment:"开关"`
-	CId            string `form:"cId"  search:"type:exact;column:c_id;table:goods" comment:"大BID"`
+	CId            int `form:"-"  search:"-"`
 	Name           string `form:"name"  search:"type:contains;column:name;table:goods" comment:"商品名称"`
 	VipSale        string `form:"vipSale"  search:"type:exact;column:vip_sale;table:goods" comment:"会员价"`
 	Class          string `form:"class"  search:"-" comment:"分类"`

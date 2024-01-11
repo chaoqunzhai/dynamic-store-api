@@ -13,7 +13,7 @@ type GoodsSpecs struct {
 	Enable    bool           `json:"enable" gorm:"type:tinyint(1);comment:开关"`
 	CId       int            `json:"-" gorm:"type:bigint(20);comment:大BID"`
 	GoodsId   int            `json:"goods_id" gorm:"type:bigint(20);comment:商品ID"`
-	Name      string         `json:"name" gorm:"type:varchar(30);comment:规格名称"`
+	Name      string         `json:"name" gorm:"type:varchar(20);comment:规格名称"`
 	Price     float64        `json:"price" gorm:"type:float;comment:售价"`
 	Market float64        `json:"market" gorm:"type:float;comment:市场价"`
 	Original  float64        `json:"original" gorm:"type:float;comment:原价"`
