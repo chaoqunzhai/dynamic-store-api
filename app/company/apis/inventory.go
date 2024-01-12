@@ -186,12 +186,15 @@ func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	if req.GoodsName != ""{
+		req.GoodsName = strings.TrimSpace(req.GoodsName)
+	}
 	var count int64
 	result:=make([]interface{},0)
 	list :=make([]models2.Inventory,0)
 	e.Orm.Model(&models2.Inventory{}).Where("c_id = ?",userDto.CId).Scopes(
 		cDto.MakeCondition(req.GetNeedSearch()),
-		cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order("id desc").Find(&list).Count(&count)
+		cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order(global.OrderLayerKey).Find(&list).Count(&count)
 
 
 	for _,row:=range list{
@@ -266,19 +269,20 @@ func (e CompanyInventory) ManageRecords(c *gin.Context) {
 			"user":row.CreateBy,
 			"source_number":row.SourceNumber,
 			"current_number":row.CurrentNumber,
+			"action":row.Action,
 			"original_price":utils.StringDecimal(row.OriginalPrice),
 			"source_price":utils.StringDecimal(row.SourcePrice),
 		}
 		switch row.Action {
 		case global.InventoryIn:
-			data["action"] = "入库"
+			data["action_cn"] = "入库"
 			data["action_number"] = fmt.Sprintf("+%v",row.ActionNumber)
 		case global.InventoryOut:
 			data["action_number"] = fmt.Sprintf("-%v",row.ActionNumber)
-			data["action"] = "出库"
+			data["action_cn"] = "出库"
 		case global.InventoryRefundIn:
 			data["action_number"] = fmt.Sprintf("+%v",row.ActionNumber)
-			data["action"] = "退货入库"
+			data["action_cn"] = "退货入库"
 		}
 		result = append(result,data)
 	}
@@ -331,10 +335,14 @@ func (e CompanyInventory) RecordsLog(c *gin.Context) {
 		}
 		switch row.Action {
 		case global.InventoryIn:
+			data["action_cn"] = "入库"
 			data["action_number"] = fmt.Sprintf("+%v",row.ActionNumber)
 		case global.InventoryOut:
 			data["action_number"] = fmt.Sprintf("-%v",row.ActionNumber)
-
+			data["action_cn"] = "出库"
+		case global.InventoryRefundIn:
+			data["action_number"] = fmt.Sprintf("+%v",row.ActionNumber)
+			data["action_cn"] = "退货入库"
 		}
 		result = append(result,data)
 	}
@@ -541,7 +549,7 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 				Code: data.Code,
 				ArtNo: data.ArtNo,
 			}
-
+			InventoryObject.Layer = goods.Layer
 			InventoryObject.CId = userDto.CId
 			InventoryObject.CreateBy = userDto.UserId
 			if createErr:=e.Orm.Create(&InventoryObject).Error;createErr!=nil{

@@ -427,11 +427,12 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 		var LossNumber int //损耗
 		//前段选择的退货数
 		refundData,refundOk:=req.RefundData[row.Id]
-		if !refundOk{ //如果前段没有这个配置
+		if refundOk{  //有这个配置 读取前段配置即可
 			InNumber = refundData.InNumber
 			LossNumber = refundData.LossNumber
-		}else {
+		}else {//如果前段没有这个配置
 			InNumber = row.Number
+			LossNumber = row.LossNumber
 		}
 
 		if InNumber < 0 {
@@ -463,11 +464,14 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 		if openInventory{
 			var InventoryObj models.Inventory
 			e.Orm.Model(&InventoryObj).Where("c_id = ? and goods_id =? and spec_id = ?",userDto.CId,row.GoodsId,row.SpecId).Limit(1).Find(&InventoryObj)
+			var thisObj models.Inventory
+			var SourceNumber int //原数据
 
 			if InventoryObj.Id == 0 {
 
 				//退回的时候 如果没有 给创建一次数据
 				createObj := models.Inventory{
+
 					SpecId: row.SpecId,
 					GoodsId: row.GoodsId,
 					Stock: InNumber,
@@ -476,7 +480,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 					Unit: goodsSpecs.Unit,
 					OriginalPrice:float64(goodsSpecs.Original),
 				}
-
+				createObj.Layer = goodsObject.Layer
 				createObj.Image = func()  string {
 					//默认商品规格图片
 					if goodsSpecs.Image != ""{
@@ -494,34 +498,39 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 				createObj.CId = userDto.CId
 
 				e.Orm.Create(&createObj)
-				//增加一条入库记录
-				RecordLog:=models.InventoryRecord{
-					CId: userDto.CId,
-					CreateBy:userDto.Username,
-					OrderId: fmt.Sprintf("%v",utils.GenUUID()),
-					Action: global.InventoryRefundIn, //入库
-					Image: createObj.Image,
-					GoodsId: createObj.GoodsId,
-					GoodsName: createObj.GoodsName,
-					GoodsSpecName: createObj.GoodsSpecName,
-					SpecId: createObj.SpecId,
-					SourceNumber:0, //原库存
-					ActionNumber:InNumber, //操作的库存
-					CurrentNumber:InNumber, //那现库存 就是 原库存 + 操作的库存
-					OriginalPrice:createObj.OriginalPrice,
-					SourcePrice:createObj.OriginalPrice, //原入库价
-					Unit:createObj.Unit,
-				}
-				e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
 
+				thisObj = createObj
 
+				SourceNumber = 0
 			}else {
+
+				SourceNumber = InventoryObj.Stock
 				InventoryObj.Stock +=InNumber
 				e.Orm.Model(&InventoryObj).Where("id = ?",InventoryObj.Id).Updates(map[string]interface{}{
 					"stock":InventoryObj.Stock,
 				})
+				//叠加后的数据 最后赋值
+				thisObj = InventoryObj
 			}
-
+			//fmt.Println("库存ID",thisObj.Id,"原库存",SourceNumber,"现库存",thisObj.Stock,"当前入库价",thisObj.OriginalPrice)
+			//增加一条入库记录
+			RecordLog:=models.InventoryRecord{
+				CId: userDto.CId,
+				CreateBy:userDto.Username,
+				OrderId: fmt.Sprintf("%v",utils.GenUUID()),
+				Action: global.InventoryRefundIn, //入库
+				Image: thisObj.Image,
+				GoodsId: thisObj.GoodsId,
+				GoodsName: thisObj.GoodsName,
+				GoodsSpecName: thisObj.GoodsSpecName,
+				SpecId: thisObj.SpecId,
+				SourceNumber:SourceNumber, //原库存
+				ActionNumber:InNumber, //操作的库存
+				CurrentNumber:thisObj.Stock, //那现库存 就是 原库存 + 操作的库存
+				OriginalPrice:thisObj.OriginalPrice,
+				Unit:thisObj.Unit,
+			}
+			e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
 		}else {
 			//没有开启仓库,那就操作商品规格即可
 

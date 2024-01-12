@@ -119,7 +119,7 @@ func otherSql(table,driver string, t *resolveSearchTag, condition Condition, qVa
 	case "exact", "iexact":
 		condition.SetWhere(fmt.Sprintf("`%s`.`%s` = ?", t.Table, t.Column), []interface{}{qValue.Field(i).Interface()})
 	case "contains", "icontains":
-		condition.SetWhere(fmt.Sprintf("`%s`.`%s` like ?", t.Table, t.Column), []interface{}{"%" + qValue.Field(i).String() + "%"})
+		condition.SetWhere(fmt.Sprintf("`%s`.`%s` like ?", t.Table, t.Column), []interface{}{"%" + strings.TrimSpace(qValue.Field(i).String()) + "%"})
 	case "gt":
 		condition.SetWhere(fmt.Sprintf("`%s`.`%s` > ?", t.Table, t.Column), []interface{}{qValue.Field(i).Interface()})
 	case "gte":
@@ -129,9 +129,9 @@ func otherSql(table,driver string, t *resolveSearchTag, condition Condition, qVa
 	case "lte":
 		condition.SetWhere(fmt.Sprintf("`%s`.`%s` <= ?", t.Table, t.Column), []interface{}{qValue.Field(i).Interface()})
 	case "startswith", "istartswith":
-		condition.SetWhere(fmt.Sprintf("`%s`.`%s` like ?", t.Table, t.Column), []interface{}{qValue.Field(i).String() + "%"})
+		condition.SetWhere(fmt.Sprintf("`%s`.`%s` like ?", t.Table, t.Column), []interface{}{strings.TrimSpace(qValue.Field(i).String()) + "%"})
 	case "endswith", "iendswith":
-		condition.SetWhere(fmt.Sprintf("`%s`.`%s` like ?", t.Table, t.Column), []interface{}{"%" + qValue.Field(i).String()})
+		condition.SetWhere(fmt.Sprintf("`%s`.`%s` like ?", t.Table, t.Column), []interface{}{"%" + strings.TrimSpace(qValue.Field(i).String())})
 	case "in":
 		condition.SetWhere(fmt.Sprintf("`%s`.`%s` in (?)", t.Table, t.Column), []interface{}{qValue.Field(i).Interface()})
 	case "isnull":
