@@ -271,10 +271,14 @@ func (e CompanyInventory) ManageRecords(c *gin.Context) {
 		}
 		switch row.Action {
 		case global.InventoryIn:
+			data["action"] = "入库"
 			data["action_number"] = fmt.Sprintf("+%v",row.ActionNumber)
 		case global.InventoryOut:
 			data["action_number"] = fmt.Sprintf("-%v",row.ActionNumber)
-
+			data["action"] = "出库"
+		case global.InventoryRefundIn:
+			data["action_number"] = fmt.Sprintf("+%v",row.ActionNumber)
+			data["action"] = "退货入库"
 		}
 		result = append(result,data)
 	}

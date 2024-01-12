@@ -37,6 +37,7 @@ func (m *ManageListGetPageReq) GetNeedSearch() interface{} {
 
 type RecordsListGetPageReq struct {
 	dto.Pagination `search:"-"`
+	Action string `form:"action" search:"type:exact;column:action;table:inventory_record" comment:"操作方法"`
 	GoodsName string `form:"goods_name" search:"type:contains;column:goods_name;table:inventory_record" comment:"商品名称"`
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:inventory_record" comment:"创建时间"`
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:inventory_record" comment:"创建时间"`

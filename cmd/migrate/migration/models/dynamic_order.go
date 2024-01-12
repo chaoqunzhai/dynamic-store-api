@@ -79,7 +79,7 @@ type OrderSpecs struct {
 	Model
 	GoodsName string       `json:"goods_name" gorm:"size:30;comment:商品名称"`
 	CId       int          `gorm:"index;comment:大BID"`
-	SpecId    int          `gorm:"index;comment:规格ID"`
+	SpecId    int          `json:"spec_id" gorm:"index;comment:规格ID"`
 	CreatedAt models.XTime `json:"created_at" gorm:"comment:创建时间"`
 	OrderId   string       `gorm:"index;size:30;comment:关联订单长ID"`
 	GoodsId   int          `json:"goods_id" gorm:"comment:商品ID"`
@@ -177,7 +177,7 @@ type OrderReturn struct {
 	DriverId   int          `gorm:"index;comment:退货处理司机ID"`
 	AddressId  int          `json:"user_address_id" gorm:"index;comment:用户的收货地址"`
 	GoodsId    int          `json:"goods_id" gorm:"comment:退货商品ID"`
-	SpecId     int          `gorm:"index;comment:规格ID"`
+	SpecId     int          `gorm:"index;comment::退货商品规格ID"`
 	GoodsName string       `json:"goods_name" gorm:"size:30;comment:商品名称"`
 	SpecsName  string       `json:"specs_name" gorm:"size:20;comment:规格名称"`
 	Unit       string       `json:"unit" gorm:"type:varchar(8);comment:单位"`
@@ -194,6 +194,8 @@ type OrderReturn struct {
 	Status     int          `json:"status" gorm:"type:tinyint(1);default:1;index;comment:退货状态, 1:处理中 2:处理完成"`
 	Edit bool `json:"edit" gorm:"default:false;comment:是否被编辑"`
 	Source int `json:"source" gorm:"comment:原数量"`
+	InNumber int `json:"in_number" gorm:"comment:入库数"`
+	LossNumber int `json:"loss_number" gorm:"comment:损耗数"`
 }
 
 func (OrderReturn) TableName() string {

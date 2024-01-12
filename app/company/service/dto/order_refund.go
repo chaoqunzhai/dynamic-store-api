@@ -6,7 +6,6 @@ package dto
 
 
 type RefundDto struct {
-	Id int `json:"id"`
 	AuditName string `json:"audit_name"`
 	Reason    string    `json:"reason" gorm:"column:reason"`
 	ShopName   string   `json:"shop_name" gorm:"column:shop"`
@@ -68,4 +67,6 @@ type RefundOrderRow struct {
 	SourceNumber int `json:"source_number"` //编辑后的原数量
 	Edit int `json:"edit"` //为前段编辑 售后数量方便
 	Unit string `json:"unit"`
+	InNumber int `json:"in_number"` //入库数
+	LossNumber int `json:"loss_number"` //损耗数
 }

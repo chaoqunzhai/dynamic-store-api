@@ -202,6 +202,7 @@ const (
 	RefundMoneyCredit = 4 //退款到授信分
 	InventoryIn = 1
 	InventoryOut = 2
+	InventoryRefundIn = 3
 )
 func RefundMoneyTypeStr(v int) string  {
 	switch v {

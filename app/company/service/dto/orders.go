@@ -237,14 +237,18 @@ func (m *OrdersRefundPageReq) GetNeedSearch() interface{} {
 }
 
 type RefundAuditReq struct {
-	RefundId string `json:"refund_id"` //订单ID
+	RefundOrderId string `json:"refund_order_id"` //订单ID
 	CDesc string `json:"c_desc"`//描述
 	Status int `json:"status"` //审批状态
 	RefundMoney float64 `json:"refund_money"` //退款金额
 	RefundMoneyType int `json:"refund_money_type"` //退款方式
-
+	RefundData map[int]RefundData`json:"refund_data"` //退货商品数信息
 }
-
+type RefundData struct {
+	Id int `json:"id"`
+	InNumber int `json:"in_number"` //入库数
+	LossNumber int `json:"loss_number"` //出库数
+}
 type RefundEditReq struct {
 	RefundOrderId string `json:"refund_order_id"`
 	EditList []EditList `json:"edit_list"`

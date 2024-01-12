@@ -20,6 +20,7 @@ import (
 	"go-admin/global"
 	"go.uber.org/zap"
 	"sort"
+	"strings"
 	"time"
 )
 type OrdersRefund struct {
@@ -166,12 +167,12 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 			Edit: row.Number,
 			Image: 	business.GetGoodsPathFirst(row.CId,row.Image,global.GoodsPath),
 			Unit: row.Unit,
+			InNumber: row.Number,
 			SourceNumber: row.Source,
 		}
 		if !ok{
 			sortKey = append(sortKey,row.ReturnId)
 			RefundRow = dto.RefundDto{
-				Id: row.Id,
 				OrderID: row.OrderId,
 				ReturnID: row.ReturnId,
 				Reason: row.Reason,
@@ -296,15 +297,15 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 		"refund_time": time.Now(),
 		"audit_by":userDto.UserId,
 	}
-	var refundList []models.OrderReturn
+	var refundObjectList []models.OrderReturn
 
-	e.Orm.Table(splitTableRes.OrderReturn).Where("c_id = ? and return_id = ?",userDto.CId,req.RefundId).Find(&refundList)
+	e.Orm.Table(splitTableRes.OrderReturn).Where("c_id = ? and return_id = ?",userDto.CId,req.RefundOrderId).Find(&refundObjectList)
 	//只取第一个即可
-	refundFirstObject :=refundList[0]
+	refundFirstObject :=refundObjectList[0]
 	//todo:驳回的操作
 	//售后订单也修改驳回
 	if req.Status == global.RefundOkOverReject {
-		e.Orm.Table(splitTableRes.OrderReturn).Where("c_id = ? and return_id = ?",userDto.CId,req.RefundId).Updates(&updateMap)
+		e.Orm.Table(splitTableRes.OrderReturn).Where("c_id = ? and return_id = ?",userDto.CId,req.RefundOrderId).Updates(&updateMap)
 		//大订单也需要驳回
 
 		e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id = ?",userDto.CId,refundFirstObject.OrderId).Updates(map[string]interface{}{
@@ -335,7 +336,14 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 		e.Error(500,nil,"售后原始订单规格配置不存在")
 		return
 	}
-
+	var openInventory bool
+	var Inventory models.InventoryCnf
+	e.Orm.Model(&models.InventoryCnf{}).Select("id,enable").Where("c_id = ?",userDto.CId).Limit(1).Find(&Inventory)
+	if Inventory.Id == 0 {
+		openInventory = false
+	}else {
+		openInventory = Inventory.Enable
+	}
 
 	//获取提交的客户信息
 	var shopUserObject sys.SysShopUser
@@ -413,39 +421,126 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 	}
 
 	refundAllNumber :=0 //需要退货的总数
-	for _,row:=range refundList {
-		//商品库存增加
-		//获取到商品id 和 规格  + 退货的商品
-		var goodsObject models.Goods
-		e.Orm.Model(&goodsObject).Select("id,inventory").Where("id = ? and c_id = ?",row.GoodsId,userDto.CId).Limit(1).Find(&goodsObject)
+	for _,row:=range refundObjectList {
 
-		if goodsObject.Id == 0 {
-			continue
+		var InNumber int //入库数
+		var LossNumber int //损耗
+		//前段选择的退货数
+		refundData,refundOk:=req.RefundData[row.Id]
+		if !refundOk{ //如果前段没有这个配置
+			InNumber = refundData.InNumber
+			LossNumber = refundData.LossNumber
+		}else {
+			InNumber = row.Number
 		}
 
-		e.Orm.Model(&goodsObject).Where("id = ? and c_id = ?",row.GoodsId,userDto.CId).Updates(map[string]interface{}{
-			"inventory":goodsObject.Inventory + row.Number,
-		})
-
+		if InNumber < 0 {
+			InNumber = 0
+		}
+		if LossNumber < 0 {
+			LossNumber = 0
+		}
+		//订单必须存在
 		var orderSpecsObject models.OrderSpecs
 		e.Orm.Table(splitTableRes.OrderSpecs).Where("c_id = ? and order_id = ? and spec_id = ?",userDto.CId,refundFirstObject.OrderId,row.SpecId).Limit(1).Find(&orderSpecsObject)
 		if orderSpecsObject.Id == 0 {continue}
 
 
+		var goodsObject models.Goods
+		e.Orm.Model(&goodsObject).Where("id = ? and c_id = ?",row.GoodsId,userDto.CId).Limit(1).Find(&goodsObject)
+
+		if goodsObject.Id == 0 {
+			continue
+		}
 		//规格库存增加
 		var goodsSpecs models.GoodsSpecs
-		e.Orm.Model(&goodsSpecs).Select("id,inventory").Where("id = ? and c_id = ?",row.SpecId,userDto.CId).Limit(1).Find(&goodsSpecs)
+		e.Orm.Model(&goodsSpecs).Where("id = ? and c_id = ?",row.SpecId,userDto.CId).Limit(1).Find(&goodsSpecs)
+		if goodsSpecs.Id == 0 {
+			continue
+		}
 
-		e.Orm.Model(&goodsSpecs).Where("id = ? and c_id = ?",row.SpecId,userDto.CId).Updates(map[string]interface{}{
-			"inventory":goodsSpecs.Inventory + row.Number,
-		})
+		//如果开启了仓库 数据应该回退到仓库中
+		if openInventory{
+			var InventoryObj models.Inventory
+			e.Orm.Model(&InventoryObj).Where("c_id = ? and goods_id =? and spec_id = ?",userDto.CId,row.GoodsId,row.SpecId).Limit(1).Find(&InventoryObj)
+
+			if InventoryObj.Id == 0 {
+
+				//退回的时候 如果没有 给创建一次数据
+				createObj := models.Inventory{
+					SpecId: row.SpecId,
+					GoodsId: row.GoodsId,
+					Stock: InNumber,
+					GoodsSpecName: goodsSpecs.Name,
+					GoodsName: goodsObject.Name,
+					Unit: goodsSpecs.Unit,
+					OriginalPrice:float64(goodsSpecs.Original),
+				}
+
+				createObj.Image = func()  string {
+					//默认商品规格图片
+					if goodsSpecs.Image != ""{
+						return  goodsSpecs.Image
+					}
+					//读取商品图片
+					if goodsObject.Image != ""{
+						t :=strings.Split(goodsObject.Image,",")
+						if len(t) > 0{
+							return t[0]
+						}
+					}
+					return ""
+				}()
+				createObj.CId = userDto.CId
+
+				e.Orm.Create(&createObj)
+				//增加一条入库记录
+				RecordLog:=models.InventoryRecord{
+					CId: userDto.CId,
+					CreateBy:userDto.Username,
+					OrderId: fmt.Sprintf("%v",utils.GenUUID()),
+					Action: global.InventoryRefundIn, //入库
+					Image: createObj.Image,
+					GoodsId: createObj.GoodsId,
+					GoodsName: createObj.GoodsName,
+					GoodsSpecName: createObj.GoodsSpecName,
+					SpecId: createObj.SpecId,
+					SourceNumber:0, //原库存
+					ActionNumber:InNumber, //操作的库存
+					CurrentNumber:InNumber, //那现库存 就是 原库存 + 操作的库存
+					OriginalPrice:createObj.OriginalPrice,
+					SourcePrice:createObj.OriginalPrice, //原入库价
+					Unit:createObj.Unit,
+				}
+				e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
 
 
+			}else {
+				InventoryObj.Stock +=InNumber
+				e.Orm.Model(&InventoryObj).Where("id = ?",InventoryObj.Id).Updates(map[string]interface{}{
+					"stock":InventoryObj.Stock,
+				})
+			}
 
-		refundAllNumber += row.Number
+		}else {
+			//没有开启仓库,那就操作商品规格即可
+
+			//商品库存增加
+			//获取到商品id 和 规格  + 退货的商品
+
+			e.Orm.Model(&goodsObject).Where("id = ? and c_id = ?",row.GoodsId,userDto.CId).Updates(map[string]interface{}{
+				"inventory":goodsObject.Inventory + InNumber,
+			})
+
+
+			e.Orm.Model(&goodsSpecs).Where("id = ? and c_id = ?",row.SpecId,userDto.CId).Updates(map[string]interface{}{
+				"inventory":goodsSpecs.Inventory + InNumber,
+			})
+
+		}
 
 		//订单规格:orderSpecsObject 订单规格数量 - 售后数量
-		specsNumber := orderSpecsObject.Number - row.Number
+		specsNumber := orderSpecsObject.Number - InNumber
 
 		if specsNumber <=0 {
 			specsNumber = 0
@@ -456,6 +551,16 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 			"after_status":global.RefundOk,
 			"number":specsNumber,
 		})
+
+
+		//总退货数相加, 需要更新到商品订单中
+		refundAllNumber += InNumber
+
+		//4.更新下入库 退货的数量 损耗的数量
+		e.Orm.Table(splitTableRes.OrderReturn).Where("id = ?",row.Id).Updates(map[string]interface{}{
+			"in_number":InNumber,
+			"loss_number":LossNumber,
+		})
 	}
 
 
@@ -463,7 +568,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 	updateMap["refund_apply_money"] = refundMoney
 	updateMap["refund_money_type"] = req.RefundMoneyType
 
-	e.Orm.Table(splitTableRes.OrderReturn).Where("c_id = ? and return_id = ?",userDto.CId,req.RefundId).Updates(&updateMap)
+	e.Orm.Table(splitTableRes.OrderReturn).Where("c_id = ? and return_id = ?",userDto.CId,req.RefundOrderId).Updates(&updateMap)
 
 
 	//订单order:orderObject 订单总数量 - 总售后数量
@@ -472,7 +577,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 		orderAllNumber = 0
 	}
 
-	//把客户的订单的规格 after_status状态改为已经退货,因为订单可能还要查看详情,如果整个单子都退了。
+	//把客户的订单的规格 after_status状态改为已经退货,因为订单可能还要查看详情,需要考虑到整个单子都退情况
 	//修改订单状态, 修改订单的数量(原始数量 - 退货数量)
 
 	//1、当一个订单下的规格都减完了 那这个订单就是一个退货的状态,个人中心需要保留这个订单,订单状态为 已退货
@@ -483,7 +588,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 	if orderAllNumber == 0 {
 		updateOrderMap["status"] = global.OrderStatusReturn //售后处理完毕
 	}
-	//把商品的总金额也减少
+	//把订单商品的总金额也减少
 	GoodsMoney :=orderObject.GoodsMoney -  refundMoney
 	if GoodsMoney <= 0{
 		GoodsMoney = 0
@@ -497,7 +602,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 		OrderMoney = 0
 	}
 	updateOrderMap["order_money"] = OrderMoney
-
+	//更新订单
 	e.Orm.Table(splitTableRes.OrderTable).Where("id = ?",orderObject.Id).Updates(updateOrderMap)
 
 

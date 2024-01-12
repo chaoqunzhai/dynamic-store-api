@@ -27,9 +27,9 @@ func registerRefundOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTM
 	{
 
 		r.GET("", api.GetPage)
-
+		//审批
 		r.POST("/audit",api.Audit)
-
+		//编辑
 		r.POST("/edit",api.Edit)
 	}
 
