@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/business"
 	"go-admin/common/qiniu"
 	"go-admin/common/utils"
@@ -430,28 +431,65 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 }
 
 // Remove 删除Goods
-func (e *Goods) Remove(d *dto.GoodsDeleteReq,CId interface{}, p *actions.DataPermission) error {
+func (e *Goods) Remove(d *dto.GoodsDeleteReq,cid int, p *actions.DataPermission) (notDelete,okDelete []string) {
 
 	removeIds := make([]string, 0)
 
 	buckClient:=qiniu.QinUi{
-		CId: CId,
+		CId: cid,
 	}
 	buckClient.InitClient()
-	for _, t := range d.Ids {
-		removeIds = append(removeIds, fmt.Sprintf("%v", t))
+
+	notDelete =make([]string,0)
+	okDelete = make([]string,0)
+	var Inventory models2.InventoryCnf
+	var IsOpenInventory bool
+	e.Orm.Model(&models2.InventoryCnf{}).Select("id,enable").Where("c_id = ?",cid).Limit(1).Find(&Inventory)
+	if Inventory.Id == 0 {
+		IsOpenInventory = false
+	}else {
+		IsOpenInventory = Inventory.Enable
+	}
+
+
+	for _, goodsId := range d.Ids {
+		removeIds = append(removeIds, fmt.Sprintf("%v", goodsId))
 
 		removeFileList:=make([]string,0)
 		var goods models.Goods
 
 		//删除商品
-		e.Orm.Model(&goods).Select("image").Where("id = ?",t).Limit(1).Find(&goods)
+		e.Orm.Model(&goods).Select("image,name").Where("id = ?",goodsId).Limit(1).Find(&goods)
+
+		//有库存管理
+		if IsOpenInventory {
+			var InventoryList []models2.Inventory
+			e.Orm.Model(&models2.Inventory{}).Select("stock").Where("c_id = ? and goods_id = ?",cid,goodsId).Find(&InventoryList)
+			allNumber :=0
+			for _,row:=range InventoryList{
+				allNumber+=row.Stock
+			}
+			if allNumber > 0 {
+				notDelete = append(notDelete,goods.Name)
+				continue
+			}
+
+		}else {
+			//无库存管理
+			//库存不为0 不可删除
+			if goods.Inventory > 0 {
+				notDelete = append(notDelete,goods.Name)
+				continue
+			}
+
+		}
+
 
 		removeFileList = append(removeFileList, strings.Split(goods.Image,",")...)
 		//删除规格图片
 		GoodsSpecsList:=make([]models.GoodsSpecs,0)
 
-		e.Orm.Model(&models.GoodsSpecs{}).Select("image").Where("goods_id = ?",t).Limit(1).Find(&GoodsSpecsList)
+		e.Orm.Model(&models.GoodsSpecs{}).Select("image").Where("goods_id = ?",goodsId).Limit(1).Find(&GoodsSpecsList)
 
 		for _,spec:=range GoodsSpecsList{
 			if spec.Image !="" {
@@ -462,11 +500,11 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,CId interface{}, p *actions.DataPer
 		//如果有图片,删除图片
 		for _,image :=range removeFileList{
 			//_ = os.Remove(business.GetGoodPathName(goods.CId) + image)
-			buckClient.RemoveFile(business.GetSiteCosPath(CId,global.GoodsPath,image))
+			buckClient.RemoveFile(business.GetSiteCosPath(cid,global.GoodsPath,image))
 		}
 		//如果有商品详细,那就匹配图片路径
 		var goodsDesc models.GoodsDesc
-		e.Orm.Model(&goodsDesc).Where("goods_id = ?",t).Limit(1).Find(&goodsDesc)
+		e.Orm.Model(&goodsDesc).Where("goods_id = ?",goodsId).Limit(1).Find(&goodsDesc)
 		if goodsDesc.Desc != ""{
 			//text:="<p><img src=\"https://dcy-1318497773.cos.ap-nanjing.myqcloud.com/goods/1/088e54a8.jpg\"></p>"
 			reImg :=`https?://[^"]+?(\.((jpg)|(png)|(jpeg)|(gif)|(bmp)))`
@@ -479,8 +517,9 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,CId interface{}, p *actions.DataPer
 			}
 		}
 		//删除商品
-		e.Orm.Model(&goods).Where("id = ?",t).Delete(&models.Goods{})
+		e.Orm.Model(&goods).Where("id = ?",goodsId).Delete(&models.Goods{})
 
+		okDelete = append(okDelete,goods.Name)
 
 
 	}
@@ -493,5 +532,5 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,CId interface{}, p *actions.DataPer
 
 
 
-	return nil
+	return
 }

@@ -25,6 +25,7 @@ func registerGoodsRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewa
 		r.POST("/state", api.UpdateState)
 
 		r.PUT("/:id", api.Update)
+		//商品的删除 会校验一次库存,如果库存>0 不可删除
 		r.DELETE("", api.Delete)
 		//根据分类获取分类下的商品
 		r.GET("/class_specs", api.ClassSpecs)

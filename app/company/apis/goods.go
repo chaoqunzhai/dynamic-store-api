@@ -861,10 +861,16 @@ func (e Goods) Delete(c *gin.Context) {
 	// req.SetUpdateBy(user.GetUserId(c))
 	p := actions.GetPermissionFromContext(c)
 
-	err = s.Remove(&req,userDto.CId, p)
-	if err != nil {
-		e.Error(500, err, fmt.Sprintf("删除Goods失败,%s", err.Error()))
+	notDelete,okDelete := s.Remove(&req,userDto.CId, p)
+
+	res:=map[string]interface{}{
+		"ok_delete":okDelete,
+		"not_delete":notDelete,
+	}
+	if len(notDelete) > 0 {
+		e.OK(business.Response{Code: 1,Data:res },"删除成功")
 		return
 	}
-	e.OK(req.GetId(), "删除成功")
+	e.OK(business.Response{Code: 0,Msg: "success"},"")
+	return
 }
