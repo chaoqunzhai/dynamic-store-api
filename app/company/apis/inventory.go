@@ -256,6 +256,7 @@ func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 			"stock":row.Stock,
 			"code":row.Code,
 			"art_no":row.ArtNo,
+			"edit_original_price":row.OriginalPrice,
 			"id":row.Id,
 		}
 		result = append(result,data)
