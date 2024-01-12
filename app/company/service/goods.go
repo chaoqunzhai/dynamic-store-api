@@ -453,13 +453,11 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,cid int, p *actions.DataPermission)
 
 
 	for _, goodsId := range d.Ids {
-		removeIds = append(removeIds, fmt.Sprintf("%v", goodsId))
-
 		removeFileList:=make([]string,0)
 		var goods models.Goods
 
 		//删除商品
-		e.Orm.Model(&goods).Select("image,name").Where("id = ?",goodsId).Limit(1).Find(&goods)
+		e.Orm.Model(&goods).Where("id = ?",goodsId).Limit(1).Find(&goods)
 
 		//有库存管理
 		if IsOpenInventory {
@@ -483,6 +481,8 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,cid int, p *actions.DataPermission)
 			}
 
 		}
+		//可以删除的时候 才会保留删除ID
+		removeIds = append(removeIds, fmt.Sprintf("%v", goodsId))
 
 
 		removeFileList = append(removeFileList, strings.Split(goods.Image,",")...)
@@ -521,16 +521,20 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,cid int, p *actions.DataPermission)
 
 		okDelete = append(okDelete,goods.Name)
 
-
 	}
-	e.Orm.Model(&models.GoodsDesc{}).Where("goods_id in ?", removeIds).Unscoped().Delete(&models.GoodsDesc{})
-	//商品删除了关联的一些配置都删除
-	e.Orm.Model(&models.GoodsVip{}).Where("goods_id in ?", removeIds).Unscoped().Delete(&models.GoodsVip{})
-	e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id in ?", removeIds).Unscoped().Delete(&models.GoodsSpecs{})
-	e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_tag` WHERE `goods_mark_tag`.`goods_id` IN (%v)", strings.Join(removeIds, ",")))
-	e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_class` WHERE `goods_mark_class`.`goods_id` IN (%v)", strings.Join(removeIds, ",")))
+	if len(removeIds) > 0 {
+		e.Orm.Model(&models.GoodsDesc{}).Where("goods_id in ?", removeIds).Unscoped().Delete(&models.GoodsDesc{})
+		//商品删除了关联的一些配置都删除
+		e.Orm.Model(&models.GoodsVip{}).Where("goods_id in ?", removeIds).Unscoped().Delete(&models.GoodsVip{})
+		e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id in ?", removeIds).Unscoped().Delete(&models.GoodsSpecs{})
+		e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_tag` WHERE `goods_mark_tag`.`goods_id` IN (%v)", strings.Join(removeIds, ",")))
+		e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_class` WHERE `goods_mark_class`.`goods_id` IN (%v)", strings.Join(removeIds, ",")))
 
-
+		//删除库存
+		if IsOpenInventory {
+			e.Orm.Model(&models2.Inventory{}).Where("goods_id in ?",removeIds).Unscoped().Delete(&models2.Inventory{})
+		}
+	}
 
 	return
 }

@@ -120,15 +120,8 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 	//组装一次数据 + 商品在库存中查询是否有
 	for _,row:=range goodsSpecs{
 		key :=fmt.Sprintf("%v_%v",row.GoodsId,row.Id)
+
 		InventoryObject,cnfOk:= InventoryDbMap[key]
-		switch req.Action {
-		case "out": //出库 并且 不在仓库中 直接跳出
-			if !cnfOk{
-				continue
-			}
-
-		}
-
 
 		goodsData,ok:=goodsCnfMap[row.GoodsId]
 		if !ok{continue}
@@ -170,6 +163,58 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 
 	return
 }
+
+func (e CompanyInventory) OutGoods(c *gin.Context) {
+	req := dto.InventoryGoodsReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	list:=make([]models2.Inventory,0)
+	var count int64
+	e.Orm.Model(&models2.Inventory{}).Where("c_id = ?",userDto.CId).Scopes(
+		cDto.MakeCondition(req.GetNeedSearch()),
+		cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order(global.OrderLayerKey).Find(&list).Count(&count)
+
+	result :=make([]dto.GoodsSpecs,0)
+
+	for _,row:=range list{
+		tableRow :=dto.GoodsSpecs{
+			Key: fmt.Sprintf("%v_%v",row.GoodsId,row.SpecId),
+			Name: fmt.Sprintf("%v %v",row.GoodsName,row.GoodsSpecName),
+			Unit: row.Unit,
+			Image:  func() string {
+				if row.Image == "" {
+					return ""
+				}
+				return business.GetGoodsPathFirst(row.CId,row.Image,global.GoodsPath)
+			}(),
+			Stock:row.Stock,
+			Price:row.OriginalPrice,
+			Code:row.Code,
+			ArtNo:row.ArtNo,
+		}
+		result = append(result,tableRow)
+	}
+
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+
+	return
+
+
+}
+
+
 func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 	req := dto.ManageListGetPageReq{}
 	err := e.MakeContext(c).
@@ -518,25 +563,27 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 		e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,goodsId,specsId).Limit(1).Find(&InventoryObject)
 		var SourceNumber int //原来数量
 		var OriginalPrice float64 //原来入库价
+		var goods models2.Goods
+		var goodsSpecs models2.GoodsSpecs
+		e.Orm.Model(&models2.Goods{}).Where("c_id = ? and id = ? ",userDto.CId,goodsId).Limit(1).Find(&goods)
+
+		e.Orm.Model(&models2.GoodsSpecs{}).Where("c_id = ? and goods_id = ? and id = ?",userDto.CId,goodsId,specsId).Limit(1).Find(&goodsSpecs)
+
+
+		//规格没有录图片的时候 拿商品的图片
+		imageVal := goodsSpecs.Image
+		if goodsSpecs.Image == ""{
+			//商品如果有图片,那获取第一张图片即可
+			if goods.Image != ""{
+				imageVal = strings.Split( goods.Image,",")[0]
+			}else {
+				imageVal = ""
+			}
+
+		}
+
 		if InventoryObject.Id == 0 {
 			//创建 在查询一次
-			var goods models2.Goods
-			var goodsSpecs models2.GoodsSpecs
-			e.Orm.Model(&models2.Goods{}).Where("c_id = ? and id = ? ",userDto.CId,goodsId).Limit(1).Find(&goods)
-
-			e.Orm.Model(&models2.GoodsSpecs{}).Where("c_id = ? and goods_id = ? and id = ?",userDto.CId,goodsId,specsId).Limit(1).Find(&goodsSpecs)
-
-			//规格没有录图片的时候 拿商品的图片
-			imageVal := goodsSpecs.Image
-			if goodsSpecs.Image == ""{
-				//商品如果有图片,那获取第一张图片即可
-				if goods.Image != ""{
-					imageVal = strings.Split( goods.Image,",")[0]
-				}else {
-					imageVal = ""
-				}
-
-			}
 			//需要使用 规格中的商品总数 方便兼容 数据的融合
 			InventoryObject = models2.Inventory{
 				Stock: data.ActionNumber, // 废弃goodsSpecs.Inventory + data.ActionNumber 只以前段录入数据为主
@@ -548,6 +595,7 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 				Image: imageVal,
 				Code: data.Code,
 				ArtNo: data.ArtNo,
+				Unit: goodsSpecs.Unit,
 			}
 			InventoryObject.Layer = goods.Layer
 			InventoryObject.CId = userDto.CId
@@ -565,6 +613,10 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 			SourceNumber = InventoryObject.Stock
 			OriginalPrice = InventoryObject.OriginalPrice
 			//增加覆盖即可
+			InventoryObject.GoodsName = goods.Name
+			InventoryObject.GoodsSpecName = goods.SpecName
+			InventoryObject.Image = imageVal
+			InventoryObject.Unit = goodsSpecs.Unit
 			InventoryObject.ArtNo = data.ArtNo
 			InventoryObject.Code = data.Code
 			InventoryObject.Stock += data.ActionNumber

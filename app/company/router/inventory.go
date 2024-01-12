@@ -24,9 +24,11 @@ func registerInventoryRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMidd
 		r.POST("/cnf_update", api.UpdateCnf)
 
 
-		//商品选择
+		//入库商品选择
 		r.GET("/goods",api.Goods)
 
+		//出库商品选择
+		r.GET("/out/goods",api.OutGoods)
 		//出入库单列表
 		r.GET("/order", api.OrderList)
 

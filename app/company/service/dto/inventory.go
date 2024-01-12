@@ -9,9 +9,10 @@ type CompanyInventoryCnfReq struct {
 
 type InventoryGoodsReq struct {
 	dto.Pagination `search:"-"`
-	Name string `json:"name" form:"name"`
-	Action string `json:"action" form:"action"`
-
+	Name string `json:"name" form:"name" search:"type:contains;column:goods_name;table:inventory" comment:"商品名称"`
+}
+func (m *InventoryGoodsReq) GetNeedSearch() interface{} {
+	return *m
 }
 
 type GoodsSpecs struct {
