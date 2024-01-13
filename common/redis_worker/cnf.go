@@ -5,7 +5,9 @@
 package redis_worker
 
 func init()  {
+	work :=LoopRedisWorker{
+	}
 
-	go LoopRedisWorker()
+	go work.Start()
 }
 

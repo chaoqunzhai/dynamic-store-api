@@ -459,7 +459,16 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 		if goodsSpecs.Id == 0 {
 			continue
 		}
+		imageVal := goodsSpecs.Image
+		if goodsSpecs.Image == ""{
+			//商品如果有图片,那获取第一张图片即可
+			if goodsObject.Image != ""{
+				imageVal = strings.Split( goodsObject.Image,",")[0]
+			}else {
+				imageVal = ""
+			}
 
+		}
 		//如果开启了仓库 数据应该回退到仓库中
 		if openInventory{
 			var InventoryObj models.Inventory
@@ -471,36 +480,14 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 
 				//退回的时候 如果没有 给创建一次数据
 				createObj := models.Inventory{
-
 					SpecId: row.SpecId,
 					GoodsId: row.GoodsId,
 					Stock: InNumber,
-					GoodsSpecName: goodsSpecs.Name,
-					GoodsName: goodsObject.Name,
-					Unit: goodsSpecs.Unit,
 					OriginalPrice:float64(goodsSpecs.Original),
 				}
-				createObj.Layer = goodsObject.Layer
-				createObj.Image = func()  string {
-					//默认商品规格图片
-					if goodsSpecs.Image != ""{
-						return  goodsSpecs.Image
-					}
-					//读取商品图片
-					if goodsObject.Image != ""{
-						t :=strings.Split(goodsObject.Image,",")
-						if len(t) > 0{
-							return t[0]
-						}
-					}
-					return ""
-				}()
 				createObj.CId = userDto.CId
-
 				e.Orm.Create(&createObj)
-
 				thisObj = createObj
-
 				SourceNumber = 0
 			}else {
 
@@ -519,16 +506,17 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 				CreateBy:userDto.Username,
 				OrderId: fmt.Sprintf("%v",utils.GenUUID()),
 				Action: global.InventoryRefundIn, //入库
-				Image: thisObj.Image,
+				Image: imageVal,
 				GoodsId: thisObj.GoodsId,
-				GoodsName: thisObj.GoodsName,
-				GoodsSpecName: thisObj.GoodsSpecName,
+				GoodsName: goodsObject.Name,
+				GoodsSpecName: goodsSpecs.Name,
 				SpecId: thisObj.SpecId,
 				SourceNumber:SourceNumber, //原库存
 				ActionNumber:InNumber, //操作的库存
 				CurrentNumber:thisObj.Stock, //那现库存 就是 原库存 + 操作的库存
 				OriginalPrice:thisObj.OriginalPrice,
-				Unit:thisObj.Unit,
+				SourcePrice: thisObj.OriginalPrice,
+				Unit:goodsSpecs.Unit,
 			}
 			e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
 		}else {

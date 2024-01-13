@@ -27,8 +27,6 @@ func registerInventoryRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMidd
 		//入库商品选择
 		r.GET("/goods",api.Goods)
 
-		//出库商品选择
-		r.GET("/out/goods",api.OutGoods)
 		//出入库单列表
 		r.GET("/order", api.OrderList)
 
@@ -42,6 +40,9 @@ func registerInventoryRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMidd
 	{
 		//仓库列表
 		r.GET("", api.ManageGetPage)
+
+		//库存数据修改
+		r.POST("/edit",api.ManageEdit)
 		//获取仓库商品流水
 		r.GET("/records/:skuId", api.ManageRecords)
 

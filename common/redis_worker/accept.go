@@ -8,12 +8,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk"
+	"go-admin/cmd/migrate/migration/models"
 	"go-admin/common/redis_db"
 	"go-admin/common/xlsx_export"
 	"go-admin/global"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 	"math/rand"
-
 	"time"
 )
 
@@ -21,14 +22,20 @@ var (
 	WorkerSleep = 10000 * time.Millisecond //默认睡10秒
 
 )
-func LoopRedisWorker()  {
-	fmt.Println("异步任务启动成功！！！")
+
+type LoopRedisWorker struct {
+	Orm *gorm.DB
+}
+func (l *LoopRedisWorker)Start()  {
+	time.Sleep(10*time.Second)
+	l.Orm = sdk.Runtime.GetDbByKey("*")
+	fmt.Println("异步任务启动成功！！！",l.Orm.Name())
+
 	for {
 		//读取不同的任务Queue
 		for _,queueName:=range global.QueueGroup{
 			//随机睡12S以内的数据
 			randomSleepTime := time.Duration(rand.Intn(12000)) * time.Millisecond
-
 			time.Sleep(WorkerSleep + randomSleepTime) //
 
 			redis_db.RedisCli.Do(global.RedisCtx, "select", global.AllQueueChannel)
@@ -52,15 +59,15 @@ func LoopRedisWorker()  {
 				}
 				switch queueName {
 				case global.WorkerOrderStartName: //订单选中导出
-					go GetExportQueueInfo(key,data)
+					go l.GetExportQueueInfo(key,data)
 				case global.WorkerReportSummaryStartName: //汇总导出
-					go GetSummaryExportQueueInfo(key,data)
+					go l.GetSummaryExportQueueInfo(key,data)
 				case global.WorkerReportLineStartName: //路线导出
-					go GetReportLineExportQueueInfo(key,data)
+					go l.GetReportLineExportQueueInfo(key,data)
 
 				case global.WorkerReportLineDeliveryStartName: //路线配送表导出
 
-					go GetReportLineDeliveryExportQueueInfo(key,data)
+					go l.GetReportLineDeliveryExportQueueInfo(key,data)
 				}
 
 			}
@@ -69,10 +76,31 @@ func LoopRedisWorker()  {
 
 	}
 }
+
+//查询DB是否已经执行成功,防止未删除导致的异常
+func(l *LoopRedisWorker) IsValidWorkTask(cid,ormId int,key string,index int) bool  {
+	var task models.CompanyTasks
+	if l.Orm == nil{
+		l.Orm = sdk.Runtime.GetDbByKey("*")
+		return false
+	}
+	l.Orm.Model(&models.CompanyTasks{}).Select("id,status").Where("id = ? and c_id = ?",
+		ormId,cid).Limit(1).Find(&task)
+	if task.Id == 0 {
+		xlsx_export.EmptyKey(key,index)
+		return false
+	}
+	//只有执行中 才可以启动任务
+	if task.Status == 0{
+		return true
+	}
+	xlsx_export.EmptyKey(key,index)
+	return false
+}
 //获取到消息了
 //开始解析
-func GetExportQueueInfo(key string,data []string)   {
-	for _,dat:=range data{
+func (l *LoopRedisWorker)GetExportQueueInfo(key string,data []string)   {
+	for index,dat:=range data{
 
 		time.Sleep(600*time.Millisecond)
 		var err error
@@ -81,10 +109,14 @@ func GetExportQueueInfo(key string,data []string)   {
 		if err!=nil{
 			continue
 		}
+		//DB中状态为0
+		if !l.IsValidWorkTask(row.CId,row.OrmId,key,index){
+			continue
+		}
 		orderExportFunc:=xlsx_export.OrderExportObj{
 			RedisKey: key,
 			Dat: row,
-			Orm:sdk.Runtime.GetDbByKey("*"),
+			Orm:l.Orm,
 			UpCloud: true,
 		}
 		if orderExportFunc.Orm == nil{
@@ -112,13 +144,13 @@ func GetExportQueueInfo(key string,data []string)   {
 			continue
 		}
 		//最后在删除
-		xlsx_export.EmptyKey(key,len(dat))
+		xlsx_export.EmptyKey(key,index)
 	}
 
 }
 
-func GetSummaryExportQueueInfo(key string,data []string)   {
-	for _,dat:=range data{
+func (l *LoopRedisWorker)GetSummaryExportQueueInfo(key string,data []string)   {
+	for index,dat:=range data{
 
 		time.Sleep(700*time.Millisecond)
 		var err error
@@ -127,14 +159,19 @@ func GetSummaryExportQueueInfo(key string,data []string)   {
 		if err!=nil{
 			continue
 		}
+
 		exportFunc:=xlsx_export.SummaryExportObj{
 			RedisKey: key,
 			Dat: row,
-			Orm:sdk.Runtime.GetDbByKey("*"),
+			Orm:l.Orm,
 			UpCloud: true,
 		}
 		if exportFunc.Orm == nil{
 			zap.S().Errorf("读取redis 导出[汇总表任务数据] Orm对象为空")
+			continue
+		}
+		//DB中状态不为0
+		if !l.IsValidWorkTask(row.CId,row.OrmId,key,index){
 			continue
 		}
 		successTag:=true
@@ -159,7 +196,8 @@ func GetSummaryExportQueueInfo(key string,data []string)   {
 			continue
 		}
 		//最后在删除redis
-		xlsx_export.EmptyKey(key,len(dat))
+
+		xlsx_export.EmptyKey(key,index)
 	}
 
 
@@ -167,12 +205,11 @@ func GetSummaryExportQueueInfo(key string,data []string)   {
 
 
 
-func GetReportLineExportQueueInfo(key string,data []string) {
-	//fmt.Println("GetReportLineExportQueueInfo",key)
+func (l *LoopRedisWorker)GetReportLineExportQueueInfo(key string,data []string) {
+	fmt.Println("GetReportLineExportQueueInfo",key)
 	//fmt.Println("开始路线数据导出",key,"DATA",data)
 
-	for _,dat:=range data{
-
+	for index,dat:=range data{
 		time.Sleep(800*time.Millisecond)
 		var err error
 		row:=global.ExportRedisInfo{}
@@ -183,12 +220,16 @@ func GetReportLineExportQueueInfo(key string,data []string) {
 		orderExportFunc:=xlsx_export.ReportLineObj{
 			RedisKey: key,
 			Dat: row,
-			Orm:sdk.Runtime.GetDbByKey("*"),
+			Orm:l.Orm,
 			UpCloud: true,
 			CycleUid: row.CycleUid,
 		}
 		if orderExportFunc.Orm == nil{
 			zap.S().Errorf("读取redis 导出[路线数据] Orm对象为空")
+			continue
+		}
+		//DB中状态为0
+		if !l.IsValidWorkTask(row.CId,row.OrmId,key,index){
 			continue
 		}
 		successTag:=true
@@ -216,11 +257,11 @@ func GetReportLineExportQueueInfo(key string,data []string) {
 			continue
 		}
 		//最后在删除
-		xlsx_export.EmptyKey(key,len(dat))
+		xlsx_export.EmptyKey(key,index)
 	}
 
 }
-func GetReportLineDeliveryExportQueueInfo(key string,data []string) {
+func (l *LoopRedisWorker)GetReportLineDeliveryExportQueueInfo(key string,data []string) {
 
 	//fmt.Println("GetReportLineDeliveryExportQueueInfo",key)
 	//查询线路下不同的小B列表
@@ -231,10 +272,7 @@ func GetReportLineDeliveryExportQueueInfo(key string,data []string) {
 	//同时要支持多个文件导出的逻辑
 	//1.如果是单个路线 那就是一个excel
 	//2.如果是多个路线 那就是一个zip压缩包
-
-
-	for _,dat:=range data{
-
+	for index,dat:=range data{
 		time.Sleep(900*time.Millisecond)
 		var err error
 		row:=global.ExportRedisInfo{}
@@ -242,10 +280,14 @@ func GetReportLineDeliveryExportQueueInfo(key string,data []string) {
 		if err!=nil{
 			continue
 		}
+		//DB中状态为0
+		if !l.IsValidWorkTask(row.CId,row.OrmId,key,index){
+			continue
+		}
 		orderExportFunc:=xlsx_export.ReportDeliveryLineObj{
 			RedisKey: key,
 			Dat: row,
-			Orm:sdk.Runtime.GetDbByKey("*"),
+			Orm:l.Orm,
 			UpCloud: true,
 			CycleUid: row.CycleUid,
 		}
@@ -289,6 +331,6 @@ func GetReportLineDeliveryExportQueueInfo(key string,data []string) {
 			continue
 		}
 		//最后在删除
-		xlsx_export.EmptyKey(key,len(dat))
+		xlsx_export.EmptyKey(key,index)
 	}
 }

@@ -295,8 +295,7 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 				specsRow.Max = utils.StringToInt(row.Max)
 				netSpecList = append(netSpecList,specsRow.Id)
 				e.Orm.Save(&specsRow)
-				//同步下库存的数据
-				e.SyncInventoryName(cid,c.Id,row.Id,c.Name,row.Name)
+
 
 			} else {
 				//规格资源的创建

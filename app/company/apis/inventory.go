@@ -73,7 +73,7 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 	//根据分页获取商品
 	e.Orm.Model(&models2.GoodsSpecs{}).Where(whereSql).Scopes(
 		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-	).Find(&goodsSpecs).Count(&count)
+	).Find(&goodsSpecs).Limit(-1).Offset(-1).Count(&count)
 
 
 	//统一在查一次商品
@@ -140,15 +140,9 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 		if cnfOk{
 			//如果有库存 库存的值作为展示
 			tableRow.Stock = InventoryObject.Stock
-			tableRow.Price = InventoryObject.OriginalPrice
+			tableRow.CostPrice = InventoryObject.OriginalPrice
 			tableRow.Code = InventoryObject.Code
 			tableRow.ArtNo = InventoryObject.ArtNo
-			tableRow.Image = func() string {
-				if InventoryObject.Image == "" {
-					return ""
-				}
-				return business.GetGoodsPathFirst(row.CId,InventoryObject.Image,global.GoodsPath)
-			}()
 		}else {
 			//如果没有库存 默认就拿首次录入的库存 直接设置为0
 			//tableRow.Stock = row.Inventory
@@ -164,8 +158,10 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 	return
 }
 
-func (e CompanyInventory) OutGoods(c *gin.Context) {
-	req := dto.InventoryGoodsReq{}
+
+
+func (e CompanyInventory) ManageEdit(c *gin.Context) {
+	req := dto.EditReq{}
 	err := e.MakeContext(c).
 		MakeOrm().
 		Bind(&req).
@@ -180,41 +176,22 @@ func (e CompanyInventory) OutGoods(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	list:=make([]models2.Inventory,0)
-	var count int64
-	e.Orm.Model(&models2.Inventory{}).Where("c_id = ?",userDto.CId).Scopes(
-		cDto.MakeCondition(req.GetNeedSearch()),
-		cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order(global.OrderLayerKey).Find(&list).Count(&count)
+	var object models2.Inventory
 
-	result :=make([]dto.GoodsSpecs,0)
+	e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and id = ?",userDto.CId,req.Id).Limit(1).Find(&object)
 
-	for _,row:=range list{
-		tableRow :=dto.GoodsSpecs{
-			Key: fmt.Sprintf("%v_%v",row.GoodsId,row.SpecId),
-			Name: fmt.Sprintf("%v %v",row.GoodsName,row.GoodsSpecName),
-			Unit: row.Unit,
-			Image:  func() string {
-				if row.Image == "" {
-					return ""
-				}
-				return business.GetGoodsPathFirst(row.CId,row.Image,global.GoodsPath)
-			}(),
-			Stock:row.Stock,
-			Price:row.OriginalPrice,
-			Code:row.Code,
-			ArtNo:row.ArtNo,
-		}
-		result = append(result,tableRow)
+	if object.Id == 0 {
+		e.Error(500, nil,"数据不存在")
+		return
 	}
-
-	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
-
+	e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and id = ?",userDto.CId,req.Id).Updates(map[string]interface{}{
+		"art_no":req.EditArtNo,
+		"code":req.EditCode,
+		"original_price":req.EditOriginalPrice,
+	})
+	e.OK("","保存成功")
 	return
-
-
 }
-
-
 func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 	req := dto.ManageListGetPageReq{}
 	err := e.MakeContext(c).
@@ -231,32 +208,98 @@ func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	if req.GoodsName != ""{
-		req.GoodsName = strings.TrimSpace(req.GoodsName)
+	whereSql :=fmt.Sprintf("c_id = %v ",userDto.CId)
+	//进行商品名称的查询
+	if req.Name != "" {
+		likeVal:=fmt.Sprintf("%%%v%%",req.Name)
+		var goodsLists []models2.Goods
+		var goodsIds []string
+		goodsSearchSql := fmt.Sprintf("c_id = %v and `name` like '%v'",userDto.CId,likeVal)
+		e.Orm.Model(&models2.Goods{}).Select("id,name,image").Where(goodsSearchSql).Scopes(cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Find(&goodsLists)
+
+		for _,row:=range goodsLists{
+			goodsIds = append(goodsIds,fmt.Sprintf("%v",row.Id))
+		}
+		goodsIds = utils.RemoveRepeatStr(goodsIds)
+
+		if len(goodsIds) > 0 {
+			whereSql =fmt.Sprintf("%v and goods_id in (%v)",whereSql,strings.Join(goodsIds,","))
+		}
+	}
+
+	if req.Action == "out" { //如果是出库 那只查看大于0的数据
+		whereSql += " and stock > 0 "
 	}
 	var count int64
 	result:=make([]interface{},0)
-	list :=make([]models2.Inventory,0)
-	e.Orm.Model(&models2.Inventory{}).Where("c_id = ?",userDto.CId).Scopes(
+	InventoryList :=make([]models2.Inventory,0)
+	e.Orm.Model(&models2.Inventory{}).Where(whereSql).Scopes(
 		cDto.MakeCondition(req.GetNeedSearch()),
-		cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order(global.OrderLayerKey).Find(&list).Count(&count)
+		cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order(global.OrderLayerKey).Find(&InventoryList).Limit(-1).Offset(-1).Count(&count)
 
+	findGoodsSpecKey:=make([]string,0) //规格列表
+	findGoodsKey :=make([]int,0) //商品列表
+	for _,row:=range InventoryList{
+		findGoodsSpecKey = append(findGoodsSpecKey,fmt.Sprintf(" (goods_id = %v and id = %v) ",row.GoodsId,row.SpecId))
+		findGoodsKey = append(findGoodsKey,row.GoodsId)
+	}
+	findGoodsSpecKey = utils.RemoveRepeatStr(findGoodsSpecKey)
+	findGoodsKey = utils.RemoveRepeatInt(findGoodsKey)
+	GoodsSpecsInfoMap:=make(map[string]dto.GoodsInfo,0) //商品规格: 信息
+	GoodsInfoMap:=make(map[int]dto.GoodsInfo,0) //商品: 信息
+	if len(findGoodsSpecKey) > 0 {
+		var GoodsObjectList []models2.Goods
+		e.Orm.Model(&models2.Goods{}).Select("id,name,image").Where("id in ?",findGoodsKey).Find(&GoodsObjectList)
+		for _,row:=range GoodsObjectList{
+			GoodsInfoMap[row.Id] = dto.GoodsInfo{
+				Name: row.Name,
+				Image: row.Image,
+			}
+		}
 
-	for _,row:=range list{
+		var GoodsSpecsObjectList []models2.GoodsSpecs
+		e.Orm.Model(&models2.GoodsSpecs{}).Select("id,unit,name,image,goods_id").Where(strings.Join(findGoodsSpecKey," or ")).Find(&GoodsSpecsObjectList)
+		for _,row:=range GoodsSpecsObjectList{
+			GoodsSpecsInfoMap[fmt.Sprintf("%v_%v",row.GoodsId,row.Id)] = dto.GoodsInfo{
+				Name: row.Name,
+				Unit: row.Unit,
+				Image: row.Image,
+			}
+		}
+	}
+
+	for _,row:=range InventoryList{
+		key:=fmt.Sprintf("%v_%v",row.GoodsId,row.SpecId)
+
+		goodsData:=GoodsInfoMap[row.GoodsId]
+		goodsSpecs:=GoodsSpecsInfoMap[key]
+
+		imageVal := goodsSpecs.Image
+		if goodsSpecs.Image == ""{
+			//商品如果有图片,那获取第一张图片即可
+			if goodsData.Image != ""{
+				imageVal = strings.Split( goodsData.Image,",")[0]
+			}else {
+				imageVal = ""
+			}
+		}
+
 		data:=map[string]interface{}{
-			"goods_name": fmt.Sprintf("%v %v",row.GoodsName,row.GoodsSpecName),
+			"key":fmt.Sprintf("%v_%v",row.GoodsId,row.SpecId),
+			"name":fmt.Sprintf("%v %v",goodsData.Name,goodsSpecs.Name),
 			"image":func() string {
-				if row.Image == "" {
+				if imageVal == "" {
 					return ""
 				}
-				return business.GetGoodsPathFirst(row.CId,row.Image,global.GoodsPath)
+				return business.GetGoodsPathFirst(row.CId,imageVal,global.GoodsPath)
 			}(),
+			"unit":goodsSpecs.Unit,
+			"cost_price":row.OriginalPrice,
 			"original_price":utils.StringDecimal(row.OriginalPrice),
 			"time":row.UpdatedAt.Format("2006-01-02 15:04:05"),
 			"stock":row.Stock,
 			"code":row.Code,
 			"art_no":row.ArtNo,
-			"edit_original_price":row.OriginalPrice,
 			"id":row.Id,
 		}
 		result = append(result,data)
@@ -305,7 +348,7 @@ func (e CompanyInventory) ManageRecords(c *gin.Context) {
 		"c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,Inventory.GoodsId,Inventory.SpecId).Scopes(
 				cDto.MakeSplitTableCondition(req.GetNeedSearch(),splitTableRes.InventoryRecordLog),
 				cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-			).Order("id desc").Find(&RecordsList).Count(&count)
+			).Order("id desc").Find(&RecordsList).Limit(-1).Offset(-1).Count(&count)
 
 
 	for _,row:=range RecordsList{
@@ -365,7 +408,7 @@ func (e CompanyInventory) RecordsLog(c *gin.Context) {
 	e.Orm.Table(splitTableRes.InventoryRecordLog).Where("c_id = ? ",userDto.CId).Scopes(
 		cDto.MakeSplitTableCondition(req.GetNeedSearch(),splitTableRes.InventoryRecordLog),
 		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-	).Find(&RecordsList).Count(&count)
+	).Order("id desc").Find(&RecordsList).Limit(-1).Offset(-1).Count(&count)
 
 
 	for _,row:=range RecordsList{
@@ -498,7 +541,7 @@ func (e CompanyInventory) OrderList(c *gin.Context) {
 	var list []models2.InventoryOrder
 	e.Orm.Model(&models2.InventoryOrder{}).Where(whereSql).Scopes(
 		cDto.MakeCondition(req.GetNeedSearch()),
-		cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order("id desc").Find(&list).Count(&count)
+		cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order("id desc").Find(&list).Limit(-1).Offset(-1).Count(&count)
 
 	for _,row:=range list{
 		result = append(result,map[string]interface{}{
@@ -564,23 +607,27 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 		e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,goodsId,specsId).Limit(1).Find(&InventoryObject)
 		var SourceNumber int //原来数量
 		var OriginalPrice float64 //原来入库价
-		var goods models2.Goods
+		var goodsObject models2.Goods
 		var goodsSpecs models2.GoodsSpecs
-		e.Orm.Model(&models2.Goods{}).Where("c_id = ? and id = ? ",userDto.CId,goodsId).Limit(1).Find(&goods)
+		e.Orm.Model(&models2.Goods{}).Where("c_id = ? and id = ? ",userDto.CId,goodsId).Limit(1).Find(&goodsObject)
+		if goodsObject.Id == 0 {
+			continue
+		}
 
 		e.Orm.Model(&models2.GoodsSpecs{}).Where("c_id = ? and goods_id = ? and id = ?",userDto.CId,goodsId,specsId).Limit(1).Find(&goodsSpecs)
-
+		if goodsSpecs.Id == 0 {
+			continue
+		}
 
 		//规格没有录图片的时候 拿商品的图片
 		imageVal := goodsSpecs.Image
 		if goodsSpecs.Image == ""{
 			//商品如果有图片,那获取第一张图片即可
-			if goods.Image != ""{
-				imageVal = strings.Split( goods.Image,",")[0]
+			if goodsObject.Image != ""{
+				imageVal = strings.Split( goodsObject.Image,",")[0]
 			}else {
 				imageVal = ""
 			}
-
 		}
 
 		if InventoryObject.Id == 0 {
@@ -590,15 +637,10 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 				Stock: data.ActionNumber, // 废弃goodsSpecs.Inventory + data.ActionNumber 只以前段录入数据为主
 				OriginalPrice: data.CostPrice,
 				GoodsId: goodsId,
-				GoodsName: goods.Name,
-				GoodsSpecName: goodsSpecs.Name,
 				SpecId: specsId,
-				Image: imageVal,
 				Code: data.Code,
 				ArtNo: data.ArtNo,
-				Unit: goodsSpecs.Unit,
 			}
-			InventoryObject.Layer = goods.Layer
 			InventoryObject.CId = userDto.CId
 			InventoryObject.CreateBy = userDto.UserId
 			if createErr:=e.Orm.Create(&InventoryObject).Error;createErr!=nil{
@@ -613,11 +655,7 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 			//原库存
 			SourceNumber = InventoryObject.Stock
 			OriginalPrice = InventoryObject.OriginalPrice
-			//增加覆盖即可
-			InventoryObject.GoodsName = goods.Name
-			InventoryObject.GoodsSpecName = goods.SpecName
-			InventoryObject.Image = imageVal
-			InventoryObject.Unit = goodsSpecs.Unit
+
 			InventoryObject.ArtNo = data.ArtNo
 			InventoryObject.Code = data.Code
 			InventoryObject.Stock += data.ActionNumber
@@ -634,10 +672,10 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 			CreateBy:userDto.Username,
 			OrderId: OrderId,
 			Action: global.InventoryIn, //入库
-			Image: InventoryObject.Image,
+			Image: imageVal,
 			GoodsId: InventoryObject.GoodsId,
-			GoodsName: InventoryObject.GoodsName,
-			GoodsSpecName: InventoryObject.GoodsSpecName,
+			GoodsName: goodsObject.Name,
+			GoodsSpecName: goodsSpecs.Name,
 			SpecId: InventoryObject.SpecId,
 			SourceNumber:SourceNumber, //原库存
 			ActionNumber:data.ActionNumber, //操作的库存
@@ -759,6 +797,8 @@ func (e CompanyInventory) OutboundCreate(c *gin.Context) {
 	//创建出库单的的入库流水
 	DocumentMoney:=0.00
 	Number :=0
+	//循环查一次数据
+
 	//循环数据开始入库
 	for rowKey:=range req.Data{
 
@@ -788,6 +828,27 @@ func (e CompanyInventory) OutboundCreate(c *gin.Context) {
 
 			continue
 		}
+		var goodsObject models2.Goods
+		var goodsSpecs models2.GoodsSpecs
+		e.Orm.Model(&models2.Goods{}).Where("c_id = ? and id = ? ",userDto.CId,goodsId).Limit(1).Find(&goodsObject)
+		if goodsObject.Id == 0 {
+			continue
+		}
+
+		e.Orm.Model(&models2.GoodsSpecs{}).Where("c_id = ? and goods_id = ? and id = ?",userDto.CId,goodsId,specsId).Limit(1).Find(&goodsSpecs)
+		if goodsSpecs.Id == 0 {
+			continue
+		}
+		//规格没有录图片的时候 拿商品的图片
+		imageVal := goodsSpecs.Image
+		if goodsSpecs.Image == ""{
+			//商品如果有图片,那获取第一张图片即可
+			if goodsObject.Image != ""{
+				imageVal = strings.Split( goodsObject.Image,",")[0]
+			}else {
+				imageVal = ""
+			}
+		}
 		//原库存
 		SourceNumber := InventoryObject.Stock
 		//进行减少覆盖即可,但是不能超用
@@ -806,10 +867,10 @@ func (e CompanyInventory) OutboundCreate(c *gin.Context) {
 			CreateBy:userDto.Username,
 			OrderId: OrderId,
 			Action: global.InventoryOut, //入库
-			Image: InventoryObject.Image,
+			Image: imageVal,
 			GoodsId: InventoryObject.GoodsId,
-			GoodsName: InventoryObject.GoodsName,
-			GoodsSpecName: InventoryObject.GoodsSpecName,
+			GoodsName: goodsObject.Name,
+			GoodsSpecName: goodsSpecs.Name,
 			SpecId: InventoryObject.SpecId,
 			SourceNumber:SourceNumber, //原库存
 			ActionNumber:data.ActionNumber, //操作的库存

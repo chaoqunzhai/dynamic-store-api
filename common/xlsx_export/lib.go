@@ -5,6 +5,7 @@
 package xlsx_export
 
 import (
+	"fmt"
 	"go-admin/cmd/migrate/migration/models"
 	"go-admin/common/redis_db"
 	"go-admin/global"
@@ -16,6 +17,7 @@ import (
 
 func SaveExportDb(ormId int,cid int,fileName string,successTag bool,msg string,orm *gorm.DB)  error{
 	var status int
+
 	if !successTag{
 		status = 2
 	}else {
@@ -37,8 +39,9 @@ func SaveExportDb(ormId int,cid int,fileName string,successTag bool,msg string,o
 }
 //如果key下的list位空 ,那就支持清空这个key
 
-func EmptyKey(RedisKey string,keyLen int) {
-	err :=redis_db.RedisCli.LTrim(global.RedisCtx,RedisKey,1,int64(keyLen)).Err()
+func EmptyKey(RedisKey string,keyIndex int) {
+	fmt.Println("删除key",RedisKey,keyIndex)
+	err :=redis_db.RedisCli.LTrim(global.RedisCtx,RedisKey,1,int64(keyIndex)).Err()
 	if err!=nil{
 		zap.S().Errorf("清理redis key:%v 数据清理失败:%v",RedisKey,err)
 	}else {

@@ -19,7 +19,7 @@ type GoodsSpecs struct {
 	Key string `json:"key"`
 	Name string `json:"name"`
 	Unit string `json:"unit"`
-	Price float64 `json:"price"`
+	CostPrice float64 `json:"cost_price"`
 	Stock int `json:"stock"`
 	Image string `json:"image"`
 	Code string `json:"code"`
@@ -28,9 +28,10 @@ type GoodsSpecs struct {
 
 type ManageListGetPageReq struct {
 	dto.Pagination `search:"-"`
-	GoodsName string `form:"goods_name" search:"type:contains;column:goods_name;table:inventory" comment:"商品名称"`
+	Name string `json:"name" form:"name" search:"-"`
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:inventory" comment:"创建时间"`
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:inventory" comment:"创建时间"`
+	Action string `json:"action"  form:"action" search:"-"`
 }
 func (m *ManageListGetPageReq) GetNeedSearch() interface{} {
 	return *m
@@ -57,6 +58,13 @@ type OrderListGetPageReq struct {
 func (m *OrderListGetPageReq) GetNeedSearch() interface{} {
 	return *m
 }
+
+type EditReq struct {
+	Id int `json:"id"`
+	EditArtNo string `json:"edit_art_no"`
+	EditCode string `json:"edit_code"`
+	EditOriginalPrice float64 `json:"edit_original_price"`
+}
 type InventoryCreateReq struct {
 	Desc string `json:"desc"`
 	Data map[string]WarehousingRow `json:"data"`
@@ -67,4 +75,10 @@ type WarehousingRow struct {
 	Unit string `json:"unit"`
 	ArtNo string `json:"art_no" `
 	Code      string  `json:"code"`
+}
+type GoodsInfo struct {
+	Name string `json:"name"`
+	SpecName string `json:"spec_name"`
+	Unit string `json:"unit"`
+	Image string `json:"image"`
 }

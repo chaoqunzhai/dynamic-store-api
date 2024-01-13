@@ -5,7 +5,6 @@
 package models
 
 import (
-	models2 "go-admin/common/models"
 	"gorm.io/gorm"
 	"time"
 )
@@ -21,15 +20,11 @@ func (InventoryCnf) TableName() string {
 //商品仓库数据
 type Inventory struct {
 	BigBRichGlobal
-	GoodsName string `json:"goods_name" gorm:"size:50;comment:入库商品"`
-	GoodsSpecName string `json:"goods_spec_name" gorm:"size:50;comment:入库商品规格"`
 	GoodsId int `json:"goods_id" gorm:"index;comment:商品ID"`
 	SpecId int `json:"spec_id" gorm:"index;comment:规格ID"`
 	Stock int `json:"stock" gorm:"comment:仓库数量"`
-	Unit string `json:"unit" gorm:"size:8;comment:单位"`
 	ArtNo string `json:"art_no" gorm:"size:20;comment:货架编号"`
-	Code      string  `json:"code" gorm:"size:20;comment:条形码"`
-	Image     string  `gorm:"size:15;comment:商品图片路径"`
+	Code      string  `gorm:"size:20;comment:条形码"`
 	OriginalPrice float64 `json:"original_price" gorm:"comment:当前入库价/成本价"`
 	Status     int          `json:"status" gorm:"type:tinyint(1);default:1;index;comment:销售状态  1:销售中 0:下线"`
 }
@@ -42,8 +37,8 @@ func (Inventory) TableName() string {
 type InventoryOrder struct {
 	Model
 	CId            int       `json:"c_id" gorm:"index;comment:公司(大B)ID"`
-	CreateBy  string            `json:"create_by" gorm:"size:20;comment:创建者"`
-	CreatedAt models2.XTime      `json:"created_at" gorm:"comment:创建时间"`
+	CreateBy  string            `json:"createBy" gorm:"size:20;comment:创建者"`
+	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
 	Desc   string `json:"desc" gorm:"size:50;comment:描述信息"` //描述
 	OrderId string `json:"order_id" gorm:"index;size:20;comment:出入库ID"`
@@ -61,7 +56,7 @@ type InventoryRecord struct {
 	CId int `gorm:"index;comment:大BID"`
 	CreateBy  string            `json:"createBy" gorm:"size:20;comment:操作人"`
 	OrderId string `json:"order_id" gorm:"index;size:20;comment:出入库单号ID"`
-	Action int  `json:"action" gorm:"type:tinyint(1);default:1;index;comment:操作,1:入库 2:出库 3:退货入库的`
+	Action int  `json:"action" gorm:"type:tinyint(1);default:1;index;comment:操作, 1:入库 0:出库"`
 	Source int `json:"source" gorm:"type:tinyint(0);default:1;index;comment:数据来源, 0:出入库 1:售后退货返回的 2:管理员操作退回"`
 	ArtNo string `json:"art_no" gorm:"size:20;comment:货架编号"`
 	Code      string  `gorm:"size:20;comment:条形码"`
@@ -76,6 +71,7 @@ type InventoryRecord struct {
 	CurrentNumber int `json:"current_number" gorm:"comment:现库存"`
 	OriginalPrice float64 `json:"original_price" gorm:"comment:入库价/成本价"`
 	SourcePrice float64 `json:"source_price" gorm:"comment:原来入库价"`
+
 }
 func (InventoryRecord) TableName() string {
 	return "inventory_record"

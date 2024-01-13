@@ -21,29 +21,7 @@ func (e *Goods)IsOpenInventory(cid int) bool{
 	return Inventory.Enable
 }
 
-//创建/编辑商品时,同步修改库存的商品名称 和规格名称
-func (e *Goods)SyncInventoryName(cid int,goodsId,specId int,goodsName,specsName string)  {
 
-	if !e.IsOpenInventory(cid){
-		return
-	}
-	var Inventory models2.Inventory
-	whereSql :=fmt.Sprintf("c_id = %v and goods_id = %v and spec_id = %v",cid,goodsId,specId)
-	e.Orm.Model(&models2.Inventory{}).Where(whereSql).Limit(1).Find(&Inventory)
-	if Inventory.Id == 0 {
-		return
-	}
-	updateMap:=make(map[string]interface{},0)
-	if Inventory.GoodsName != goodsName{
-		updateMap["goods_name"] = goodsName
-	}
-	if Inventory.GoodsSpecName != specsName{
-		updateMap["goods_spec_name"] = specsName
-	}
-
-	e.Orm.Model(&models2.Inventory{}).Where(whereSql).Updates(updateMap)
-
-}
 
 func (e *Goods)GetSpecInventory(cid int,key string) (openInventory bool, stock int ) {
 	openInventory = e.IsOpenInventory(cid)
