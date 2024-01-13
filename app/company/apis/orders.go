@@ -204,6 +204,7 @@ func (e Orders) GetPage(c *gin.Context) {
 			"pay_type":global.GetPayType(row.PayType),//支付类型
 			"pay_int":row.PayType,
 			"source_type":global.GetOrderSource(row.SourceType),//订单来源
+			"status_int":row.Status,
 			"status":         global.OrderStatus(row.Status), //成为DB的订单都是支付成功的订单
 			"pay_status":     global.GetOrderPayStatus(row.PayStatus),
 			"created_at":     row.CreatedAt,
@@ -1104,16 +1105,14 @@ func (e Orders)ReturnOrder(c *gin.Context)  {
 	orderId:=c.Param("orderId")
 
 
+	fmt.Println("进行退回操作")
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
 	var orderObject models.Orders
 
-	orderErr := e.Orm.Table(splitTableRes.OrderTable).Where("order_id = ?",orderId).Limit(1).Find(&orderObject).Error
-	if orderErr != nil && errors.Is(orderErr, gorm.ErrRecordNotFound) {
-		e.Error(500, nil,"订单不存在")
-		return
-	}
-	if orderErr != nil {
+	e.Orm.Table(splitTableRes.OrderTable).Where("order_id = ?",orderId).Limit(1).Find(&orderObject)
+
+	if orderObject.Id == 0  {
 		e.Error(500, nil,"订单不存在")
 		return
 	}

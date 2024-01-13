@@ -67,7 +67,7 @@ type Orders struct {
 	Edit           bool         `json:"edit" gorm:"comment:是否被修改"`
 	EditAction     string       `json:"edit_action" gorm:"size:16;comment:退回方式说明"`
 	AfterSales     bool         `json:"after_sales" gorm:";comment:是否申请售后"`
-	AfterStatus    int          `json:"after_status" gorm:"type:tinyint(1);default:0;;comment:售后状态 0是暂无"`
+	AfterStatus    int          `json:"after_status" gorm:"type:tinyint(1);default:0;comment:售后状态 0是暂无"`
 }
 
 func (Orders) TableName() string {

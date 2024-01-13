@@ -23,6 +23,7 @@ type OrdersGetPageReq struct {
 	Line string `form:"line" search:"type:exact;column:line_id;table:orders" comment:""`
 	DeliveryTime string `form:"delivery_time" search:"type:exact;column:delivery_time;table:orders" comment:""`
 	Uid string `form:"uid" search:"type:exact;column:uid;table:orders"`
+	AfterSales     bool         `form:"after_sales" search:"type:exact;column:after_sales;table:orders"`
 	OrdersOrder
 }
 
