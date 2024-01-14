@@ -26,7 +26,7 @@ type Orders struct {
 	DeliveryCode string `json:"delivery_code" gorm:"size:9;index;comment:核销码"`
 	WriteOffStatus  int `json:"write_off_status" gorm:"type:tinyint(1);default:0;index;comment:核销状态,0:未核销 1:核销"`
 	PayMoney     float64   `gorm:"comment:最终实际支付成功的价"`
-	OrderMoney float64  `gorm:"comment:最终需要支付价,可能会进行优惠卷,运费 统一计算后的价格"`
+	OrderMoney float64  `gorm:"comment:最终需要支付价,会进行优惠卷,运费 统一计算后的价格=OrderMoney"`
 	GoodsMoney float64 `gorm:"comment:商品总价格"`
 	DeductionMoney float64  `json:"deduction_money" gorm:"comment:抵扣费用"`
 	Number    int       `gorm:"comment:下单数量"`
@@ -45,9 +45,10 @@ type Orders struct {
 	CouponMoney float64 `json:"coupon_money" gorm:"comment:优惠卷金额"`
 	Buyer string `json:"buyer" gorm:"size:24;comment:留言"`
 	Desc string `json:"desc" gorm:"size:16;comment:备注"`
-	Edit bool `json:"edit" gorm:"comment:是否被修改"`
-	EditAction string `json:"edit_action" gorm:"size:16;comment:退回方式说明"`
-	Return int  `gorm:"type:tinyint(1);default:0;index;comment:退还状态 0:非退货 1:大B退货 2:小B申请退货"`
+	Edit bool `json:"edit" gorm:"comment:是否被修改/退回 都复用一个字段"`
+	EditAction string `json:"edit_action" gorm:"size:16;comment:修改/退回说明"`
+	AfterSales     bool         `json:"after_sales" gorm:";comment:是否申请售后,只有小B主动申请生效"`
+	AfterStatus    int          `json:"after_status" gorm:"type:tinyint(1);default:0;;comment:售后状态:-2:撤回 -1:驳回, 0:无售后, 1:售后处理中 2:处理完毕  3: 大B退回"`
 }
 
 func (Orders) TableName(tableName string) string {
@@ -65,19 +66,23 @@ func (e *Orders) GetId() interface{} {
 // 订单规格
 type OrderSpecs struct {
 	models.Model
-	GoodsName string        `json:"goods_name" gorm:"size:50;comment:商品名称"`
-	CId       int       `gorm:"index;comment:大BID"`
-	SpecId int `gorm:"index;comment:规格ID"`
-	CreatedAt models.XTime  `json:"created_at" gorm:"comment:创建时间"`
-	OrderId   string            `gorm:"index;size:30;comment:关联订单长ID"`
-	GoodsId int `json:"goods_id" gorm:"comment:商品ID"`
-	SpecsName string         `gorm:"size:30;comment:规格名称"`
-	Unit      string         `json:"unit" gorm:"type:varchar(8);comment:单位"`
-	Number    int            `gorm:"comment:下单规格数"`
-	Status    int            `gorm:"type:tinyint(1);default:1;index;comment:配送状态"`
-	Money     float64        `gorm:"comment:订单成交的规格价格"`
-	Image     string  `gorm:"size:15;comment:商品图片路径"`
-	AllMoney     float64        `json:"all_money" gorm:"comment:计算的规格价格"` //创建时 计算好
+	GoodsName string       `json:"goods_name" gorm:"size:30;comment:商品名称"`
+	CId       int          `gorm:"index;comment:大BID"`
+	SpecId    int          `json:"spec_id" gorm:"index;comment:规格ID"`
+	CreatedAt models.XTime `json:"created_at" gorm:"comment:创建时间"`
+	OrderId   string       `gorm:"index;size:30;comment:关联订单长ID"`
+	GoodsId   int          `json:"goods_id" gorm:"comment:商品ID"`
+	SpecsName string       `gorm:"size:20;comment:规格名称"`
+	Unit      string       `json:"unit" gorm:"type:varchar(8);comment:单位"`
+	Number    int          `gorm:"comment:下单规格数"`
+	Status    int          `gorm:"type:tinyint(1);default:1;index;comment:配送状态"`
+	Money     float64      `gorm:"comment:规格的单价"`
+	Image     string       `gorm:"size:15;comment:商品图片路径"`
+	Edit      bool         `json:"edit" gorm:"comment:是否被修改"`
+	AfterStatus    int          `json:"after_status" gorm:"type:tinyint(1);default:0;;comment:售后状态:-2:撤回 -1:驳回, 0:无售后, 1:售后处理中 2:处理完毕  3: 大B退回"`
+	AllMoney  float64      `json:"all_money" gorm:"comment:计算的规格价格"` //创建时 计算好
+
+
 }
 
 func (OrderSpecs) TableName(tableName string) string {

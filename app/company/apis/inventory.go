@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
+	"go-admin/app/company/service"
 	"go-admin/app/company/service/dto"
 	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/business"
@@ -458,16 +459,7 @@ func (e CompanyInventory) Info(c *gin.Context) {
 		return
 	}
 
-
-	var object models2.InventoryCnf
-	e.Orm.Model(&models2.InventoryCnf{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
-
-	if object.Id == 0 {
-		e.OK(false,"")
-		return
-	}
-
-	e.OK(object.Enable,"")
+	e.OK(service.IsOpenInventory(userDto.CId,e.Orm),"")
 	return
 }
 func (e CompanyInventory) UpdateCnf(c *gin.Context) {

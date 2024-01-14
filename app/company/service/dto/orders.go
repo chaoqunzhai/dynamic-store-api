@@ -220,7 +220,9 @@ type OrdersEditReq struct {
 
 type OrdersReturnReq struct {
 	OrderId string `json:"order_id"` //订单ID
-	SpecsId int `json:"specs_id"` //规格ID
+	SpecId []int `json:"spec_id"` //规格ID
+	All bool `json:"all"` //是否全部退回
+	Desc string `json:"desc"`
 }
 
 
@@ -236,7 +238,7 @@ type OrdersRefundPageReq struct {
 func (m *OrdersRefundPageReq) GetNeedSearch() interface{} {
 	return *m
 }
-
+//审批小B的售后
 type RefundAuditReq struct {
 	RefundOrderId string `json:"refund_order_id"` //订单ID
 	CDesc string `json:"c_desc"`//描述
@@ -258,4 +260,9 @@ type EditList struct {
 	EditNumber int `json:"edit_number"`
 	RefundId string `json:"refund_id"`
 	SourceNumber int `json:"source_number"`
+}
+//大B主动进行退回
+type OrderRefund struct {
+	GoodsId int
+	Specs map[int]int `json:"specs"` //规格:退回数量
 }

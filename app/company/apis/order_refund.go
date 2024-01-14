@@ -336,14 +336,8 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 		e.Error(500,nil,"售后原始订单规格配置不存在")
 		return
 	}
-	var openInventory bool
-	var Inventory models.InventoryCnf
-	e.Orm.Model(&models.InventoryCnf{}).Select("id,enable").Where("c_id = ?",userDto.CId).Limit(1).Find(&Inventory)
-	if Inventory.Id == 0 {
-		openInventory = false
-	}else {
-		openInventory = Inventory.Enable
-	}
+
+	openInventory := service.IsOpenInventory(userDto.CId,e.Orm)
 
 	//获取提交的客户信息
 	var shopUserObject sys.SysShopUser
@@ -443,7 +437,8 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 		}
 		//订单必须存在
 		var orderSpecsObject models.OrderSpecs
-		e.Orm.Table(splitTableRes.OrderSpecs).Where("c_id = ? and order_id = ? and spec_id = ?",userDto.CId,refundFirstObject.OrderId,row.SpecId).Limit(1).Find(&orderSpecsObject)
+		e.Orm.Table(splitTableRes.OrderSpecs).Where(
+			"c_id = ? and order_id = ? and spec_id = ? and goods_id = ?",userDto.CId,refundFirstObject.OrderId,row.SpecId,row.GoodsId).Limit(1).Find(&orderSpecsObject)
 		if orderSpecsObject.Id == 0 {continue}
 
 
@@ -455,7 +450,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 		}
 		//规格库存增加
 		var goodsSpecs models.GoodsSpecs
-		e.Orm.Model(&goodsSpecs).Where("id = ? and c_id = ?",row.SpecId,userDto.CId).Limit(1).Find(&goodsSpecs)
+		e.Orm.Model(&goodsSpecs).Where("id = ? and goods_id = ?  and c_id = ?",row.SpecId,row.GoodsId,userDto.CId).Limit(1).Find(&goodsSpecs)
 		if goodsSpecs.Id == 0 {
 			continue
 		}
@@ -506,6 +501,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 				CreateBy:userDto.Username,
 				OrderId: fmt.Sprintf("%v",utils.GenUUID()),
 				Action: global.InventoryRefundIn, //入库
+				Source: 1,
 				Image: imageVal,
 				GoodsId: thisObj.GoodsId,
 				GoodsName: goodsObject.Name,

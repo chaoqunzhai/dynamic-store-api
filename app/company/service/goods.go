@@ -441,15 +441,8 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,cid int, p *actions.DataPermission)
 
 	notDelete =make([]string,0)
 	okDelete = make([]string,0)
-	var Inventory models2.InventoryCnf
-	var IsOpenInventory bool
-	e.Orm.Model(&models2.InventoryCnf{}).Select("id,enable").Where("c_id = ?",cid).Limit(1).Find(&Inventory)
-	if Inventory.Id == 0 {
-		IsOpenInventory = false
-	}else {
-		IsOpenInventory = Inventory.Enable
-	}
 
+	isOpenInventory := IsOpenInventory(cid,e.Orm)
 
 	for _, goodsId := range d.Ids {
 		removeFileList:=make([]string,0)
@@ -459,7 +452,7 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,cid int, p *actions.DataPermission)
 		e.Orm.Model(&goods).Where("id = ?",goodsId).Limit(1).Find(&goods)
 
 		//有库存管理
-		if IsOpenInventory {
+		if isOpenInventory {
 			var InventoryList []models2.Inventory
 			e.Orm.Model(&models2.Inventory{}).Select("stock").Where("c_id = ? and goods_id = ?",cid,goodsId).Find(&InventoryList)
 			allNumber :=0
@@ -530,7 +523,7 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,cid int, p *actions.DataPermission)
 		e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_class` WHERE `goods_mark_class`.`goods_id` IN (%v)", strings.Join(removeIds, ",")))
 
 		//删除库存
-		if IsOpenInventory {
+		if isOpenInventory {
 			e.Orm.Model(&models2.Inventory{}).Where("goods_id in ?",removeIds).Unscoped().Delete(&models2.Inventory{})
 		}
 	}

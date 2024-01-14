@@ -60,7 +60,7 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 		r3.POST("/edit/:orderId",api.EditOrder)
 
 		//todo:对订单进行退回 费用,库存都需要退回
-		r3.POST("/return/:orderId",api.ReturnOrder)
+		r3.POST("/return",api.ReturnOrder)
 
 	}
 }

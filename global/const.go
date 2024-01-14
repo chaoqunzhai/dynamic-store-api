@@ -195,6 +195,7 @@ const (
 	RefundOk = 2 //售后处理完成
 	RefundOkOverReject = -1 //大B驳回
 	RefundOkCancel = -2 //用户主动撤销
+	RefundActionCType = 3 //大B退回操作
 	//大B处理售后
 	RefundMoneyOriginal = 1 //原路退还
 	RefundMoneyOffline = 2 //线下退款
@@ -203,6 +204,8 @@ const (
 	InventoryIn = 1
 	InventoryOut = 2
 	InventoryRefundIn = 3
+
+
 )
 func RefundMoneyTypeStr(v int) string  {
 	switch v {

@@ -11,20 +11,10 @@ import (
 	"strings"
 )
 
-//检测是否开启了库存
-func (e *Goods)IsOpenInventory(cid int) bool{
-	var Inventory models2.InventoryCnf
-	e.Orm.Model(&models2.InventoryCnf{}).Select("id,enable").Where("c_id = ?",cid).Limit(1).Find(&Inventory)
-	if Inventory.Id == 0 {
-		return false
-	}
-	return Inventory.Enable
-}
-
 
 
 func (e *Goods)GetSpecInventory(cid int,key string) (openInventory bool, stock int ) {
-	openInventory = e.IsOpenInventory(cid)
+	openInventory = IsOpenInventory(cid,e.Orm)
 	if !openInventory{
 		return
 	}
@@ -46,7 +36,7 @@ func (e *Goods)GetSpecInventory(cid int,key string) (openInventory bool, stock i
 //查看规格的库存数量 key:[ goods_id = 1 and specs_id = 1]
 func (e *Goods)GetBatchSpecInventory(cid int,inventoryKey []string) (openInventory bool,res map[string]int ){
 
-	openInventory = e.IsOpenInventory(cid)
+	openInventory = IsOpenInventory(cid,e.Orm)
 	if !openInventory{
 		return
 	}
@@ -77,7 +67,7 @@ func (e *Goods)GetBatchSpecInventory(cid int,inventoryKey []string) (openInvento
 //商品列表展示时,批量获取库存的数据 返回一个map  商品ID:商品下规格所有的数据数量
 func (e *Goods)GetBatchGoodsInventory(cid int,goodsId []int) (openInventory bool, res map[int]int ){
 	res =make(map[int]int,0)
-	openInventory = e.IsOpenInventory(cid)
+	openInventory = IsOpenInventory(cid,e.Orm)
 	if !openInventory{
 		return
 	}
