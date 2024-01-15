@@ -30,6 +30,7 @@ const (
 	RoleCompanyUser = 82 //大B下用户
 	RoleShop        = 83 //小B
 	RoleUser        = 84 //用户
+	RoleSaleMan = 85 //业务员
 
 	RegisterUserVerify = 1 //新用户需要审核,通过后才可以登录
 	RegisterUserLogin = 2 //新用户直接注册+登录

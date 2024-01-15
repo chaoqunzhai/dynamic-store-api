@@ -10,6 +10,7 @@ import (
 	"go-admin/app/company/models"
 	"go-admin/common/dto"
 	"go-admin/common/utils"
+	"go-admin/config"
 	"go-admin/global"
 	"golang.org/x/crypto/bcrypt"
 	"strings"
@@ -19,8 +20,9 @@ import (
 
 type CompanyUserGetPage struct {
 	dto.Pagination `search:"-"`
-	Name           string `form:"name"  search:"type:exact;column:name;table:sys_user" comment:""`
+	UserName           string `form:"username"  search:"type:exact;column:username;table:sys_user" comment:""`
 	Phone          string `form:"phone"  search:"type:exact;column:enable;table:sys_user" comment:""`
+	Role int `form:"role"  search:"type:exact;column:role_id;table:sys_user" comment:""`
 }
 
 func (m *CompanyUserGetPage) GetNeedSearch() interface{} {
@@ -35,6 +37,7 @@ type UpdateReq struct {
 	UserName string `json:"username" comment:"用户名称" binding:"required"`
 	Phone    string `json:"phone" comment:"手机号"`
 	PassWord string `json:"password" comment:"密码" binding:"required"`
+	AuthExamine bool `json:"auth_examine"`
 }
 type CategoryReq struct {
 	Type int `json:"type" binding:"required"`
@@ -83,8 +86,9 @@ func (e Company) MakeCode(c *gin.Context) {
 	return
 }
 
+
 // 查询业务员的信息
-func (e Company) MiniList(c *gin.Context) {
+func (e Company) PromotionCode(c *gin.Context) {
 	err := e.MakeContext(c).
 		MakeOrm().
 		Errors
@@ -98,9 +102,34 @@ func (e Company) MiniList(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+
+	url:=fmt.Sprintf("%v/%v",config.ExtConfig.PromotionCode,userDto.CId)
+	e.OK(url, "successful")
+	return
+}
+
+// 查询业务员的信息
+func (e Company) MiniList(c *gin.Context) {
+	req :=CompanyUserGetPage{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	datalist := make([]sys.SysUser, 0)
-	e.Orm.Model(&sys.SysUser{}).Select("user_id,username").Where("c_id = ? and enable = ? and invitation_code IS NOT NULL ",
-		userDto.CId, true).Find(&datalist)
+
+	//and invitation_code IS NOT NULL
+	e.Orm.Model(&sys.SysUser{}).Select("user_id,username").Where("c_id = ? and enable = ? ",
+		userDto.CId, true).Scopes(dto.MakeCondition(req.GetNeedSearch())).Find(&datalist)
 	result := make([]map[string]interface{}, 0)
 	for _, row := range datalist {
 		result = append(result, map[string]interface{}{
@@ -132,8 +161,7 @@ func (e Company) List(c *gin.Context) {
 	var userLists []sys.SysUser
 	var count int64
 	//必须只能更新 大B下的用户,防止随意根据用户ID更改信息
-	e.Orm.Model(&sys.SysUser{}).Select("user_id,username,password,avatar,email,sex,phone,"+
-		"status,created_at,enable,layer,invitation_code").Where("c_id = ? and enable = ?", userDto.CId, true).Scopes(
+	e.Orm.Model(&sys.SysUser{}).Where("c_id = ? and enable = ?", userDto.CId, true).Scopes(
 		dto.MakeCondition(req.GetNeedSearch()),
 		dto.Paginate(req.GetPageSize(), req.GetPageIndex()),
 	).Order(global.OrderLayerKey).Find(&userLists).Count(&count)
@@ -159,16 +187,18 @@ func (e Company) List(c *gin.Context) {
 				UserId: row.UserId,
 			}
 		}
-		roleRows := make([]models.CompanyRole, 0)
-		e.Orm.Model(&models.CompanyRole{}).Where("c_id = ? and enable = ? and id in ?",
-			userDto.CId, true, roleIds).Find(&roleRows)
-		//查询到的role 和 user做一个map关联
-		for _, role := range roleRows {
-			bindData, ok := roleBindUser[role.Id]
-			if ok {
-				userBindRoleMap[bindData.UserId] = RoleUserRow{
-					RoleName: role.Name,
-					RoleId:   role.Id,
+		if len(roleIds) > 0 {
+			roleRows := make([]models.CompanyRole, 0)
+			e.Orm.Model(&models.CompanyRole{}).Where("c_id = ? and enable = ? and id in ?",
+				userDto.CId, true, roleIds).Find(&roleRows)
+			//查询到的role 和 user做一个map关联
+			for _, role := range roleRows {
+				bindData, ok := roleBindUser[role.Id]
+				if ok {
+					userBindRoleMap[bindData.UserId] = RoleUserRow{
+						RoleName: role.Name,
+						RoleId:   role.Id,
+					}
 				}
 			}
 		}
@@ -189,6 +219,7 @@ func (e Company) List(c *gin.Context) {
 			"status":          row.Status,
 			"layer":           row.Layer,
 			"created_at":      row.CreatedAt,
+			"auth_examine":row.AuthExamine,
 			"disable": func() bool {
 				if row.UserId == userDto.UserId {
 					return true
@@ -248,6 +279,7 @@ func (e Company) UpdateUser(c *gin.Context) {
 		"phone":    req.Phone,
 		"layer":    req.Layer,
 		"status":   req.Status,
+		"auth_examine": req.AuthExamine,
 	}
 	var runSql string
 	//更新第三张表角色ID
@@ -320,6 +352,11 @@ func (e Company) CreateUser(c *gin.Context) {
 		CId:      userDto.CId,
 		RoleId:   global.RoleCompanyUser,
 		Layer:    req.Layer,
+		AuthExamine: req.AuthExamine,
+
+	}
+	if userObject.RoleId > 0 {
+		userObject.RoleId = req.RoleId
 	}
 	userObject.CreateBy = userDto.UserId
 	e.Orm.Create(&userObject)
@@ -366,6 +403,6 @@ func (e Company) Offline(c *gin.Context) {
 		e.Orm.Exec(runSql)
 
 	}
-	e.OK("", "successful")
+	e.OK("", "操作成功")
 	return
 }

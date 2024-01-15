@@ -67,8 +67,8 @@ type ShopInsertReq struct {
 	LineId        int     `json:"line_id" comment:"归属配送路线"`
 	Amount        float64 `json:"amount" comment:"剩余金额"`
 	Integral      int     `json:"integral" comment:"可用积分"`
-	SalesmanPhone string  `json:"salesman_phone" comment:"推荐人"`
-	Salesman      int     `json:"-" comment:"推荐人"`
+	SalesmanId string  `json:"salesman_id" comment:"推荐人"`
+	Salesman      int     `json:"salesman" comment:"推荐人"`
 
 	Tags          []int   `json:"tags" comment:"客户标签"`
 	common.ControlBy
@@ -141,7 +141,7 @@ type ShopUpdateReq struct {
 	Balance        float64 `json:"balance" comment:"剩余金额"`
 	Integral      int     `json:"integral" comment:"可用积分"`
 	SalesmanPhone string  `json:"salesman_phone" comment:"推荐人"`
-	Salesman      int     `json:"-" comment:"推荐人"`
+	Salesman      int     `json:"salesman" comment:"推荐人"`
 	Tags          []int   `json:"tags" comment:"客户标签"`
 	common.ControlBy
 }

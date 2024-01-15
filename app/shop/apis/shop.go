@@ -295,16 +295,6 @@ func (e Shop) Insert(c *gin.Context) {
 		return
 	}
 
-
-	if req.SalesmanPhone !="" {
-		//推荐人是一个大B的用户
-		var userSymanObject sys.SysUser
-		e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? and enable = ?",req.SalesmanPhone,true).Limit(1).Find(&userSymanObject)
-		if userSymanObject.UserId > 0 {
-			req.Salesman = userSymanObject.UserId
-		}
-	}
-
 	err = s.Insert(userDto,&req)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("用户创建失败,%s", err.Error()))

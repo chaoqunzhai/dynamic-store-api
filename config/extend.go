@@ -26,6 +26,7 @@ type Extend struct {
 	Compose     string        `json:"compose"`
 	Influx      Influx        `json:"influx"`
 	Callback    string        `json:"callback"`
+	PromotionCode string `json:"promotionCode"`
 	Harbor      Harbor        `json:"harbor"`
 	Qiniu Qiniu `json:"qiniu"`
 	Tx Tx `json:"tx"`

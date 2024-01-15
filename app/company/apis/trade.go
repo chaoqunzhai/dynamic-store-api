@@ -18,6 +18,7 @@ type TradeInsertReq struct {
 	ReceiveDays int `json:"receive_days" gorm:"size:1;comment:是否开启阿里支付"`
 	RefundDays int `json:"refund_days" gorm:"size:1;comment:是否开启微信支付"`
 	SubNumber int `json:"sub_number"`
+	AuthExamine  bool `json:"auth_examine"`
 
 }
 func (e *Trade) Create(c *gin.Context) {
@@ -60,6 +61,19 @@ func (e *Trade) Create(c *gin.Context) {
 		trade.Enable = true
 		e.Orm.Create(&trade)
 	}
+
+	var orderApprove models.OrderApproveCnf
+	e.Orm.Model(&orderApprove).Where("c_id = ?",userDto.CId).Limit(1).Find(&orderApprove)
+	orderApprove.Enable = req.AuthExamine
+	if orderApprove.Id == 0 {
+
+		orderApprove = models.OrderApproveCnf{
+			CId: userDto.CId,
+		}
+		e.Orm.Create(&orderApprove)
+	}else {
+		e.Orm.Save(&orderApprove)
+	}
 	e.OK("","successful")
 	return
 }
@@ -80,6 +94,16 @@ func (e Trade) Detail(c *gin.Context) {
 	var object models.OrderTrade
 	e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Limit(1).Find(&object)
 
+	var approve models.OrderApproveCnf
+	e.Orm.Model(&approve).Scopes(actions.PermissionSysUser(approve.TableName(), userDto)).Limit(1).Find(&approve)
+
+	result :=make(map[string]interface{},0)
+	if approve.Id == 0 {
+		result["auth_examine"] = false
+	}else {
+		result["auth_examine"] = approve.Enable
+	}
+
 	if object.Id == 0 {
 		object = models.OrderTrade{
 			CloseHours: int(global.OrderExpirationTime.Minutes()),
@@ -90,10 +114,11 @@ func (e Trade) Detail(c *gin.Context) {
 		object.Enable = true
 		object.CId = userDto.CId
 		e.Orm.Create(&object)
+		result["order_trade"] = object
 		e.OK(object,"successful")
 		return
 	}
-
-	e.OK(object,"successful")
+	result["order_trade"] = object
+	e.OK(result,"successful")
 	return
 }
