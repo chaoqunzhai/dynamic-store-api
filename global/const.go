@@ -78,7 +78,7 @@ const (
 
 	OrderStatusWaitSend = 1 //待发货
 
-	OrderWaitConfirm = 2 //待收货 到了配送周期后自动成为了这个待收货
+	OrderWaitConfirm = 2 //待收货 到了配送周期后自动成为了这个待收货,也就是已发货
 
 	OrderWaitRefunding = 3 //售后处理中
 
