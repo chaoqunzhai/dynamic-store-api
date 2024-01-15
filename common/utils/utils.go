@@ -121,6 +121,14 @@ func IsArray(key string, array []string) bool {
 	_, ok := set[key]
 	return ok
 }
+func IsArrayInt(key int, array []int) bool {
+	set := make(map[int]struct{})
+	for _, value := range array {
+		set[value] = struct{}{}
+	}
+	_, ok := set[key]
+	return ok
+}
 
 // 判断当前时间 是否在开始和结束时间区间
 // TimeCheckRange("09:00","16:00")

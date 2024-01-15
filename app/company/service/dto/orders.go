@@ -220,7 +220,7 @@ type OrdersEditReq struct {
 
 type OrdersReturnReq struct {
 	OrderId string `json:"order_id"` //订单ID
-	SpecId []int `json:"spec_id"` //规格ID
+	OrderSpecId []int `json:"order_spec_id"` //规格ID
 	All bool `json:"all"` //是否全部退回
 	Desc string `json:"desc"`
 }

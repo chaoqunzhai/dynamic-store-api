@@ -362,18 +362,12 @@ func (e CompanyInventory) ManageRecords(c *gin.Context) {
 			"action":row.Action,
 			"original_price":utils.StringDecimal(row.OriginalPrice),
 			"source_price":utils.StringDecimal(row.SourcePrice),
+
 		}
-		switch row.Action {
-		case global.InventoryIn:
-			data["action_cn"] = "入库"
-			data["action_number"] = fmt.Sprintf("+%v",row.ActionNumber)
-		case global.InventoryOut:
-			data["action_number"] = fmt.Sprintf("-%v",row.ActionNumber)
-			data["action_cn"] = "出库"
-		case global.InventoryRefundIn:
-			data["action_number"] = fmt.Sprintf("+%v",row.ActionNumber)
-			data["action_cn"] = "退货入库"
-		}
+		actionBol, actionCn :=global.GetInventoryActionCn(row.Action)
+		data["action_number"] = fmt.Sprintf("%v%v", actionBol,row.ActionNumber)
+		data["action_cn"] = actionCn
+
 		result = append(result,data)
 	}
 
@@ -422,18 +416,11 @@ func (e CompanyInventory) RecordsLog(c *gin.Context) {
 			"current_number":row.CurrentNumber,
 			"original_price":utils.StringDecimal(row.OriginalPrice),
 			"source_price":utils.StringDecimal(row.SourcePrice),
+			"action_number": fmt.Sprintf("+%v",row.ActionNumber),
 		}
-		switch row.Action {
-		case global.InventoryIn:
-			data["action_cn"] = "入库"
-			data["action_number"] = fmt.Sprintf("+%v",row.ActionNumber)
-		case global.InventoryOut:
-			data["action_number"] = fmt.Sprintf("-%v",row.ActionNumber)
-			data["action_cn"] = "出库"
-		case global.InventoryRefundIn:
-			data["action_number"] = fmt.Sprintf("+%v",row.ActionNumber)
-			data["action_cn"] = "退货入库"
-		}
+		actionBol, actionCn :=global.GetInventoryActionCn(row.Action)
+		data["action_number"] = fmt.Sprintf("%v%v", actionBol,row.ActionNumber)
+		data["action_cn"] = actionCn
 		result = append(result,data)
 	}
 

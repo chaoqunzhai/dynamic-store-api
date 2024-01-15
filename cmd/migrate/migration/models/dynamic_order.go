@@ -64,7 +64,7 @@ type Orders struct {
 	CouponMoney    float64      `json:"coupon_money" gorm:"comment:优惠卷金额"`
 	Buyer          string       `json:"buyer" gorm:"size:24;comment:留言"`
 	Desc           string       `json:"desc" gorm:"size:16;comment:备注"`
-	Edit bool `json:"edit" gorm:"comment:是否被修改/退回 都复用一个字段"`
+	Edit bool `json:"edit" gorm:"comment:是否被修改"`
 	EditAction string `json:"edit_action" gorm:"size:16;comment:修改/退回说明"`
 	AfterSales     bool         `json:"after_sales" gorm:";comment:是否申请售后,只有小B主动申请生效"`
 	AfterStatus    int          `json:"after_status" gorm:"type:tinyint(1);default:0;;comment:售后状态:-2:撤回 -1:驳回, 0:无售后, 1:售后处理中 2:处理完毕  3: 大B退回"`
@@ -90,7 +90,8 @@ type OrderSpecs struct {
 	Money     float64      `gorm:"comment:规格的单价"`
 	Image     string       `gorm:"size:15;comment:商品图片路径"`
 	Edit      bool         `json:"edit" gorm:"comment:是否被修改"`
-	AfterStatus    int          `json:"after_status" gorm:"type:tinyint(1);default:0;;comment:售后状态;0是暂无 "`
+	EditAction string `json:"edit_action" gorm:"size:12;comment:修改/作废说明"`
+	AfterStatus    int          `json:"after_status" gorm:"type:tinyint(1);default:0;;comment:售后状态:-2:撤回 -1:驳回, 0:无售后, 1:售后处理中 2:处理完毕  3: 大B退回"`
 	AllMoney  float64      `json:"all_money" gorm:"comment:计算的规格价格"` //创建时 计算好
 }
 

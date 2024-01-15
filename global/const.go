@@ -81,7 +81,7 @@ const (
 
 	OrderWaitRefunding = 3 //售后处理中
 
-	OrderStatusRefund = 4 //已退款
+	OrderStatusCancel = 4 //大B操作作废
 
 	OrderStatusReturn = 5 //售后处理完毕
 
@@ -94,6 +94,7 @@ const (
 	OrderStatusWaitPayDefault = 9 //下单了,但是没有支付的状态,还是放在redis中的
 
 	OrderStatusOver = 10 //订单收尾,那就是收货了,确认了
+
 	//OrderStatusWaitPay = 0 //默认状态，就是待支付
 	//
 	//OrderStatusWaitSend = 1//支持成功: 待发货
@@ -195,18 +196,49 @@ const (
 	RefundOk = 2 //售后处理完成
 	RefundOkOverReject = -1 //大B驳回
 	RefundOkCancel = -2 //用户主动撤销
-	RefundActionCType = 3 //大B退回操作
+	RefundCompanyCancelCType = 3 //大B作废操作
+
 	//大B处理售后
 	RefundMoneyOriginal = 1 //原路退还
 	RefundMoneyOffline = 2 //线下退款
 	RefundMoneyBalance = 3 //退款到余额
 	RefundMoneyCredit = 4 //退款到授信分
-	InventoryIn = 1
-	InventoryOut = 2
-	InventoryRefundIn = 3
+	InventoryIn = 1 //常规入库
+	InventoryOut = 2 //常规出库
+	InventoryRefundIn = 3 //退货入库
 
+	InventoryEditIn = 5//商品编辑入库
+	InventoryEditOut = 6//商品编辑出库
 
 )
+
+func GetInventoryActionCn(v int) (bol,val string) {
+
+	switch v {
+	case InventoryIn:
+		return "+","入库"
+
+	case InventoryOut:
+
+		return "-","出库"
+	case InventoryRefundIn:
+
+		return "+","退货入库"
+	case InventoryEditIn:
+
+		return "+","订单编辑入库"
+	case InventoryEditOut:
+
+		return "-","订单编辑出库"
+
+	}
+	return "",""
+
+}
+func OrderEffEct() []int { //配送报表 有效订单状态
+
+	return []int{OrderStatusWaitSend,OrderWaitConfirm,OrderWaitRefunding,OrderStatusOver}
+}
 func RefundMoneyTypeStr(v int) string  {
 	switch v {
 	case RefundMoneyOriginal:
@@ -292,8 +324,8 @@ func OrderStatus(v int) string {
 		return "待收货"
 	case OrderWaitRefunding:
 		return "售后处理"
-	case OrderStatusRefund:
-		return "已退款"
+	case OrderStatusCancel:
+		return "已作废"
 	case OrderStatusReturn:
 		return "售后完毕"
 	case OrderPayStatusOfflineSuccess:

@@ -113,7 +113,7 @@ func (e Orders)Summary(c *gin.Context)  {
 
 	orderList:=make([]models2.Orders,0)
 	//根据配送UID 统一查一下 订单的ID
-	e.Orm.Table(splitTableRes.OrderTable).Select("order_id").Where("uid = ? and c_id = ? ", data.Uid,userDto.CId).Find(&orderList)
+	e.Orm.Table(splitTableRes.OrderTable).Select("order_id").Where("uid = ? and c_id = ? and status in ?", data.Uid,userDto.CId,global.OrderEffEct()).Find(&orderList)
 	orderIds:=make([]string,0)
 	for _,k:=range orderList{
 		orderIds = append(orderIds,k.OrderId)
@@ -181,8 +181,10 @@ func (e Orders)Line(c *gin.Context){
 
 	orderList:=make([]models2.Orders,0)
 	//根据配送UID 统一查一下 线路ID和订单ID
-	//原始搜索
-	orderOrm :=e.Orm.Table(splitTableRes.OrderTable).Select("line_id,order_id").Where("uid = ? and c_id = ? ", data.Uid,userDto.CId)
+	//只查询待配送,配送中,售后中,订单完结
+
+	orderOrm :=e.Orm.Table(splitTableRes.OrderTable).Select("line_id,order_id").Where(
+		"uid = ? and c_id = ? and status in ?", data.Uid,userDto.CId,global.OrderEffEct())
 
 	//进行路线名称查询
 	//首先查出的路线 必须在订单中

@@ -41,7 +41,7 @@ type GoodsSpecs struct {
 	Price     float32 `gorm:"comment:售价"`
 	Market float32 `gorm:"comment:市场价" json:"market"`
 	Original  float32 `gorm:"comment:进货价"`
-	Inventory int     `gorm:"comment:库存"`
+	Inventory int     `json:"inventory" gorm:"comment:库存"`
 	Sale int   `gorm:"comment:销售量"`
 	Unit      string  `gorm:"size:8;comment:单位"`
 	Limit     int     `gorm:"comment:起售量"`

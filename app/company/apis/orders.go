@@ -930,6 +930,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	isOpenInventory:=service.IsOpenInventory(userDto.CId,e.Orm)
 	//订单编辑: 库存检测  是否需要进行库存检测
 
 	//分表配置
@@ -978,6 +979,9 @@ func (e Orders) EditOrder(c *gin.Context) {
 	sourceOrderMoney := orderObject.OrderMoney //订单金额进行操作
 
 	//fmt.Printf("原订单 数量:%v 金额:%v\n",sourceOrderNumber,sourceOrderMoney)
+
+	//增加映射map
+	editGoodsMap:=make(map[string]int,0)
 	for _,order:=range req.EditList{
 
 		var orderSpecs models2.OrderSpecs
@@ -1012,7 +1016,11 @@ func (e Orders) EditOrder(c *gin.Context) {
 		//总的大订单Order也是需要进行重新计价
 		//总价只需要记录多余 还是少于即可,因为总价里面有 优惠卷各种抵扣
 		//新数据 - 原数据
-		sourceOrderNumber +=  order.NewAllNumber -  orderSpecs.Number
+		sourceOrderNumber +=  order.NewAllNumber -  orderSpecs.Number //订单商品 进行修改
+
+
+		editGoodsMap[fmt.Sprintf("%v_%v",orderSpecs.GoodsId,orderSpecs.SpecId)] = orderSpecs.Number - order.NewAllNumber //对库存 进行修改
+
 		sourceOrderMoney  +=  order.NewAllMoney - orderSpecs.AllMoney
 
 		//fmt.Printf("新的订单 数量:%v 金额:%v\n",sourceOrderNumber,sourceOrderMoney)
@@ -1083,12 +1091,98 @@ func (e Orders) EditOrder(c *gin.Context) {
 	})
 	e.Orm.Model(&models2.Shop{}).Where("id = ?",shopRow.Id).Updates(&updateMap)
 
+	//操作库存
+
+	for key,ActionNumber:=range editGoodsMap{
+		keyData:=strings.Split(key,"_")
+		if len(keyData) != 2 {
+			continue
+		}
+		goodsId := keyData[0]
+		specId:=keyData[1]
+		//更新规格数量
+		var goodsSpecs models2.GoodsSpecs
+		e.Orm.Model(&models2.GoodsSpecs{}).Where("c_id = ? and goods_id = ? and id = ?",userDto.CId,goodsId,specId).Limit(1).Find(&goodsSpecs)
+		if goodsSpecs.Id == 0 {
+			continue
+		}
+
+		var goodsObject models2.Goods
+		e.Orm.Model(&models2.Goods{}).Where("c_id = ? and id = ?",userDto.CId,goodsId).Limit(1).Find(&goodsObject)
+		if goodsObject.Id == 0 {
+			continue
+		}
+		imageVal := goodsSpecs.Image
+		if goodsSpecs.Image == ""{
+			//商品如果有图片,那获取第一张图片即可
+			if goodsObject.Image != ""{
+				imageVal = strings.Split( goodsObject.Image,",")[0]
+			}else {
+				imageVal = ""
+			}
+
+		}
+		if isOpenInventory{
+			var Inventory models2.Inventory
+			e.Orm.Model(&models2.Inventory{}).Select("id,stock,original_price").Where("c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,goodsId,specId).Limit(1).Find(&Inventory)
+			if Inventory.Id == 0 {
+				continue
+			}
+			SourceNumber := Inventory.Stock
+			Inventory.Stock +=ActionNumber
+			e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,goodsId,specId).Updates(map[string]interface{}{
+				"stock":Inventory.Stock,
+			})
+			RecordLog:=models2.InventoryRecord{
+				CId: userDto.CId,
+				CreateBy:userDto.Username,
+				OrderId: fmt.Sprintf("%v",utils.GenUUID()),
+				Action: global.InventoryOut, //入库
+				Image: imageVal,
+				GoodsId: goodsObject.Id,
+				GoodsName: goodsObject.Name,
+				GoodsSpecName: goodsSpecs.Name,
+				SpecId: goodsSpecs.Id,
+				SourceNumber:SourceNumber, //原库存
+				CurrentNumber:SourceNumber + ActionNumber, //那现库存 就是 原库存 + 操作的库存
+				SourcePrice:Inventory.OriginalPrice,
+				OriginalPrice:Inventory.OriginalPrice,
+				Unit:goodsSpecs.Unit,
+
+			}
+			//流水创建
+			if ActionNumber > 0 {
+				RecordLog.Action = global.InventoryEditIn
+				RecordLog.ActionNumber = ActionNumber
+			}else { //出库
+				RecordLog.Action = global.InventoryEditOut
+				RecordLog.ActionNumber = -ActionNumber
+			}
+			e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
+
+
+
+		}else {
+			//规格总数
+			goodsSpecs.Inventory +=ActionNumber
+			e.Orm.Model(&models2.GoodsSpecs{}).Where("c_id = ? and goods_id = ? and id = ?",userDto.CId,goodsId,specId).Updates(map[string]interface{}{
+				"inventory":goodsSpecs.Inventory,
+			})
+			//更新商品总数
+			goodsObject.Inventory +=ActionNumber
+			e.Orm.Model(&models2.Goods{}).Where("c_id = ? and id = ?",userDto.CId,goodsId).Updates(map[string]interface{}{
+				"inventory":goodsObject.Inventory,
+			})
+		}
+	}
+
+
 	e.OK("","更新成功")
 	return
 
 }
 
-func (e Orders)ReturnOrder(c *gin.Context)  {
+func (e Orders)CancelOrder(c *gin.Context)  {
 	req := dto.OrdersReturnReq{}
 	s := service.Orders{}
 	err := e.MakeContext(c).
@@ -1106,7 +1200,7 @@ func (e Orders)ReturnOrder(c *gin.Context)  {
 		e.Error(500, err, err.Error())
 		return
 	}
-	fmt.Println("进行退回操作",req)
+
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
 	var orderObject models.Orders
@@ -1115,6 +1209,10 @@ func (e Orders)ReturnOrder(c *gin.Context)  {
 
 	if orderObject.Id == 0  {
 		e.Error(500, nil,"订单不存在")
+		return
+	}
+	if orderObject.Status == global.RefundCompanyCancelCType {
+		e.Error(500, nil,"订单已作废")
 		return
 	}
 
@@ -1139,9 +1237,9 @@ func (e Orders)ReturnOrder(c *gin.Context)  {
 	//获取这个订单下 所有的规格数据
 	var orderSpecsList []models.OrderSpecs
 
-	orm :=e.Orm.Table(splitTableRes.OrderSpecs).Select("id,goods_id,spec_id,number,after_status")
-	if len(req.SpecId) > 0 {
-		orm = orm.Where("c_id = ? and order_id = ? and spec_id in ?",userDto.CId,req.OrderId,req.SpecId)
+	orm :=e.Orm.Table(splitTableRes.OrderSpecs).Select("id,goods_id,spec_id,number,after_status,all_money")
+	if len(req.OrderSpecId) > 0 {
+		orm = orm.Where("c_id = ? and order_id = ? and id in ?",userDto.CId,req.OrderId,req.OrderSpecId)
 	}else {
 		orm = orm.Where("c_id = ? and order_id = ?",userDto.CId,req.OrderId)
 	}
@@ -1151,10 +1249,12 @@ func (e Orders)ReturnOrder(c *gin.Context)  {
 		return
 	}
 	isAllAfterStatus := true //是否全部已经退回
+	specsId:=make([]int,0)
+	var returnOrderSpecMoney float64
 	for _,row:=range orderSpecsList{
-		if row.AfterStatus != global.RefundActionCType { //只要有一个规格订单 不是大B退回操作 那就不需要修改整个订单
-			isAllAfterStatus = false
-		}
+		specsId = append(specsId,row.Id)
+
+		returnOrderSpecMoney +=row.AllMoney
 		refundMap =append(refundMap,dto.OrderRefund{
 			GoodsId: row.GoodsId,
 			Specs: map[int]int{
@@ -1163,17 +1263,30 @@ func (e Orders)ReturnOrder(c *gin.Context)  {
 		})
 	}
 
-	//1.获取整个订单的金额, 用于退款
-	returnOrderMoney += utils.RoundDecimalFlot64(orderObject.OrderMoney)
-
-
 	if req.All { //如果是整个订单退回,那就更新整个订单
+		//获取整个订单的金额, 用于退款
+		returnOrderMoney += utils.RoundDecimalFlot64(orderObject.OrderMoney)
 
 		isAllAfterStatus = true //全部退回订单
+
+	}else {//不是全部退还 那就是用查询到的规格的价格 叠加退还
+		returnOrderMoney = returnOrderSpecMoney
+
+		var allOrderSpecs []models.OrderSpecs
+		e.Orm.Table(splitTableRes.OrderSpecs).Select("id,after_status").Where("c_id = ? and order_id = ?",userDto.CId,req.OrderId).Find(&allOrderSpecs)
+		for _,row:=range allOrderSpecs {
+			//查询到规格ID 不是当前要操作的ID, 其他的ID都是为作废了,那这个订单也就是作废了
+			if utils.IsArrayInt(row.Id,req.OrderSpecId) { //不检测当前规格ID，因为当前规格ID在进行操作
+				continue
+			}
+			if row.AfterStatus != global.RefundCompanyCancelCType { //只要有一个规格订单 不是大B退回操作 那就不需要修改整个订单
+				isAllAfterStatus = false
+			}
+		}
+
 	}
 
 	if openInventory{ //开启库存,更新库存 + 规格的商品, 如果不存在 那就不管了？
-
 
 		for _,dat:=range refundMap{
 			for specId,stock:=range dat.Specs{
@@ -1255,6 +1368,7 @@ func (e Orders)ReturnOrder(c *gin.Context)  {
 				e.Orm.Model(&models.GoodsSpecs{}).Where("c_id = ? and goods_id = ? and id = ?",userDto.CId,dat.GoodsId,specId).Updates(map[string]interface{}{
 					"inventory":stock + goodsSpecsObject.Inventory,
 				})
+
 			}
 			var goodsObject models.Goods
 			e.Orm.Model(&models.Goods{}).Select("id,inventory").Where("c_id = ? and id = ?",userDto.CId,dat.GoodsId).Limit(1).Find(&goodsObject)
@@ -1279,7 +1393,7 @@ func (e Orders)ReturnOrder(c *gin.Context)  {
 			ShopId: shopRow.Id,
 			Desc: req.Desc,
 			Number: returnOrderMoney,
-			Scene:fmt.Sprintf("后台管理员[%v] 退回客户订单 退回:%v",userDto.Username,returnOrderMoney),
+			Scene:fmt.Sprintf("后台管理员[%v] 作废客户订单 退回:%v",userDto.Username,returnOrderMoney),
 			Action: global.UserNumberAdd, //增加
 			Type: global.ScanAdmin,
 		}
@@ -1291,7 +1405,7 @@ func (e Orders)ReturnOrder(c *gin.Context)  {
 			CId: userDto.CId,
 			ShopId: shopRow.Id,
 			Money: returnOrderMoney,
-			Scene:fmt.Sprintf("后台管理员[%v] 退回客户订单 退回:%v",userDto.Username,returnOrderMoney),
+			Scene:fmt.Sprintf("后台管理员[%v] 作废客户订单 退回:%v",userDto.Username,returnOrderMoney),
 			Action: global.UserNumberAdd, //增加
 			Type: global.ScanShopUse,
 		}
@@ -1300,20 +1414,23 @@ func (e Orders)ReturnOrder(c *gin.Context)  {
 
 	updateMasterMap:=make(map[string]interface{},0)
 	if isAllAfterStatus { //增加更改主订单的状态
-
-		updateMasterMap["after_status"] = global.RefundActionCType
+       	//订单直接都改为作废
+		updateMasterMap["status"] = global.OrderStatusCancel
 	}
-	//编辑的标记还是要更新
 	updateMasterMap["edit"] = true
 	updateMasterMap["edit_action"] = req.Desc
-
+	updateMasterMap["after_status"] = global.RefundCompanyCancelCType
+	//更新主订单的信息
 	e.Orm.Table(splitTableRes.OrderTable).Where("order_id = ?",req.OrderId).Updates(updateMasterMap) //更新主订单
-	e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ?",req.OrderId).Updates(map[string]interface{}{
-		"after_status":global.RefundActionCType,
-		"edit":true,
-	}) //更新子订单
-
-	fmt.Println("订单更新成功,然后操作余额",updateMoneyMap)
+	//循环查询到规格ID
+	for _,row:=range specsId{
+		e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ? and id = ?",req.OrderId,row).Updates(map[string]interface{}{
+			"after_status":global.RefundCompanyCancelCType,
+			"status":global.OrderStatusCancel,
+			"edit_action":req.Desc,
+			"edit":true,
+		}) //更新子订单
+	}
 
 	e.Orm.Model(&models2.Shop{}).Where("id = ?",shopRow.Id).Updates(updateMoneyMap)
 

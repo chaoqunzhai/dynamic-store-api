@@ -56,8 +56,8 @@ type InventoryRecord struct {
 	CId int `gorm:"index;comment:大BID"`
 	CreateBy  string            `json:"createBy" gorm:"size:20;comment:操作人"`
 	OrderId string `json:"order_id" gorm:"index;size:20;comment:出入库单号ID"`
-	Action int  `json:"action" gorm:"type:tinyint(1);default:1;index;comment:操作, 1:入库 0:出库"`
-	Source int `json:"source" gorm:"type:tinyint(0);default:1;index;comment:数据来源, 0:出入库 1:售后退货返回的 2:管理员操作退回"`
+	Action int  `json:"action" gorm:"type:tinyint(1);default:1;index;comment:操作, 1:入库 0:出库 3:退货入库"`
+	Source int `json:"source" gorm:"type:tinyint(0);default:1;index;comment:数据来源, 0:出入库 1:售后退货返回的 2:管理员进行作废`
 	ArtNo string `json:"art_no" gorm:"size:20;comment:货架编号"`
 	Code      string  `gorm:"size:20;comment:条形码"`
 	Image     string  `gorm:"size:15;comment:商品图片路径"`

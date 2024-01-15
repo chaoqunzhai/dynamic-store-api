@@ -22,7 +22,7 @@ type Orders struct {
 	ShopId    int       `gorm:"index;comment:关联客户"`
 	Line      string    `gorm:"size:16;comment:路线名称"`
 	LineId    int       `json:"line_id" gorm:"index;type:bigint;comment:线路ID"`
-	Status    int       `gorm:"type:tinyint(1);default:0;index;comment:订单的状态,1:待配送,2:配送中,3:退货中,4.已驳回,5:订单完结"`
+	Status    int       `gorm:"type:tinyint(1);default:0;index;comment:订单的状态,1:待配送,2:配送中,3:退货中,4.已驳回,5:售后处理完毕"`
 	DeliveryCode string `json:"delivery_code" gorm:"size:9;index;comment:核销码"`
 	WriteOffStatus  int `json:"write_off_status" gorm:"type:tinyint(1);default:0;index;comment:核销状态,0:未核销 1:核销"`
 	PayMoney     float64   `gorm:"comment:最终实际支付成功的价"`
@@ -72,13 +72,14 @@ type OrderSpecs struct {
 	CreatedAt models.XTime `json:"created_at" gorm:"comment:创建时间"`
 	OrderId   string       `gorm:"index;size:30;comment:关联订单长ID"`
 	GoodsId   int          `json:"goods_id" gorm:"comment:商品ID"`
-	SpecsName string       `gorm:"size:20;comment:规格名称"`
+	SpecsName string       `gorm:"size:30;comment:规格名称"`
 	Unit      string       `json:"unit" gorm:"type:varchar(8);comment:单位"`
 	Number    int          `gorm:"comment:下单规格数"`
 	Status    int          `gorm:"type:tinyint(1);default:1;index;comment:配送状态"`
 	Money     float64      `gorm:"comment:规格的单价"`
 	Image     string       `gorm:"size:15;comment:商品图片路径"`
 	Edit      bool         `json:"edit" gorm:"comment:是否被修改"`
+	EditAction string `json:"edit_action" gorm:"size:12;comment:修改/作废说明"`
 	AfterStatus    int          `json:"after_status" gorm:"type:tinyint(1);default:0;;comment:售后状态:-2:撤回 -1:驳回, 0:无售后, 1:售后处理中 2:处理完毕  3: 大B退回"`
 	AllMoney  float64      `json:"all_money" gorm:"comment:计算的规格价格"` //创建时 计算好
 

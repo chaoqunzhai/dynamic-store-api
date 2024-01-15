@@ -266,6 +266,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 			"credit":shopRow.Credit,
 			"balance":shopRow.Balance,
 		},
+		"edit_action":object.EditAction,
 	}
 	if shopRow.Id > 0{
 		result["shop_name"] =shopRow.Name
@@ -312,8 +313,20 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 	e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ?", orderId).Find(&orderSpecs)
 
 	specsList := make([]map[string]interface{}, 0)
-	for _, row := range orderSpecs {
+	//因为编辑需要有库存上限的
 
+	isOpenInventory:=IsOpenInventory(userDto.CId,e.Orm)
+	for _, row := range orderSpecs {
+		var stock int
+		if isOpenInventory{ //去仓库中拿数据
+			var Inventory models3.Inventory
+			e.Orm.Model(&models3.Inventory{}).Select("stock").Where("c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,row.GoodsId,row.SpecId).Limit(1).Find(&Inventory)
+			stock = Inventory.Stock
+		}else {
+			var goodsSpecs models3.GoodsSpecs
+			e.Orm.Model(&goodsSpecs).Select("inventory").Where("c_id = ? and goods_id = ? and id = ?",userDto.CId,row.GoodsId,row.SpecId).Limit(1).Find(&goodsSpecs)
+			stock = goodsSpecs.Inventory
+		}
 		if row.AllMoney == 0 {
 			row.AllMoney = utils.RoundDecimalFlot64(row.Money  * float64(row.Number))
 		}
@@ -326,6 +339,10 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 			"unit":row.Unit,
 			"money":     utils.StringDecimal(row.Money),
 			"number":row.Number,
+			"status":row.Status,
+			"after_status":row.AfterStatus,
+			"edit_action":row.EditAction,
+			"stock":stock,//库存量
 			"all_money": utils.StringDecimal(row.AllMoney),
 		}
 		specsList = append(specsList, ss)
