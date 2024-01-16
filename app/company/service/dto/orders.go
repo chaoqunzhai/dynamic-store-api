@@ -12,7 +12,8 @@ type OrdersGetPageReq struct {
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:orders" comment:"开关"`
 	CId            int    `form:"cId"  search:"type:exact;column:c_id;table:orders" comment:"大BID"`
 	ShopId         string `form:"shop_id"  search:"type:exact;column:shop_id;table:orders" comment:"关联客户"`
-	Status         string `form:"status"  search:"type:exact;column:status;table:orders" comment:"配送状态"`
+	ApproveStatus int `form:"approve_status" search:"-" comment:"审批状态"`
+	Status         int `form:"status"  search:"-"`
 	Number         string `form:"number"  search:"type:exact;column:number;table:orders" comment:"下单数量"`
 	Delivery       string `form:"delivery"  search:"type:exact;column:delivery;table:orders" comment:"配送周期"`
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:orders" comment:"创建时间"`
@@ -218,7 +219,7 @@ type OrdersEditReq struct {
 	Desc      string `json:"desc"` //修改描述
 }
 
-type OrdersReturnReq struct {
+type OrdersRefundReq struct {
 	OrderId string `json:"order_id"` //订单ID
 	OrderSpecId []int `json:"order_spec_id"` //规格ID
 	All bool `json:"all"` //是否全部退回
@@ -265,4 +266,13 @@ type EditList struct {
 type OrderRefund struct {
 	GoodsId int
 	Specs map[int]int `json:"specs"` //规格:退回数量
+}
+
+
+//订单审批
+type ApproveReq struct {
+	OrderList []string `json:"orderList"`
+	Desc string `json:"desc"`
+	Action int `json:"action"`//审批是否通过 1:通过 2:驳回
+
 }

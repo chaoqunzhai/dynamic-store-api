@@ -39,7 +39,7 @@ func GetUserDto(orm *gorm.DB, c *gin.Context) (row *sys.SysUser, err error) {
 		return nil, errors.New("用户不存在")
 	}
 	var user *sys.SysUser
-	orm.Model(&sys.SysUser{}).Select("user_id,c_id,role_id,username,phone").Where("enable = ? and user_id = ? ", true, userId).Limit(1).Find(&user)
+	orm.Model(&sys.SysUser{}).Select("user_id,c_id,role_id,username,phone,auth_examine").Where("enable = ? and user_id = ? ", true, userId).Limit(1).Find(&user)
 	if user.UserId == 0 {
 		return nil, errors.New("用户不存在")
 	}

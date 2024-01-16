@@ -128,11 +128,35 @@ func (e *Orders) ValidTimeConf(cid int) (response *TimeConfResponse) {
 }
 
 // GetPage 获取Orders列表
-func (e *Orders) GetPage(tableName string, c *dto.OrdersGetPageReq, p *actions.DataPermission, list *[]models.Orders, count *int64) error {
+func (e *Orders) GetPage(openApprove bool,tableName string, c *dto.OrdersGetPageReq, p *actions.DataPermission, list *[]models.Orders, count *int64) error {
 	var err error
 
-	err = e.Orm.Table(tableName).
-		Scopes(
+	orm :=e.Orm.Table(tableName)
+	if c.Status > 0{
+		//如果开启了审核, 那查待配送的
+		if openApprove {
+
+			switch c.Status {
+			case global.OrderStatusWaitSend:
+				//如果开启了审核，那查询待配送的时候 就需要 满足 待配送 和审批通过
+				orm = orm.Table(tableName).Where("status =  ? and approve_status = ?",global.OrderStatusWaitSend,global.OrderApproveOk)
+			case global.OrderApproveOk:
+				orm = orm.Table(tableName).Where("approve_status = 0")
+
+				
+			default:
+				orm = orm.Table(tableName).Where("status =  ?",c.Status)
+			}
+
+		}else {
+			orm = orm.Table(tableName).Where("status =  ?",c.Status)
+		}
+	}else {
+		orm = orm.Table(tableName)
+	}
+
+
+	err = orm.Scopes(
 			cDto.MakeSplitTableCondition(c.GetNeedSearch(),tableName),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(tableName,p)).Order(global.OrderTimeKey).
@@ -233,7 +257,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 
 	var shopRow models3.Shop
 	e.Orm.Model(&models3.Shop{}).Scopes(actions.PermissionSysUser(shopRow.TableName(),userDto)).Where("id = ? ", object.ShopId).Limit(1).Find(&shopRow)
-
+	openApprove,hasApprove:=IsHasOpenApprove(userDto,e.Orm)
 	result = map[string]interface{}{
 		"order_money":fmt.Sprintf("%v", utils.StringDecimal(object.OrderMoney)),
 		"order_goods_money":fmt.Sprintf("%v", utils.StringDecimal(object.GoodsMoney)),
@@ -267,7 +291,12 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 			"balance":shopRow.Balance,
 		},
 		"edit_action":object.EditAction,
+		"approve_msg":object.ApproveMsg,
+		"approve_status":object.ApproveStatus,
+		"openApprove":openApprove,
+		"hasApprove":hasApprove,
 	}
+
 	if shopRow.Id > 0{
 		result["shop_name"] =shopRow.Name
 		result["shop_username"] =shopRow.UserName

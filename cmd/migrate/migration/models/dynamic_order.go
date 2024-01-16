@@ -53,7 +53,6 @@ type Orders struct {
 	PayStatus      int          `gorm:"type:tinyint(1);default:0;index;comment:支付状态,0:未付款,1:已付款 2:线下付款，3:下线付款已收款"`
 	PayTime        models.XTime `json:"pay_time" gorm:"comment:支付时间"`
 	DeliveryTime   models.XTime `json:"delivery_time" gorm:"type:date;comment:下单时计算的配送时间"`
-	DeliveryUid    string       `gorm:"type:varchar(4);comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
 	DeliveryType   int          `json:"delivery_type" gorm:"comment:配送类型"`
 	DeliveryID     int          `json:"delivery_id" gorm:"comment:关联的配送ID,根据配送类型来查询相关数据"`
 	DeliveryStr    string       `json:"delivery_str" gorm:"size:25;comment:配送文案"`
@@ -65,9 +64,11 @@ type Orders struct {
 	Buyer          string       `json:"buyer" gorm:"size:24;comment:留言"`
 	Desc           string       `json:"desc" gorm:"size:16;comment:备注"`
 	Edit bool `json:"edit" gorm:"comment:是否被修改"`
-	EditAction string `json:"edit_action" gorm:"size:16;comment:修改/退回说明"`
+	EditAction string `json:"edit_action" gorm:"size:16;comment:修改"`
 	AfterSales     bool         `json:"after_sales" gorm:";comment:是否申请售后,只有小B主动申请生效"`
 	AfterStatus    int          `json:"after_status" gorm:"type:tinyint(1);default:0;;comment:售后状态:-2:撤回 -1:驳回, 0:无售后, 1:售后处理中 2:处理完毕  3: 大B退回"`
+	ApproveMsg  string    `json:"approve_msg" gorm:"type:varchar(12);comment:审批信息/驳回信息"`
+	ApproveStatus int `json:"approve_status" gorm:"type:tinyint(1);default:0;comment:订单审核状态 11:通过 120:驳回"`
 }
 
 func (Orders) TableName() string {
@@ -90,7 +91,7 @@ type OrderSpecs struct {
 	Money     float64      `gorm:"comment:规格的单价"`
 	Image     string       `gorm:"size:15;comment:商品图片路径"`
 	Edit      bool         `json:"edit" gorm:"comment:是否被修改"`
-	EditAction string `json:"edit_action" gorm:"size:12;comment:修改/作废说明"`
+	EditAction string `json:"edit_action" gorm:"size:12;comment:修改/单个作废说明"`
 	AfterStatus    int          `json:"after_status" gorm:"type:tinyint(1);default:0;;comment:售后状态:-2:撤回 -1:驳回, 0:无售后, 1:售后处理中 2:处理完毕  3: 大B退回"`
 	AllMoney  float64      `json:"all_money" gorm:"comment:计算的规格价格"` //创建时 计算好
 }

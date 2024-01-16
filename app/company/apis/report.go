@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	models2 "go-admin/app/company/models"
+	"go-admin/app/company/service"
 	"go-admin/app/shop/models"
 	"go-admin/common/actions"
 	"go-admin/common/business"
@@ -112,8 +113,17 @@ func (e Orders)Summary(c *gin.Context)  {
 	}
 
 	orderList:=make([]models2.Orders,0)
+
+	openApprove,_:=service.IsHasOpenApprove(userDto,e.Orm)
+
+
+	orm :=e.Orm.Table(splitTableRes.OrderTable).Select("order_id")
+	if openApprove{ //开启了审核,那查询状态必须是审核通过的订单
+
+		orm = e.Orm.Table(splitTableRes.OrderTable).Where("approve_status = ?",global.OrderApproveOk)
+	}
 	//根据配送UID 统一查一下 订单的ID
-	e.Orm.Table(splitTableRes.OrderTable).Select("order_id").Where("uid = ? and c_id = ? and status in ?", data.Uid,userDto.CId,global.OrderEffEct()).Find(&orderList)
+	orm.Where("uid = ? and c_id = ? and status in ?", data.Uid,userDto.CId,global.OrderEffEct()).Find(&orderList)
 	orderIds:=make([]string,0)
 	for _,k:=range orderList{
 		orderIds = append(orderIds,k.OrderId)
@@ -181,10 +191,18 @@ func (e Orders)Line(c *gin.Context){
 
 	orderList:=make([]models2.Orders,0)
 	//根据配送UID 统一查一下 线路ID和订单ID
-	//只查询待配送,配送中,售后中,订单完结
+	//只查询待配送,配送中,售后中,或者审批通过, 订单完结
 
-	orderOrm :=e.Orm.Table(splitTableRes.OrderTable).Select("line_id,order_id").Where(
-		"uid = ? and c_id = ? and status in ?", data.Uid,userDto.CId,global.OrderEffEct())
+	openApprove,_:=service.IsHasOpenApprove(userDto,e.Orm)
+
+
+	orm :=e.Orm.Table(splitTableRes.OrderTable).Select("line_id,order_id")
+	if openApprove{ //开启了审核,那查询状态必须是审核通过的订单
+
+		orm = e.Orm.Table(splitTableRes.OrderTable).Where("approve_status = ?",global.OrderApproveOk)
+	}
+
+	orderOrm :=orm.Where("uid = ? and c_id = ? and status in ?", data.Uid,userDto.CId,global.OrderEffEct())
 
 	//进行路线名称查询
 	//首先查出的路线 必须在订单中

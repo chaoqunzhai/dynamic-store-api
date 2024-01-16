@@ -74,15 +74,15 @@ const (
 	OrderStatusClose = -1 //订单关闭
 
 	//订单状态
-	OrderStatusWaitPay = 0 //默认状态，就是待支付
+	OrderStatusWaitPay = 0 //默认状态，就是待支付的订单
 
-	OrderStatusWaitSend = 1 //待发货
+	OrderStatusWaitSend = 1 //待发货 待配送 当开启审核后 如果审核通过了 那需要查这个状态
 
 	OrderWaitConfirm = 2 //待收货 到了配送周期后自动成为了这个待收货,也就是已发货
 
 	OrderWaitRefunding = 3 //售后处理中
 
-	OrderStatusCancel = 4 //大B操作作废
+	OrderStatusCancel = 4 //大B操作作废/驳回
 
 	OrderStatusReturn = 5 //售后处理完毕
 
@@ -95,6 +95,10 @@ const (
 	OrderStatusWaitPayDefault = 9 //下单了,但是没有支付的状态,还是放在redis中的
 
 	OrderStatusOver = 10 //订单收尾,那就是收货了,确认了
+
+	OrderApproveOk = 11 //审核通过了
+
+	OrderApproveReject = 12 //审批驳回
 
 	//OrderStatusWaitPay = 0 //默认状态，就是待支付
 	//
@@ -204,6 +208,8 @@ const (
 	RefundMoneyOffline = 2 //线下退款
 	RefundMoneyBalance = 3 //退款到余额
 	RefundMoneyCredit = 4 //退款到授信分
+
+	//出入库记录
 	InventoryIn = 1 //常规入库
 	InventoryOut = 2 //常规出库
 	InventoryRefundIn = 3 //退货入库
@@ -211,6 +217,8 @@ const (
 	InventoryEditIn = 5//商品编辑入库
 	InventoryEditOut = 6//商品编辑出库
 
+	InventoryCancelIn = 7 //订单作废
+	InventoryApproveIn = 8 //审批驳回入库
 )
 
 func GetInventoryActionCn(v int) (bol,val string) {
@@ -231,12 +239,19 @@ func GetInventoryActionCn(v int) (bol,val string) {
 	case InventoryEditOut:
 
 		return "-","订单编辑出库"
-
+	case InventoryCancelIn:
+		return "+","订单作废入库"
+	case InventoryApproveIn:
+		return "+","审批驳回入库"
 	}
 	return "",""
 
 }
 func OrderEffEct() []int { //配送报表 有效订单状态
+
+	return []int{OrderStatusWaitSend,OrderWaitConfirm,OrderWaitRefunding,OrderStatusOver}
+}
+func OrderApproveEffEct() []int { //配送报表 有效订单状态
 
 	return []int{OrderStatusWaitSend,OrderWaitConfirm,OrderWaitRefunding,OrderStatusOver}
 }
@@ -310,6 +325,7 @@ func GetOrderPayStatus(v int) string {
 	}
 	return "未知"
 }
+
 func OrderStatus(v int) string {
 
 	switch v {
@@ -320,7 +336,7 @@ func OrderStatus(v int) string {
 	case OrderStatusWaitPay:
 		return "待支付"
 	case OrderStatusWaitSend:
-		return "待发货"
+		return "待配送"
 	case OrderWaitConfirm:
 		return "待收货"
 	case OrderWaitRefunding:
@@ -339,6 +355,11 @@ func OrderStatus(v int) string {
 		return "待支付"
 	case OrderStatusOver:
 		return "完成"
+	case OrderApproveReject:
+		return "审批驳回"
+	case OrderApproveOk:
+		return "审批通过"
+
 	}
 	return fmt.Sprintf("%v", v)
 }

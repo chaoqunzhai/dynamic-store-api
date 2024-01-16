@@ -501,7 +501,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 				CreateBy:userDto.Username,
 				OrderId: fmt.Sprintf("%v",utils.GenUUID()),
 				Action: global.InventoryRefundIn, //入库
-				Source: 1,
+				Source: 1, //客户发起的
 				Image: imageVal,
 				GoodsId: thisObj.GoodsId,
 				GoodsName: goodsObject.Name,
