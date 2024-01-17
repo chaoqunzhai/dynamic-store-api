@@ -128,10 +128,10 @@ func (e *Orders) ValidTimeConf(cid int) (response *TimeConfResponse) {
 }
 
 // GetPage 获取Orders列表
-func (e *Orders) GetPage(openApprove bool,tableName string, c *dto.OrdersGetPageReq, p *actions.DataPermission, list *[]models.Orders, count *int64) error {
+func (e *Orders) GetPage(openApprove bool,splitTableRes business.TableRow, c *dto.OrdersGetPageReq, p *actions.DataPermission, list *[]models.Orders, count *int64) error {
 	var err error
 
-	orm :=e.Orm.Table(tableName)
+	orm :=e.Orm.Table(splitTableRes.OrderTable)
 	if c.Status > 0{
 		//如果开启了审核, 那查待配送的
 		if openApprove {
@@ -139,27 +139,39 @@ func (e *Orders) GetPage(openApprove bool,tableName string, c *dto.OrdersGetPage
 			switch c.Status {
 			case global.OrderStatusWaitSend:
 				//如果开启了审核，那查询待配送的时候 就需要 满足 待配送 和审批通过
-				orm = orm.Table(tableName).Where("status =  ? and approve_status = ?",global.OrderStatusWaitSend,global.OrderApproveOk)
+				orm = orm.Table(splitTableRes.OrderTable).Where("status =  ? and approve_status = ?",global.OrderStatusWaitSend,global.OrderApproveOk)
 			case global.OrderApproveOk:
-				orm = orm.Table(tableName).Where("approve_status = 0")
+				orm = orm.Table(splitTableRes.OrderTable).Where("approve_status = 0")
 
 				
 			default:
-				orm = orm.Table(tableName).Where("status =  ?",c.Status)
+				orm = orm.Table(splitTableRes.OrderTable).Where("status =  ?",c.Status)
 			}
 
 		}else {
-			orm = orm.Table(tableName).Where("status =  ?",c.Status)
+			orm = orm.Table(splitTableRes.OrderTable).Where("status =  ?",c.Status)
 		}
 	}else {
-		orm = orm.Table(tableName)
+		orm = orm.Table(splitTableRes.OrderTable)
 	}
 
+	fmt.Println("CycleTypeCycleType!!",c.CycleType)
+	if c.CycleType == 2{ //下单周期的查询
+		//通过uid 获取到选择条目的
+
+		var OrderCycle models3.OrderCycleCnf
+		e.Orm.Table(splitTableRes.OrderCycle).Where("uid = ?",c.Uid).Limit(1).Find(&OrderCycle)
+
+		if OrderCycle.Id > 0{
+			orm = orm.Table(splitTableRes.OrderTable).Where("`created_at` >= ? and `created_at` <= ?",OrderCycle.StartTime,OrderCycle.EndTime)
+		}
+
+	}
 
 	err = orm.Scopes(
-			cDto.MakeSplitTableCondition(c.GetNeedSearch(),tableName),
+			cDto.MakeSplitTableCondition(c.GetNeedSearch(),splitTableRes.OrderTable),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
-			actions.Permission(tableName,p)).Order(global.OrderTimeKey).
+			actions.Permission(splitTableRes.OrderTable,p)).Order(global.OrderTimeKey).
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {

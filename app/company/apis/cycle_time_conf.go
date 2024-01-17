@@ -128,7 +128,7 @@ func (e CycleTimeConf) GetPage(c *gin.Context) {
 			"give_time":  row.GiveTime,
 			"start_week": row.StartWeek,
 			"end_week":   row.EndWeek,
-			"show":       row.Show,
+			"enable":       row.Enable,
 			"layer":      row.Layer,
 			"created_at": row.CreatedAt,
 			"order_range":service.GetOrderCreateStr(row),

@@ -76,9 +76,9 @@ const (
 	//订单状态
 	OrderStatusWaitPay = 0 //默认状态，就是待支付的订单
 
-	OrderStatusWaitSend = 1 //待发货 待配送 当开启审核后 如果审核通过了 那需要查这个状态
+	OrderStatusWaitSend = 1 //备货中 待配送 当开启审核后 如果审核通过了 那需要查这个状态
 
-	OrderWaitConfirm = 2 //待收货 到了配送周期后自动成为了这个待收货,也就是已发货
+	OrderWaitConfirm = 2 //配送中 配送中 到了配送周期后自动成为了这个待收货,也就是已发货
 
 	OrderWaitRefunding = 3 //售后处理中
 
@@ -219,6 +219,8 @@ const (
 
 	InventoryCancelIn = 7 //订单作废
 	InventoryApproveIn = 8 //审批驳回入库
+
+	InventoryHelpOut = 9 //代客下单出库
 )
 
 func GetInventoryActionCn(v int) (bol,val string) {
@@ -243,6 +245,8 @@ func GetInventoryActionCn(v int) (bol,val string) {
 		return "+","订单作废入库"
 	case InventoryApproveIn:
 		return "+","审批驳回入库"
+	case InventoryHelpOut:
+		return "-","代客下单出库"
 	}
 	return "",""
 
@@ -336,9 +340,9 @@ func OrderStatus(v int) string {
 	case OrderStatusWaitPay:
 		return "待支付"
 	case OrderStatusWaitSend:
-		return "待配送"
+		return "备货中"
 	case OrderWaitConfirm:
-		return "待收货"
+		return "配送中"
 	case OrderWaitRefunding:
 		return "售后处理"
 	case OrderStatusCancel:
@@ -354,7 +358,7 @@ func OrderStatus(v int) string {
 	case OrderStatusWaitPayDefault:
 		return "待支付"
 	case OrderStatusOver:
-		return "完成"
+		return "已完成"
 	case OrderApproveReject:
 		return "审批驳回"
 	case OrderApproveOk:

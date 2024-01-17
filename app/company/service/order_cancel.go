@@ -213,7 +213,7 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 			CId: userDto.CId,
 			ShopId: shopRow.Id,
 			Number: returnOrderMoney,
-			Scene:fmt.Sprintf("后台管理员[%v] %v 退回:%v",userDto.Username,SceneText,returnOrderMoney),
+			Scene:fmt.Sprintf("管理员[%v] %v 退回:%v",userDto.Username,SceneText,returnOrderMoney),
 			Action: global.UserNumberAdd, //增加
 			Type: global.ScanAdmin,
 		}
@@ -225,7 +225,7 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 			CId: userDto.CId,
 			ShopId: shopRow.Id,
 			Money: returnOrderMoney,
-			Scene:fmt.Sprintf("后台管理员[%v] %v 退回:%v",userDto.Username,SceneText,returnOrderMoney),
+			Scene:fmt.Sprintf("管理员[%v] %v 退回:%v",userDto.Username,SceneText,returnOrderMoney),
 			Action: global.UserNumberAdd, //增加
 			Type: global.ScanShopUse,
 		}

@@ -85,7 +85,7 @@ func (e *CycleTimeConf) Insert(cid int, c *dto.CycleTimeConfInsertReq) error {
 	var data models.CycleTimeConf
 	c.Generate(&data)
 	data.CId = cid
-	data.Enable = true
+	//data.Enable = true
 	data.Uid = utils.CreateCode()
 	err = e.Orm.Create(&data).Error
 	if err != nil {
@@ -118,7 +118,7 @@ func (e *CycleTimeConf) Update(c *dto.CycleTimeConfUpdateReq, p *actions.DataPer
 		fmt.Println("数据发生变更更新code")
 	}
 	c.Generate(&data)
-	data.Enable = true
+
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("CycleTimeConfService Save error:%s \r\n", err)

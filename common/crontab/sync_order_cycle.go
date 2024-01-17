@@ -27,10 +27,25 @@ type ThisDaySyncOrderCycle struct {
 	Orm *gorm.DB
 	NowDay string
 	CompanyMap map[int]*models2.SplitTableMap
+
+
+}
+
+func (s *ThisDaySyncOrderCycle)WhereStatus(IsOpenApprove bool) string  {
+	var WhereOrderStatus string
+	if IsOpenApprove{ //,如果开启了 只有审批通过的订单 才会变为配送中
+		WhereOrderStatus = fmt.Sprintf("approve_status = %v",global.OrderApproveOk)
+	}else { //没有开启审批,那就只查询 待配送的
+		WhereOrderStatus = fmt.Sprintf("status = %v",global.OrderStatusWaitSend)
+
+	}
+	return  WhereOrderStatus
 }
 //获取所有的分表配置
 
-func (s *ThisDaySyncOrderCycle)GetCompanySplit()  {
+func (s *ThisDaySyncOrderCycle)RunCompanySplitOrderSync()  {
+	//获取是否开启了审批权限
+
 
 	s.CompanyMap = make(map[int]*models2.SplitTableMap,0)//方便取
 
@@ -40,8 +55,7 @@ func (s *ThisDaySyncOrderCycle)GetCompanySplit()  {
 	s.Orm.Model(&models2.SplitTableMap{}).Find(&SplitTableMap)
 
 	for _,row:=range SplitTableMap{
-
-		s.CompanyMap[row.Id] = row
+		s.CompanyMap[row.CId] = row
 	}
 
 	//构建周期映射MAP 方便后面订单更新
@@ -58,12 +72,31 @@ func (s *ThisDaySyncOrderCycle)MakeOrderCycleCnfTable()  {
 	for cid, splitCnf := range s.CompanyMap { //循环的是每一个大B的周期配送表
 		findCycleCnfList := make([]string,0) //
 		var orderCycleList []models.OrderCycleCnf
+		if !s.Orm.Table(splitCnf.OrderCycle).Migrator().HasTable(splitCnf.OrderCycle){
+			fmt.Println("表",splitCnf.CId,splitCnf.OrderCycle,"不存在")
+			//如果有不存在表的情况,那就是默认表
+			splitCnf = &models2.SplitTableMap{
+				CId: splitCnf.CId,
+				OrderTable: global.SplitOrderDefaultTableName,
+				OrderSpecs: global.SplitOrderDefaultSubTableName,
+				OrderCycle: global.SplitOrderCycleSubTableName,
+				OrderEdit:global.SplitOrderEdit,
+				OrderReturn: global.SplitOrderReturn,
+				InventoryRecordLog:global.InventoryRecordLog,
+			}
+		}
+		//查询今天的订单
 		s.Orm.Table(splitCnf.OrderCycle).Select("uid").Where("delivery_time = ? and c_id = ?",s.NowDay,cid).Find(&orderCycleList)
+
+		var Approve models2.OrderApproveCnf
+		s.Orm.Model(&models2.OrderApproveCnf{}).Select("enable").Where("c_id = ?",cid).Limit(1).Find(&Approve)
+
+		splitCnf.IsOpenApprove = Approve.Enable //订单审批赋值
 
 		for _,row:=range orderCycleList{
 			findCycleCnfList = append(findCycleCnfList,row.Uid) //给订单用于修改状态
 		}
-		splitCnf.CycleCnfList = findCycleCnfList //保存起来 订单需要用
+		splitCnf.CycleCnfList = findCycleCnfList //保存起来 订单需要根据UID进行查询
 		s.CompanyMap[cid] = splitCnf
 	}
 }
@@ -81,7 +114,7 @@ func (s *ThisDaySyncOrderCycle)RunUpdateTableStatus()  {
 	for i := 0; i < len(orderTables); i += MaxCompany {
 		end := i + MaxCompany // 取前MaxCompany个元素，因为数组索引从0开始
 		if end >= len(orderTables) {
-			end = len(orderTables) - 1 // 如果剩余元素不足MaxCompany个，取剩余所有元素
+			end = len(orderTables) // 如果剩余元素不足MaxCompany个，取剩余所有元素
 		}
 
 		wg.Add(1) // 增加等待组计数器
@@ -97,13 +130,16 @@ func (s *ThisDaySyncOrderCycle)RunUpdateTableStatus()  {
 func (s *ThisDaySyncOrderCycle)processWaitToConfirm(tableList []*models2.SplitTableMap, wg *sync.WaitGroup)  {
 	defer wg.Done()
 	// 处理数组的逻辑
-	fmt.Println("Processing array:", tableList)
+
 
 	for _,splitCnf :=range tableList{
 
+		whereStatus:=s.WhereStatus(splitCnf.IsOpenApprove)
+
 		for _,uid:=range splitCnf.CycleCnfList {
-			s.Orm.Table(splitCnf.OrderTable).Where("c_id = ? and status = ? and uid = ?",splitCnf.CId,global.OrderStatusWaitSend,uid).Updates(map[string]interface{}{
-				"status":global.OrderWaitConfirm,
+			s.Orm.Table(splitCnf.OrderTable).Where(whereStatus).Where("c_id = ? and uid = ?",splitCnf.CId,uid).Updates(map[string]interface{}{
+				"status":global.OrderWaitConfirm, //待配送的订单更新为配送中
+				"approve_status":global.OrderApproveOk, //也需要改为审批通过,防止后期开启了审核,订单都为待审核状态
 			})
 
 		}

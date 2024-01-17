@@ -25,6 +25,7 @@ type OrdersGetPageReq struct {
 	DeliveryTime string `form:"delivery_time" search:"type:exact;column:delivery_time;table:orders" comment:""`
 	Uid string `form:"uid" search:"type:exact;column:uid;table:orders"`
 	AfterSales     bool         `form:"after_sales" search:"type:exact;column:after_sales;table:orders"`
+	CycleType int   `form:"cycle_type" search:"-"`
 	OrdersOrder
 }
 
@@ -131,6 +132,7 @@ type ValetOrderReq struct {
 	Goods map[string][]valetSpecs `json:"goods"`
 	Desc  string                  `json:"desc"`
 	DeductionType int `json:"deduction_type"`
+	DeliveryType int `json:"delivery_type"` //配送类型
 }
 type valetSpecs struct {
 	Id      int     `json:"id"`

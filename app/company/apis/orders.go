@@ -94,7 +94,7 @@ func (e Orders) GetPage(c *gin.Context) {
 	list := make([]models.Orders, 0)
 	var count int64
 	req.CId = userDto.CId
-	err = s.GetPage(openApprove,splitTableRes.OrderTable, &req, p, &list, &count)
+	err = s.GetPage(openApprove,splitTableRes, &req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取订单失败,%s", err.Error()))
 		return
@@ -336,7 +336,7 @@ func (e Orders)Cycle(c *gin.Context)  {
 
 	e.Orm.Table(splitTableRes.OrderCycle).Scopes(
 		cDto.MakeSplitTableCondition(req.GetNeedSearch(),splitTableRes.OrderCycle),
-		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Select("delivery_str,create_str,uid,id").Order(global.OrderTimeKey).Find(&datalist).Limit(-1).Offset(-1).
+		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Select("delivery_str,create_str,uid,id,delivery_time").Order(global.OrderTimeKey).Find(&datalist).Limit(-1).Offset(-1).
 		Count(&count)
 	
 	for _,row:=range datalist {
@@ -345,7 +345,7 @@ func (e Orders)Cycle(c *gin.Context)  {
 		case 1:
 			value = row.DeliveryStr
 		case 2:
-			value = row.CreateStr
+			value = fmt.Sprintf("%v %v", row.DeliveryTime.Format("2006-01-02"), row.CreateStr)
 		default:
 			continue
 		}
@@ -426,61 +426,71 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.OK(-1, "抵扣额不足！！！")
 		return
 	}
-
-
-
-
+	//一个订单下了很多商品
+	orderRow := &models.Orders{
+		Enable:  true,
+		ShopId:  req.Shop,
+		CId:     userDto.CId,
+		SourceType: global.OrderSourceValet, //代客下单
+	}
+	//是否开启了库存管理
+	openInventory:=service.IsOpenInventory(userDto.CId,e.Orm)
 
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
-	var DeliveryObject models.CycleTimeConf
-	e.Orm.Model(&models2.CycleTimeConf{}).Scopes(actions.PermissionSysUser(DeliveryObject.TableName(),userDto)).Where("id = ? and enable =? ", req.Cycle, true).Limit(1).Find(&DeliveryObject)
-	if DeliveryObject.Id == 0 {
-		e.Error(500, nil, "时间区间不存在")
-		return
+
+
+	if req.DeliveryType == 2{ //配送
+		var DeliveryObject models.CycleTimeConf
+		e.Orm.Model(&models2.CycleTimeConf{}).Scopes(actions.PermissionSysUser(DeliveryObject.TableName(),userDto)).Where("id = ? and enable =? ", req.Cycle, true).Limit(1).Find(&DeliveryObject)
+		if DeliveryObject.Id == 0 {
+			e.Error(500, nil, "时间区间不存在")
+			return
+		}
+		//获取到统一配送的配送UUID
+		orderRow.Uid = service.CheckOrderCyCleCnfIsDb(userDto.CId,splitTableRes.OrderCycle,DeliveryObject,e.Orm)
+		orderRow.DeliveryTime = service.CalculateTime(DeliveryObject.GiveDay)
+		orderRow.DeliveryStr = DeliveryObject.GiveTime
+		orderRow.DeliveryID = DeliveryObject.Id
+		orderRow.Status = global.OrderStatusWaitSend
+	}else { //自提
+		orderRow.Status = global.OrderWaitConfirm
 	}
-
-
-	//获取到统一配送的配送UUID
-	uid:=service.CheckOrderCyCleCnfIsDb(userDto.CId,splitTableRes.OrderCycle,DeliveryObject,e.Orm)
 
 	var lineObject models2.Line
 	e.Orm.Model(&models2.Line{}).Scopes(actions.PermissionSysUser(lineObject.TableName(),userDto)).Where("id = ?  and enable = ?", shopObject.LineId, true).Limit(1).Find(&lineObject)
+	if lineObject.Id == 0 {
+		e.Error(500, errors.New("商家路线路线未开启"), "商家路线路线未开启")
+		return
+	}
+	orderRow.Line = lineObject.Name
+	orderRow.LineId = lineObject.Id
 
-	lineName := lineObject.Name
 	var DriverObject models2.Driver
 	e.Orm.Model(&models2.Driver{}).Scopes(actions.PermissionSysUser(DriverObject.TableName(),userDto)).Where("id = ? and enable = ?", lineObject.DriverId, true).Limit(1).Find(&DriverObject)
 
+	if DriverObject.Id == 0 {
+		e.Error(500, errors.New("路线暂无司机"), "路线暂无司机")
+		return
+	}
 
 	//保存商品和规格的一些映射
 	goodsCacheList:=make(map[int]service.ValetOrderGoodsRow,0)
 
-	//一个订单下了很多商品
-	orderRow := &models.Orders{
-		Uid: uid,
-		Enable:  true,
-		ShopId:  req.Shop,
-		Line:    lineName,
-		LineId:  lineObject.Id,
-		CId:     userDto.CId,
-		SourceType: global.OrderSourceValet, //代客下单
-	}
 
 	orderRow.OrderId = fmt.Sprintf("%v",utils.GenUUID())
 	//orderRow.Id = orderId
 	//代客下单,需要把配送周期保存，方便周期配送
 
 	orderRow.PayType = req.DeductionType //抵扣的方式
-	orderRow.Status = global.OrderStatusWaitSend
 	orderRow.PayStatus = global.OrderStatusPaySuccess
 	orderRow.DeliveryCode = service.DeliveryCode()
 	orderRow.PayTime = models3.XTime{
 		Time:time.Now(),
 	}
+	//代客下单，是不需要审批的,
+	orderRow.ApproveStatus =  global.OrderApproveOk
+	orderRow.DeliveryType = req.DeliveryType
 	orderRow.Phone = shopObject.Phone
-	orderRow.DeliveryTime = service.CalculateTime(DeliveryObject.GiveDay)
-	orderRow.DeliveryStr = DeliveryObject.GiveTime
-	orderRow.DeliveryID = DeliveryObject.Id
-	orderRow.DeliveryType = global.ExpressLocal
 
 	orderRow.CreateBy = userDto.UserId
 	orderRow.Buyer = req.Desc
@@ -512,7 +522,16 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			if goodsSpecs.Id == 0 {
 				continue
 			}
-			if spec.Number > goodsSpecs.Inventory {
+			var goodsSpecsStock int
+			var InventoryObject models2.Inventory
+			if openInventory{ //开启了库存管理
+				e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,spec.GoodsId,spec.Id).Limit(1).Find(&InventoryObject)
+
+				goodsSpecsStock = InventoryObject.Stock
+			}else {
+				goodsSpecsStock = goodsSpecs.Inventory
+			}
+			if spec.Number > goodsSpecsStock {
 				continue
 			}
 			//当前用户是vip哪个等级,使用客户的VIP的价格
@@ -553,11 +572,40 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			if txRes.Error !=nil{
 				continue
 			}
-			//规格减库存 + 销量
-			e.Orm.Model(&models.GoodsSpecs{}).Where("id = ? and c_id = s?", spec.Id, userDto.CId).Updates(map[string]interface{}{
-				"inventory": goodsSpecs.Inventory - spec.Number,
-				"sale":	goodsSpecs.Sale + spec.Number,
-			})
+			if openInventory {
+				if InventoryObject.Id > 0 { //有库存
+					CurrentNumber :=InventoryObject.Stock - spec.Number
+					e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,spec.GoodsId,spec.Id).Updates(map[string]interface{}{
+						"stock":CurrentNumber,
+					})
+					//同时需要做出入库记录
+					RecordLog:=models2.InventoryRecord{
+						CId: userDto.CId,
+						CreateBy:userDto.Username,
+						OrderId: fmt.Sprintf("%v",utils.GenUUID()),
+						Action: global.InventoryHelpOut,
+						Source: 2, //大B发起
+						GoodsId: spec.GoodsId,
+						GoodsName: goodsObject.Name,
+						GoodsSpecName: goodsSpecs.Name,
+						SpecId: spec.Id,
+						SourceNumber:InventoryObject.Stock, //原库存
+						ActionNumber:spec.Number, //操作的库存
+						CurrentNumber:CurrentNumber, //那现库存
+						OriginalPrice:InventoryObject.OriginalPrice,
+						SourcePrice: InventoryObject.OriginalPrice,
+						Unit:goodsSpecs.Unit,
+					}
+					e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
+				}
+
+			}else {
+				//规格减库存 + 销量
+				e.Orm.Model(&models.GoodsSpecs{}).Where("id = ? and c_id = s?", spec.Id, userDto.CId).Updates(map[string]interface{}{
+					"inventory": goodsSpecs.Inventory - spec.Number,
+					"sale":	goodsSpecs.Sale + spec.Number,
+				})
+			}
 
 			orderMoney += utils.RoundDecimalFlot64(specPrice  * float64(spec.Number))
 			goodsNumber += spec.Number
@@ -589,17 +637,20 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	orderRow.DeductionMoney = orderMoney
 	e.Orm.Table(splitTableRes.OrderTable).Create(&orderRow)
 
-	for goodsId,goodsRow:=range goodsCacheList{
-		//商品减库存 + 销量
-		var goodsObject models.Goods
-		e.Orm.Model(&models.Goods{}).Scopes(actions.PermissionSysUser(goodsObject.TableName(),userDto)).Select("sale,inventory,id").Where("id = ?  and enable = ?", goodsId, userDto.CId, true).Limit(1).Find(&goodsObject)
-		if goodsObject.Id == 0 {
-			continue
+
+	if !openInventory {//没有开启库存,那就是最后直接更新商品的总库存即可
+		for goodsId,goodsRow:=range goodsCacheList{
+			//商品减库存 + 销量
+			var goodsObject models.Goods
+			e.Orm.Model(&models.Goods{}).Scopes(actions.PermissionSysUser(goodsObject.TableName(),userDto)).Select("sale,inventory,id").Where("id = ?  and enable = ?", goodsId, userDto.CId, true).Limit(1).Find(&goodsObject)
+			if goodsObject.Id == 0 {
+				continue
+			}
+			e.Orm.Model(&models.Goods{}).Scopes(actions.PermissionSysUser(goodsObject.TableName(),userDto)).Where(" id = ?", goodsId).Updates(map[string]interface{}{
+				"sale":    goodsObject.Sale + goodsRow.Number  ,
+				"inventory": goodsObject.Inventory - goodsRow.Number,
+			})
 		}
-		e.Orm.Model(&models.Goods{}).Scopes(actions.PermissionSysUser(goodsObject.TableName(),userDto)).Where(" id = ?", goodsId).Updates(map[string]interface{}{
-			"sale":    goodsObject.Sale + goodsRow.Number  ,
-			"inventory": goodsObject.Inventory - goodsRow.Number,
-		})
 	}
 	//授信额减免
 
@@ -619,7 +670,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			CId: userDto.CId,
 			ShopId: shopObject.Id,
 			Money: orderMoney,
-			Scene:fmt.Sprintf("用户[%v] 代客下单,使用余额抵扣费:%v",userDto.Username,orderMoney),
+			Scene:fmt.Sprintf("管理员[%v] 代客下单,使用余额抵扣费:%v",userDto.Username,orderMoney),
 			Action: global.UserNumberReduce, //抵扣
 			Type: global.ScanShopUse,
 		}
@@ -638,7 +689,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			CId: userDto.CId,
 			ShopId: shopObject.Id,
 			Number: orderMoney,
-			Scene:fmt.Sprintf("用户[%v] 代客下单,使用授信额抵扣费:%v",userDto.Username,orderMoney),
+			Scene:fmt.Sprintf("管理员[%v] 代客下单,使用授信额抵扣费:%v",userDto.Username,orderMoney),
 			Action: global.UserNumberReduce, //抵扣
 			Type: global.ScanShopUse,
 		}
@@ -720,7 +771,7 @@ func (e Orders) OrderCycleList(c *gin.Context) {
 
 	//默认展示最近10条的配送周期
 	datalist := make([]models2.OrderCycleCnf, 0)
-	
+
 	e.Orm.Table(splitTableRes.OrderCycle).Scopes(
 		cDto.MakeSplitTableCondition(req.GetNeedSearch(),splitTableRes.OrderCycle),
 		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
@@ -737,7 +788,7 @@ func (e Orders) OrderCycleList(c *gin.Context) {
 			"id": row.Id,
 			"color":"",
 			"t":  row.Uid,
-			"value": row.CreateStr,
+			"value":fmt.Sprintf("%v %v", row.DeliveryTime.Format("2006-01-02"), row.CreateStr),
 		}
 		createTime = append(createTime, t1)
 
@@ -1083,7 +1134,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 			ShopId: shopRow.Id,
 			Desc: req.Desc,
 			Money: math.Abs(req.Money),
-			Scene:fmt.Sprintf("后台管理员[%v] %v",userDto.Username,Scene),
+			Scene:fmt.Sprintf("管理员[%v] %v",userDto.Username,Scene),
 			Action: ActionMode,
 			Type: global.ScanAdmin,
 		}
@@ -1098,7 +1149,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 			ShopId: shopRow.Id,
 			Desc: req.Desc,
 			Number: math.Abs(req.Money),
-			Scene:fmt.Sprintf("后台管理员[%v] %v",userDto.Username,Scene),
+			Scene:fmt.Sprintf("管理员[%v] %v",userDto.Username,Scene),
 			Action: ActionMode,
 			Type: global.ScanAdmin,
 		}

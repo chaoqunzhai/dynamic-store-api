@@ -51,9 +51,10 @@ type specsRow struct {
 }
 
 func (e Goods) ClassSpecs(c *gin.Context) {
-
+	s := service.Goods{}
 	err := e.MakeContext(c).
 		MakeOrm().
+		MakeService(&s.Service).
 		Errors
 	if err != nil {
 		e.Logger.Error(err)
@@ -61,7 +62,6 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 		return
 	}
 	ClassID:=c.Query("class_id")
-	fmt.Println("req",ClassID)
 	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {
 		e.Error(500, err, err.Error())
@@ -84,12 +84,28 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 	e.Orm.Model(&models.Goods{}).Select("id,name,c_id,image,inventory,money").Where(
 		"c_id = ? and enable = ? and id in ?", userDto.CId, true,bindGoodsId).
 		Order(global.OrderLayerKey).Find(&goods).Limit(-1).Offset(-1)
+
+
+	goodsId:=make([]int,0)
+	for _, row := range goods {
+		goodsId = append(goodsId,row.Id)
+
+	}
+	goodsId = utils2.RemoveRepeatInt(goodsId)
+	openInventory,InventoryMap:=s.GetBatchGoodsInventory(userDto.CId,goodsId)
+
 	for _, row := range goods {
 		//只返回有规格的数据
 		var specsObject models.GoodsSpecs
 		e.Orm.Model(&models.GoodsSpecs{}).Scopes(actions.PermissionSysUser(specsObject.TableName(),userDto)).Where("enable = ? and goods_id = ?", true, row.Id).Limit(1).Find(&specsObject)
 		if specsObject.Id == 0 {
 			continue
+		}
+		var Inventory int //规格总数
+		if openInventory {
+			Inventory = InventoryMap[row.Id]
+		}else {
+			Inventory = row.Inventory
 		}
 		specData := specsRow{
 			GoodsId: row.Id,
@@ -101,11 +117,11 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 			}(),
 			GoodsName:  row.Name,
 			GoodsPrice: row.Money,
-			GoodsStore: row.Inventory,
+			GoodsStore: Inventory,
 			Money:      specsObject.Price,
 			Unit:       specsObject.Unit,
 			Name:       specsObject.Name,
-			Inventory:  specsObject.Inventory,
+			Inventory:  Inventory,
 		}
 		result = append(result,specData)
 	}
@@ -269,7 +285,6 @@ func (e Goods) GetPage(c *gin.Context) {
 	}
 
 	listType := c.Query("listType")
-	fmt.Println("listType", listType)
 
 	switch listType {
 	case "on_sale":

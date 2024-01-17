@@ -8,6 +8,7 @@ import (
 	"fmt"
 	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/utils"
+	"gorm.io/gorm"
 	"strings"
 )
 
@@ -34,9 +35,9 @@ func (e *Goods)GetSpecInventory(cid int,key string) (openInventory bool, stock i
 
 }
 //查看规格的库存数量 key:[ goods_id = 1 and specs_id = 1]
-func (e *Goods)GetBatchSpecInventory(cid int,inventoryKey []string) (openInventory bool,res map[string]int ){
+func GetBatchSpecInventory(cid int,inventoryKey []string,orm *gorm.DB) (openInventory bool,res map[string]int ){
 
-	openInventory = IsOpenInventory(cid,e.Orm)
+	openInventory = IsOpenInventory(cid,orm)
 	if !openInventory{
 		return
 	}
@@ -47,7 +48,7 @@ func (e *Goods)GetBatchSpecInventory(cid int,inventoryKey []string) (openInvento
 	//inventoryKey = append(inventoryKey,fmt.Sprintf("(goods_id = %v and spec_id = %v)",row.GoodsId,row.Id))
 
 	whereSql:=fmt.Sprintf("c_id = %v and %v",cid,strings.Join(inventoryKey," or "))
-	e.Orm.Model(&models2.Inventory{}).Select("id,stock").Where(whereSql).Find(&InventoryList)
+	orm.Model(&models2.Inventory{}).Select("goods_id,spec_id,stock").Where(whereSql).Find(&InventoryList)
 	if len(InventoryList) == 0 {
 		return
 	}

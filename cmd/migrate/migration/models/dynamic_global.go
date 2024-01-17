@@ -73,6 +73,7 @@ type SplitTableMap struct {
 	OrderReturn string `gorm:"size:30;index;comment:订单退货表"`
 	InventoryRecordLog string `gorm:"size:30;index;comment:出入库记录流水表"`
 	CycleCnfList []string `json:"cycle_cnf_list" gorm:"-"` //只是定时任务需要用这个字段 做一个更新,gorm不会更新到DB中
+	IsOpenApprove bool `json:"is_open_approve" gorm:"-"` //是否开启了订单审批
 }
 
 func (SplitTableMap) TableName() string {

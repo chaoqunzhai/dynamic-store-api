@@ -44,7 +44,7 @@ type CycleTimeConfInsertReq struct {
 	Layer  int    `json:"layer" comment:"排序"`
 	Show bool   `json:"show" comment:"开关"`
 	Desc   string `json:"desc" comment:"描述信息"`
-
+	Enable bool `json:"enable"`
 	Type      int    `json:"type" comment:"类型,每天,每周"`
 	StartWeek int    `json:"start_week" comment:"类型为周,每周开始天"`
 	EndWeek   int    `json:"end_week" comment:"类型为周,每周结束天"`
@@ -63,7 +63,7 @@ func (s *CycleTimeConfInsertReq) Generate(model *models.CycleTimeConf) {
 	model.Layer = s.Layer
 	model.Show = s.Show
 	model.Desc = s.Desc
-
+	model.Enable = s.Enable
 	model.Type = s.Type
 	model.StartWeek = s.StartWeek
 	model.EndWeek = s.EndWeek
@@ -85,7 +85,7 @@ type CycleTimeConfUpdateReq struct {
 	Layer  int    `json:"layer" comment:"排序"`
 	Show bool   `json:"show" comment:"开关"`
 	Desc   string `json:"desc" comment:"描述信息"`
-
+	Enable bool `json:"enable"`
 	Type      int    `json:"type" comment:"类型,每天,每周"`
 	StartWeek int    `json:"start_week" comment:"类型为周,每周开始天"`
 	EndWeek   int    `json:"end_week" comment:"类型为周,每周结束天"`
@@ -104,7 +104,7 @@ func (s *CycleTimeConfUpdateReq) Generate(model *models.CycleTimeConf) {
 	model.Layer = s.Layer
 	model.Show = s.Show
 	model.Desc = s.Desc
-
+	model.Enable = s.Enable
 	model.Type = s.Type
 	model.StartWeek = s.StartWeek
 	model.EndWeek = s.EndWeek
