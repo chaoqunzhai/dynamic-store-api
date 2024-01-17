@@ -20,6 +20,7 @@ type Orders struct {
 	CId            int          `gorm:"index;comment:大BID"`
 	Enable         bool         `gorm:"comment:开关"`
 	ShopId         int          `gorm:"index;comment:关联客户"`
+	OfflinePayId int `json:"offline_pay_id" gorm:"index;comment:线下付款方式"`
 	Line           string       `gorm:"size:16;comment:路线名称"`
 	LineId         int          `json:"line_id" gorm:"index;type:bigint;comment:线路ID"`
 	Status         int          `gorm:"type:tinyint(1);default:0;index;comment:订单的状态"`

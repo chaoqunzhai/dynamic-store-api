@@ -403,10 +403,11 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		DeductionAllMoney = shopObject.Balance
 	case global.DeductionCredit:
 		DeductionAllMoney = shopObject.Credit
+	case global.DeductionOffline:
+		DeductionAllMoney = 0
 	default:
 		e.OK(-1, "未知抵扣类型")
 		return
-		
 	}
 	//fmt.Println("DeductionAllMoney",DeductionAllMoney)
 	//因为折扣的算法和下单是在一起,所以就下单的时候检测下总价是否可以达到减扣的，防止出现负数 或者钱不够还下单
@@ -428,9 +429,11 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		}
 	}
 
-	if DeductionAllMoney < AllOrderMoney {
-		e.OK(-1, "抵扣额不足！！！")
-		return
+	if req.DeductionType != global.DeductionOffline { //非线下支付的时候 才会去校验是否可以抵扣
+		if DeductionAllMoney < AllOrderMoney {
+			e.OK(-1, "抵扣额不足！！！")
+			return
+		}
 	}
 	//一个订单下了很多商品
 	orderRow := &models.Orders{
@@ -439,9 +442,10 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		CId:     userDto.CId,
 		SourceType: global.OrderSourceValet, //代客下单
 	}
-	//抵扣的方式
+	//扣款方式
 	if req.OfflinePayId > 0 {
 		orderRow.PayType = global.PayTypeOffline
+		orderRow.OfflinePayId = req.OfflinePayId
 	}else {
 		orderRow.PayType = req.DeductionType
 	}
@@ -707,10 +711,6 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			Type: global.ScanShopUse,
 		}
 		e.Orm.Create(&row)
-	default:
-		e.OK(-1, "未知抵扣类型")
-		return
-
 	}
 
 	e.OK(1, "successful")
