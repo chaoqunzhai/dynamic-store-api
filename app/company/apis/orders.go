@@ -222,6 +222,12 @@ func (e Orders) GetPage(c *gin.Context) {
 		if row.ApproveStatus == global.OrderApproveReject {
 			r["status"] = "已驳回"
 		}
+		if row.DeliveryType == global.ExpressStore{
+
+			if row.Status == global.OrderWaitConfirm{
+				r["status"] = "待取"
+			}
+		}
 		if row.Edit{
 			//订单调整了
 			r["goods_money"] = row.OrderMoney
@@ -433,6 +439,12 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		CId:     userDto.CId,
 		SourceType: global.OrderSourceValet, //代客下单
 	}
+	//抵扣的方式
+	if req.OfflinePayId > 0 {
+		orderRow.PayType = global.PayTypeOffline
+	}else {
+		orderRow.PayType = req.DeductionType
+	}
 	//是否开启了库存管理
 	openInventory:=service.IsOpenInventory(userDto.CId,e.Orm)
 
@@ -452,8 +464,16 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		orderRow.DeliveryStr = DeliveryObject.GiveTime
 		orderRow.DeliveryID = DeliveryObject.Id
 		orderRow.Status = global.OrderStatusWaitSend
+
+		//代客下单,地址就是客户的默认地址
+		var defaultAddress models2.DynamicUserAddress
+		e.Orm.Model(&defaultAddress).Scopes(actions.PermissionSysUser(defaultAddress.TableName(),userDto)).Select("id").Where(" is_default = 1 and user_id = ?",shopObject.UserId).Limit(1).Find(&defaultAddress)
+		//用户是一定有一个默认地址的
+		orderRow.AddressId = defaultAddress.Id
 	}else { //自提
 		orderRow.Status = global.OrderWaitConfirm
+		orderRow.AddressId = req.StoreAddressId
+		orderRow.DeliveryStr = req.DeliveryStr
 	}
 
 	var lineObject models2.Line
@@ -478,10 +498,8 @@ func (e Orders) ValetOrder(c *gin.Context) {
 
 
 	orderRow.OrderId = fmt.Sprintf("%v",utils.GenUUID())
-	//orderRow.Id = orderId
 	//代客下单,需要把配送周期保存，方便周期配送
 
-	orderRow.PayType = req.DeductionType //抵扣的方式
 	orderRow.PayStatus = global.OrderStatusPaySuccess
 	orderRow.DeliveryCode = service.DeliveryCode()
 	orderRow.PayTime = models3.XTime{
@@ -496,11 +514,6 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	orderRow.Buyer = req.Desc
 	orderRow.DriverId = DriverObject.Id
 
-	//代客下单,地址就是客户的默认地址
-	var defaultAddress models2.DynamicUserAddress
-	e.Orm.Model(&defaultAddress).Scopes(actions.PermissionSysUser(defaultAddress.TableName(),userDto)).Select("id").Where(" is_default = 1 and user_id = ?",shopObject.UserId).Limit(1).Find(&defaultAddress)
-	//用户是一定有一个默认地址的
-	orderRow.AddressId = defaultAddress.Id
 
 	var orderMoney float64
 	var goodsNumber int
@@ -582,7 +595,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 					RecordLog:=models2.InventoryRecord{
 						CId: userDto.CId,
 						CreateBy:userDto.Username,
-						OrderId: fmt.Sprintf("%v",utils.GenUUID()),
+						OrderId: orderRow.OrderId,
 						Action: global.InventoryHelpOut,
 						Source: 2, //大B发起
 						GoodsId: spec.GoodsId,
@@ -1056,6 +1069,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 
 	//增加映射map
 	editGoodsMap:=make(map[string]int,0)
+	RecordOrderMap:=make(map[string]string,0)
 	for _,order:=range req.EditList{
 
 		var orderSpecs models2.OrderSpecs
@@ -1092,9 +1106,9 @@ func (e Orders) EditOrder(c *gin.Context) {
 		//新数据 - 原数据
 		sourceOrderNumber +=  order.NewAllNumber -  orderSpecs.Number //订单商品 进行修改
 
-
-		editGoodsMap[fmt.Sprintf("%v_%v",orderSpecs.GoodsId,orderSpecs.SpecId)] = orderSpecs.Number - order.NewAllNumber //对库存 进行修改
-
+		mapKey :=fmt.Sprintf("%v_%v",orderSpecs.GoodsId,orderSpecs.SpecId)
+		editGoodsMap[mapKey] = orderSpecs.Number - order.NewAllNumber //对库存 进行修改
+		RecordOrderMap[mapKey] = orderSpecs.OrderId
 		sourceOrderMoney  +=  order.NewAllMoney - orderSpecs.AllMoney
 
 		//fmt.Printf("新的订单 数量:%v 金额:%v\n",sourceOrderNumber,sourceOrderMoney)
@@ -1210,7 +1224,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 			RecordLog:=models2.InventoryRecord{
 				CId: userDto.CId,
 				CreateBy:userDto.Username,
-				OrderId: fmt.Sprintf("%v",utils.GenUUID()),
+				OrderId: RecordOrderMap[key],
 				Action: global.InventoryOut, //入库
 				Image: imageVal,
 				GoodsId: goodsObject.Id,

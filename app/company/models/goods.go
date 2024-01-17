@@ -6,7 +6,6 @@ import (
 
 type Goods struct {
 	models.Model
-	GoodsId   int     `json:"goods_id" gorm:"index;comment:商品ID"`
 	Layer     int          `json:"layer" gorm:"type:tinyint(4);comment:排序"`
 	Enable    bool         `json:"enable" gorm:"type:tinyint(1);comment:开关"`
 	CId       int          `json:"cId" gorm:"type:bigint(20);comment:大BID"`

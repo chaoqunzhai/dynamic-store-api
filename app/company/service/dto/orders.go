@@ -133,7 +133,11 @@ type ValetOrderReq struct {
 	Desc  string                  `json:"desc"`
 	DeductionType int `json:"deduction_type"`
 	DeliveryType int `json:"delivery_type"` //配送类型
+	StoreAddressId int `json:"store_address_id"` //自提选择的门店
+	DeliveryStr string `json:"delivery_str"` //自提选择的时间
+	OfflinePayId int `json:"offline_pay_id"` //线下支付方式
 }
+
 type valetSpecs struct {
 	Id      int     `json:"id"`
 	Number  int     `json:"number"`
@@ -267,9 +271,17 @@ type EditList struct {
 //大B主动进行退回
 type OrderRefund struct {
 	GoodsId int
-	Specs map[int]int `json:"specs"` //规格:退回数量
+	Specs OrderRefundSpec `json:"specs"` //规格:退回数量
+//	map[int]int{
+//	row.SpecId:row.Number,
+//},
 }
+type OrderRefundSpec struct {
+	SpecId int `json:"spec_id"` //规格ID
+	OrderId string `json:"order_id"` //订单Id
+	Number int `json:"number"` //退回数量
 
+}
 
 //订单审批
 type ApproveReq struct {

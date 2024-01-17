@@ -309,6 +309,21 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 		"hasApprove":hasApprove,
 	}
 
+	if openApprove {
+		//开启了审核
+		if object.ApproveStatus == 0 { //还没审核,这个订单就是审核中
+			result["status"] = "待审核"
+		}
+	}
+	if object.ApproveStatus == global.OrderApproveReject {
+		result["status"] = "已驳回"
+	}
+	if object.DeliveryType == global.ExpressStore{
+
+		if object.Status == global.OrderWaitConfirm{
+			result["status"] = "待取"
+		}
+	}
 	if shopRow.Id > 0{
 		result["shop_name"] =shopRow.Name
 		result["shop_username"] =shopRow.UserName

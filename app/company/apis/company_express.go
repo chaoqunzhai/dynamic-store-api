@@ -9,6 +9,39 @@ import (
 	"go-admin/global"
 )
 
+
+
+func (e Company) StoreList(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	address := make([]map[string]interface{}, 0)
+	localAddress := make([]models2.CompanyExpressStore, 0)
+	var localObject models2.CompanyExpressStore
+	e.Orm.Model(&localObject).Scopes(actions.PermissionSysUser(localObject.TableName(), userDto)).Find(&localAddress)
+	for _, r := range localAddress {
+		address = append(address, map[string]interface{}{
+			"address": r.Address,
+			"name":    r.Name,
+			"start":   r.Start,
+			"end":     r.End,
+			"id":r.Id,
+		})
+	}
+	e.OK(address, "successful")
+	return
+}
+
 func (e Company) ExpressList(c *gin.Context) {
 	err := e.MakeContext(c).
 		MakeOrm().
@@ -61,16 +94,17 @@ func (e Company) ExpressList(c *gin.Context) {
 
 		}
 		if row == global.ExpressStore {
-			address := make([]map[string]string, 0)
+			address := make([]map[string]interface{}, 0)
 			localAddress := make([]models2.CompanyExpressStore, 0)
 			var localObject models2.CompanyExpressStore
 			e.Orm.Model(&localObject).Scopes(actions.PermissionSysUser(localObject.TableName(), userDto)).Find(&localAddress)
 			for _, r := range localAddress {
-				address = append(address, map[string]string{
+				address = append(address, map[string]interface{}{
 					"address": r.Address,
 					"name":    r.Name,
 					"start":   r.Start,
 					"end":     r.End,
+					"id":r.Id,
 				})
 			}
 			cnf["address"] = address

@@ -557,7 +557,7 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 	}
 
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
-	OrderId:=fmt.Sprintf("%v",utils.GenUUID())
+
 	//创建入库单的的入库流水
 	DocumentMoney:=0.00
 	Number :=0
@@ -649,7 +649,7 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 		RecordLog:=models2.InventoryRecord{
 			CId: userDto.CId,
 			CreateBy:userDto.Username,
-			OrderId: OrderId,
+
 			Action: global.InventoryIn, //入库
 			Image: imageVal,
 			GoodsId: InventoryObject.GoodsId,
@@ -673,7 +673,7 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 	}
 	//创建一条入库单记录
 	object :=models2.InventoryOrder{
-		OrderId: OrderId,
+		OrderId: fmt.Sprintf("%v",utils.GenUUID()),
 		Action: global.InventoryIn,
 		DocumentMoney:DocumentMoney,
 		Number: Number,
@@ -772,7 +772,6 @@ func (e CompanyInventory) OutboundCreate(c *gin.Context) {
 	}
 
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
-	OrderId:=fmt.Sprintf("%v",utils.GenUUID())
 	//创建出库单的的入库流水
 	DocumentMoney:=0.00
 	Number :=0
@@ -844,7 +843,6 @@ func (e CompanyInventory) OutboundCreate(c *gin.Context) {
 		RecordLog:=models2.InventoryRecord{
 			CId: userDto.CId,
 			CreateBy:userDto.Username,
-			OrderId: OrderId,
 			Action: global.InventoryOut, //入库
 			Image: imageVal,
 			GoodsId: InventoryObject.GoodsId,
@@ -867,7 +865,7 @@ func (e CompanyInventory) OutboundCreate(c *gin.Context) {
 	}
 	//创建一条入库单记录
 	object :=models2.InventoryOrder{
-		OrderId: OrderId,
+		OrderId: fmt.Sprintf("%v",utils.GenUUID()),
 		Action: global.InventoryOut,
 		DocumentMoney:DocumentMoney,
 		Number: Number,

@@ -53,7 +53,7 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 	//获取这个订单下 所有的规格数据
 	var orderSpecsList []models.OrderSpecs
 
-	orm :=e.Orm.Table(splitTableRes.OrderSpecs).Select("id,goods_id,spec_id,number,after_status,all_money")
+	orm :=e.Orm.Table(splitTableRes.OrderSpecs).Select("order_id,id,goods_id,spec_id,number,after_status,all_money")
 	if len(reqOrderSpecId) > 0 {
 		orm = orm.Where("c_id = ? and order_id = ? and id in ?",userDto.CId,reqOrderId,reqOrderSpecId)
 	}else {
@@ -73,8 +73,10 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 		returnOrderSpecMoney +=row.AllMoney
 		refundMap =append(refundMap,dto.OrderRefund{
 			GoodsId: row.GoodsId,
-			Specs: map[int]int{
-				row.SpecId:row.Number,
+			Specs: dto.OrderRefundSpec{
+				SpecId: row.SpecId,
+				Number: row.Number,
+				OrderId: row.OrderId,
 			},
 		})
 	}
@@ -105,86 +107,86 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 	if openInventory{ //开启库存,更新库存 + 规格的商品, 如果不存在 那就不管了？
 
 		for _,dat:=range refundMap{
-			for specId,stock:=range dat.Specs{
 
-				var goodsObject models.Goods
-				e.Orm.Model(&goodsObject).Where("id = ? and c_id = ?",dat.GoodsId,userDto.CId).Limit(1).Find(&goodsObject)
 
-				if goodsObject.Id == 0 {
-					continue
-				}
-				//规格库存增加
-				var goodsSpecs models.GoodsSpecs
-				e.Orm.Model(&goodsSpecs).Where("goods_id = ? and id = ? and c_id = ?",dat.GoodsId,specId,userDto.CId).Limit(1).Find(&goodsSpecs)
-				if goodsSpecs.Id == 0 {
-					continue
-				}
-				imageVal := goodsSpecs.Image
-				if goodsSpecs.Image == ""{
-					//商品如果有图片,那获取第一张图片即可
-					if goodsObject.Image != ""{
-						imageVal = strings.Split( goodsObject.Image,",")[0]
-					}else {
-						imageVal = ""
-					}
+			var goodsObject models.Goods
+			e.Orm.Model(&goodsObject).Where("id = ? and c_id = ?",dat.GoodsId,userDto.CId).Limit(1).Find(&goodsObject)
 
+			if goodsObject.Id == 0 {
+				continue
+			}
+			//规格库存增加
+			var goodsSpecs models.GoodsSpecs
+			e.Orm.Model(&goodsSpecs).Where("goods_id = ? and id = ? and c_id = ?",dat.GoodsId,dat.Specs.SpecId,userDto.CId).Limit(1).Find(&goodsSpecs)
+			if goodsSpecs.Id == 0 {
+				continue
+			}
+			imageVal := goodsSpecs.Image
+			if goodsSpecs.Image == ""{
+				//商品如果有图片,那获取第一张图片即可
+				if goodsObject.Image != ""{
+					imageVal = strings.Split( goodsObject.Image,",")[0]
+				}else {
+					imageVal = ""
 				}
-
-				var Inventory models2.Inventory
-
-				e.Orm.Model(&models2.Inventory{}).Select("id,stock,original_price").Where(
-					"c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,dat.GoodsId,specId).Limit(1).Find(&Inventory)
-				if Inventory.Id == 0 {
-					continue //商品没了,那就不操作仓库?
-				}
-				SourceNumber:=Inventory.Stock
-				//只更新 指定的商品和规格的库存
-				e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,dat.GoodsId,specId).Updates(map[string]interface{}{
-					"stock":stock + Inventory.Stock,
-				})
-				//并且增加入库记录
-				RecordLog:=models2.InventoryRecord{
-					CId: userDto.CId,
-					CreateBy:userDto.Username,
-					OrderId: fmt.Sprintf("%v",utils.GenUUID()),
-					Action: RecordAction,
-					Image: imageVal,
-					GoodsId: dat.GoodsId,
-					GoodsName: goodsObject.Name,
-					GoodsSpecName: goodsSpecs.Name,
-					Source: 2,//大B发起的
-					SpecId: specId,
-					SourceNumber:SourceNumber, //原库存
-					ActionNumber:stock, //操作的库存
-					CurrentNumber:stock + Inventory.Stock, //那现库存 就是 原库存 + 操作的库存
-					OriginalPrice:Inventory.OriginalPrice,
-					SourcePrice: Inventory.OriginalPrice,
-					Unit:goodsSpecs.Unit,
-				}
-				e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
 
 			}
+
+			var Inventory models2.Inventory
+
+			e.Orm.Model(&models2.Inventory{}).Select("id,stock,original_price").Where(
+				"c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,dat.GoodsId,dat.Specs.SpecId).Limit(1).Find(&Inventory)
+			if Inventory.Id == 0 {
+				continue //商品没了,那就不操作仓库?
+			}
+			SourceNumber:=Inventory.Stock
+			//只更新 指定的商品和规格的库存
+			e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,dat.GoodsId,dat.Specs.SpecId).Updates(map[string]interface{}{
+				"stock":dat.Specs.Number + Inventory.Stock,
+			})
+			//并且增加入库记录
+			RecordLog:=models2.InventoryRecord{
+				CId: userDto.CId,
+				CreateBy:userDto.Username,
+				OrderId: dat.Specs.OrderId,
+				Action: RecordAction,
+				Image: imageVal,
+				GoodsId: dat.GoodsId,
+				GoodsName: goodsObject.Name,
+				GoodsSpecName: goodsSpecs.Name,
+				Source: 2,//大B发起的
+				SpecId: dat.Specs.SpecId,
+				SourceNumber:SourceNumber, //原库存
+				ActionNumber:dat.Specs.Number, //操作的库存
+				CurrentNumber:dat.Specs.Number + Inventory.Stock, //那现库存 就是 原库存 + 操作的库存
+				OriginalPrice:Inventory.OriginalPrice,
+				SourcePrice: Inventory.OriginalPrice,
+				Unit:goodsSpecs.Unit,
+			}
+			e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
+
+
 		}
 
 	}else {//没有开启库存,直接操作商品和规格
 		for _,dat:=range refundMap{
 
 			allGoodsNumber :=0
-			for specId,stock:=range dat.Specs{
 
-				allGoodsNumber += stock //订单的数量
 
-				var goodsSpecsObject models.GoodsSpecs
-				e.Orm.Model(&models.GoodsSpecs{}).Select("id,inventory").Where("c_id = ? and goods_id = ? and id = ?",userDto.CId,dat.GoodsId,specId).Limit(1).Find(&goodsSpecsObject)
-				if goodsSpecsObject.Id == 0 {
-					continue //商品没了,那就不操作,并不能影响客户退费
-				}
-				//只更新商品规格的库存
-				e.Orm.Model(&models.GoodsSpecs{}).Where("c_id = ? and goods_id = ? and id = ?",userDto.CId,dat.GoodsId,specId).Updates(map[string]interface{}{
-					"inventory":stock + goodsSpecsObject.Inventory,
-				})
+			allGoodsNumber += dat.Specs.Number //订单的数量
 
+			var goodsSpecsObject models.GoodsSpecs
+			e.Orm.Model(&models.GoodsSpecs{}).Select("id,inventory").Where("c_id = ? and goods_id = ? and id = ?",userDto.CId,dat.GoodsId,dat.Specs.SpecId).Limit(1).Find(&goodsSpecsObject)
+			if goodsSpecsObject.Id == 0 {
+				continue //商品没了,那就不操作,并不能影响客户退费
 			}
+			//只更新商品规格的库存
+			e.Orm.Model(&models.GoodsSpecs{}).Where("c_id = ? and goods_id = ? and id = ?",userDto.CId,dat.GoodsId,dat.Specs.SpecId).Updates(map[string]interface{}{
+				"inventory":dat.Specs.Number + goodsSpecsObject.Inventory,
+			})
+
+
 			var goodsObject models.Goods
 			e.Orm.Model(&models.Goods{}).Select("id,inventory").Where("c_id = ? and id = ?",userDto.CId,dat.GoodsId).Limit(1).Find(&goodsObject)
 			if goodsObject.Id == 0 {

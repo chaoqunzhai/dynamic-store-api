@@ -499,7 +499,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 			RecordLog:=models.InventoryRecord{
 				CId: userDto.CId,
 				CreateBy:userDto.Username,
-				OrderId: fmt.Sprintf("%v",utils.GenUUID()),
+				OrderId: orderSpecsObject.OrderId,
 				Action: global.InventoryRefundIn, //入库
 				Source: 1, //客户发起的
 				Image: imageVal,
