@@ -397,6 +397,10 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.Error(500, errors.New("商家暂无路线"), "商家暂无路线")
 		return
 	}
+	if msg,ExpiredOrNot :=service.CheckLineExpire(userDto.CId,shopObject.LineId,e.Orm);!ExpiredOrNot{
+		e.Error(500, errors.New(msg), msg)
+		return
+	}
 	var DeductionAllMoney float64
 	switch req.DeductionType {
 	case global.DeductionBalance:

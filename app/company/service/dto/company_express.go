@@ -13,6 +13,7 @@ type CompanyExpressCnfReq struct {
 	} `json:"local"`
 }
 type Address struct {
+	Id int `json:"id"`
 	Name    string `json:"name"`
 	Address string `json:"address"`
 	Start   string `json:"start"`

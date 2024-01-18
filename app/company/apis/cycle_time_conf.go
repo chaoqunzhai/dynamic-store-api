@@ -69,7 +69,7 @@ func (e CycleTimeConf) TypeCnf(c *gin.Context) {
 	}
 	cnf := make(map[string]interface{}, 0)
 	var cycleObject models.CycleTimeConf
-	e.Orm.Model(&models.CycleTimeConf{}).Scopes(actions.PermissionSysUser(cycleObject.TableName(),userDto)).Where("enable = ? ", true).Limit(1).Find(&cycleObject)
+	e.Orm.Model(&models.CycleTimeConf{}).Scopes(actions.PermissionSysUser(cycleObject.TableName(),userDto)).Select("id,type").Where("enable = ? ", true).Limit(1).Find(&cycleObject)
 	if cycleObject.Id == 0 {
 		cnf["type"] = false
 	} else {
@@ -228,12 +228,22 @@ func (e CycleTimeConf) Insert(c *gin.Context) {
 	}
 
 	//时间不能重复,也就是start_time 和end_time 是不能存在相同的
+	//当每天时,最多支持3个
 	whereSql := ""
 	switch req.Type {
 
 	case global.CyCleTimeDay:
 		whereSql = fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v'",
 			userDto.CId, true, global.CyCleTimeDay, req.StartTime, req.EndTime)
+		var dayCount int64
+		e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and `type` = ?",userDto.CId,global.CyCleTimeDay).Count(&dayCount)
+		if dayCount >= global.CyCleTimeDayMaxNumber{
+			msg :=fmt.Sprintf("下单周期为每天时,仅支持 %v个配置",global.CyCleTimeDayMaxNumber)
+			e.Error(500, errors.New(msg), msg)
+			return
+		}
+
+
 
 	case global.CyCleTimeWeek:
 		whereSql = fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v' and start_week = %v and end_week = %v",

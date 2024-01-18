@@ -4,6 +4,7 @@ import (
 	sys "go-admin/app/admin/models"
 	models2 "go-admin/cmd/migrate/migration/models"
 	"gorm.io/gorm"
+	"time"
 )
 
 //检测是否开启了库存
@@ -24,4 +25,18 @@ func IsHasOpenApprove(user *sys.SysUser,orm *gorm.DB) (openApprove,hasApprove bo
 		return false,false
 	}
 	return Approve.Enable,user.AuthExamine
+}
+
+//检测线路是否过期
+func CheckLineExpire(cid,lineId int,orm *gorm.DB) (msg string,ExpiredOrNot bool) {
+	var line models2.Line
+	orm.Model(&line).Where("c_id = ? and id = ?",cid,lineId).Limit(1).Find(&line)
+
+	if line.Id == 0 {
+		return "路线已过期",false
+	}
+	if line.ExpirationTime.Before(time.Now()){
+		return "路线已过期",false
+	}
+	return "路线可用",true
 }

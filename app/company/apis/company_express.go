@@ -112,6 +112,11 @@ func (e Company) ExpressList(c *gin.Context) {
 
 		expressList = append(expressList, cnf)
 	}
+
+	expressList = append(expressList, map[string]interface{}{
+		"type": -1,
+		"max_local":global.CompanyMaxLocal,
+	})
 	e.OK(expressList, "successful")
 	return
 }
@@ -196,20 +201,27 @@ func (e Company) ExpressCnfStore(c *gin.Context) {
 		e.Orm.Create(&store)
 	}
 
-	//自提配置
-	//先清空
-	var object models2.CompanyExpressStore
-	e.Orm.Model(&models2.CompanyExpressStore{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Unscoped().Delete(&models2.CompanyExpressStore{})
-	//后增加
 	for _, row := range req.Store.Address {
-		rr := models2.CompanyExpressStore{
+
+		if row.Name == "" {
+			continue
+		}
+		updateRow:=models2.CompanyExpressStore{
 			Address: row.Address,
 			Name:    row.Name,
 			Start:   row.Start,
 			End:     row.End,
 		}
-		rr.CId = userDto.CId
-		e.Orm.Create(&rr)
+		if row.Id > 0 {
+			var object models2.CompanyExpressStore
+			e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("id = ?",row.Id).Updates(updateRow)
+		}else {
+			//自提配置
+			//先清空
+			updateRow.CId = userDto.CId
+			e.Orm.Create(&updateRow)
+		}
+
 	}
 	e.OK("更新成功", "successful")
 	return

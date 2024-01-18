@@ -50,6 +50,7 @@ const (
 	CompanyMaxGoodsImage = 4   //大B最多可以设置单个商品做多6张图片
 	CompanyUserTag       = 30  //大B最多可以设置客户标签个数
 	CompanySmsNumber = 100 //大B默认的可用短信条数
+	CompanyMaxLocal = 10 //大B支持最多自提设置
 	OffLinePay = 6 //大B最多可以设置线下支付的个数
 	CompanyIndexMessage = 3 //首页消息条目
 	CompanyIndexAds = 3 //广告数量
@@ -146,7 +147,7 @@ const (
 	CyCleTimeDay = 1
 	//每周
 	CyCleTimeWeek = 2
-
+	CyCleTimeDayMaxNumber = 3 //配送周期为每天时,最多支持3个时间配置创建
 
 	//支付状态
 
