@@ -42,6 +42,9 @@ func (e *Trade) Create(c *gin.Context) {
 	var object models.OrderTrade
 	e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Limit(1).Find(&object)
 
+	if req.ReceiveDays < 2{ //强制为2天
+		req.ReceiveDays = 2
+	}
 
 	if object.Id > 0 {
 

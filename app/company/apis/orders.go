@@ -480,10 +480,15 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		orderRow.AddressId = defaultAddress.Id
 	}else { //自提
 		orderRow.Status = global.OrderWaitConfirm
+		orderRow.DeliveryRunAt = models3.XTime{
+			Time:time.Now(),
+		}
 		orderRow.AddressId = req.StoreAddressId
 		orderRow.DeliveryStr = req.DeliveryStr
 	}
 
+
+	fmt.Println("orderRow.DeliveryRunAt",orderRow.DeliveryRunAt)
 	var lineObject models2.Line
 	e.Orm.Model(&models2.Line{}).Scopes(actions.PermissionSysUser(lineObject.TableName(),userDto)).Where("id = ?  and enable = ?", shopObject.LineId, true).Limit(1).Find(&lineObject)
 	if lineObject.Id == 0 {

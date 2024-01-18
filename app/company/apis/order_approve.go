@@ -83,7 +83,7 @@ func (e OrdersApprove)Approve(c *gin.Context) {
 		//驳回了
 		updateMap["approve_status"] = global.OrderApproveReject
 	}
-	//审批操作时 只能是更新/待发货的订单
+	//审批操作时 只能是更新默认状态的订单,不会动订单的状态
 	e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id in ? and status = ?",userDto.CId,req.OrderList,global.OrderStatusWaitSend).Updates(updateMap)
 
 

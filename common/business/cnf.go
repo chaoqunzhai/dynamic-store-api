@@ -7,9 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
-
-func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
-	//默认的配置
+func DefaultCnf() map[string]int {
 	defaultCnf := map[string]int{
 		"vip":        global.CompanyVip,
 		"role":       global.CompanyMaxRole,
@@ -19,11 +17,18 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 		"shop_tag":   global.CompanyUserTag,
 		"shop":       global.CompanyMaxShop,
 		"goods":       global.CompanyMaxGoods,
-		"offline_pay":global.OffLinePay,
 		"index_message":global.CompanyIndexMessage,
+		"offline_pay":global.OffLinePay,
 		"index_ads":global.CompanyIndexAds,
 		"export_worker":global.CompanyExportWorker,
+		"line_bind_shop":global.CompanyLineBindShop,
+		"salesman_number":global.CompanySalesmanNumber,
 	}
+	return defaultCnf
+}
+func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
+	//默认的配置
+	defaultCnf := DefaultCnf()
 
 	//如果查询线路,线路是单独的表中 做的限制
 	//线路,短信 都是单独表做的限制,因为是花钱单独购买
@@ -32,7 +37,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 	switch key {
 	case "line":
 		var lineCnf models.CompanyLineCnf
-		orm.Model(&models.CompanyLineCnf{}).Select("number,id").Where("c_id = ?",cid).Limit(1).Find(&lineCnf)
+		orm.Model(&models.CompanyLineCnf{}).Select("number").Where("c_id = ?",cid).Limit(1).Find(&lineCnf)
 		if lineCnf.Id == 0 {
 			lineNumber = global.CompanyLine
 		}else {
@@ -41,7 +46,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 		defaultCnf["line"] = lineNumber
 	case "sms":
 		var smsCnf models.CompanySmsQuotaCnf
-		orm.Model(&models.CompanySmsQuotaCnf{}).Select("available,id").Where("c_id = ?",cid).Limit(1).Find(&smsCnf)
+		orm.Model(&models.CompanySmsQuotaCnf{}).Select("available").Where("c_id = ?",cid).Limit(1).Find(&smsCnf)
 		if smsCnf.Id == 0 {
 			smsNumber = global.CompanySmsNumber
 		}else {
@@ -58,13 +63,24 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 	}
 	orm.Model(&models.CompanyQuotaCnf{}).Where(sql).Find(&cnf)
 	//没有进行特殊配置,那就都返回系统初始化配置的值
-
 	if len(cnf) == 0 {
 		return defaultCnf
 	}
 	result := make(map[string]int, 0)
 	for _, row := range cnf {
-		result[row.Key] = row.Number
+		number,ok:=defaultCnf[row.Key]
+		if !ok{ //没有存在配置 就用默认的展示
+			result[row.Key] = number
+		}else {
+			result[row.Key] = row.Number
+		}
+	}
+	//如果新增的 DB中没有配置,那就把默认的设置上
+	for keyStr,number:=range defaultCnf{
+		_,ok:=result[keyStr]
+		if !ok{
+			result[keyStr] = number
+		}
 	}
 	if key != "" {
 		//如果DB没有配置一些特殊的配置,那就使用global的配置
@@ -84,14 +100,18 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 				v = global.CompanyMaxGoods
 			case "shop":
 				v = global.CompanyMaxShop
-			case "offline_pay":
-				v = global.OffLinePay
 			case "index_message":
 				v=  global.CompanyIndexMessage
+			case "line_bind_shop":
+				v = global.CompanyLineBindShop
+			case "offline_pay":
+				v = global.OffLinePay
 			case "index_ads":
 				v = global.CompanyIndexAds
 			case "export_worker":
 				v = global.CompanyExportWorker
+			case "salesman_number":
+				v = global.CompanySalesmanNumber
 			case "line":
 				v = lineNumber
 

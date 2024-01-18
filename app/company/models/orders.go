@@ -14,7 +14,7 @@ type Orders struct {
 	PayType        int          `json:"pay_type" gorm:"type:tinyint(1);default:1;comment:支付方式"`
 	Phone          string       `gorm:"size:11;index;comment:用户联系手机号"`
 	CreatedAt      models.XTime `json:"createdAt" gorm:"comment:创建时间"`
-	UpdatedAt      models.XTime `json:"updatedAt" gorm:"comment:最后更新时间"`
+	DeliveryRunAt  models.XTime `json:"delivery_run_at" gorm:"column:delivery_run_at; null; comment:开始配送时间"`
 	OrderId        string       `json:"order_id" gorm:"index;size:20;comment:订单ID"`
 	OrderNoId      string       `json:"order_no_id" gorm:"size:20;comment:支付流水号"`
 	CId            int          `gorm:"index;comment:大BID"`

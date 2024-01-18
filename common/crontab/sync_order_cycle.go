@@ -34,7 +34,7 @@ type ThisDaySyncOrderCycle struct {
 func (s *ThisDaySyncOrderCycle)WhereStatus(IsOpenApprove bool) string  {
 	var WhereOrderStatus string
 	if IsOpenApprove{ //,如果开启了 只有审批通过的订单 才会变为配送中
-		WhereOrderStatus = fmt.Sprintf("approve_status = %v",global.OrderApproveOk)
+		WhereOrderStatus = fmt.Sprintf("status = %v and approve_status = %v",global.OrderStatusWaitSend,global.OrderApproveOk)
 	}else { //没有开启审批,那就只查询 待配送的
 		WhereOrderStatus = fmt.Sprintf("status = %v",global.OrderStatusWaitSend)
 
@@ -55,14 +55,50 @@ func (s *ThisDaySyncOrderCycle)RunCompanySplitOrderSync()  {
 	s.Orm.Model(&models2.SplitTableMap{}).Find(&SplitTableMap)
 
 	for _,row:=range SplitTableMap{
+		//查询大B配置的订单验收天数
+
+		var OrderTrade models2.OrderTrade
+		s.Orm.Model(&models2.OrderTrade{}).Select("id,receive_days").Where("c_id = ?",row.CId).Limit(1).Find(&OrderTrade)
+		var ReceiveDays int
+		if OrderTrade.Id == 0 {
+			ReceiveDays = global.OrderReceiveDays //默认天数
+		}else {
+			ReceiveDays = OrderTrade.ReceiveDays //配置的天数
+		}
+		//更新配送中订单 设置的数天后自动确认收货, 也就是更新为OrderStatusOver
+
+		row.ReceiveBeforeTime = s.GetReceiveBeforeDaysTime(ReceiveDays)
 		s.CompanyMap[row.CId] = row
 	}
 
 	//构建周期映射MAP 方便后面订单更新
-	s.MakeOrderCycleCnfTable()
+	//s.MakeOrderCycleCnfTable()
 
 	//订单按量分隔 启动协程 处理
-	s.RunUpdateTableStatus()
+	//s.RunUpdateTableStatus()
+
+	//最后进行一次验收
+	s.OverStatus()
+}
+
+func (s *ThisDaySyncOrderCycle)GetReceiveBeforeDaysTime(ReceiveDays int) string  {
+
+	//往后推5分钟
+	return time.Now().Add(5 * time.Minute).AddDate(0,0,-ReceiveDays).Format("2006-01-02 15:04:05")
+
+}
+
+//只进行完结验证
+
+func (s *ThisDaySyncOrderCycle)OverStatus()  {
+	//最后进行一次 验收检测
+	for cid,splitCnf:=range s.CompanyMap{
+		//查询必须是配送中 +  小于 验收时间的订单
+		s.Orm.Table(splitCnf.OrderTable).Where("c_id = ? and `status` = ? and delivery_run_at <= ?",cid,global.OrderWaitConfirm,splitCnf.ReceiveBeforeTime).Updates(map[string]interface{}{
+			"status":global.OrderStatusOver,
+		})
+	}
+
 }
 //获取所有周期配置表
 
@@ -85,7 +121,8 @@ func (s *ThisDaySyncOrderCycle)MakeOrderCycleCnfTable()  {
 				InventoryRecordLog:global.InventoryRecordLog,
 			}
 		}
-		//查询今天的订单
+
+		//查询今天的订单订单
 		s.Orm.Table(splitCnf.OrderCycle).Select("uid").Where("delivery_time = ? and c_id = ?",s.NowDay,cid).Find(&orderCycleList)
 
 		var Approve models2.OrderApproveCnf
@@ -137,9 +174,10 @@ func (s *ThisDaySyncOrderCycle)processWaitToConfirm(tableList []*models2.SplitTa
 		whereStatus:=s.WhereStatus(splitCnf.IsOpenApprove)
 
 		for _,uid:=range splitCnf.CycleCnfList {
-			s.Orm.Table(splitCnf.OrderTable).Where(whereStatus).Where("c_id = ? and uid = ?",splitCnf.CId,uid).Updates(map[string]interface{}{
+			s.Orm.Table(splitCnf.OrderTable).Where(whereStatus).Where("c_id = ? and uid = ? ",splitCnf.CId,uid).Updates(map[string]interface{}{
 				"status":global.OrderWaitConfirm, //待配送的订单更新为配送中
 				"approve_status":global.OrderApproveOk, //也需要改为审批通过,防止后期开启了审核,订单都为待审核状态
+				"delivery_run_at":time.Now(),
 			})
 
 		}

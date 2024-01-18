@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin/binding"
 	sys "go-admin/app/admin/models"
+	service2 "go-admin/app/company/service"
 	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/business"
 	customUser "go-admin/common/jwt/user"
@@ -246,6 +247,23 @@ func (e Shop) Insert(c *gin.Context) {
 		return
 	}
 
+	//路线是否到期检测
+	if msg,ExpiredOrNot :=service2.CheckLineExpire(userDto.CId,req.LineId,e.Orm);!ExpiredOrNot{
+		e.Error(500, errors.New(msg), msg)
+		return
+	}
+	CompanyLineCnf := business.GetCompanyCnf(userDto.CId, "line_bind_shop", e.Orm)
+	MaxLineBindShopNumber := CompanyLineCnf["line_bind_shop"]
+
+	var LineBindShop int64
+	e.Orm.Model(&models.Shop{}).Where("c_id = ? and line_id = ?",userDto.CId,req.LineId).Count(&LineBindShop)
+
+	if LineBindShop >= int64(MaxLineBindShopNumber){
+		e.Error(500, errors.New(fmt.Sprintf("一条路线最多可绑定%v个客户", MaxLineBindShopNumber)), fmt.Sprintf("一条路线最多可绑定%v个客户", MaxLineBindShopNumber))
+		return
+	}
+
+
 	var count int64
 	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("name = ? ",  req.Name).Count(&count)
 	if count > 0 {
@@ -345,6 +363,22 @@ func (e Shop) Update(c *gin.Context) {
 		return
 	}
 
+	//路线是否到期检测
+	if msg,ExpiredOrNot :=service2.CheckLineExpire(userDto.CId,req.LineId,e.Orm);!ExpiredOrNot{
+		e.Error(500, errors.New(msg), msg)
+		return
+	}
+	//检测路线绑定
+	CompanyLineCnf := business.GetCompanyCnf(userDto.CId, "line_bind_shop", e.Orm)
+	MaxLineBindShopNumber := CompanyLineCnf["line_bind_shop"]
+
+	var LineBindShop int64
+	e.Orm.Model(&models.Shop{}).Where("c_id = ? and line_id = ?",userDto.CId,req.LineId).Count(&LineBindShop)
+	// 不能包含这条路线！！！ ? 怎么弄
+	if LineBindShop >= int64(MaxLineBindShopNumber){
+		e.Error(500, errors.New(fmt.Sprintf("单路线最多可绑定%v个客户", MaxLineBindShopNumber)), fmt.Sprintf("单路线最多可绑定%v个客户", MaxLineBindShopNumber))
+		return
+	}
 
 	//名称发生了变化
 	if parentShopRow.Name != req.Name {

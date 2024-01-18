@@ -33,10 +33,12 @@ func CheckLineExpire(cid,lineId int,orm *gorm.DB) (msg string,ExpiredOrNot bool)
 	orm.Model(&line).Where("c_id = ? and id = ?",cid,lineId).Limit(1).Find(&line)
 
 	if line.Id == 0 {
-		return "路线已过期",false
+		return "暂无路线",false
 	}
-	if line.ExpirationTime.Before(time.Now()){
-		return "路线已过期",false
+	if !line.ExpirationTime.Time.IsZero() { //有时间配置
+		if line.ExpirationTime.Before(time.Now()){
+			return "路线已过期",false
+		}
 	}
 	return "路线可用",true
 }
