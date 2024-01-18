@@ -54,8 +54,10 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.PUT("/user/:id", api.UpdateUser)
 		//对用户进行下线,大B看不到了,但是超管还是可以看到的,更新用户的enable
 		r.POST("/user/offline", api.Offline)
-		//增加用户
+		//增加系统用户,防止恶意注册 必须是role =
 		r.POST("/user/add", api.CreateUser)
+		//增加业务员 role也必须是=85 因为有校验否则注册不过去
+		r.POST("/user/sales_man", api.CreateSalesManUser)
 
 		r.GET("/user/mini", api.MiniList)
 		r.POST("/user/code", api.MakeCode)

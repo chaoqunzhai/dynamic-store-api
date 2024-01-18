@@ -8,6 +8,7 @@ import (
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 	sys "go-admin/app/admin/models"
 	"go-admin/app/company/models"
+	"go-admin/common/business"
 	"go-admin/common/dto"
 	"go-admin/common/utils"
 	"go-admin/config"
@@ -32,7 +33,8 @@ func (m *CompanyUserGetPage) GetNeedSearch() interface{} {
 type UpdateReq struct {
 	Id       int    `uri:"id" comment:"主键编码"` // 主键编码
 	Layer    int    `json:"layer" comment:"排序"`
-	RoleId   int    `json:"role_id"`
+	RoleId   int    `json:"role_id"` //给用户分配的角色ID
+	ThisRole int `json:"this_role"` //系统用户必须是82roleid
 	Status   string `json:"status" comment:"用户状态"`
 	UserName string `json:"username" comment:"用户名称" binding:"required"`
 	Phone    string `json:"phone" comment:"手机号"`
@@ -279,8 +281,11 @@ func (e Company) UpdateUser(c *gin.Context) {
 		"phone":    req.Phone,
 		"layer":    req.Layer,
 		"status":   req.Status,
+		"enable":true,
+		"role_id":req.ThisRole,
 		"auth_examine": req.AuthExamine,
 	}
+
 	var runSql string
 	//更新第三张表角色ID
 	if req.RoleId > 0 {
@@ -314,6 +319,73 @@ func (e Company) UpdateUser(c *gin.Context) {
 	return
 }
 
+
+func (e Company) CreateSalesManUser(c *gin.Context) {
+	req := UpdateReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	if req.ThisRole == 0 {
+		e.Error(500, errors.New("请选择角色"), "请选择角色")
+		return
+	}
+	if req.ThisRole != global.RoleSaleMan{
+		e.Error(500, errors.New("非法角色"), "非法角色")
+		return
+	}
+	//检测业务员数量配置
+	CompanyCnf := business.GetCompanyCnf(userDto.CId, "salesman_number", e.Orm)
+	MaxNumber := CompanyCnf["salesman_number"]
+
+	var thisCount int64
+	e.Orm.Model(&sys.SysUser{}).Where("role_id = ? and c_id = ?",global.RoleSaleMan,userDto.CId).Count(&thisCount)
+
+	if thisCount >= int64(MaxNumber) {
+		msg:=fmt.Sprintf("最多只可创建%v个业务员",MaxNumber)
+		e.Error(500, errors.New(msg), msg)
+		return
+	}
+	//大B下的用户名是唯一的
+	var count int64
+	e.Orm.Model(&sys.SysUser{}).Where("username = ? and c_id = ? and enable = ?", req.UserName, userDto.CId, true).Count(&count)
+	if count > 0 {
+		e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
+		return
+	}
+	var phoneCount int64
+	e.Orm.Model(&sys.SysUser{}).Where("phone = ? and c_id = ? and enable = ?", req.Phone, userDto.CId, true).Count(&phoneCount)
+	if phoneCount > 0 {
+		e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
+		return
+	}
+	userObject := sys.SysUser{
+		Username: req.UserName,
+		Phone:    req.Phone,
+		Enable:   true,
+		Status:   req.Status,
+		Password: req.PassWord,
+		CId:      userDto.CId,
+		RoleId:   global.RoleSaleMan,
+		Layer:    req.Layer,
+		AuthExamine: req.AuthExamine,
+	}
+	userObject.CreateBy = userDto.UserId
+	e.Orm.Create(&userObject)
+	e.OK("successful", "创建成功")
+	return
+}
+
 func (e Company) CreateUser(c *gin.Context) {
 	req := UpdateReq{}
 	err := e.MakeContext(c).
@@ -330,6 +402,15 @@ func (e Company) CreateUser(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	if req.ThisRole == 0 {
+		e.Error(500, errors.New("请选择角色"), "请选择角色")
+		return
+	}
+	if req.ThisRole != global.RoleCompanyUser{
+		e.Error(500, errors.New("非法角色"), "非法角色")
+		return
+	}
+
 	//大B下的用户名是唯一的
 	var count int64
 	e.Orm.Model(&sys.SysUser{}).Where("username = ? and c_id = ? and enable = ?", req.UserName, userDto.CId, true).Count(&count)
@@ -353,10 +434,6 @@ func (e Company) CreateUser(c *gin.Context) {
 		RoleId:   global.RoleCompanyUser,
 		Layer:    req.Layer,
 		AuthExamine: req.AuthExamine,
-
-	}
-	if userObject.RoleId > 0 {
-		userObject.RoleId = req.RoleId
 	}
 	userObject.CreateBy = userDto.UserId
 	e.Orm.Create(&userObject)
