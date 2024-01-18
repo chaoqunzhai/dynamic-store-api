@@ -373,8 +373,8 @@ func (e Shop) Update(c *gin.Context) {
 	MaxLineBindShopNumber := CompanyLineCnf["line_bind_shop"]
 
 	var LineBindShop int64
-	e.Orm.Model(&models.Shop{}).Where("c_id = ? and line_id = ?",userDto.CId,req.LineId).Count(&LineBindShop)
-	// 不能包含这条路线！！！ ? 怎么弄
+	e.Orm.Model(&models.Shop{}).Where("c_id = ? and line_id = ? and id != ?",userDto.CId,req.LineId,req.Id).Count(&LineBindShop)
+
 	if LineBindShop >= int64(MaxLineBindShopNumber){
 		e.Error(500, errors.New(fmt.Sprintf("单路线最多可绑定%v个客户", MaxLineBindShopNumber)), fmt.Sprintf("单路线最多可绑定%v个客户", MaxLineBindShopNumber))
 		return

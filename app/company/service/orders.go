@@ -309,6 +309,13 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 		"hasApprove":hasApprove,
 	}
 
+	if object.OfflinePayId > 0 {
+		var OfflinePay models3.OfflinePay
+		e.Orm.Model(&models3.OfflinePay{}).Where("c_id = ? and id = ?",object.CId,object.OfflinePayId).Limit(1).Find(&OfflinePay)
+		if OfflinePay.Id > 0 {
+			result["offline_pay"] = OfflinePay.Name
+		}
+	}
 	if openApprove {
 		//开启了审核
 		if object.ApproveStatus == 0 { //还没审核,这个订单就是审核中
