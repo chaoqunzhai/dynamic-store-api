@@ -6,6 +6,14 @@ import (
 	common "go-admin/common/models"
 )
 
+type OrdersActionReq struct {
+
+	Msg    string    `json:"msg" gorm:"column:msg"`
+	Action    int    `json:"action" gorm:"column:action"`
+	OrderID    []string    `json:"order_id" gorm:"column:order_id"`
+
+}
+
 type OrdersGetPageReq struct {
 	dto.Pagination `search:"-"`
 	Layer          string `form:"layer"  search:"type:exact;column:layer;table:orders" comment:"排序"`

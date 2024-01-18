@@ -8,6 +8,7 @@ import (
 
 type ShopGetPageReq struct {
 	dto.Pagination `search:"-"`
+	Id          int `form:"id"  search:"type:exact;column:id;table:shop" comment:"排序"`
 	Layer          string `form:"layer"  search:"type:exact;column:layer;table:shop" comment:"排序"`
 	GradeId        string `form:"grade_id"  search:"type:exact;column:grade_id;table:shop" comment:"vip等级"`
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:shop" comment:"开关"`

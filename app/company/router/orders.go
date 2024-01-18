@@ -34,6 +34,9 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 
 		//todo:获取商家的更多订单记录
 		r.GET("/shop/:id", api.ShopOrderList)
+
+		//⭐️ 订单流程扭转
+		r.POST("/action",api.OrderAction)
 	}
 
 	r2 := v1.Group("/orders").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole())

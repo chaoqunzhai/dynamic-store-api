@@ -13,6 +13,7 @@ import (
 	customUser "go-admin/common/jwt/user"
 	models3 "go-admin/common/models"
 	"go-admin/common/utils"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"math"
 	"time"
@@ -33,22 +34,59 @@ type Orders struct {
 	api.Api
 }
 
-// GetPage 获取Orders列表
-// @Summary 获取Orders列表
-// @Description 获取Orders列表
-// @Tags Orders
-// @Param layer query string false "排序"
-// @Param enable query string false "开关"
-// @Param cId query string false "大BID"
-// @Param shopId query string false "关联客户"
-// @Param status query string false "配送状态"
-// @Param number query string false "下单数量"
-// @Param delivery query string false "配送周期"
-// @Param pageSize query int false "页条数"
-// @Param pageIndex query int false "页码"
-// @Success 200 {object} response.Response{data=response.Page{list=[]models.Orders}} "{"code": 200, "data": [...]}"
-// @Router /api/v1/orders [get]
-// @Security Bearer
+
+func (e Orders) OrderAction(c *gin.Context) {
+	req := dto.OrdersActionReq{}
+	s := service.Orders{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	actionCN:=""
+	//更新
+	updateMap:=map[string]interface{}{
+		"status":req.Action,
+	}
+
+	switch req.Action {
+
+	case global.OrderWaitConfirm:
+		actionCN = "配送中"
+	case global.OrderStatusOver:
+		actionCN = "收货完成"
+		//审核也通过
+		updateMap["approve_status"] = global.OrderApproveOk
+	default:
+		e.Error(500, nil,"不可识别的操作")
+		return
+	}
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+
+	e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id in ?",userDto.CId,req.OrderID).Updates(updateMap)
+
+	e.Orm.Table(splitTableRes.OrderSpecs).Where("c_id = ? and order_id in ?",userDto.CId,req.OrderID).Updates(map[string]interface{}{
+		"status":req.Action,
+	})
+	zap.S().Infof("用户 %v,操作订单 %v 进行 %v,备注:%v",userDto.Username,req.OrderID,actionCN,req.Msg)
+	
+
+	e.OK("","successful")
+	return
+
+}
 func (e Orders) GetPage(c *gin.Context) {
 	req := dto.OrdersGetPageReq{}
 	s := service.Orders{}
