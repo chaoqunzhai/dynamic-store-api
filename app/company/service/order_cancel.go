@@ -27,11 +27,14 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 
 		return errors.New("订单不存在")
 	}
-	if orderObject.Status == global.RefundCompanyCancelCType {
+	if orderObject.AfterStatus == global.OrderStatusCancel {
 
 		return errors.New("订单已作废")
 	}
 
+	if orderObject.Status == global.OrderStatusOver {
+		return errors.New("订单已验收")
+	}
 	var shopRow models2.Shop
 	e.Orm.Model(&models2.Shop{}).Where("c_id = ? and id = ? ",userDto.CId,orderObject.ShopId).Limit(1).Find(&shopRow)
 
@@ -242,8 +245,9 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 	updateMasterMap["edit"] = true
 	updateMasterMap["approve_msg"] = reqDesc
 	updateMasterMap["after_status"] = global.RefundCompanyCancelCType
+	updateMasterMap["approve_status"] = global.OrderApproveReject
 	//更新主订单的信息
-	e.Orm.Table(splitTableRes.OrderTable).Where("order_id = ?",reqOrderId).Updates(updateMasterMap) //更新主订单
+	e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id = ?",userDto.CId,reqOrderId).Updates(updateMasterMap) //更新主订单
 	//循环查询到规格ID
 	for _,row:=range specsId{
 		e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ? and id = ?",reqOrderId,row).Updates(map[string]interface{}{

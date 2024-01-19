@@ -10,7 +10,7 @@ type OrdersActionReq struct {
 
 	Msg    string    `json:"msg" gorm:"column:msg"`
 	Action    int    `json:"action" gorm:"column:action"`
-	OrderID    []string    `json:"order_id" gorm:"column:order_id"`
+	OrderList    []string    `json:"order_list" `
 
 }
 
@@ -293,8 +293,8 @@ type OrderRefundSpec struct {
 
 //订单审批
 type ApproveReq struct {
-	OrderList []string `json:"orderList"`
+	OrderList []string `json:"order_list"`
 	Desc string `json:"desc"`
 	Action int `json:"action"`//审批是否通过 1:通过 2:驳回
-
+	Source string `json:"source"` //来源类型 approve:审批 cancel作废
 }

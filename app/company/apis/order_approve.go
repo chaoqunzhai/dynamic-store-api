@@ -70,34 +70,35 @@ func (e OrdersApprove)Approve(c *gin.Context) {
 	if !openApprove || !hasApprove {
 		e.Error(500, nil,"无权限操作")
 		return
-
 	}
+
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
 	updateMap:=map[string]interface{}{
 		"approve_msg":req.Desc,
 	}
-	if req.Action == 1{
+	//无论是否开启审核 都把这个字段进行一个更新,防止后期开启了审核 是在校验approve_status字段
+	if req.Action == 1{ //审核通过
 		updateMap["approve_status"] = global.OrderApproveOk
-	}else {
-		//驳回了
-		updateMap["approve_status"] = global.OrderApproveReject
-	}
-	//审批操作时 只能是更新默认状态的订单,不会动订单的状态
-	e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id in ? and status = ?",userDto.CId,req.OrderList,global.OrderStatusWaitSend).Updates(updateMap)
+		//审批操作时 只能是更新默认状态的订单,不会动订单的状态
+		e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id in ? and status = ?",userDto.CId,req.OrderList,global.OrderStatusWaitSend).Updates(updateMap)
 
-
-	if req.Action == 0 {
+	}else if req.Action == 0  {
+		
+		
 		OrderSpecId:=make([]int,0)
 		//这是操作驳回,也就是作废了 需要退库 退钱
 		for _,orderId:=range req.OrderList{
 
 			if cancelErr :=s.CancelOrder(global.InventoryApproveIn,true,orderId,OrderSpecId,req.Desc,splitTableRes,userDto);cancelErr!=nil{
-				e.Error(500, cancelErr, cancelErr.Error())
-				return
+				continue
 			}
 		}
+	}else {
+		e.Error(500, nil,"非法操作")
+		return
 	}
+
 
 	e.OK("","successful")
 	return

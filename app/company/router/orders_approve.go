@@ -25,7 +25,7 @@ func registerOrdersApproveRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWT
 	{
 		//获取是否开启配置
 		r.GET("",api.Config)
-		//进行审批
+		//进行审批 可以批量审批 驳回(也就是作废)
 		r.POST("",api.Approve)
 	}
 }

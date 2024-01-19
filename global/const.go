@@ -220,7 +220,7 @@ const (
 	InventoryEditIn = 5//商品编辑入库
 	InventoryEditOut = 6//商品编辑出库
 
-	InventoryCancelIn = 7 //订单作废
+	InventoryCancelIn = 7 //订单作废入库
 	InventoryApproveIn = 8 //审批驳回入库
 
 	InventoryHelpOut = 9 //代客下单出库

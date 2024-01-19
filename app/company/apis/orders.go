@@ -75,12 +75,12 @@ func (e Orders) OrderAction(c *gin.Context) {
 	}
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
-	e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id in ?",userDto.CId,req.OrderID).Updates(updateMap)
+	e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id in ?",userDto.CId,req.OrderList).Updates(updateMap)
 
-	e.Orm.Table(splitTableRes.OrderSpecs).Where("c_id = ? and order_id in ?",userDto.CId,req.OrderID).Updates(map[string]interface{}{
+	e.Orm.Table(splitTableRes.OrderSpecs).Where("c_id = ? and order_id in ?",userDto.CId,req.OrderList).Updates(map[string]interface{}{
 		"status":req.Action,
 	})
-	zap.S().Infof("用户 %v,操作订单 %v 进行 %v,备注:%v",userDto.Username,req.OrderID,actionCN,req.Msg)
+	zap.S().Infof("用户 %v,操作订单 %v 进行 %v,备注:%v",userDto.Username,strings.Join(req.OrderList,","),actionCN,req.Msg)
 	
 
 	e.OK("","successful")
@@ -1317,6 +1317,38 @@ func (e Orders) EditOrder(c *gin.Context) {
 
 }
 
+func (e Orders)BatchCancelOrder(c *gin.Context) {
+	req := dto.ApproveReq{}
+	s := service.Orders{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+
+	OrderSpecId:=make([]int,0)
+	//进行作废了 需要退库 退钱
+	for _,orderId:=range req.OrderList{
+		if cancelErr :=s.CancelOrder(global.InventoryCancelIn,true,orderId,OrderSpecId,req.Desc,splitTableRes,userDto);cancelErr!=nil{
+			continue
+		}
+	}
+
+	e.OK("","successful")
+	return
+
+}
 func (e Orders)CancelOrder(c *gin.Context)  {
 	req := dto.OrdersRefundReq{}
 	s := service.Orders{}

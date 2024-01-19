@@ -64,6 +64,9 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 
 		//todo:对订单进行作废 费用,库存都需要退回
 		r3.POST("/cancel",api.CancelOrder)
+		//批量驳回操作
+		r3.POST("/batch/cancel",api.BatchCancelOrder)
+
 
 	}
 }
