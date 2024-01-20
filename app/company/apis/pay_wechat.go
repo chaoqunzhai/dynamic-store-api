@@ -5,12 +5,15 @@
 package apis
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"go-admin/cmd/migrate/migration/models"
 	"go-admin/common/actions"
 	customUser "go-admin/common/jwt/user"
+	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -30,6 +33,30 @@ type WechatPayReq struct {
 	Enable bool `json:"enable"`
 	Refund bool `json:"refund"`
 }
+
+func analysisCert(cid int,cert string) (searNumber string,err error)  {
+	//写入到缓存demo文件中
+	cacheFile:=fmt.Sprintf("%v_cert.pem",cid)
+
+	file, _ := os.OpenFile(cacheFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if _, err = file.WriteString(cert);err!=nil{
+
+		return "", err
+	}
+	cmd := exec.Command("bash","-c",fmt.Sprintf("openssl x509 -in %v -noout -serial",cacheFile))
+
+	output, err := cmd.Output()
+	if err != nil {
+		fmt.Println("执行错误",err)
+		return
+	}
+	//serial=
+	data :=strings.TrimSpace(string(output))
+	data = strings.Replace(data,"serial=","",-1)
+
+	return data,nil
+
+}
 func (e *PayWechat) Create(c *gin.Context) {
 	req := WechatPayReq{}
 	err := e.MakeContext(c).
@@ -48,32 +75,18 @@ func (e *PayWechat) Create(c *gin.Context) {
 		return
 	}
 
-	var AppCnf models.WeChatAppIdCnf
-	e.Orm.Model(&AppCnf).Scopes(actions.PermissionSysUser(AppCnf.TableName(),userDto)).Limit(1).First(&AppCnf)
-
-
-	if AppCnf.Id > 0 {
-
-		AppCnf.AppId = req.AppId
-		AppCnf.AppSecret = req.AppSecret
-		e.Orm.Save(&AppCnf)
-	}else {
-		cnf :=models.WeChatAppIdCnf{
-			AppId: req.AppId,
-			AppSecret: req.AppSecret,
-		}
-		cnf.Enable = true
-		cnf.Layer = 0
-		cnf.CreateBy = userDto.UserId
-		cnf.CId = userDto.CId
-		e.Orm.Create(&cnf)
-	}
 	var PayCnf models.WeChatOfficialPay
 
 	e.Orm.Model(&PayCnf).Scopes(actions.PermissionSysUser(PayCnf.TableName(),userDto)).Limit(1).Find(&PayCnf)
 
-	if PayCnf.Id > 0 {
 
+	searchNumber,err:=analysisCert(userDto.CId,req.CertText)
+	if err!=nil{
+		e.Error(500, nil,"证书解析失败")
+		return
+	}
+	if PayCnf.Id > 0 {
+		PayCnf.SerialNumber = searchNumber
 		PayCnf.Enable = req.Enable
 		PayCnf.Refund = req.Refund
 		PayCnf.ApiV2 = strings.TrimSpace(req.ApiV2)
@@ -91,6 +104,8 @@ func (e *PayWechat) Create(c *gin.Context) {
 			CertText: strings.TrimSpace(req.CertText),
 			KeyText: strings.TrimSpace(req.KeyText),
 			OfficialAppId: strings.TrimSpace(req.OfficialAppId),
+			SerialNumber: searchNumber,
+			AppId: strings.TrimSpace(req.AppId),
 		}
 		trade.CreateBy = userDto.UserId
 		trade.CId = userDto.CId

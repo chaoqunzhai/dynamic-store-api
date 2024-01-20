@@ -22,12 +22,10 @@ type Extend struct {
 	ExportDay int `json:"exportDay"`
 	Domain      string        `json:"domain"`
 	ImageBase string        `json:"imageBase"`
-	CityAdv     string        `json:"cityAdv"`
-	Compose     string        `json:"compose"`
-	Influx      Influx        `json:"influx"`
+
 	Callback    string        `json:"callback"`
 	PromotionCode string `json:"promotionCode"`
-	Harbor      Harbor        `json:"harbor"`
+
 	Qiniu Qiniu `json:"qiniu"`
 	Tx Tx `json:"tx"`
 }
@@ -63,19 +61,6 @@ type WxLeaderLogin struct {
 type WxUserLogin struct {
 	Appid  string `json:"appid"`
 	Secret string `json:"secret"`
-}
-type Harbor struct {
-	Endpoint string `json:"endpoint"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Callback string `json:"callback"`
-}
-type Influx struct {
-	Host     string `json:"host"`
-	UserName string `json:"username"`
-	Password string `json:"password"`
-	Database string `json:"database"`
-	Port     int    `json:"port"`
 }
 type AMap struct {
 	Key string

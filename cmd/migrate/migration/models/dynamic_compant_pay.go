@@ -20,6 +20,7 @@ type WeChatOfficialPay struct {
 	CertText string `json:"cert_text" gorm:"comment:支付证书cert内容"`
 	KeyText string  `json:"key_text" gorm:"comment:支付证书key路径"`
 	OfficialAppId string `json:"official_app_id" gorm:"size:20;comment:微信公众号APPID"`
+	SerialNumber string `json:"serial_number" gorm:"size:60;comment:证书序列号"`
 }
 func (WeChatOfficialPay) TableName() string {
 	return "company_wechat_official_pay"

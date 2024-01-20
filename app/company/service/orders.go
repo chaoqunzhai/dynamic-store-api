@@ -308,7 +308,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 		"openApprove":openApprove,
 		"hasApprove":hasApprove,
 	}
-	fmt.Println(" shopRow.GradeId", shopRow.GradeId)
+
 	if shopRow.GradeId > 0 {
 		var gradeRow models3.GradeVip
 		e.Orm.Model(&models3.GradeVip{}).Select("name,id").Where("id = ? and enable = ?",shopRow.GradeId,true).Limit(1).Find(&gradeRow)
