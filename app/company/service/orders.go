@@ -308,7 +308,14 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 		"openApprove":openApprove,
 		"hasApprove":hasApprove,
 	}
-
+	fmt.Println(" shopRow.GradeId", shopRow.GradeId)
+	if shopRow.GradeId > 0 {
+		var gradeRow models3.GradeVip
+		e.Orm.Model(&models3.GradeVip{}).Select("name,id").Where("id = ? and enable = ?",shopRow.GradeId,true).Limit(1).Find(&gradeRow)
+		if gradeRow.Id > 0 {
+			result["grade_name"] = gradeRow.Name
+		}
+	}
 	if object.OfflinePayId > 0 {
 		var OfflinePay models3.OfflinePay
 		e.Orm.Model(&models3.OfflinePay{}).Where("c_id = ? and id = ?",object.CId,object.OfflinePayId).Limit(1).Find(&OfflinePay)
