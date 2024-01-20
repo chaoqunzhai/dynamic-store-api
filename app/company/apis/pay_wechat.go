@@ -11,6 +11,7 @@ import (
 	"go-admin/cmd/migrate/migration/models"
 	"go-admin/common/actions"
 	customUser "go-admin/common/jwt/user"
+	"strings"
 )
 
 
@@ -23,8 +24,9 @@ type WechatPayReq struct {
 	MchId string  `json:"mch_id" `
 	ApiV2 string `json:"api_v2"`
 	ApiV3 string `json:"api_v3"`
-	CertPath string `json:"cert_path" `
-	KeyPath string  `json:"key_path" `
+	CertText string `json:"cert_text" `
+	KeyText string  `json:"key_text" `
+	OfficialAppId string `json:"official_app_id"`
 	Enable bool `json:"enable"`
 	Refund bool `json:"refund"`
 }
@@ -66,27 +68,29 @@ func (e *PayWechat) Create(c *gin.Context) {
 		cnf.CId = userDto.CId
 		e.Orm.Create(&cnf)
 	}
-	var PayCnf models.WeChatPay
+	var PayCnf models.WeChatOfficialPay
 
-	e.Orm.Model(&PayCnf).Scopes(actions.PermissionSysUser(PayCnf.TableName(),userDto)).Limit(1).First(&PayCnf)
+	e.Orm.Model(&PayCnf).Scopes(actions.PermissionSysUser(PayCnf.TableName(),userDto)).Limit(1).Find(&PayCnf)
 
 	if PayCnf.Id > 0 {
 
 		PayCnf.Enable = req.Enable
 		PayCnf.Refund = req.Refund
-		PayCnf.ApiV2 = req.ApiV2
-		PayCnf.ApiV3 = req.ApiV3
-		PayCnf.MchId = req.MchId
-		PayCnf.CertPath = req.CertPath
-		PayCnf.KeyPath = req.KeyPath
+		PayCnf.ApiV2 = strings.TrimSpace(req.ApiV2)
+		PayCnf.ApiV3 = strings.TrimSpace(req.ApiV3)
+		PayCnf.MchId = strings.TrimSpace(req.MchId)
+		PayCnf.CertText = strings.TrimSpace(req.CertText)
+		PayCnf.KeyText = strings.TrimSpace(req.KeyText)
+		PayCnf.OfficialAppId = strings.TrimSpace(req.OfficialAppId)
 		e.Orm.Save(&PayCnf)
 	}else {
-		trade:=models.WeChatPay{
-			MchId: req.MchId,
-			ApiV3: req.ApiV3,
-			ApiV2: req.ApiV2,
-			CertPath: req.CertPath,
-			KeyPath: req.KeyPath,
+		trade:=models.WeChatOfficialPay{
+			MchId: strings.TrimSpace(req.MchId),
+			ApiV3: strings.TrimSpace(req.ApiV3),
+			ApiV2: strings.TrimSpace(req.ApiV2),
+			CertText: strings.TrimSpace(req.CertText),
+			KeyText: strings.TrimSpace(req.KeyText),
+			OfficialAppId: strings.TrimSpace(req.OfficialAppId),
 		}
 		trade.CreateBy = userDto.UserId
 		trade.CId = userDto.CId
@@ -116,18 +120,18 @@ func (e *PayWechat) Detail(c *gin.Context) {
 		return
 	}
 
-	var data models.WeChatPay
-	e.Orm.Model(&models.WeChatPay{}).Scopes(actions.PermissionSysUser(data.TableName(),userDto)).Limit(1).Find(&data)
+	var data models.WeChatOfficialPay
+	e.Orm.Model(&models.WeChatOfficialPay{}).Scopes(actions.PermissionSysUser(data.TableName(),userDto)).Limit(1).Find(&data)
 
-	var appCnf models.WeChatAppIdCnf
-	e.Orm.Model(&models.WeChatAppIdCnf{}).Scopes(actions.PermissionSysUser(appCnf.TableName(),userDto)).Limit(1).Find(&appCnf)
+	//var appCnf models.WeChatAppIdCnf
+	//e.Orm.Model(&models.WeChatAppIdCnf{}).Scopes(actions.PermissionSysUser(appCnf.TableName(),userDto)).Limit(1).Find(&appCnf)
 
 	//result:=map[string]interface{}{
 	//	"pay":data,
 	//	"app":appCnf,
 	//}
-	data.AppId = appCnf.AppId
-	data.AppSecret = appCnf.AppSecret
+	//data.AppId = appCnf.AppId
+	//data.AppSecret = appCnf.AppSecret
 	e.OK(data,"successful")
 	return
 }

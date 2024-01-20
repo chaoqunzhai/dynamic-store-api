@@ -560,7 +560,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	orderRow.ApproveStatus =  global.OrderApproveOk
 	orderRow.DeliveryType = req.DeliveryType
 	orderRow.Phone = shopObject.Phone
-
+	//代客下单时的用户是管理员用户！！！
 	orderRow.CreateBy = userDto.UserId
 	orderRow.Buyer = req.Desc
 	orderRow.DriverId = DriverObject.Id

@@ -11,21 +11,20 @@ func (WeChatAppIdCnf) TableName() string {
 	return "company_wechat_app_cnf"
 }
 //微信支付配置
-type WeChatPay struct {
+type WeChatOfficialPay struct {
 	BigBRichGlobal
-	MchId string `json:"mch_id" gorm:"index;size:11;comment:商户号"`
-	ApiV2 string `json:"api_v2" gorm:"size:50;"`
-	ApiV3 string `json:"api_v3" gorm:"size:50;"`
+	MchId string `json:"mch_id" gorm:"index;size:20;comment:商户号"`
+	ApiV2 string `json:"api_v2" gorm:"size:32;"`
+	ApiV3 string `json:"api_v3" gorm:"size:32;"`
 	Refund bool `json:"refund" gorm:"comment:支持退款;"`
-	CertPath string `json:"cert_path" gorm:"size:50;comment:支付证书cert路径"`
-	KeyPath string  `json:"key_path" gorm:"size:50;comment:支付证书key路径"`
-	//小程序配置
-	AppId string `json:"app_id" gorm:"-"`
-	AppSecret string `json:"app_secret"  gorm:"-"`
+	CertText string `json:"cert_text" gorm:"comment:支付证书cert内容"`
+	KeyText string  `json:"key_text" gorm:"comment:支付证书key路径"`
+	OfficialAppId string `json:"official_app_id" gorm:"size:20;comment:微信公众号APPID"`
 }
-func (WeChatPay) TableName() string {
-	return "company_pay_wechat"
+func (WeChatOfficialPay) TableName() string {
+	return "company_wechat_official_pay"
 }
+
 
 //支付宝配置
 
@@ -45,8 +44,8 @@ func (AliPay) TableName() string {
 type PayCnf struct {
 	BigBRichGlobal
 	BalanceDeduct bool `json:"balance_deduct" gorm:"size:1;comment:是否开启余额支付"`
-	Ali bool `json:"pay_ali" gorm:"size:1;comment:是否开启阿里支付"`
-	WeChat bool `json:"we_chat" gorm:"size:1;comment:是否开启微信支付"`
+	//Ali bool `json:"pay_ali" gorm:"size:1;comment:是否开启阿里支付"`
+	//WeChat bool `json:"we_chat" gorm:"size:1;comment:是否开启微信支付"`
 	Credit bool `json:"credit" gorm:"size:1;comment:支持授信减扣"`
 }
 

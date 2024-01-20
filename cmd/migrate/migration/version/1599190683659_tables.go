@@ -70,7 +70,7 @@ func _1599190683659Tables(db *gorm.DB, version string) error {
 			new(models.CompanySmsRecordLog),
 			new(models.CompanyRenewalTimeLog),
 			new(models.WeChatAppIdCnf),
-			new(models.WeChatPay),
+			new(models.WeChatOfficialPay),
 			new(models.AliPay),
 			new(models.OrderTrade),
 			new(models.SplitTableMap),

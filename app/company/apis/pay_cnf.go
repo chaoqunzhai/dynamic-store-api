@@ -43,16 +43,16 @@ func (e *PayApi) Create(c *gin.Context) {
 
 	if PayCnf.Id > 0 {
 
-		PayCnf.Ali = req.Alipay
+		//PayCnf.Ali = req.Alipay
 		PayCnf.BalanceDeduct = req.BalanceDeduct
-		PayCnf.WeChat = req.WeChat
+		//PayCnf.WeChat = req.WeChat
 		PayCnf.Credit = req.Credit
 		e.Orm.Save(&PayCnf)
 	}else {
 		trade:=models.PayCnf{
-			Ali: req.Alipay,
+			//Ali: req.Alipay,
+			//WeChat: req.WeChat,
 			BalanceDeduct: req.BalanceDeduct,
-			WeChat: req.WeChat,
 			Credit: req.Credit,
 		}
 		trade.CId = userDto.CId
