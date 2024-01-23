@@ -68,7 +68,6 @@ func SetGoodsCategoryTree(siteId int, value interface{}) (val map[string]interfa
 }
 
 //设置分表配置
-
 func SetCompanyTableSplitCnf(siteId int, value interface{}) {
 	//选择DB
 	RedisCli.Do(Ctx, "select", global.CompanySplitTableCnf)

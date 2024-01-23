@@ -23,7 +23,7 @@ type SysShopUser struct {
 	Remark         string `json:"remark" gorm:"type:varchar(50);comment:备注"`
 	Status         int `json:"status" gorm:"type:tinyint(1);default:2;comment:状态"`
 	UnionId        string `json:"union" gorm:"size:30;"`     //微信唯一的ID
-	OOpenId        string `json:"o_open_id" gorm:"size:30;"` //微信公众号的openid
+	OffOpenId        string `json:"off_open_id" gorm:"size:30;"` //微信公众号的openid
 	InvitationCode string `json:"invitationCode" gorm:"type:varchar(10);comment:本人邀请码"`
 	ControlBy
 	ModelTime

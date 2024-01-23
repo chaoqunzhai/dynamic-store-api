@@ -6,6 +6,7 @@ import (
 	"fmt"
 	sys "go-admin/app/admin/models"
 	"go-admin/global"
+	"go.uber.org/zap"
 	"strconv"
 )
 
@@ -219,4 +220,20 @@ func GetSplitTableCnf(siteId interface{}) (dat string,err error)  {
 		return "", errors.New("暂无数据")
 	}
 	return res,nil
+}
+// 根据微信回调的KEY预支付的订单信息
+func GetWeChatTradePayCnf(RedisKey string) string {
+	RedisCli.Do(Ctx, "select", global.WechatPayDb)
+
+	res, _ := RedisCli.Get(Ctx, RedisKey).Result()
+	if res == "" {
+		return ""
+	}
+
+	trade:=&OrderAdvInfo{}
+	if err:=json.Unmarshal([]byte(res),trade);err!=nil{
+		zap.S().Errorf("支付回调触发解析redis信息失败,RedisKey:%v Error：%v",RedisKey,err)
+
+	}
+	return res
 }

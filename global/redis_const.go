@@ -33,7 +33,10 @@ const (
 	AllQueueChannel //9
 
 	CompanySplitTableCnf // 10
-	//订单的过期时间,设置为半个小时
+
+	//⭐️微信支付存储订单支付Key
+	WechatPayDb //11
+	//订单的过期时间,默认设置为半个小时
 	OrderExpirationTime = 30 * time.Minute
 	//如果在期间未确认收货，系统自动完成收货，默认7天自动收货
 	OrderReceiveDays = 7

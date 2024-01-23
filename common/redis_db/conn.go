@@ -15,6 +15,12 @@ var (
 	Ctx      context.Context
 )
 
+//预支付订单的配置
+type OrderAdvInfo struct {
+	OrderId string
+	OutTradeNo string
+}
+
 func init() {
 	Ctx = context.Background()
 }

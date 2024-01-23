@@ -19,7 +19,8 @@ type WeChatOfficialPay struct {
 	Refund bool `json:"refund" gorm:"comment:支持退款;"`
 	CertText string `json:"cert_text" gorm:"comment:支付证书cert内容"`
 	KeyText string  `json:"key_text" gorm:"comment:支付证书key路径"`
-	OfficialAppId string `json:"official_app_id" gorm:"size:20;comment:微信公众号APPID"`
+	OfficialAppId string `json:"official_app_id" gorm:"size:30;comment:微信公众号APPID"`
+	OfficialAppSecret string `json:"official_app_secret" gorm:"size:40"`
 	SerialNumber string `json:"serial_number" gorm:"size:60;comment:证书序列号"`
 }
 func (WeChatOfficialPay) TableName() string {

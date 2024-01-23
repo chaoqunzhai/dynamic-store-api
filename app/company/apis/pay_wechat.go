@@ -30,6 +30,7 @@ type WechatPayReq struct {
 	CertText string `json:"cert_text" `
 	KeyText string  `json:"key_text" `
 	OfficialAppId string `json:"official_app_id"`
+	OfficialAppSecret string `json:"official_app_secret"`
 	Enable bool `json:"enable"`
 	Refund bool `json:"refund"`
 }
@@ -53,7 +54,7 @@ func analysisCert(cid int,cert string) (searNumber string,err error)  {
 	//serial=
 	data :=strings.TrimSpace(string(output))
 	data = strings.Replace(data,"serial=","",-1)
-
+	_=os.Remove(cacheFile)
 	return data,nil
 
 }
@@ -95,6 +96,7 @@ func (e *PayWechat) Create(c *gin.Context) {
 		PayCnf.CertText = strings.TrimSpace(req.CertText)
 		PayCnf.KeyText = strings.TrimSpace(req.KeyText)
 		PayCnf.OfficialAppId = strings.TrimSpace(req.OfficialAppId)
+		PayCnf.OfficialAppSecret = strings.TrimSpace(req.OfficialAppSecret)
 		e.Orm.Save(&PayCnf)
 	}else {
 		trade:=models.WeChatOfficialPay{
@@ -104,8 +106,8 @@ func (e *PayWechat) Create(c *gin.Context) {
 			CertText: strings.TrimSpace(req.CertText),
 			KeyText: strings.TrimSpace(req.KeyText),
 			OfficialAppId: strings.TrimSpace(req.OfficialAppId),
+			OfficialAppSecret:strings.TrimSpace(req.OfficialAppSecret),
 			SerialNumber: searchNumber,
-			AppId: strings.TrimSpace(req.AppId),
 		}
 		trade.CreateBy = userDto.UserId
 		trade.CId = userDto.CId
