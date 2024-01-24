@@ -14,6 +14,7 @@ type GoodsGetPageReq struct {
 	Name           string `form:"name"  search:"type:contains;column:name;table:goods" comment:"商品名称"`
 	VipSale        string `form:"vipSale"  search:"type:exact;column:vip_sale;table:goods" comment:"会员价"`
 	Class          string `form:"class"  search:"-" comment:"分类"`
+	Brand string `form:"brand	"  search:"-" comment:"品牌"`
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:goods" comment:"创建时间"`
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:goods" comment:"创建时间"`
 	GoodsOrder
@@ -56,6 +57,7 @@ type GoodsInsertReq struct {
 	Id       int    `form:"-" comment:"主键编码"` // 主键编码
 	Layer    int    `form:"layer"  comment:"排序"`
 	Enable   bool   `form:"enable"  comment:"开关"`
+	Brand int `form:"brand" comment:"品牌"`
 	SpecName string  `form:"spec_name"  comment:"规格名称"`
 	Name     string `form:"name"  comment:"商品名称" binding:"required"`
 	Subtitle string `form:"subtitle"  comment:"副标题"`
@@ -93,22 +95,22 @@ type GoodsInsertReq struct {
 	       }
 */
 type Specs struct {
-	Id        int                    `form:"id" `
-	Key       interface{}            `form:"key"`
-	Name      string                 `form:"name" comment:"规格名称"`
+	Id        int                    `json:"id" form:"id" `
+	Key       interface{}            `json:"key" form:"key"`
+	Name      string                 `json:"name" form:"name" comment:"规格名称"`
 	Market interface{} `form:"market"  json:"market" comment:"市场价"`
-	Price     interface{}            `form:"price" comment:"销售价"`
-	Layer     int                    `form:"layer"`
-	Enable    bool                   `form:"enable"`
-	Code      string                 `form:"code"`
-	Image     string                 `form:"image"`
+	Price     interface{}            `json:"price" form:"price" comment:"销售价"`
+	Layer     int                    `json:"layer" form:"layer"`
+	Enable    bool                   `json:"enable" form:"enable"`
+	Code      string                 `json:"code" form:"code"`
+	Image     string                 `json:"image" form:"image"`
 	Type string `json:"type"`
-	Original  interface{}            `form:"original" comment:"原价"`
-	Inventory interface{}            `form:"inventory" comment:"库存"`
-	Unit      string                 `form:"unit" comment:"单位"`
-	Limit     interface{}            `form:"limit" comment:"起售量"`
-	Max interface{}            `form:"limit" comment:"起售量"`
-	Vip       map[string]interface{} `form:"vip" comment:"vip价格设置"`
+	Original  interface{}            `json:"original" form:"original" comment:"原价"`
+	Inventory interface{}            `json:"inventory" form:"inventory" comment:"库存"`
+	UnitId interface{}  `json:"unit_id" form:"unit_id" comment:"单位"`
+	Limit     interface{}            `json:"limit" form:"limit" comment:"起售量"`
+	Max interface{}            `json:"max" form:"limit" comment:"起售量"`
+	Vip       map[string]interface{} `json:"vip" form:"vip" comment:"vip价格设置"`
 }
 
 type UpdateSpecs struct {
@@ -160,10 +162,11 @@ type GoodsUpdateReq struct {
 	Subtitle  string `form:"subtitle"  comment:"副标题"`
 	Quota     int    `form:"quota"  comment:"活动类型"`
 	VipSale   bool   `form:"vip_sale"  comment:"会员价"`
+	Brand int `form:"brand" comment:"品牌"`
 	Code      string `form:"code" comment:"条形码"`
 	Tag       string `form:"tag" comment:"标签"`
 	Class     string `form:"class"  comment:"分类"`
-	Specs     string `form:"specs"  comment:"规格"`
+	Specs     string `form:"specs"  comment:"规格"`//是一个json的字符串
 	SpecName string  `form:"spec_name"  comment:"规格名称"`
 	FileClear int    `form:"file_clear" comment:"是否清空照片"`
 	SpecFileClear int    `form:"spec_file_clear" comment:"是否清空规格照片"`

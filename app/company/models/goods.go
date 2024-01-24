@@ -22,6 +22,8 @@ type Goods struct {
 	RubikCube bool         `json:"rubik_cube" gorm:"comment:支持魔方"`
 	Tag       []GoodsTag   `gorm:"many2many:goods_mark_tag;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:tag_id;"`
 	Class     []GoodsClass `gorm:"many2many:goods_mark_class;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:class_id;"`
+	Brand []GoodsBrand `gorm:"many2many:goods_mark_brand;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:brand_id;"`
+
 	models.ModelTime
 	models.ControlBy
 }

@@ -45,6 +45,11 @@ func (e *Goods) GetPage(c *dto.GoodsGetPageReq, p *actions.DataPermission, list 
 		query = query.Joins("LEFT JOIN goods_mark_class ON goods.id = goods_mark_class.goods_id").Where("goods_mark_class.class_id in ?",
 			strings.Split(c.Class, ","))
 	}
+	if c.Brand != "" {
+		query = query.Joins("LEFT JOIN goods_mark_brand ON goods.id = goods_mark_brand.goods_id").Where("goods_mark_brand.brand_id in ?",
+			strings.Split(c.Brand, ","))
+	}
+	fmt.Println("Brand!!",c.Brand)
 	err = query.Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {
@@ -65,6 +70,8 @@ func (e *Goods) Get(d *dto.GoodsGetReq, p *actions.DataPermission, model *models
 		return tx.Select("id,name")
 	}).Preload("Class", func(tx *gorm.DB) *gorm.DB {
 		return tx.Select("id,name")
+	}).Preload("Brand", func(tx *gorm.DB) *gorm.DB {
+		return tx.Select("id,name")
 	}).
 		First(model, d.GetId()).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
@@ -83,6 +90,17 @@ func (e *Goods) getTagModels(ids []string) (list []models.GoodsTag) {
 	for _, id := range ids {
 		var row models.GoodsTag
 		e.Orm.Model(&models.GoodsTag{}).Where("id = ?", id).First(&row)
+		if row.Id == 0 {
+			continue
+		}
+		list = append(list, row)
+	}
+	return list
+}
+func (e *Goods) getBrandModels(ids []string) (list []models.GoodsBrand) {
+	for _, id := range ids {
+		var row models.GoodsBrand
+		e.Orm.Model(&models.GoodsBrand{}).Where("id = ?", id).First(&row)
 		if row.Id == 0 {
 			continue
 		}
@@ -118,6 +136,11 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int,specDbMap map[in
 	if len(c.Class) > 0 {
 		class := strings.Split(c.Class, ",")
 		data.Class = e.getClassModels(class)
+	}
+	//品牌
+	if c.Brand  > 0 {
+		brandList:=[]string{fmt.Sprintf("%v",c.Brand)}
+		data.Brand = e.getBrandModels(brandList)
 	}
 	err = e.Orm.Create(&data).Error
 
@@ -157,7 +180,7 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int,specDbMap map[in
 				Market: utils.RoundDecimalFlot64(row.Market),
 				Original:utils.RoundDecimalFlot64(row.Original),
 				Inventory: stock,
-				Unit:      row.Unit,
+				UnitId:     utils.StringToInt(row.UnitId),
 				Limit: utils.StringToInt(row.Limit),
 				Max: utils.StringToInt(row.Max),
 			}
@@ -240,6 +263,14 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 		class := strings.Split(c.Class, ",")
 		data.Class = e.getClassModels(class)
 	}
+	//品牌
+	e.Orm.Model(&data).Association("Brand").Clear()
+
+	if c.Brand  > 0 {
+		brandList:=[]string{fmt.Sprintf("%v",c.Brand)}
+		data.Brand = e.getBrandModels(brandList)
+
+	}
 	//商品库存值
 	inventory := 0
 
@@ -290,7 +321,7 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 				specsRow.Market = utils.RoundDecimalFlot64(row.Market)
 				specsRow.Original = utils.RoundDecimalFlot64(row.Original)
 				specsRow.Inventory = stock
-				specsRow.Unit = row.Unit
+				specsRow.UnitId = utils.StringToInt(row.UnitId)
 				specsRow.Limit = utils.StringToInt(row.Limit)
 				specsRow.Max = utils.StringToInt(row.Max)
 				netSpecList = append(netSpecList,specsRow.Id)
@@ -309,7 +340,7 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 					Price:   price,
 					Original:utils.RoundDecimalFlot64(row.Original),
 					Inventory: stock,
-					Unit:      row.Unit,
+					UnitId:     utils.StringToInt(row.UnitId),
 					Limit: utils.StringToInt(row.Limit),
 					Max: utils.StringToInt(row.Max),
 				}
@@ -522,6 +553,7 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,cid int, p *actions.DataPermission)
 		e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id in ?", removeIds).Unscoped().Delete(&models.GoodsSpecs{})
 		e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_tag` WHERE `goods_mark_tag`.`goods_id` IN (%v)", strings.Join(removeIds, ",")))
 		e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_class` WHERE `goods_mark_class`.`goods_id` IN (%v)", strings.Join(removeIds, ",")))
+		e.Orm.Exec(fmt.Sprintf("DELETE FROM `goods_mark_brand` WHERE `goods_mark_brand`.`goods_id` IN (%v)", strings.Join(removeIds, ",")))
 
 		//删除库存
 		if isOpenInventory {

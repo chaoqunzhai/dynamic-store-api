@@ -262,19 +262,23 @@ func (e Driver) Delete(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	p := actions.GetPermissionFromContext(c)
 
-	newIds := make([]int, 0)
+	notRemoveIds := make([]int, 0)
 	for _, d := range req.Ids {
 		var count int64
-		e.Orm.Model(&models.Line{}).Where("driver_id = ?", d).Count(&count)
-		//如果路线没有关联司机,那就是一个可删除的司机信息
-		if count == 0 {
-			newIds = append(newIds, d)
+		e.Orm.Model(&models.Line{}).Where("driver_id = ? and c_id = ?", d,userDto.CId).Count(&count)
+		//如果有路线关联了司机，那就是不可删除
+		if count > 0 {
+			notRemoveIds = append(notRemoveIds, d)
 		}
 	}
-	if len(newIds) == 0 {
+	if len(notRemoveIds) > 0 {
 		e.Error(500, errors.New("存在关联路线不可删除！"), "存在关联路线不可删除！")
 		return
 	}

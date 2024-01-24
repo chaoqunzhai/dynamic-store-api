@@ -57,6 +57,8 @@ const (
 	CompanyLineBindShop = 100 //路线最多支持绑定多少个客户
 	CompanyExportWorker = 5 //导出任务队列个数
 	CompanySalesmanNumber = 10 //大B默认拥有10个业务员
+	CompanyMaxUnit = 100 //商品单位100个
+	CompanyMaxBrand = 200 //商品品牌
 	OrderLayerKey    = "layer desc"
 	OrderTimeKey     = "created_at desc"
 	UserNumberAdd    = "add"    //增加

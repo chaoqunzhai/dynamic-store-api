@@ -276,7 +276,7 @@ func (e Company) Info(c *gin.Context) {
 	}
 	storeInfo := map[string]interface{}{
 		"store_id":      0,
-		"store_name":    "暂无管理系统,请耐心等待！",
+		"store_name":    "动创云",
 		"describe":      global.Describe,
 		"logo_image_id": 0,
 		"sort":          100,
@@ -291,13 +291,13 @@ func (e Company) Info(c *gin.Context) {
 	e.Orm.Model(&models.Company{}).Where("enable = 1 and leader_id = ? ",userDto.UserId).First(&object)
 
 	if object.Id > 0 {
-		ShopName:=object.Name
-		if object.ShopName != ""{
-			ShopName = object.ShopName
-		}
+		//ShopName:=object.Name
+		//if object.ShopName != ""{
+		//	ShopName = object.ShopName
+		//}
 		storeInfo = map[string]interface{}{
 			"store_id":      object.Id,
-			"store_name":    ShopName,
+			"store_name":    "动创云",
 			"describe":      object.Desc,
 			"logo_image_id": 0,
 			"sort":          object.Layer,
@@ -312,7 +312,7 @@ func (e Company) Info(c *gin.Context) {
 		if userDto.RoleId == global.RoleSuper {
 			storeInfo = map[string]interface{}{
 				"store_id":      0,
-				"store_name":    global.SysName,
+				"store_name":    "动创云",
 				"describe":      global.Describe,
 				"logo_image_id": 0,
 				"sort":          100,

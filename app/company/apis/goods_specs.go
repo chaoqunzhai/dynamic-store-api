@@ -86,7 +86,7 @@ func (e GoodsSpecs) GetPage(c *gin.Context) {
 		dd:=map[string]interface{}{
 			"goods_id":row.GoodsId,
 			"id":row.Id,
-			"unit":row.Unit,
+			"unit_id":row.UnitId,
 			"price":row.Price, //销售的价格
 			"original":row.Original,
 			"name":row.Name,

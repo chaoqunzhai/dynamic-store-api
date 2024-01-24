@@ -642,6 +642,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 					e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,spec.GoodsId,spec.Id).Updates(map[string]interface{}{
 						"stock":CurrentNumber,
 					})
+
 					//同时需要做出入库记录
 					RecordLog:=models2.InventoryRecord{
 						CId: userDto.CId,
@@ -658,7 +659,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 						CurrentNumber:CurrentNumber, //那现库存
 						OriginalPrice:InventoryObject.OriginalPrice,
 						SourcePrice: InventoryObject.OriginalPrice,
-						Unit:goodsSpecs.Unit,
+						Unit:service.GetUnitName(userDto.CId,goodsSpecs.UnitId,e.Orm),
 					}
 					e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
 				}
@@ -1268,6 +1269,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 			e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,goodsId,specId).Updates(map[string]interface{}{
 				"stock":Inventory.Stock,
 			})
+
 			RecordLog:=models2.InventoryRecord{
 				CId: userDto.CId,
 				CreateBy:userDto.Username,
@@ -1282,7 +1284,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 				CurrentNumber:SourceNumber + ActionNumber, //那现库存 就是 原库存 + 操作的库存
 				SourcePrice:Inventory.OriginalPrice,
 				OriginalPrice:Inventory.OriginalPrice,
-				Unit:goodsSpecs.Unit,
+				Unit:service.GetUnitName(userDto.CId,goodsSpecs.UnitId,e.Orm),
 
 			}
 			//流水创建

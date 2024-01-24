@@ -494,6 +494,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 				//叠加后的数据 最后赋值
 				thisObj = InventoryObj
 			}
+
 			//fmt.Println("库存ID",thisObj.Id,"原库存",SourceNumber,"现库存",thisObj.Stock,"当前入库价",thisObj.OriginalPrice)
 			//增加一条入库记录
 			RecordLog:=models.InventoryRecord{
@@ -512,7 +513,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 				CurrentNumber:thisObj.Stock, //那现库存 就是 原库存 + 操作的库存
 				OriginalPrice:thisObj.OriginalPrice,
 				SourcePrice: thisObj.OriginalPrice,
-				Unit:goodsSpecs.Unit,
+				Unit:service.GetUnitName(userDto.CId,goodsSpecs.UnitId,e.Orm),
 			}
 			e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
 		}else {

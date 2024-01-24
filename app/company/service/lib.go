@@ -2,6 +2,7 @@ package service
 
 import (
 	sys "go-admin/app/admin/models"
+	"go-admin/app/company/models"
 	models2 "go-admin/cmd/migrate/migration/models"
 	"gorm.io/gorm"
 	"time"
@@ -41,4 +42,16 @@ func CheckLineExpire(cid,lineId int,orm *gorm.DB) (msg string,ExpiredOrNot bool)
 		}
 	}
 	return "路线可用",true
+}
+//获取单位名称
+func GetUnitName(cid,unitId int,orm *gorm.DB)  string {
+	var unitObject models.GoodsUnit
+	unitName:=""
+	if unitId> 0 {//如果有单位
+		orm.Model(&unitObject).Select("name,id").Where("id = ? and c_id = ?",unitId,cid).Limit(1).Find(&unitObject)
+		if unitObject.Id > 0 {
+			unitName = unitObject.Name
+		}
+	}
+	return unitName
 }

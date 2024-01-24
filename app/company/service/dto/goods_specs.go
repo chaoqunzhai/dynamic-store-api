@@ -48,7 +48,7 @@ type GoodsSpecsInsertReq struct {
 	Price     float64 `json:"price" comment:"售价"`
 	Original  float64 `json:"original" comment:"原价"`
 	Inventory int     `json:"inventory" comment:"库存"`
-	Unit      string  `json:"unit" comment:"单位"`
+	UnitId      int  `json:"unit" comment:"单位"`
 	Limit     int     `json:"limit" comment:"起售量"`
 	Max int `json:"max"`
 	common.ControlBy
@@ -67,7 +67,7 @@ func (s *GoodsSpecsInsertReq) Generate(model *models.GoodsSpecs) {
 	model.Price = s.Price
 	model.Original = s.Original
 	model.Inventory = s.Inventory
-	model.Unit = s.Unit
+	model.UnitId = s.UnitId
 	model.Limit = s.Limit
 	model.Max = s.Max
 }
@@ -86,7 +86,7 @@ type GoodsSpecsUpdateReq struct {
 	Price     float64 `json:"price" comment:"售价"`
 	Original  float64 `json:"original" comment:"原价"`
 	Inventory int     `json:"inventory" comment:"库存"`
-	Unit      string  `json:"unit" comment:"单位"`
+	UnitId      int  `json:"unit" comment:"单位"`
 	Limit     int     `json:"limit" comment:"起售量"`
 	Max int `json:"max"`
 	common.ControlBy
@@ -104,7 +104,7 @@ func (s *GoodsSpecsUpdateReq) Generate(model *models.GoodsSpecs) {
 	model.Price = s.Price
 	model.Original = s.Original
 	model.Inventory = s.Inventory
-	model.Unit = s.Unit
+	model.UnitId = s.UnitId
 	model.Limit = s.Limit
 	model.Max = s.Max
 }

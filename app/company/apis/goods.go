@@ -97,7 +97,8 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 	for _, row := range goods {
 		//只返回有规格的数据
 		var specsObject models.GoodsSpecs
-		e.Orm.Model(&models.GoodsSpecs{}).Scopes(actions.PermissionSysUser(specsObject.TableName(),userDto)).Where("enable = ? and goods_id = ?", true, row.Id).Limit(1).Find(&specsObject)
+		e.Orm.Model(&models.GoodsSpecs{}).Scopes(actions.PermissionSysUser(specsObject.TableName(),userDto)).Where(
+			"enable = ? and goods_id = ?", true, row.Id).Limit(1).Find(&specsObject)
 		if specsObject.Id == 0 {
 			continue
 		}
@@ -106,6 +107,14 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 			Inventory = InventoryMap[row.Id]
 		}else {
 			Inventory = row.Inventory
+		}
+		var unitObject models.GoodsUnit
+		unitName:=""
+		if specsObject.UnitId > 0 {
+			e.Orm.Model(&unitObject).Where("id = ? and c_id = ?",specsObject.UnitId,userDto.CId).Limit(1).Find(&unitObject)
+			if unitObject.Id > 0 {
+				unitName = unitObject.Name
+			}
 		}
 		specData := specsRow{
 			GoodsId: row.Id,
@@ -119,7 +128,7 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 			GoodsPrice: row.Money,
 			GoodsStore: Inventory,
 			Money:      specsObject.Price,
-			Unit:       specsObject.Unit,
+			Unit:       unitName,
 			Name:       specsObject.Name,
 			Inventory:  Inventory,
 		}
@@ -418,6 +427,13 @@ func (e Goods) Get(c *gin.Context) {
 			}
 			return t
 		}(),
+		"brand": func() []int {
+			t := make([]int, 0)
+			for _, r := range object.Brand {
+				t = append(t, r.Id)
+			}
+			return t
+		}(),
 		"vip_sale": object.VipSale,
 		"quota":    object.Quota,
 		"enable":   object.Enable,
@@ -446,6 +462,8 @@ func (e Goods) Get(c *gin.Context) {
 	specData := make([]interface{}, 0)
 	specVipData := make([]interface{}, 0)
 
+
+
 	for _, specs := range specsList {
 		now := utils.GetUUID()
 		var inventory int
@@ -469,7 +487,7 @@ func (e Goods) Get(c *gin.Context) {
 			"max":specs.Max,
 			"enable":    specs.Enable,
 			"layer":     specs.Layer,
-			"unit":      specs.Unit,
+			"unit_id":      specs.UnitId,
 			"image":business.GetDomainCosEncodePathName(global.GoodsPath,object.CId,specs.Image,false),
 		}
 		specData = append(specData, specRow)

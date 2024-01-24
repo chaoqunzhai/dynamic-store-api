@@ -43,7 +43,8 @@ type GoodsSpecs struct {
 	Original  float32 `gorm:"comment:进货价"`
 	Inventory int     `json:"inventory" gorm:"comment:库存"`
 	Sale int   `gorm:"comment:销售量"`
-	Unit      string  `gorm:"size:8;comment:单位"`
+	UnitId      int  `json:"unit_id" gorm:"comment:关联的单位"`
+	//Unit      string  `gorm:"size:8;comment:单位"`
 	Limit     int     `gorm:"comment:起售量"`
 	Max int  `gorm:"comment:最大购买量"`
 	ArtNo string `gorm:"size:20;comment:商品货号"`

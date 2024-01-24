@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
+	"go-admin/app/company/models"
 	"go-admin/app/company/service"
 	"go-admin/app/company/service/dto"
 	models2 "go-admin/cmd/migrate/migration/models"
@@ -81,6 +82,7 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 	//统一查询商品
 	var goodsIds []int
 	var inventoryKey []string
+	var unitIds []int
 	for _,row:=range goodsSpecs{
 
 		inventoryKey = append(inventoryKey,fmt.Sprintf("(goods_id = %v and spec_id = %v)",row.GoodsId,row.Id))
@@ -88,8 +90,10 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 		if _,ok:=goodsCnfMap[row.GoodsId];ok{
 			continue
 		}
-
 		goodsIds = append(goodsIds,row.GoodsId)
+		if row.UnitId > 0 {
+			unitIds = append(unitIds,row.UnitId)
+		}
 
 	}
 	inventoryKey = utils.RemoveRepeatStr(inventoryKey)
@@ -116,7 +120,17 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 			}
 		}
 	}
+	unitCnfMap:=make(map[int]string,0)
+	if len(unitIds) > 0 {
+		unitIds = utils.RemoveRepeatInt(unitIds)
+		var unitList []models.GoodsUnit
+		e.Orm.Model(&models.GoodsUnit{}).Where("id in ?",unitIds).Find(&unitList)
+		for _,row:=range unitList{
+			unitCnfMap[row.Id] = row.Name
+		}
 
+
+	}
 	result :=make([]dto.GoodsSpecs,0)
 	//组装一次数据 + 商品在库存中查询是否有
 	for _,row:=range goodsSpecs{
@@ -129,7 +143,7 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 		tableRow :=dto.GoodsSpecs{
 			Key: fmt.Sprintf("%v_%v",row.GoodsId,row.Id),
 			Name: fmt.Sprintf("%v %v",goodsData.Name,row.Name),
-			Unit: row.Unit,
+			Unit: unitCnfMap[row.UnitId],
 			Image: func() string {
 				if row.Image == "" {
 					return business.GetGoodsPathFirst(row.CId,goodsData.Image,global.GoodsPath)
@@ -238,7 +252,8 @@ func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 		cDto.MakeCondition(req.GetNeedSearch()),
 		cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order(global.OrderLayerKey).Find(&InventoryList).Limit(-1).Offset(-1).Count(&count)
 
-	findGoodsSpecKey:=make([]string,0) //规格列表
+	findGoodsSpecKey:=make([]string,0) //规格拼接列表
+
 	findGoodsKey :=make([]int,0) //商品列表
 	for _,row:=range InventoryList{
 		findGoodsSpecKey = append(findGoodsSpecKey,fmt.Sprintf(" (goods_id = %v and id = %v) ",row.GoodsId,row.SpecId))
@@ -263,7 +278,7 @@ func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 		for _,row:=range GoodsSpecsObjectList{
 			GoodsSpecsInfoMap[fmt.Sprintf("%v_%v",row.GoodsId,row.Id)] = dto.GoodsInfo{
 				Name: row.Name,
-				Unit: row.Unit,
+				Unit: service.GetUnitName(userDto.CId,row.UnitId,e.Orm),
 				Image: row.Image,
 			}
 		}
@@ -417,6 +432,7 @@ func (e CompanyInventory) RecordsLog(c *gin.Context) {
 			"original_price":utils.StringDecimal(row.OriginalPrice),
 			"source_price":utils.StringDecimal(row.SourcePrice),
 			"action_number": fmt.Sprintf("+%v",row.ActionNumber),
+			"unit":row.Unit,
 		}
 		actionBol, actionCn :=global.GetInventoryActionCn(row.Action)
 		data["action_number"] = fmt.Sprintf("%v%v", actionBol,row.ActionNumber)
@@ -649,7 +665,6 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 		RecordLog:=models2.InventoryRecord{
 			CId: userDto.CId,
 			CreateBy:userDto.Username,
-
 			Action: global.InventoryIn, //入库
 			Image: imageVal,
 			GoodsId: InventoryObject.GoodsId,
@@ -661,7 +676,7 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 			CurrentNumber:SourceNumber + data.ActionNumber, //那现库存 就是 原库存 + 操作的库存
 			OriginalPrice:data.CostPrice,
 			SourcePrice:OriginalPrice, //原入库价
-			Unit:data.Unit,
+			Unit:service.GetUnitName(userDto.CId,goodsSpecs.UnitId,e.Orm),
 		}
 		e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
 
@@ -853,7 +868,7 @@ func (e CompanyInventory) OutboundCreate(c *gin.Context) {
 			ActionNumber:data.ActionNumber, //操作的库存
 			CurrentNumber:SourceNumber - data.ActionNumber, //那现库存 就是 原库存 - 操作的库存
 			OriginalPrice:data.CostPrice,
-			Unit:data.Unit,
+			Unit:service.GetUnitName(userDto.CId,goodsSpecs.UnitId,e.Orm),
 		}
 		e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
 

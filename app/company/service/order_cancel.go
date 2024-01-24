@@ -164,7 +164,7 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 				CurrentNumber:dat.Specs.Number + Inventory.Stock, //那现库存 就是 原库存 + 操作的库存
 				OriginalPrice:Inventory.OriginalPrice,
 				SourcePrice: Inventory.OriginalPrice,
-				Unit:goodsSpecs.Unit,
+				Unit:GetUnitName(userDto.CId,goodsSpecs.UnitId,e.Orm),
 			}
 			e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
 
