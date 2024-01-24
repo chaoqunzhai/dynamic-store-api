@@ -432,9 +432,9 @@ func GetCouponType(v int) string {
 func GetPayType(v int)  string {
 	switch  v{
 	case PayTypeOnlineWechat:
-		return "线上微信支付"
+		return "微信支付"
 	case PayTypeOnlineAli:
-		return "线上支付宝支付"
+		return "支付宝支付"
 	case PayTypeOffline:
 		return "线下支付"
 	case PayTypeBalance:

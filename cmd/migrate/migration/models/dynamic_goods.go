@@ -61,7 +61,7 @@ type GoodsVip struct {
 	GoodsId     int     `gorm:"index;comment:商品ID"`
 	SpecsId     int     `gorm:"index;comment:规格ID"`
 	GradeId     int     `gorm:"index;comment:VipId"`
-	CustomPrice float32 `gorm:"index;comment:自定义价格"`
+	CustomPrice float64 `gorm:"index;comment:自定义价格"`
 }
 
 func (GoodsVip) TableName() string {
