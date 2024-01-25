@@ -20,6 +20,7 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 	r := v1.Group("/company").Use(authMiddleware.MiddlewareFunc()).
 		Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
+		r.POST("/renew",api.RenewPass)
 		r.GET("/info", api.Info)
 		//一些限制配置
 		r.GET("/cnf", api.Cnf)

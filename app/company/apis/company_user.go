@@ -41,6 +41,11 @@ type UpdateReq struct {
 	PassWord string `json:"password" comment:"密码" binding:"required"`
 	AuthExamine bool `json:"auth_examine"`
 }
+type RenewPass struct {
+	PasswordConfirm    string    `json:"password_confirm" gorm:"column:password_confirm"`
+	UserName    string    `json:"user_name" gorm:"column:user_name"`
+	RealName    string    `json:"real_name" gorm:"column:real_name"`
+}
 type CategoryReq struct {
 	Type int `json:"type" binding:"required"`
 }

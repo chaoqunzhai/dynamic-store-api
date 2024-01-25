@@ -96,9 +96,10 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 	userInfo := map[string]interface{}{
 		"store_user_id": sysUser.UserId,
 		"user_name":     sysUser.Username,
-		"real_name":     sysUser.Username,
+		"real_name":     sysUser.NickName,
 		"is_delete":     0,
 		"sort":          0,
+		"phone":sysUser.Phone,
 		"store_id":      0,
 		"create_time":   sysUser.CreatedAt.Format("2006-01-02 15:04:05"),
 		"update_time":   sysUser.UpdatedAt.Format("2006-01-02 15:04:05"),

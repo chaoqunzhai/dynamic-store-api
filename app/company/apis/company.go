@@ -1,16 +1,19 @@
 package apis
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
+	sys "go-admin/app/admin/models"
 	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/business"
 	"go-admin/common/jwt/user"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/global"
+	"golang.org/x/crypto/bcrypt"
 	"time"
 
 	"go-admin/app/company/models"
@@ -116,6 +119,50 @@ func (e Company) Demo(c *gin.Context) {
 	c.JSON(200, "")
 	return
 
+}
+func (e Company)RenewPass(c *gin.Context)  {
+	req:=RenewPass{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	var oldRow sys.SysUser
+	e.Orm.Model(&sys.SysUser{}).Scopes(actions.PermissionSysUser(oldRow.TableName(),userDto)).Where("username = ? ", req.UserName).Limit(1).Find(&oldRow)
+
+	if oldRow.UserId != 0 {
+		if oldRow.UserId != userDto.UserId {
+			e.Error(500, errors.New("登录用户名称不可重复"), "登录用户名称不可重复")
+			return
+		}
+	}
+
+	SysUserUpdateMap:=map[string]interface{}{
+		"username":req.UserName,
+		"nick_name":req.RealName,
+	}
+	if req.PasswordConfirm != ""{
+		hash, GenerateErr := bcrypt.GenerateFromPassword([]byte(req.PasswordConfirm), bcrypt.DefaultCost)
+		if GenerateErr!=nil{
+			e.Error(500,GenerateErr,"密码生成失败")
+			return
+		}
+		SysUserUpdateMap["password"] = string(hash)
+	}
+
+	e.Orm.Model(&sys.SysUser{}).Where("user_id = ?",userDto.UserId).Updates(SysUserUpdateMap)
+	e.OK(200,"更新成功")
+	return
 }
 func (e Company) SaveCategory(c *gin.Context) {
 	req:=CategoryReq{}
@@ -297,6 +344,7 @@ func (e Company) Info(c *gin.Context) {
 		//}
 		storeInfo = map[string]interface{}{
 			"store_id":      object.Id,
+			"phone":object.Phone,
 			"store_name":    "动创云",
 			"describe":      object.Desc,
 			"logo_image_id": 0,
