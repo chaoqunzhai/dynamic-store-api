@@ -25,9 +25,9 @@ type CompanyCouponGetPageReq struct {
 
 type CompanyCouponReceiveGetPageReq struct {
 	dto.Pagination `search:"-"`
-	Name           string    `form:"name"  search:"type:contains;column:name;table:company_coupon" comment:"优惠卷名称"`
-	StartTime      time.Time `form:"startTime"  search:"type:gte;column:start_time;table:company_coupon" comment:"开始使用时间"`
-	EndTime        time.Time `form:"endTime"  search:"type:lte;column:end_time;table:company_coupon" comment:"截止使用时间"`
+
+	BeginTime     string `form:"beginTime"  search:"type:gte;column:created_at;table:user_receive_coupon_log" comment:"开始使用时间"`
+	EndTime        string `form:"endTime"  search:"type:lte;column:created_at;table:user_receive_coupon_log" comment:"截止使用时间"`
 
 }
 func (m *CompanyCouponReceiveGetPageReq) GetNeedSearch() interface{} {
