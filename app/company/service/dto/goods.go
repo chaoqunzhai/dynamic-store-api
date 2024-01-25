@@ -14,7 +14,7 @@ type GoodsGetPageReq struct {
 	Name           string `form:"name"  search:"type:contains;column:name;table:goods" comment:"商品名称"`
 	VipSale        string `form:"vipSale"  search:"type:exact;column:vip_sale;table:goods" comment:"会员价"`
 	Class          string `form:"class"  search:"-" comment:"分类"`
-	Brand string `form:"brand	"  search:"-" comment:"品牌"`
+	Brand 		   string `form:"brand"  search:"-" comment:"品牌"`
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:goods" comment:"创建时间"`
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:goods" comment:"创建时间"`
 	GoodsOrder

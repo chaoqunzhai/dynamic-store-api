@@ -49,7 +49,8 @@ func (e *Goods) GetPage(c *dto.GoodsGetPageReq, p *actions.DataPermission, list 
 		query = query.Joins("LEFT JOIN goods_mark_brand ON goods.id = goods_mark_brand.goods_id").Where("goods_mark_brand.brand_id in ?",
 			strings.Split(c.Brand, ","))
 	}
-	fmt.Println("Brand!!",c.Brand)
+
+
 	err = query.Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {

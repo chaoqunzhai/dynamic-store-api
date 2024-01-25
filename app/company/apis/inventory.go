@@ -69,13 +69,27 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 			whereSql =fmt.Sprintf("%v and goods_id in (%v)",whereSql,strings.Join(goodsIds,","))
 		}
 	}
+	//
 	//fmt.Println("查询sql",whereSql)
 	var goodsSpecs []models2.GoodsSpecs
 	var count int64
-	//根据分页获取商品
-	e.Orm.Model(&models2.GoodsSpecs{}).Where(whereSql).Scopes(
+
+	query :=e.Orm.Model(&models2.GoodsSpecs{}).Where(whereSql).Scopes(
 		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-	).Find(&goodsSpecs).Limit(-1).Offset(-1).Count(&count)
+	)
+	if req.Class != "" {
+
+		//获取到分类关联的商品ID
+		var goodsClass []models.GoodsClass
+		e.Orm.Model(&models.GoodsClass{}).Where("c_id = ? and id in ?",userDto.CId,strings.Split(req.Class, ",")).Find(&goodsClass)
+
+		var bindGoodsId []int
+		e.Orm.Raw(fmt.Sprintf("select goods_id from goods_mark_class where class_id in (%v)",req.Class)).Scan(&bindGoodsId)
+		query = query.Where("goods_id in ?",bindGoodsId)
+
+	}
+	//根据分页获取商品
+	query.Find(&goodsSpecs).Limit(-1).Offset(-1).Count(&count)
 
 
 	//统一在查一次商品
@@ -242,15 +256,22 @@ func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 		}
 	}
 
+
 	if req.Action == "out" { //如果是出库 那只查看大于0的数据
 		whereSql += " and stock > 0 "
 	}
 	var count int64
 	result:=make([]interface{},0)
 	InventoryList :=make([]models2.Inventory,0)
-	e.Orm.Model(&models2.Inventory{}).Where(whereSql).Scopes(
+	query := e.Orm.Model(&models2.Inventory{}).Where(whereSql).Scopes(
 		cDto.MakeCondition(req.GetNeedSearch()),
-		cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order(global.OrderLayerKey).Find(&InventoryList).Limit(-1).Offset(-1).Count(&count)
+		cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order(global.OrderLayerKey)
+
+	if req.Brand !=""{
+		query = query.Joins("LEFT JOIN goods_mark_brand ON inventory.goods_id = goods_mark_brand.goods_id").Where("goods_mark_brand.brand_id in ?",
+			strings.Split(req.Brand, ","))
+	}
+	query.Find(&InventoryList).Limit(-1).Offset(-1).Count(&count)
 
 	findGoodsSpecKey:=make([]string,0) //规格拼接列表
 
@@ -377,7 +398,7 @@ func (e CompanyInventory) ManageRecords(c *gin.Context) {
 			"action":row.Action,
 			"original_price":utils.StringDecimal(row.OriginalPrice),
 			"source_price":utils.StringDecimal(row.SourcePrice),
-
+			"unit":row.Unit,
 		}
 		actionBol, actionCn :=global.GetInventoryActionCn(row.Action)
 		data["action_number"] = fmt.Sprintf("%v%v", actionBol,row.ActionNumber)
@@ -573,7 +594,7 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 	}
 
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
-
+	OrderId:=fmt.Sprintf("%v",utils.GenUUID())
 	//创建入库单的的入库流水
 	DocumentMoney:=0.00
 	Number :=0
@@ -664,6 +685,7 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 		//流水创建
 		RecordLog:=models2.InventoryRecord{
 			CId: userDto.CId,
+			OrderId: OrderId,
 			CreateBy:userDto.Username,
 			Action: global.InventoryIn, //入库
 			Image: imageVal,
@@ -688,10 +710,10 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 	}
 	//创建一条入库单记录
 	object :=models2.InventoryOrder{
-		OrderId: fmt.Sprintf("%v",utils.GenUUID()),
 		Action: global.InventoryIn,
 		DocumentMoney:DocumentMoney,
 		Number: Number,
+		OrderId: OrderId,
 	}
 	object.Desc = req.Desc
 	object.CId = userDto.CId
@@ -785,7 +807,7 @@ func (e CompanyInventory) OutboundCreate(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-
+	OrderId:=fmt.Sprintf("%v",utils.GenUUID())
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 	//创建出库单的的入库流水
 	DocumentMoney:=0.00
@@ -856,6 +878,7 @@ func (e CompanyInventory) OutboundCreate(c *gin.Context) {
 
 		//流水创建
 		RecordLog:=models2.InventoryRecord{
+			OrderId: OrderId,
 			CId: userDto.CId,
 			CreateBy:userDto.Username,
 			Action: global.InventoryOut, //入库
@@ -880,10 +903,10 @@ func (e CompanyInventory) OutboundCreate(c *gin.Context) {
 	}
 	//创建一条入库单记录
 	object :=models2.InventoryOrder{
-		OrderId: fmt.Sprintf("%v",utils.GenUUID()),
 		Action: global.InventoryOut,
 		DocumentMoney:DocumentMoney,
 		Number: Number,
+		OrderId: OrderId,
 	}
 	object.Desc = req.Desc
 	object.CId = userDto.CId

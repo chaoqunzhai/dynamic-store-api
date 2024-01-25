@@ -9,6 +9,7 @@ type CompanyInventoryCnfReq struct {
 
 type InventoryGoodsReq struct {
 	dto.Pagination `search:"-"`
+	Class string `json:"class" form:"class" search:"-"`
 	Name string `json:"name" form:"name" search:"type:contains;column:goods_name;table:inventory" comment:"商品名称"`
 }
 func (m *InventoryGoodsReq) GetNeedSearch() interface{} {
@@ -32,6 +33,7 @@ type ManageListGetPageReq struct {
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:inventory" comment:"创建时间"`
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:inventory" comment:"创建时间"`
 	Action string `json:"action"  form:"action" search:"-"`
+	Brand string `json:"brand" form:"brand" search:"-"`
 }
 func (m *ManageListGetPageReq) GetNeedSearch() interface{} {
 	return *m
