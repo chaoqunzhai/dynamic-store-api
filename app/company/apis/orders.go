@@ -228,7 +228,7 @@ func (e Orders) GetPage(c *gin.Context) {
 
 		r := map[string]interface{}{
 			"order_id":   row.OrderId,
-			"order_no_id":row.OrderNoId,
+			"order_no_id":row.OutTradeNo,
 			"shop": cacheShopMap[row.ShopId],
 			"cycle_place": row.CreatedAt.Format("2006-01-02"), 			//下单周期
 			"delivery_time":     row.DeliveryTime.Format("2006-01-02"), 			//配送周期
