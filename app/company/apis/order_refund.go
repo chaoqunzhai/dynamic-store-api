@@ -393,7 +393,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 				CId: userDto.CId,
 				ShopId: refundFirstObject.ShopId,
 				Money: refundMoney,
-				Scene:fmt.Sprintf("用户[%v] 提交售后单,%v审批通过,退回余额:%v",shopUserObject.Username, userDto.Username,refundMoney),
+				Scene:fmt.Sprintf("用户[%v] 提交售后单,%v审批通过,退回:%v",shopUserObject.Username, userDto.Username,refundMoney),
 				Action: global.UserNumberAdd, //增加
 				Type: global.ScanAdmin,
 			}
@@ -404,7 +404,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 				CId: userDto.CId,
 				ShopId: refundFirstObject.ShopId,
 				Number: refundMoney,
-				Scene:fmt.Sprintf("用户[%v] 提交售后单,%v审批通过,退回授信额:%v",shopUserObject.Username, userDto.Username,refundMoney),
+				Scene:fmt.Sprintf("用户[%v] 提交售后单,%v审批通过,退回:%v",shopUserObject.Username, userDto.Username,refundMoney),
 				Action: global.UserNumberAdd, //增加
 				Type: global.ScanAdmin,
 			}

@@ -2,8 +2,10 @@ package apis
 
 import (
     "fmt"
+	"go-admin/common/business"
 	customUser "go-admin/common/jwt/user"
 	utils2 "go-admin/common/utils"
+	"go-admin/global"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -66,12 +68,23 @@ func (e GoodsSpecs) GetPage(c *gin.Context) {
 
 
 	strList:=make([]string,0)
+	unitIds:=make([]int,0)
 	for _, row := range list {
 		strList = append(strList,fmt.Sprintf("goods_id = %v and spec_id = %v",row.GoodsId,row.Id))
-
+		if row.UnitId > 0 {
+			unitIds = append(unitIds,row.UnitId)
+		}
 	}
+	unitIds = utils2.RemoveRepeatInt(unitIds)
 	strList = utils2.RemoveRepeatStr(strList)
 
+	var unitObjectList []models.GoodsUnit
+	e.Orm.Model(&models.GoodsUnit{}).Select("id,name").Where("c_id = ? and id in ?",userDto.CId,unitIds).Find(&unitObjectList)
+
+	unitMap:=make(map[int]string,0)
+	for _,row:=range unitObjectList{
+		unitMap[row.Id] = row.Name
+	}
 	openInventory,InventoryMap:=service.GetBatchSpecInventory(userDto.CId,strList,e.Orm)
 
 	result:=make([]map[string]interface{},0)
@@ -87,11 +100,18 @@ func (e GoodsSpecs) GetPage(c *gin.Context) {
 			"goods_id":row.GoodsId,
 			"id":row.Id,
 			"unit_id":row.UnitId,
-			"price":row.Price, //销售的价格
+			"unit_name":unitMap[row.UnitId],
+			"price":utils2.StringDecimal(row.Price), //销售的价格
 			"original":row.Original,
 			"name":row.Name,
 			"inventory":Inventory,
 			"market":row.Market,
+			"image": func() string {
+				if row.Image != "" {
+					return business.GetGoodsPathFirst(row.CId,row.Image,global.GoodsPath)
+				}
+				return ""
+			}(),
 		}
 		var vipSpecs []models.GoodsVip
 		e.Orm.Model(&vipSpecs).Select("grade_id,custom_price").Where("goods_id = ? and specs_id = ?",row.GoodsId,row.Id).Find(&vipSpecs)

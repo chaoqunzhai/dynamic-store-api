@@ -332,6 +332,7 @@ func (e Goods) GetPage(c *gin.Context) {
 		}else {
 			Inventory = row.Inventory
 		}
+
 		r := map[string]interface{}{
 			"id":       row.Id,
 			"name":     row.Name,

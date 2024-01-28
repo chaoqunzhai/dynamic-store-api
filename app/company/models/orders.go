@@ -41,7 +41,7 @@ type Orders struct {
 	CouponId       int          `json:"coupon_id" gorm:"comment:使用优惠卷的ID"`
 	DriverId       int          `gorm:"index;comment:司机ID"`
 	AddressId      int          `json:"user_address_id" gorm:"index;comment:用户的收货地址,或者自提的店家地址"`
-	CouponMoney    float64      `json:"coupon_money" gorm:"comment:优惠卷金额"`
+	CouponMoney    float64      `json:"coupon_money" gorm:"comment:优惠卷金额/代客下单优惠金额"`
 	Buyer          string       `json:"buyer" gorm:"size:24;comment:留言"`
 	Desc           string       `json:"desc" gorm:"size:16;comment:备注"`
 	Edit bool `json:"edit" gorm:"comment:是否被修改"`

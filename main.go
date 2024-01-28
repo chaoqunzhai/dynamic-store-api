@@ -10,7 +10,7 @@ var Version string
 
 // @securityDefinitions.apikey Bearer
 // @in header
-// @name Authorization
+// @name Authorizationl
 func main() {
 	global.Version = Version
 	cmd.Execute()

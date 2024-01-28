@@ -8,13 +8,14 @@ import (
 
 type ShopGetPageReq struct {
 	dto.Pagination `search:"-"`
+	Filter string `form:"filter" search:"-"`
 	Id          int `form:"id"  search:"type:exact;column:id;table:shop" comment:"排序"`
 	Layer          string `form:"layer"  search:"type:exact;column:layer;table:shop" comment:"排序"`
 	GradeId        string `form:"grade_id"  search:"type:exact;column:grade_id;table:shop" comment:"vip等级"`
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:shop" comment:"开关"`
 	CId            string `form:"cId"  search:"type:exact;column:c_id;table:shop" comment:"大BID"`
 	UserId         string `form:"userId"  search:"type:exact;column:user_id;table:shop" comment:"管理员ID"`
-	Name           string `form:"name"  search:"type:exact;column:name;table:shop" comment:"小B名称"`
+	Name           string `form:"name"  search:"type:contains;column:name;table:shop" comment:"小B名称"`
 	Phone          string `form:"phone"  search:"type:contains;column:phone;table:shop" comment:"联系手机号"`
 	UserName       string `form:"userName"  search:"type:exact;column:user_name;table:shop" comment:"小B负责人名称"`
 	LineId         string `form:"line_id"  search:"type:exact;column:line_id;table:shop" comment:"归属配送路线"`

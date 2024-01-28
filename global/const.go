@@ -179,7 +179,7 @@ const (
 
 	DeductionBalance = 1 //余额抵扣
 	DeductionCredit = 2 //授信额抵扣
-		DeductionOffline = 3 //线下支付抵扣
+	DeductionOffline = 3 //线下支付抵扣
 
 	OrderSourceApplet = 5 //小程序
 	OrderSourceH5 = 6 //H5
@@ -228,6 +228,17 @@ const (
 	InventoryHelpOut = 9 //代客下单出库
 )
 
+func GetPayCn(v int)  string {
+
+	switch v {
+	case DeductionBalance:
+		return "余额"
+	case DeductionCredit:
+		return "授信额"
+
+	}
+	return ""
+}
 func GetInventoryActionCn(v int) (bol,val string) {
 
 	switch v {

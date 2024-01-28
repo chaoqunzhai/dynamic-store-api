@@ -235,7 +235,9 @@ func (e Orders) GetPage(c *gin.Context) {
 			"delivery_str": row.DeliveryStr,
 			"count":          row.Number,
 			"specs_count":specCount,
-			"money":         utils.StringDecimal(row.OrderMoney),
+			"pay_money":utils.StringDecimal(row.PayMoney),
+			"deduction_money":utils.StringDecimal(row.DeductionMoney),
+			"order_money":         utils.StringDecimal(row.OrderMoney),
 			"coupon_money":utils.StringDecimal(row.CouponMoney),
 			"goods_money":utils.StringDecimal(row.GoodsMoney),
 			"delivery_money":utils.StringDecimal(row.DeliveryMoney),
@@ -423,6 +425,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+
 	//抵扣类型
 	//查询选择的用户额度是否够
 	var shopObject models2.Shop
@@ -431,8 +434,15 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.Error(500, errors.New("商户不存在"), "商户不存在")
 		return
 	}
+
 	if shopObject.LineId == 0 {
 		e.Error(500, errors.New("商家暂无路线"), "商家暂无路线")
+		return
+	}
+	var lineObject models2.Line
+	e.Orm.Model(&models2.Line{}).Scopes(actions.PermissionSysUser(lineObject.TableName(),userDto)).Where("id = ?  and enable = ?", shopObject.LineId, true).Limit(1).Find(&lineObject)
+	if lineObject.Id == 0 {
+		e.Error(500, errors.New("商家路线路线未开启"), "商家路线路线未开启")
 		return
 	}
 	if msg,ExpiredOrNot :=service.CheckLineExpire(userDto.CId,shopObject.LineId,e.Orm);!ExpiredOrNot{
@@ -451,29 +461,12 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.OK(-1, "未知抵扣类型")
 		return
 	}
-	//fmt.Println("DeductionAllMoney",DeductionAllMoney)
-	//因为折扣的算法和下单是在一起,所以就下单的时候检测下总价是否可以达到减扣的，防止出现负数 或者钱不够还下单
-	var AllOrderMoney float64
-	for _, goodsList := range req.Goods {
-		for _, spec := range goodsList {
-			//当前用户是vip哪个等级,使用客户的VIP的价格
-			var goodsVip models.GoodsVip
-			e.Orm.Model(&goodsVip).Select("id,custom_price").Where("goods_id = ? and specs_id = ? and grade_id = ?",spec.GoodsId,spec.Id,shopObject.GradeId).Limit(1).Find(&goodsVip)
-
-			var specPrice float64
-			if goodsVip.Id > 0 {
-				//使用vip的价格
-				specPrice = goodsVip.CustomPrice
-			}else {
-				specPrice = spec.Price
-			}
-			AllOrderMoney += utils.RoundDecimalFlot64(specPrice  * float64(spec.Number))
-		}
-	}
+	//前段的金额
+	PayOrderMoney:=utils.RoundDecimalFlot64(req.PayMoney)
 
 	if req.DeductionType != global.DeductionOffline { //非线下支付的时候 才会去校验是否可以抵扣
-		if DeductionAllMoney < AllOrderMoney {
-			e.OK(-1, "抵扣额不足！！！")
+		if DeductionAllMoney < PayOrderMoney {
+			e.OK(-1, fmt.Sprintf("%v 不足！！！",global.GetPayCn(req.DeductionType)))
 			return
 		}
 	}
@@ -499,7 +492,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 
 	if req.DeliveryType == 2{ //配送
 		var DeliveryObject models.CycleTimeConf
-		e.Orm.Model(&models2.CycleTimeConf{}).Scopes(actions.PermissionSysUser(DeliveryObject.TableName(),userDto)).Where("id = ? and enable =? ", req.Cycle, true).Limit(1).Find(&DeliveryObject)
+		e.Orm.Model(&models2.CycleTimeConf{}).Where("c_id = ? and id = ? and enable =? ",userDto.CId, req.Cycle, true).Limit(1).Find(&DeliveryObject)
 		if DeliveryObject.Id == 0 {
 			e.Error(500, nil, "时间区间不存在")
 			return
@@ -526,13 +519,6 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	}
 
 
-	fmt.Println("orderRow.DeliveryRunAt",orderRow.DeliveryRunAt)
-	var lineObject models2.Line
-	e.Orm.Model(&models2.Line{}).Scopes(actions.PermissionSysUser(lineObject.TableName(),userDto)).Where("id = ?  and enable = ?", shopObject.LineId, true).Limit(1).Find(&lineObject)
-	if lineObject.Id == 0 {
-		e.Error(500, errors.New("商家路线路线未开启"), "商家路线路线未开启")
-		return
-	}
 	orderRow.Line = lineObject.Name
 	orderRow.LineId = lineObject.Id
 
@@ -565,141 +551,151 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	orderRow.Buyer = req.Desc
 	orderRow.DriverId = DriverObject.Id
 
-
-	var orderMoney float64
 	var goodsNumber int
 
-	for _, goodsList := range req.Goods {
-		//fmt.Println("classId",classId)
+	for key, selectSpec := range req.Goods {
+		cardKey:=strings.Split(key,"_")
+		if len(cardKey) != 2{
+			continue
+		}
+		GoodsId,_:=strconv.Atoi(string(cardKey[0]))
+		SpecId,_:=strconv.Atoi(string(cardKey[1]))
+
 		specsOrderId := make([]int, 0)
-		for _, spec := range goodsList {
-			//如果商品不存在
-			var goodsObject models2.Goods
-			e.Orm.Model(&models2.Goods{}).Scopes(actions.PermissionSysUser(goodsObject.TableName(),userDto)).Select("id,sale,inventory,name,image").Where("id = ?  and enable = ?", spec.GoodsId,  true).Limit(1).Find(&goodsObject)
-			if goodsObject.Id == 0 {
-				continue
-			}
 
-			//如果下单的次数>库存的值，那就是非法数据 直接跳出
-			var goodsSpecs models.GoodsSpecs
-			e.Orm.Model(&models.GoodsSpecs{}).Scopes(actions.PermissionSysUser(goodsSpecs.TableName(),userDto)).Where("id = ? ", spec.Id).Limit(1).Find(&goodsSpecs)
-			if goodsSpecs.Id == 0 {
-				continue
-			}
-			var goodsSpecsStock int
-			var InventoryObject models2.Inventory
-			if openInventory{ //开启了库存管理
-				e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,spec.GoodsId,spec.Id).Limit(1).Find(&InventoryObject)
+		//如果商品不存在
+		var goodsObject models2.Goods
+		e.Orm.Model(&models2.Goods{}).Scopes(
+			actions.PermissionSysUser(
+				goodsObject.TableName(),userDto)).Select(
+					"id,sale,inventory,name,image").Where(
+						"id = ?  and enable = ?", GoodsId,  true).Limit(1).Find(&goodsObject)
+		if goodsObject.Id == 0 {
+			continue
+		}
 
-				goodsSpecsStock = InventoryObject.Stock
-			}else {
-				goodsSpecsStock = goodsSpecs.Inventory
-			}
-			if spec.Number > goodsSpecsStock {
-				continue
-			}
-			//当前用户是vip哪个等级,使用客户的VIP的价格
-			var goodsVip models.GoodsVip
-			e.Orm.Model(&goodsVip).Select("id,custom_price").Where("goods_id = ? and specs_id = ? and grade_id = ?",spec.GoodsId,spec.Id,shopObject.GradeId).Limit(1).Find(&goodsVip)
+		//如果下单的次数>库存的值，那就是非法数据 直接跳出
+		var goodsSpecs models.GoodsSpecs
+		e.Orm.Model(&models.GoodsSpecs{}).Scopes(
+			actions.PermissionSysUser(
+				goodsSpecs.TableName(),userDto)).Where(
+					"id = ? ", SpecId).Limit(1).Find(&goodsSpecs)
+		if goodsSpecs.Id == 0 {
+			continue
+		}
+		var goodsSpecsStock int
+		var InventoryObject models2.Inventory
+		if openInventory{ //开启了库存管理
+			e.Orm.Model(&models2.Inventory{}).Where(
+				"c_id = ? and goods_id = ? and spec_id = ?",
+				userDto.CId,GoodsId,SpecId).Limit(1).Find(&InventoryObject)
 
-			var specPrice float64
-			if goodsVip.Id > 0 && goodsVip.CustomPrice > 0 {
-				//使用vip的价格
-				specPrice = goodsVip.CustomPrice
-			}else {
-				//不是VIP就使用售价
-				specPrice = spec.Price
-			}
+			goodsSpecsStock = InventoryObject.Stock
+		}else {
+			goodsSpecsStock = goodsSpecs.Inventory
+		}
+		if selectSpec.Number > goodsSpecsStock {
+			continue
+		}
 
-			specPrice = utils.RoundDecimalFlot64(specPrice)
-
-			specRow := &models.OrderSpecs{
-				OrderId: orderRow.OrderId,
-				Number:    spec.Number,
-				Money:    specPrice,
-				Unit:      spec.Unit,
-				GoodsName: goodsObject.Name,
-				GoodsId: goodsObject.Id,
-				SpecsName: goodsSpecs.Name,
-				SpecId:   spec.Id,
-				CId: userDto.CId,
+		Money:=utils.RoundDecimalFlot64(selectSpec.CachePrice)
+		specRow := &models.OrderSpecs{
+			OrderId: orderRow.OrderId,
+			Number:    selectSpec.Number,
+			Money:    Money,
+			Unit:      selectSpec.UnitName,
+			GoodsName: goodsObject.Name,
+			GoodsId: goodsObject.Id,
+			SpecsName: goodsSpecs.Name,
+			SpecId:   SpecId,
+			CId: userDto.CId,
+		}
+		if goodsSpecs.Image == ""{
+			//拿商品的首图吧
+			if goodsObject.Image != ""{
+				specRow.Image = strings.Split(goodsObject.Image,",")[0]
 			}
-			if goodsSpecs.Image == ""{
-				//拿商品的首图吧
-				if goodsObject.Image != ""{
-					specRow.Image = strings.Split(goodsObject.Image,",")[0]
-				}
-			}else {
-				specRow.Image = goodsSpecs.Image
-			}
-			txRes:=e.Orm.Table(splitTableRes.OrderSpecs).Create(&specRow)
-			if txRes.Error !=nil{
-				continue
-			}
-			if openInventory {
-				if InventoryObject.Id > 0 { //有库存
-					CurrentNumber :=InventoryObject.Stock - spec.Number
-					e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,spec.GoodsId,spec.Id).Updates(map[string]interface{}{
-						"stock":CurrentNumber,
-					})
-
-					//同时需要做出入库记录
-					RecordLog:=models2.InventoryRecord{
-						CId: userDto.CId,
-						CreateBy:userDto.Username,
-						OrderId: orderRow.OrderId,
-						Action: global.InventoryHelpOut,
-						Source: 2, //大B发起
-						GoodsId: spec.GoodsId,
-						GoodsName: goodsObject.Name,
-						GoodsSpecName: goodsSpecs.Name,
-						SpecId: spec.Id,
-						SourceNumber:InventoryObject.Stock, //原库存
-						ActionNumber:spec.Number, //操作的库存
-						CurrentNumber:CurrentNumber, //那现库存
-						OriginalPrice:InventoryObject.OriginalPrice,
-						SourcePrice: InventoryObject.OriginalPrice,
-						Unit:service.GetUnitName(userDto.CId,goodsSpecs.UnitId,e.Orm),
-					}
-					e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
-				}
-
-			}else {
-				//规格减库存 + 销量
-				e.Orm.Model(&models.GoodsSpecs{}).Where("id = ? and c_id = s?", spec.Id, userDto.CId).Updates(map[string]interface{}{
-					"inventory": goodsSpecs.Inventory - spec.Number,
-					"sale":	goodsSpecs.Sale + spec.Number,
+		}else {
+			specRow.Image = goodsSpecs.Image
+		}
+		txRes:=e.Orm.Table(splitTableRes.OrderSpecs).Create(&specRow)
+		if txRes.Error !=nil{
+			continue
+		}
+		if openInventory {
+			if InventoryObject.Id > 0 { //有库存
+				CurrentNumber :=InventoryObject.Stock - selectSpec.Number
+				e.Orm.Model(&models2.Inventory{}).Where(
+					"c_id = ? and goods_id = ? and spec_id = ?",userDto.CId,GoodsId,SpecId).Updates(map[string]interface{}{
+					"stock":CurrentNumber,
 				})
-			}
 
-			orderMoney += utils.RoundDecimalFlot64(specPrice  * float64(spec.Number))
-			goodsNumber += spec.Number
-
-			//缓存订单ID
-			specsOrderId = append(specsOrderId, specRow.Id)
-
-
-			cacheValetOrderRow,ok:=goodsCacheList[spec.GoodsId]
-			if !ok{
-				goodsCacheList[spec.GoodsId] = service.ValetOrderGoodsRow{
-					Number: spec.Number,
+				//同时需要做出入库记录
+				RecordLog:=models2.InventoryRecord{
+					CId: userDto.CId,
+					CreateBy:userDto.Username,
+					OrderId: orderRow.OrderId,
+					Action: global.InventoryHelpOut,
+					Source: 2, //大B发起
+					GoodsId: GoodsId,
+					GoodsName: goodsObject.Name,
+					GoodsSpecName: goodsSpecs.Name,
+					SpecId: SpecId,
+					SourceNumber:InventoryObject.Stock, //原库存
+					ActionNumber:selectSpec.Number, //操作的库存
+					CurrentNumber:CurrentNumber, //那现库存
+					OriginalPrice:InventoryObject.OriginalPrice,
+					SourcePrice: InventoryObject.OriginalPrice,
+					Unit:selectSpec.UnitName,
 				}
-			}else{
-				cacheValetOrderRow.Number +=spec.Number
-				goodsCacheList[spec.GoodsId] = cacheValetOrderRow
+				e.Orm.Table(splitTableRes.InventoryRecordLog).Create(&RecordLog)
 			}
 
+		}else {
+			//规格减库存 + 销量
+			e.Orm.Model(&models.GoodsSpecs{}).Where("id = ? and c_id = ?", SpecId, userDto.CId).Updates(map[string]interface{}{
+				"inventory": goodsSpecs.Inventory - selectSpec.Number,
+				"sale":	goodsSpecs.Sale + selectSpec.Number,
+			})
+		}
+
+		goodsNumber += selectSpec.Number
+
+		//缓存订单ID
+		specsOrderId = append(specsOrderId, specRow.Id)
+
+
+		cacheValetOrderRow,ok:=goodsCacheList[GoodsId]
+		if !ok{
+			goodsCacheList[GoodsId] = service.ValetOrderGoodsRow{
+				Number: selectSpec.Number,
+			}
+		}else{
+			cacheValetOrderRow.Number +=selectSpec.Number
+			goodsCacheList[GoodsId] = cacheValetOrderRow
 		}
 
 	}
 	orderRow.Number = goodsNumber
 
 	//设置价格
-	orderMoney = utils.RoundDecimalFlot64(orderMoney)
-	orderRow.PayMoney = orderMoney
-	orderRow.OrderMoney = orderMoney
-	orderRow.GoodsMoney = orderMoney
-	orderRow.DeductionMoney = orderMoney
+
+	DiscountMoney:=utils.RoundDecimalFlot64(req.DiscountMoney)
+
+	var PayOkMoney float64 //实扣金额
+
+	PayOkMoney = utils.RoundDecimalFlot64(PayOrderMoney - DiscountMoney)
+
+	if DiscountMoney > PayOrderMoney{ //优惠金额大于实扣金额时
+		PayOkMoney = 0
+		DiscountMoney = PayOrderMoney
+	}
+
+	orderRow.PayMoney = PayOkMoney  //支付金额
+	orderRow.OrderMoney = PayOrderMoney //订单金额
+	orderRow.GoodsMoney = utils.RoundDecimalFlot64(req.GoodsMoney) //商品金额
+	orderRow.DeductionMoney = PayOkMoney //抵扣金额 因为不是实际的付款,也是要存抵扣金额的
+	orderRow.CouponMoney = DiscountMoney //优惠的金额 在一个优惠卷字段来存储
 	e.Orm.Table(splitTableRes.OrderTable).Create(&orderRow)
 
 
@@ -712,7 +708,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 				continue
 			}
 			e.Orm.Model(&models.Goods{}).Scopes(actions.PermissionSysUser(goodsObject.TableName(),userDto)).Where(" id = ?", goodsId).Updates(map[string]interface{}{
-				"sale":    goodsObject.Sale + goodsRow.Number  ,
+				"sale":    goodsObject.Sale + goodsRow.Number,
 				"inventory": goodsObject.Inventory - goodsRow.Number,
 			})
 		}
@@ -722,7 +718,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	switch req.DeductionType {
 	case global.DeductionBalance:
 
-		Balance:= shopObject.Balance - orderMoney
+		Balance:= shopObject.Balance - PayOkMoney
 		if Balance < 0 {
 			Balance = 0
 		}
@@ -734,14 +730,14 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		row:=models2.ShopBalanceLog{
 			CId: userDto.CId,
 			ShopId: shopObject.Id,
-			Money: orderMoney,
-			Scene:fmt.Sprintf("管理员[%v] 代客下单,使用余额抵扣费:%v",userDto.Username,orderMoney),
+			Money: PayOkMoney,
+			Scene:fmt.Sprintf("管理员[%v] 代客下单,抵扣:%v",userDto.Username,PayOkMoney),
 			Action: global.UserNumberReduce, //抵扣
 			Type: global.ScanShopUse,
 		}
 		e.Orm.Create(&row)
 	case global.DeductionCredit:
-		Credit:=  shopObject.Credit - orderMoney
+		Credit:=  shopObject.Credit - PayOkMoney
 		if Credit < 0 {
 			Credit = 0
 		}
@@ -753,8 +749,8 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		row:=models2.ShopCreditLog{
 			CId: userDto.CId,
 			ShopId: shopObject.Id,
-			Number: orderMoney,
-			Scene:fmt.Sprintf("管理员[%v] 代客下单,使用授信额抵扣费:%v",userDto.Username,orderMoney),
+			Number: PayOkMoney,
+			Scene:fmt.Sprintf("管理员[%v] 代客下单,抵扣:%v",userDto.Username,PayOkMoney),
 			Action: global.UserNumberReduce, //抵扣
 			Type: global.ScanShopUse,
 		}

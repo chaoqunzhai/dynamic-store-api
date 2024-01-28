@@ -23,16 +23,19 @@ func (e *Shop) GetPage(c *dto.ShopGetPageReq, p *actions.DataPermission, list *[
 	var err error
 	var data models.Shop
 
-	err = e.Orm.Model(&data).
+	query :=e.Orm.Model(&data).
 		Scopes(
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
-		).Order(global.OrderLayerKey).Preload("Tag", func(tx *gorm.DB) *gorm.DB {
-		return tx.Select("id", "name")
-	}).
-		Find(list).Limit(-1).Offset(-1).
-		Count(count).Error
+		).Order(global.OrderLayerKey)
+	if c.Filter == ""{
+		query = query.Order(global.OrderLayerKey).Preload("Tag", func(tx *gorm.DB) *gorm.DB {
+			return tx.Select("id", "name")
+		})
+
+	}
+	err = query.Find(list).Limit(-1).Offset(-1).Count(count).Error
 	if err != nil {
 		e.Log.Errorf("ShopService GetPage error:%s \r\n", err)
 		return err

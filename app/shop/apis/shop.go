@@ -99,6 +99,11 @@ func (e Shop) GetPage(c *gin.Context) {
 	}
 	result :=make([]interface{},0)
 	for _,row:=range list{
+
+		if req.Filter == "mini"{
+			result = append(result,row)
+			continue
+		}
 		cache :=row
 		if row.LineId > 0 {
 			var lineRow models2.Line
@@ -138,7 +143,6 @@ func (e Shop) GetPage(c *gin.Context) {
 		if defaultAddress.Id > 0 {
 			cache.DefaultAddress = defaultAddress.Address
 		}
-		//查询用户
 		result = append(result,cache)
 	}
 

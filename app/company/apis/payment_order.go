@@ -142,7 +142,7 @@ func (e PaymentOrder) Update(c *gin.Context) {
 			CId: userDto.CId,
 			ShopId: shopObject.Id,
 			Money: paymentObject.Money,
-			Scene:fmt.Sprintf("用户[%v] 提交付款单,%v审批通过,增加余额:%v",shopUserObject.Username,userDto.Username,paymentObject.Money),
+			Scene:fmt.Sprintf("用户[%v] 提交付款单,%v审批通过,增加:%v",shopUserObject.Username,userDto.Username,paymentObject.Money),
 			Action: global.UserNumberAdd, //增加
 			Type: global.ScanAdmin,
 		}
@@ -160,7 +160,7 @@ func (e PaymentOrder) Update(c *gin.Context) {
 			CId: userDto.CId,
 			ShopId: shopObject.Id,
 			Number: paymentObject.Money,
-			Scene:fmt.Sprintf("用户[%v] 提交付款单,%v审批通过,增加授信额:%v",shopUserObject.Username,userDto.Username,paymentObject.Money),
+			Scene:fmt.Sprintf("用户[%v] 提交付款单,%v审批通过,增加:%v",shopUserObject.Username,userDto.Username,paymentObject.Money),
 			Action: global.UserNumberAdd, //增加
 			Type: global.ScanAdmin,
 		}

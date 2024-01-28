@@ -137,23 +137,37 @@ func (m *OrderCyCleReq) GetNeedSearch() interface{} {
 type ValetOrderReq struct {
 	Shop  int                     `json:"shop"`
 	Cycle int                     `json:"cycle"` //代客下单,只需要获取选择的时间段就行
-	Goods map[string][]valetSpecs `json:"goods"`
+	Goods map[string]valetSpecs `json:"goods"`
 	Desc  string                  `json:"desc"`
 	DeductionType int `json:"deduction_type"`
 	DeliveryType int `json:"delivery_type"` //配送类型
 	StoreAddressId int `json:"store_address_id"` //自提选择的门店
 	DeliveryStr string `json:"delivery_str"` //自提选择的时间
 	OfflinePayId int `json:"offline_pay_id"` //线下支付方式
+	DiscountMoney interface{} `json:"discount_money"` //优惠金额
+	AmountMoney  interface{} `json:"amount_money"`//最终金额
+	Number int `json:"number"`
+	GoodsMoney interface{} `json:"goods_money"` //商品金额
+	PayMoney interface{} `json:"pay_money"` //下单的金额
+}
+type valetSpecs struct {
+	GoodsName    string    `json:"goods_name" `
+	Image    string    `json:"image" `
+	Original    int    `json:"original" `
+	GoodsID    int    `json:"goods_id" `
+	CachePrice    interface{}    `json:"cache_price" ` //最终的下单价格
+	EditPrice    interface{}    `json:"edit_price"` //编辑的价格
+	Inventory    int    `json:"inventory"`
+	UnitName    string    `json:"unit_name"`
+	Number    int    `json:"number"`
+	Money    interface{}    `json:"money"`
+	Price    interface{}    `json:"price"` //原价
+	Name    string    `json:"name"`
+	ID    int    `json:"id"`
 }
 
-type valetSpecs struct {
-	Id      int     `json:"id"`
-	Number  int     `json:"number"`
-	Price   float64 `json:"price"`
-	Unit    string  `json:"unit"`
-	GoodsId int     `json:"goods_id"`
-	GoodsName string `json:"goods_name"`
-}
+
+
 type ToolsOrdersUpdateReq struct {
 	Id       int    `uri:"id" comment:"主键编码"` // 主键编码
 	Type     int    `json:"type"`
