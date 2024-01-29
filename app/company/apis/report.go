@@ -16,6 +16,7 @@ import (
 	customUser "go-admin/common/jwt/user"
 	"go-admin/common/utils"
 	"go-admin/global"
+	"sort"
 	"time"
 )
 
@@ -65,6 +66,7 @@ type SummaryCnfRow struct {
 	GoodsNumber int `json:"goods_number"`
 	OrderMoney float64 `json:"order_money"` //订单最终成交价
 	GoodsId int `json:"goods_id"`
+	Layer int `json:"layer"`
 }
 type CacheMapping struct {
 	LineId int `json:"line_id"`
@@ -133,7 +135,9 @@ func (e Orders)Summary(c *gin.Context)  {
 	e.Orm.Table(splitTableRes.OrderSpecs).Select("id,goods_name,goods_id,number,image").Where("order_id in ?",orderIds).Find(&orderSpecs)
 
 	//resultTable:=make([]interface{},0)
+	goodsId:=make([]int,0)
 	for _,specs:=range orderSpecs{
+		goodsId = append(goodsId,specs.GoodsId)
 		cnf,ok:=SummaryMap[specs.GoodsId]
 		if !ok{
 			cnf = &SummaryCnfRow{
@@ -151,9 +155,19 @@ func (e Orders)Summary(c *gin.Context)  {
 
 		SummaryMap[specs.GoodsId] = cnf
 	}
-
-
-	e.OK(business.Response{Code: 1,Msg: "successful",Data: SummaryMap,Extend: fmt.Sprintf("query run time %v",time.Since(queryStart))},"")
+	goodsId = utils.RemoveRepeatInt(goodsId)
+	var goodsList []models2.Goods
+	e.Orm.Model(&models2.Goods{}).Select("id,layer").Where("id in ?",goodsId).Order(global.OrderLayerKey).Find(&goodsList)
+	sortData:=make([]*SummaryCnfRow,0)
+	for _,row:=range goodsList{
+		GetData :=SummaryMap[row.Id]
+		GetData.Layer = row.Layer
+		sortData = append(sortData,GetData)
+	}
+	sort.Slice(sortData, func(i, j int) bool {
+		return sortData[i].Layer > sortData[j].Layer
+	})
+	e.OK(business.Response{Code: 1,Msg: "successful",Data: sortData,Extend: fmt.Sprintf("query run time %v",time.Since(queryStart))},"")
 	return
 }
 
@@ -273,6 +287,8 @@ func (e Orders)Line(c *gin.Context){
 	e.Orm.Table(splitTableRes.OrderSpecs).Select("goods_name,goods_id,number,image,order_id").Where("order_id in ?",orderIds).Find(&orderSpecs)
 
 	queryOrderSpecsTime:=time.Since(queryStart2)
+
+	var goodsIdLists []int
 	//订单商品放到路线中
 	for _,specs:=range orderSpecs{
 
@@ -300,10 +316,19 @@ func (e Orders)Line(c *gin.Context){
 		lineTableRow.Goods = append(lineTableRow.Goods,cnf)
 
 		ResultMap[getLineMapInfo.LineId] = lineTableRow
+		goodsIdLists =append(goodsIdLists,specs.GoodsId)
 	}
-
+	goodsIdLists = utils.RemoveRepeatInt(goodsIdLists)
+	//排序
+	var goodsList []models2.Goods
+	e.Orm.Model(&models2.Goods{}).Select("id,layer").Where("id in ?",goodsIdLists).Order(global.OrderLayerKey).Find(&goodsList)
+	goodsLayerMap:=make(map[int]int,0)
+	for _,row:=range goodsList{
+		goodsLayerMap[row.Id] = row.Layer
+	}
 	//对每个路线下的商品数据 在统计count一次
-	resultTable:=make([]interface{},0)
+	resultTable:=make([]*TableLineRow,0)
+
 	for lineId:=range ResultMap{
 		lineRow:=ResultMap[lineId]
 		//对每个路线汇总
@@ -316,6 +341,7 @@ func (e Orders)Line(c *gin.Context){
 			}else {
 				cnf.GoodsNumber +=v.GoodsNumber
 			}
+			cnf.Layer = goodsLayerMap[v.GoodsId]
 
 			SummaryGoodsMap[v.GoodsId] = cnf
 
@@ -331,8 +357,16 @@ func (e Orders)Line(c *gin.Context){
 		lineRow.LineId = lineId
 
 		resultTable = append(resultTable,lineRow)
-
 	}
+
+	for _,linRow:=range resultTable{
+		sort.Slice(linRow.Goods, func(i, j int) bool {
+			return linRow.Goods[i].Layer > linRow.Goods[j].Layer
+		})
+	}
+
+
+
 	ExtendMap:=map[string]interface{}{
 		"run_time":fmt.Sprintf("%v",time.Since(queryStart)),
 		"queryOrderTime":fmt.Sprintf("%v",queryOrderTime),

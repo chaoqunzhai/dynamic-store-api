@@ -202,8 +202,8 @@ func CheckOrderCyCleCnfIsDb(cid int,table string,DeliveryObject models.CycleTime
 	//查询大B + 配送时间为同一天
 	//如果没有,那就创建
 	//如果有,那就统一订单的这个UID
-
-	orm.Table(table).Model(&models.OrderCycleCnf{}).Where("c_id = ? and delivery_time = ?",cid,deliveryTime).Find(&cycleCnf)
+	//查询天！！
+	orm.Table(table).Model(&models.OrderCycleCnf{}).Where("c_id = ? and delivery_time = ?",cid,deliveryTime.Format("2006-01-02")).Find(&cycleCnf)
 	if cycleCnf.Id == 0 {
 		guid,_ := uuid.NewRandom()
 		code:=fmt.Sprintf("%v",guid.ID())

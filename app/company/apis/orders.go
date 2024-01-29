@@ -490,6 +490,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
 
+	fmt.Println("周期配送！！",req.Cycle,"req.DeliveryType",req.DeliveryType)
 	if req.DeliveryType == 2{ //配送
 		var DeliveryObject models.CycleTimeConf
 		e.Orm.Model(&models2.CycleTimeConf{}).Where("c_id = ? and id = ? and enable =? ",userDto.CId, req.Cycle, true).Limit(1).Find(&DeliveryObject)

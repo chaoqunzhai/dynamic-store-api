@@ -214,3 +214,13 @@ type NoticeRow struct {
 	Subtitle string `json:"subtitle"`
 	Time string `json:"time"`
 }
+type DateCount struct {
+	Date string `json:"date"`
+	Count int64 `json:"count"`
+	AllMoney  float64 `json:"all_money"`
+}
+type ResponseOrderData struct {
+	Date []string `json:"date"`
+	OrderTotalPrice []float64 `json:"order_total_price"`
+	OrderTotal []int64 `json:"order_total"`
+}

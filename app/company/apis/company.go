@@ -206,6 +206,43 @@ func (e Company)Article(c *gin.Context) {
 	e.OK(result,"")
 	return
 }
+
+
+func (e Company)Pie(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	countSql:=fmt.Sprintf("SELECT  SUM(order_money) as all_money,DATE_FORMAT(created_at, '%%Y-%%m-%%d') AS date, COUNT(*) AS count FROM %v  GROUP BY  DATE_FORMAT(created_at, '%%Y-%%m-%%d') ORDER BY date;",splitTableRes.OrderTable)
+
+	orderChat:=dto.ResponseOrderData{
+		Date: make([]string,0),
+		OrderTotalPrice: make([]float64,0),
+		OrderTotal: make([]int64,0),
+	}
+	var rowList []dto.DateCount
+
+	e.Orm.Table(splitTableRes.OrderTable).Raw(countSql).Scan(&rowList)
+	for _,row:=range rowList{
+		orderChat.Date = append(orderChat.Date,row.Date)
+		orderChat.OrderTotalPrice = append(orderChat.OrderTotalPrice,row.AllMoney)
+		orderChat.OrderTotal = append(orderChat.OrderTotal,row.Count)
+	}
+	e.OK(map[string]interface{}{
+		"order":orderChat,
+	},"successful")
+	return
+}
 func (e Company)Count(c *gin.Context)  {
 	err := e.MakeContext(c).
 		MakeOrm().
