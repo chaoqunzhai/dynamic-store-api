@@ -21,7 +21,12 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
 		r.POST("/renew",api.RenewPass)
+		//大B信息
 		r.GET("/info", api.Info)
+		//首页的一些数值统计
+		r.GET("/count",api.Count)
+		//首页的公告配置
+		r.GET("/article",api.Article)
 		//一些限制配置
 		r.GET("/cnf", api.Cnf)
 		//修改注册登录的配置

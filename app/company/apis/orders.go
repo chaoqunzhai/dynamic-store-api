@@ -551,6 +551,29 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	orderRow.Buyer = req.Desc
 	orderRow.DriverId = DriverObject.Id
 
+
+	//设置价格
+
+	DiscountMoney:=utils.RoundDecimalFlot64(req.DiscountMoney)
+
+
+	PayOkMoney := utils.RoundDecimalFlot64(PayOrderMoney - DiscountMoney)
+
+	if DiscountMoney > PayOrderMoney{ //优惠金额大于实扣金额时
+		PayOkMoney = 0
+		DiscountMoney = PayOrderMoney
+	}
+
+	orderRow.PayMoney = PayOkMoney  //支付金额
+	orderRow.OrderMoney = PayOkMoney //订单金额
+	orderRow.GoodsMoney = utils.RoundDecimalFlot64(req.GoodsMoney) //商品金额
+	orderRow.DeductionMoney = PayOkMoney //抵扣金额 因为不是实际的付款,也是要存抵扣金额的
+	orderRow.CouponMoney = DiscountMoney //优惠的金额 在一个优惠卷字段来存储
+	createErr:=e.Orm.Table(splitTableRes.OrderTable).Create(&orderRow).Error
+	if createErr !=nil {
+		e.Error(500, errors.New("后台错误"), "后台错误")
+		return
+	}
 	var goodsNumber int
 
 	for key, selectSpec := range req.Goods {
@@ -676,28 +699,10 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		}
 
 	}
-	orderRow.Number = goodsNumber
-
-	//设置价格
-
-	DiscountMoney:=utils.RoundDecimalFlot64(req.DiscountMoney)
-
-	var PayOkMoney float64 //实扣金额
-
-	PayOkMoney = utils.RoundDecimalFlot64(PayOrderMoney - DiscountMoney)
-
-	if DiscountMoney > PayOrderMoney{ //优惠金额大于实扣金额时
-		PayOkMoney = 0
-		DiscountMoney = PayOrderMoney
-	}
-
-	orderRow.PayMoney = PayOkMoney  //支付金额
-	orderRow.OrderMoney = PayOrderMoney //订单金额
-	orderRow.GoodsMoney = utils.RoundDecimalFlot64(req.GoodsMoney) //商品金额
-	orderRow.DeductionMoney = PayOkMoney //抵扣金额 因为不是实际的付款,也是要存抵扣金额的
-	orderRow.CouponMoney = DiscountMoney //优惠的金额 在一个优惠卷字段来存储
-	e.Orm.Table(splitTableRes.OrderTable).Create(&orderRow)
-
+	//fmt.Println("订单创建成功了 更新下数量")
+	e.Orm.Table(splitTableRes.OrderTable).Where("id = ?",orderRow.Id).Updates(map[string]interface{}{
+		"number":goodsNumber,
+	})
 
 	if !openInventory {//没有开启库存,那就是最后直接更新商品的总库存即可
 		for goodsId,goodsRow:=range goodsCacheList{

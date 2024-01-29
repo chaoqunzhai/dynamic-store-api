@@ -83,7 +83,7 @@ const (
 
 	OrderStatusWaitSend = 1 //备货中 待配送 当开启审核后 如果审核通过了 那需要查这个状态
 
-	OrderWaitConfirm = 2 //配送中 配送中 到了配送周期后自动成为了这个待收货,也就是已发货
+	OrderWaitConfirm = 2 //配送中 配送中 到了配送周期后自动成为了这个待收货,也就是已发货 自提订单默认就是这个
 
 	OrderWaitRefunding = 3 //售后处理中
 

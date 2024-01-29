@@ -12,6 +12,7 @@ import (
 	"go-admin/common/business"
 	"go-admin/common/jwt/user"
 	customUser "go-admin/common/jwt/user"
+	"go-admin/common/utils"
 	"go-admin/global"
 	"golang.org/x/crypto/bcrypt"
 	"time"
@@ -162,6 +163,148 @@ func (e Company)RenewPass(c *gin.Context)  {
 
 	e.Orm.Model(&sys.SysUser{}).Where("user_id = ?",userDto.UserId).Updates(SysUserUpdateMap)
 	e.OK(200,"更新成功")
+	return
+}
+
+func (e Company)Article(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	_, err = user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var GlobalArticle []models2.GlobalArticle
+	e.Orm.Model(&models2.GlobalArticle{}).Where("enable = ?",true).Order(global.OrderLayerKey).Find(&GlobalArticle)
+	Notice:=make([]dto.NoticeRow,0)
+	document:=make([]dto.NoticeRow,0)
+	for _,row:=range GlobalArticle{
+		d:=dto.NoticeRow{
+			Name: row.Name,
+			Subtitle: row.Subtitle,
+			Link: row.Link,
+			Time: row.CreatedAt.Format("2006-01-02"),
+		}
+		if row.Type == 1 {
+			Notice = append(Notice,d)
+		}else {
+			document = append(document,d)
+		}
+	}
+
+	result:=map[string]interface{}{
+		"notice":Notice,
+		"document":document,
+	}
+
+	e.OK(result,"")
+	return
+}
+func (e Company)Count(c *gin.Context)  {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	thisDayS:=fmt.Sprintf("%v 00:00:00",time.Now().Format("2006-01-02"))
+	thisDayE:=fmt.Sprintf("%v 23.59.59",time.Now().Format("2006-01-02"))
+	thisDaySql:=fmt.Sprintf("c_id = '%v' and  created_at >= '%v' AND created_at <= '%v'",userDto.CId,thisDayS,thisDayE)
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	countResponse :=dto.IndexCount{
+		Goods: func() int64{
+			var count int64
+			e.Orm.Model(&models2.Goods{}).Where("c_id = ? ",userDto.CId).Count(&count)
+			return count
+		}(),
+		Shop: func() int64{
+			var count int64
+			e.Orm.Model(&models2.Shop{}).Where("c_id = ? ",userDto.CId).Count(&count)
+			return count
+		}(),
+		Order:func() int64{
+			var count int64
+			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? ",userDto.CId).Count(&count)
+			return count
+		}(),
+		SelfOrder:func() int64{
+			var count int64
+			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and delivery_type = 1",userDto.CId).Count(&count)
+			return count
+		}(),
+		WaitOrder:func() int64{
+			var count int64
+			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and pay_status = ?",userDto.CId,global.OrderStatusWaitSend).Count(&count)
+			return count
+		}(),
+		RefundOrder:func() int64{
+			var count int64
+			e.Orm.Table(splitTableRes.OrderReturn).Where("c_id = ? ",userDto.CId).Count(&count)
+			return count
+		}(),
+		WaitSelfOrder:func() int64{
+			var count int64
+			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and delivery_type = 1 and 'status' =  ?",userDto.CId,global.OrderWaitConfirm).Count(&count)
+			return count
+		}(),
+		ThisDayPayOkOrder: func() int64{
+			var count int64
+			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and ?",userDto.CId,thisDaySql).Count(&count)
+			return count
+		}(),
+		ThisDayNewShop: func() int64{
+			var count int64
+			e.Orm.Model(&models2.Shop{}).Where("c_id = ? and ? ",userDto.CId,thisDaySql).Count(&count)
+			return count
+		}(),
+		ThisDayPayOkShopUser:func() int64{
+			var count int64
+			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and ? and 'status' = ? ",userDto.CId,thisDaySql,global.OrderStatusWaitSend).Count(&count)
+			return count
+		}(),
+		ThisDayPayAll: func() string {
+
+
+
+			return "0.00"
+		}(),
+	}
+	list:=make([]models2.Orders,0)
+	e.Orm.Table(splitTableRes.OrderTable).Select("order_money,after_sales,after_status").Where(thisDaySql).Find(&list)
+	var sumMoney float64
+	for _,row:=range list{
+		if row.AfterSales && row.AfterStatus == global.RefundOk{
+			continue
+		}
+		sumMoney +=row.OrderMoney
+	}
+
+	countResponse.ThisDayPayAll = utils.StringDecimal(sumMoney)
+	isOpenInventory:=service.IsOpenInventory(userDto.CId,e.Orm)
+	var goodsSellOut int64
+	if isOpenInventory {
+		e.Orm.Model(&models2.Inventory{}).Where("c_id = ? and stock = 0",userDto.CId).Count(&goodsSellOut)
+	}else {
+
+		e.Orm.Model(&models2.Goods{}).Where("c_id = ? and inventory = 0",userDto.CId).Count(&goodsSellOut)
+
+	}
+	countResponse.GoodsSellOut = goodsSellOut
+
+	e.OK(countResponse,"")
 	return
 }
 func (e Company) SaveCategory(c *gin.Context) {
@@ -323,7 +466,8 @@ func (e Company) Info(c *gin.Context) {
 	}
 	storeInfo := map[string]interface{}{
 		"store_id":      0,
-		"store_name":    "动创云",
+		"name":"",
+		"sys_name":    "动创云",
 		"describe":      global.Describe,
 		"logo_image_id": 0,
 		"sort":          100,
@@ -342,10 +486,13 @@ func (e Company) Info(c *gin.Context) {
 		//if object.ShopName != ""{
 		//	ShopName = object.ShopName
 		//}
+
+
 		storeInfo = map[string]interface{}{
 			"store_id":      object.Id,
 			"phone":object.Phone,
-			"store_name":    "动创云",
+			"name":object.ShopName,
+			"sys_name":    "动创云",
 			"describe":      object.Desc,
 			"logo_image_id": 0,
 			"sort":          object.Layer,
@@ -353,6 +500,8 @@ func (e Company) Info(c *gin.Context) {
 			"is_delete":     0,
 			"create_time":   object.CreatedAt.Format("2006-01-02 15:04:05"),
 			"update_time":   object.UpdatedAt.Format("2006-01-02 15:04:05"),
+			"start_time":object.CreatedAt.Format("2006-01-02 15:04"), //创建时间
+			"end_time":object.ExpirationTime.Format("2006-01-02 15:04"), //到期时间
 			"logoImage":     "",
 		}
 
@@ -361,6 +510,7 @@ func (e Company) Info(c *gin.Context) {
 			storeInfo = map[string]interface{}{
 				"store_id":      0,
 				"store_name":    "动创云",
+				"name":"动创云",
 				"describe":      global.Describe,
 				"logo_image_id": 0,
 				"sort":          100,

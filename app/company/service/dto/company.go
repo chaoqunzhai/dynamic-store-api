@@ -190,3 +190,27 @@ type RegisterRule struct {
 	Type int  `json:"type"`
 	Text string `json:"text"`
 }
+
+type IndexCount struct {
+	ThisDayPayAll string `json:"this_day_pay_all"` //今日销售
+	ThisDayNewShop int64 `json:"this_day_new_shop"` //今日新增客户数
+	ThisDayPayOkOrder int64 `json:"this_day_pay_ok_order"` //今日订单成交量
+	ThisDayPayOkShopUser int64 `json:"this_day_pay_ok_shop_user"` //今日付款客户数
+	
+	Goods int64 `json:"goods"`  //商品总数
+	Shop int64 `json:"shop"` //小B总数
+	Order int64 `json:"order"` //订单总数
+	SelfOrder int64 `json:"self_order"` //自提订单总量
+
+	WaitOrder int64 `json:"wait_order"` //待发货订单
+	RefundOrder int64 `json:"refund_order"` //售后单
+	WaitSelfOrder int64 `json:"wait_self_order"` //待自提
+	GoodsSellOut int64 `json:"goods_sell_out"` //已售罄的商品
+}
+
+type NoticeRow struct {
+	Name string `json:"name"`
+	Link string `json:"link"`
+	Subtitle string `json:"subtitle"`
+	Time string `json:"time"`
+}
