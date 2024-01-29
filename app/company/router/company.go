@@ -23,6 +23,7 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.POST("/renew",api.RenewPass)
 		//大B信息
 		r.GET("/info", api.Info)
+		r.POST("/information",api.Information)
 		//首页的一些数值统计
 		r.GET("/count",api.Count)
 		//首页的一些pie图
@@ -31,10 +32,11 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.GET("/article",api.Article)
 		//一些限制配置
 		r.GET("/cnf", api.Cnf)
-		//修改注册登录的配置
+
+		//注册登录的配置
 		r.POST("/register_cnf",api.RegisterCnf)
 		r.GET("/register_cnf",api.RegisterCnfInfo)
-		//r.GET("/home", api.MonitorData)
+
 		r.GET("/home", api.Demo)
 
 		//大B商城模板配置

@@ -21,8 +21,9 @@ const (
 	ExpressLogistics = 3 //物流配送
 
 	//商品目录
-	GoodsPath       = "goods"
-	AdsPath = "ads"
+	GoodsPath       = "goods" //商品
+	AdsPath = "ads" //广告
+	AvatarPath = "avatar" //头像
 	SysName         = "动创云订货配送"
 	Describe        = "致力于解决订货渠道"
 	RoleSuper       = 80 //超管
@@ -50,7 +51,7 @@ const (
 	CompanyMaxGoodsImage = 4   //大B最多可以设置单个商品做多6张图片
 	CompanyUserTag       = 30  //大B最多可以设置客户标签个数
 	CompanySmsNumber = 100 //大B默认的可用短信条数
-	CompanyMaxLocal = 10 //大B支持最多自提设置
+	CompanyMaxLocal = 10 //大B支持最多自提设置,不支持动态配置 现在是固定的
 	OffLinePay = 6 //大B最多可以设置线下支付的个数
 	CompanyIndexMessage = 3 //首页消息条目
 	CompanyIndexAds = 3 //广告数量

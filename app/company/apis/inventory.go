@@ -271,6 +271,17 @@ func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 		query = query.Joins("LEFT JOIN goods_mark_brand ON inventory.goods_id = goods_mark_brand.goods_id").Where("goods_mark_brand.brand_id in ?",
 			strings.Split(req.Brand, ","))
 	}
+	if req.Class != "" {
+
+		//获取到分类关联的商品ID
+		var goodsClass []models.GoodsClass
+		e.Orm.Model(&models.GoodsClass{}).Where("c_id = ? and id in ?",userDto.CId,strings.Split(req.Class, ",")).Find(&goodsClass)
+
+		var bindGoodsId []int
+		e.Orm.Raw(fmt.Sprintf("select goods_id from goods_mark_class where class_id in (%v)",req.Class)).Scan(&bindGoodsId)
+		query = query.Where("goods_id in ?",bindGoodsId)
+
+	}
 	query.Find(&InventoryList).Limit(-1).Offset(-1).Count(&count)
 
 	findGoodsSpecKey:=make([]string,0) //规格拼接列表

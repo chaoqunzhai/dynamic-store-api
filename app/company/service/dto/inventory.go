@@ -29,6 +29,7 @@ type GoodsSpecs struct {
 
 type ManageListGetPageReq struct {
 	dto.Pagination `search:"-"`
+	Class string `json:"class" form:"class" search:"-"`
 	Name string `json:"name" form:"name" search:"-"`
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:inventory" comment:"创建时间"`
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:inventory" comment:"创建时间"`

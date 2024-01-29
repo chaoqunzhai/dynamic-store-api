@@ -12,9 +12,11 @@ import (
 	"go-admin/common/business"
 	"go-admin/common/jwt/user"
 	customUser "go-admin/common/jwt/user"
+	"go-admin/common/qiniu"
 	"go-admin/common/utils"
 	"go-admin/global"
 	"golang.org/x/crypto/bcrypt"
+	"os"
 	"time"
 
 	"go-admin/app/company/models"
@@ -483,6 +485,73 @@ func (e Company) Cnf(c *gin.Context) {
 	e.OK(cnf, "successful")
 	return
 }
+
+func (e Company) Information(c *gin.Context) {
+	req := dto.UpdateInfo{}
+	s := service.Company{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var object models.Company
+	e.Orm.Model(&models.Company{}).Select("image,id").Where("enable = 1 and leader_id = ? ",userDto.UserId).First(&object)
+
+	if object.Id > 0 {
+
+		e.Error(500,nil,"not company")
+		return
+	}
+
+	updateMap:=map[string]interface{}{
+		"enterprise":req.Enterprise,
+		"new_phone":req.NewPhone,
+		"name":req.Name,
+		"shop_name":req.ShopName,
+		"address":req.Address,
+		"filings":req.Filings,
+	}
+	if req.ActionImage {
+		file, fileErr := c.FormFile("file")
+		buckClient :=qiniu.QinUi{CId: userDto.CId}
+		buckClient.InitClient()
+		var imageUrl string
+		if fileErr == nil {
+			_,goodsImagePath  :=GetCosImagePath(global.AvatarPath,file.Filename,userDto.CId)
+			if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
+
+				//1.上传到cos中
+				fileName,cosErr :=buckClient.PostImageFile(goodsImagePath)
+				if cosErr ==nil{
+					//上传成功了 那就是新的名字
+					imageUrl = fileName
+				}
+				//本地删除
+				_=os.RemoveAll(goodsImagePath)
+			}
+		}
+		//头像的url发生了变化了,并且是有原头像的,那就需要删除原头像
+		if imageUrl != "" && object.Image != ""{
+			buckClient.RemoveFile(business.GetSiteCosPath(userDto.CId, global.AvatarPath, object.Image))
+		}
+		updateMap["image"] = imageUrl
+	}
+
+	e.Orm.Model(&models.Company{}).Where("id = ?",object.Id).Updates(updateMap)
+
+	e.OK("","更新成功")
+	return
+}
 func (e Company) Info(c *gin.Context) {
 	req := dto.CompanyGetReq{}
 	s := service.Company{}
@@ -506,7 +575,6 @@ func (e Company) Info(c *gin.Context) {
 		"name":"",
 		"sys_name":    "动创云",
 		"describe":      global.Describe,
-		"logo_image_id": 0,
 		"sort":          100,
 		"is_recycle":    0,
 		"is_delete":     0,
@@ -523,40 +591,45 @@ func (e Company) Info(c *gin.Context) {
 		//if object.ShopName != ""{
 		//	ShopName = object.ShopName
 		//}
-
-
+		var logoImage  string
+		if object.Image != ""{
+			logoImage = business.GetGoodsPathFirst(userDto.CId,object.Image,global.GoodsPath)
+		}
 		storeInfo = map[string]interface{}{
 			"store_id":      object.Id,
 			"phone":object.Phone,
-			"name":object.ShopName,
+			"name":object.Name,
+			"shop_name":object.ShopName,
 			"sys_name":    "动创云",
 			"describe":      object.Desc,
-			"logo_image_id": 0,
 			"sort":          object.Layer,
-			"is_recycle":    0,
-			"is_delete":     0,
 			"create_time":   object.CreatedAt.Format("2006-01-02 15:04:05"),
 			"update_time":   object.UpdatedAt.Format("2006-01-02 15:04:05"),
 			"start_time":object.CreatedAt.Format("2006-01-02 15:04"), //创建时间
 			"end_time":object.ExpirationTime.Format("2006-01-02 15:04"), //到期时间
-			"logoImage":     "",
+			"logoImage":    logoImage ,
+			"enterprise":object.Enterprise,
+			"new_phone":object.NewPhone,
+			"filings":object.Filings,
+			"address":object.Address,
 		}
 
 	}else {
 		if userDto.RoleId == global.RoleSuper {
 			storeInfo = map[string]interface{}{
-				"store_id":      0,
+				"store_id":      1,
 				"store_name":    "动创云",
 				"name":"动创云",
 				"describe":      global.Describe,
-				"logo_image_id": 0,
 				"sort":          100,
-				"is_recycle":    0,
-				"is_delete":     0,
 				"create_time":   time.Now().Format("2006-01-02 15:04:05"),
 				"update_time":   time.Now().Format("2006-01-02 15:04:05"),
 				"logoImage":     "",
 			}
+		}else {
+
+			e.Error(500,nil,"not company")
+			return
 		}
 	}
 
