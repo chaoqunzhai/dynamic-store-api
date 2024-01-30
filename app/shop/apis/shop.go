@@ -43,7 +43,7 @@ func (e Shop) MiniApi(c *gin.Context) {
 	}
 	datalist:=make([]models.Shop,0)
 	var object models.Shop
-	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Select("id,name,phone").Order(global.OrderLayerKey).Find(&datalist)
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Select("id,name,phone,user_id").Order(global.OrderLayerKey).Find(&datalist)
 
 	result:=make([]map[string]interface{},0)
 	for _,row:=range datalist{
@@ -51,6 +51,7 @@ func (e Shop) MiniApi(c *gin.Context) {
 			"id":row.Id,
 			"name":row.Name,
 			"phone":row.Phone,
+			"shop_id":row.UserId,
 			"text":fmt.Sprintf("%v/%v",row.Name,row.Phone),
 		})
 	}

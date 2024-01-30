@@ -8,6 +8,7 @@ import (
 type PayMetOrderGetPageReq struct {
 	dto.Pagination     `search:"-"`
     Status string `form:"status"  search:"type:exact;column:status;table:company_apply_payment_order" comment:"状态"`
+    ShopId string `form:"shop_id"  search:"type:exact;column:create_by;table:company_apply_payment_order" comment:"申请用户"`
     UseTo string `form:"use_to"  search:"type:exact;column:use_to;table:company_apply_payment_order" comment:"用途"`
     Layer string `form:"layer"  search:"type:exact;column:layer;table:company_apply_payment_order" comment:"排序"`
     Enable string `form:"enable"  search:"type:exact;column:enable;table:company_apply_payment_order" comment:"开关"`

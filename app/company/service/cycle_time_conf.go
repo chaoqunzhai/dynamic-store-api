@@ -190,7 +190,7 @@ func GetOrderCreateStr(row models.CycleTimeConf) string {
 //2.计算这个配送时间也需要录入DB中
 
 //只需要返回这个上层的UID
-func CheckOrderCyCleCnfIsDb(cid int,table string,DeliveryObject models.CycleTimeConf,orm *gorm.DB) string  {
+func CheckOrderCyCleCnfIsDb(cid int,table string,DeliveryObject models.CycleTimeConf,orm *gorm.DB) (uid,deliveryMsg string)  {
 
 	//计算出配送的周期
 	deliveryTime,deliveryMsg:=GetOrderCyClyCnf(DeliveryObject)
@@ -198,7 +198,6 @@ func CheckOrderCyCleCnfIsDb(cid int,table string,DeliveryObject models.CycleTime
 	//检测下,然后直接返回吧
 	var cycleCnf models.OrderCycleCnf
 
-	uid:=""
 	//查询大B + 配送时间为同一天
 	//如果没有,那就创建
 	//如果有,那就统一订单的这个UID
@@ -240,6 +239,6 @@ func CheckOrderCyCleCnfIsDb(cid int,table string,DeliveryObject models.CycleTime
 	}else {
 		uid = cycleCnf.Uid
 	}
-	return uid
+	return uid,deliveryMsg
 
 }

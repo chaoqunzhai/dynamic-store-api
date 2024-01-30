@@ -499,9 +499,10 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			return
 		}
 		//获取到统一配送的配送UUID
-		orderRow.Uid = service.CheckOrderCyCleCnfIsDb(userDto.CId,splitTableRes.OrderCycle,DeliveryObject,e.Orm)
+		Uid,DeliveryStr:=service.CheckOrderCyCleCnfIsDb(userDto.CId,splitTableRes.OrderCycle,DeliveryObject,e.Orm)
+		orderRow.Uid = Uid
 		orderRow.DeliveryTime = service.CalculateTime(DeliveryObject.GiveDay)
-		orderRow.DeliveryStr = DeliveryObject.GiveTime
+		orderRow.DeliveryStr = DeliveryStr
 		orderRow.DeliveryID = DeliveryObject.Id
 		orderRow.Status = global.OrderStatusWaitSend
 

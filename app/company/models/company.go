@@ -52,7 +52,7 @@ func (e *Company) GetId() interface{} {
 type UserApplyPaymentOrder struct {
 	models.Model
 	models.ModelTime
-	models.ControlBy
+	models.ControlBy //CreateBy 就是小B的ID
 	Layer int `json:"layer" gorm:"type:tinyint(4);comment:排序"`
 	Enable bool `json:"enable" gorm:"type:tinyint(1);comment:开关"`
 	Desc string `json:"desc" gorm:"type:varchar(35);comment:描述信息"`
