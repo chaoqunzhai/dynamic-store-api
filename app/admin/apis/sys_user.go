@@ -3,6 +3,8 @@ package apis
 import (
 
 	"go-admin/app/admin/models"
+	models2 "go-admin/app/company/models"
+	"go-admin/common/business"
 	"go-admin/global"
 	"net/http"
 
@@ -93,21 +95,26 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 		e.Error(http.StatusUnauthorized, err, "登录失败")
 		return
 	}
+
+	var object models2.Company
+	e.Orm.Model(&models2.Company{}).Where("enable = 1 and leader_id = ? ",userID).First(&object)
+
+	var logoImage string
+	if object.Image != ""{
+		logoImage = business.GetGoodsPathFirst(sysUser.CId,object.Image,global.AvatarPath)
+	}
+
 	userInfo := map[string]interface{}{
 		"store_user_id": sysUser.UserId,
 		"user_name":     sysUser.Username,
 		"real_name":     sysUser.NickName,
-		"is_delete":     0,
-		"sort":          0,
 		"phone":sysUser.Phone,
 		"store_id":      0,
 		"create_time":   sysUser.CreatedAt.Format("2006-01-02 15:04:05"),
 		"update_time":   sysUser.UpdatedAt.Format("2006-01-02 15:04:05"),
 	}
-	userInfo["avatar"] = "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif"
-	if sysUser.Avatar != "" {
-		userInfo["avatar"] = sysUser.Avatar
-	}
+	userInfo["avatar"] = logoImage
+
 	rolesMap := map[string]interface{}{
 		"permissionList": make([]string, 0),
 	}

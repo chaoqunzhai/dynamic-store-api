@@ -146,8 +146,8 @@ func getFileName(fileName string) string {
 func GetCosImagePath(imageConst,fileName string,CId interface{})  (filePath,goodsImagePath string) {
 
 	//增加一层 cache_image 目录,防止因为大量的客户 产生大量的客户目录文件 堆放在程序目录同层级中
-
-	goodsImagePath = path.Join("cache_image",business.GetSiteCosPath(CId,imageConst,getFileName(fileName)))
+	//上传的时候 需要把cache_image 去除掉
+	goodsImagePath = path.Join(global.CacheImage,business.GetSiteCosPath(CId,imageConst,getFileName(fileName)))
 
 	return
 }

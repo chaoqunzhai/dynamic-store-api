@@ -20,6 +20,7 @@ const (
 	ExpressLocal     = 2 //同城配送
 	ExpressLogistics = 3 //物流配送
 
+	CacheImage = "cache_image/" //统一临时存放的目录
 	//商品目录
 	GoodsPath       = "goods" //商品
 	AdsPath = "ads" //广告

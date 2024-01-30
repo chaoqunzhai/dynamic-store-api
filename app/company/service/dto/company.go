@@ -225,11 +225,10 @@ type ResponseOrderData struct {
 	OrderTotal []int64 `json:"order_total"`
 }
 type UpdateInfo struct {
-	ActionImage bool `json:"action_image"` //是否操作了头像
-	Enterprise string `json:"enterprise" gorm:"size:20;comment:企业名称"`
-	Filings string `json:"filings" gorm:"size:20;comment:备案号"`
-	NewPhone string   `gorm:"size:11;comment:联系手机号"`
-	Name           string        `json:"name" gorm:"type:varchar(30);comment:公司(大B)名称"`
-	Address        string        `json:"address" gorm:"type:varchar(155);comment:大B地址位置"`
-	ShopName       string        `json:"shop_name" gorm:"type:varchar(50);comment:店铺名称"`
+	ActionImage bool `form:"action_image"` //是否操作了头像
+	Enterprise string `form:"enterprise" gorm:"size:20;comment:企业名称"`
+	Filings string `form:"filings" gorm:"size:20;comment:备案号"`
+	NewPhone string   `form:"new_phone" gorm:"size:11;comment:联系手机号"`
+	Address        string        `form:"address" gorm:"type:varchar(155);comment:大B地址位置"`
+	ShopName       string        `form:"shop_name" gorm:"type:varchar(50);comment:店铺名称"`
 }

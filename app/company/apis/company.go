@@ -507,7 +507,7 @@ func (e Company) Information(c *gin.Context) {
 	var object models.Company
 	e.Orm.Model(&models.Company{}).Select("image,id").Where("enable = 1 and leader_id = ? ",userDto.UserId).First(&object)
 
-	if object.Id > 0 {
+	if object.Id == 0 {
 
 		e.Error(500,nil,"not company")
 		return
@@ -516,7 +516,6 @@ func (e Company) Information(c *gin.Context) {
 	updateMap:=map[string]interface{}{
 		"enterprise":req.Enterprise,
 		"new_phone":req.NewPhone,
-		"name":req.Name,
 		"shop_name":req.ShopName,
 		"address":req.Address,
 		"filings":req.Filings,
@@ -527,21 +526,23 @@ func (e Company) Information(c *gin.Context) {
 		buckClient.InitClient()
 		var imageUrl string
 		if fileErr == nil {
-			_,goodsImagePath  :=GetCosImagePath(global.AvatarPath,file.Filename,userDto.CId)
+			_, goodsImagePath := GetCosImagePath(global.AvatarPath, file.Filename, userDto.CId)
+
 			if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 
 				//1.上传到cos中
-				fileName,cosErr :=buckClient.PostImageFile(goodsImagePath)
-				if cosErr ==nil{
+				fileName, cosErr := buckClient.PostImageFile(goodsImagePath)
+				if cosErr == nil {
 					//上传成功了 那就是新的名字
 					imageUrl = fileName
 				}
 				//本地删除
-				_=os.RemoveAll(goodsImagePath)
+				_ = os.RemoveAll(goodsImagePath)
 			}
 		}
-		//头像的url发生了变化了,并且是有原头像的,那就需要删除原头像
-		if imageUrl != "" && object.Image != ""{
+
+		//有原头像的,那就需要删除原头像
+		if object.Image != "" { //原来是有头像的
 			buckClient.RemoveFile(business.GetSiteCosPath(userDto.CId, global.AvatarPath, object.Image))
 		}
 		updateMap["image"] = imageUrl
@@ -587,13 +588,10 @@ func (e Company) Info(c *gin.Context) {
 	e.Orm.Model(&models.Company{}).Where("enable = 1 and leader_id = ? ",userDto.UserId).First(&object)
 
 	if object.Id > 0 {
-		//ShopName:=object.Name
-		//if object.ShopName != ""{
-		//	ShopName = object.ShopName
-		//}
+
 		var logoImage  string
 		if object.Image != ""{
-			logoImage = business.GetGoodsPathFirst(userDto.CId,object.Image,global.GoodsPath)
+			logoImage = business.GetGoodsPathFirst(userDto.CId,object.Image,global.AvatarPath)
 		}
 		storeInfo = map[string]interface{}{
 			"store_id":      object.Id,
@@ -607,7 +605,7 @@ func (e Company) Info(c *gin.Context) {
 			"update_time":   object.UpdatedAt.Format("2006-01-02 15:04:05"),
 			"start_time":object.CreatedAt.Format("2006-01-02 15:04"), //创建时间
 			"end_time":object.ExpirationTime.Format("2006-01-02 15:04"), //到期时间
-			"logoImage":    logoImage ,
+			"logoImage":    logoImage,
 			"enterprise":object.Enterprise,
 			"new_phone":object.NewPhone,
 			"filings":object.Filings,

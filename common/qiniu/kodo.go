@@ -179,6 +179,22 @@ func (q *QinUi)CreateBucket()  {
 
 }
 
+func (q *QinUi)ClearCacheImageName(filepath string) string  {
+
+	if strings.HasPrefix(filepath,global.CacheImage){
+
+
+		fileList :=strings.Split(filepath,global.CacheImage)
+		if len(fileList) >0{
+			return fileList[1]
+		}
+		return filepath
+	}
+	return filepath
+
+
+
+}
 //上传文件
 //不同的大B做不同的桶,
 //不设置过期时间
@@ -203,15 +219,19 @@ func (q *QinUi)PostImageFile(filePath  string) (name string,err  error)  {
 
 	putExtra := storage.PutExtra{}
 
+	targetPath :=q.ClearCacheImageName(sizeFilePath)
+
 	//保留全路径 会在七牛云上创建目录
-	err = formUploader.PutFile(context.Background(), &ret, q.Token, sizeFilePath, sizeFilePath, &putExtra)
+	fmt.Printf("本地路径: %v 对象存储路径:%v\n",sizeFilePath,targetPath)
+
+	err = formUploader.PutFile(context.Background(), &ret, q.Token, targetPath, sizeFilePath, &putExtra)
 	if err != nil {
-		zap.S().Infof("BackName:%v 七牛云图片上传文件：%v 失败:%v",q.BucketName,sizeFilePath,err,)
+		zap.S().Errorf("BackName:%v 七牛云图片上传文件：%v 失败:%v",q.BucketName,sizeFilePath,err,)
 		return "", errors.New(fmt.Sprintf("图片上传失败:%v",err))
 	}
 	//上传成功后,删除这个压缩的文件
 	defer func() {
-		os.RemoveAll(sizeFilePath)
+		_=os.RemoveAll(sizeFilePath)
 	}()
 	return fileName, err
 }
@@ -253,5 +273,5 @@ func (q *QinUi)RemoveFile(FileName string)  {
 
 	err:=q.BucketManager.Delete(q.BucketName,FileName)
 
-	zap.S().Infof("删除文件%v 成功,返回:%v\n",FileName,err)
+	zap.S().Infof("删除文件 %v 成功,返回:%v\n",FileName,err)
 }

@@ -13,7 +13,7 @@ type Company struct {
 	Filings string `json:"filings" gorm:"size:20;comment:备案号"`
 	NewPhone string   `gorm:"size:11;comment:联系手机号"`
 	Name           string        `json:"name" gorm:"type:varchar(30);comment:公司(大B)名称"`
-	Address        string        `json:"address" gorm:"type:varchar(155);comment:大B地址位置"`
+	Address        string        `json:"address" gorm:"type:varchar(80);comment:大B地址位置"`
 	ShopName       string        `json:"shop_name" gorm:"type:varchar(50);comment:店铺名称"`
 
 	Layer          int           `json:"layer" gorm:"type:tinyint(4);comment:排序"`
@@ -25,7 +25,7 @@ type Company struct {
 
 	Longitude      float64       `json:"longitude" gorm:"type:double;comment:Longitude"`
 	Latitude       float64       `json:"latitude" gorm:"type:double;comment:Latitude"`
-	Image          string        `json:"image" gorm:"type:varchar(80);comment:logo图片"`
+	Image          string        `json:"image" gorm:"type:varchar(20);comment:logo图片"`
 	RenewalTime    time.Time     `json:"renewal_time" gorm:"type:datetime(3);comment:续费时间"`
 	ExpirationTime time.Time     `json:"expiration_time" gorm:"type:datetime(3);comment:到期时间"`
 	LoginTime models.XTime      `json:"login_time" gorm:"type:datetime(3);comment:登录时间"`

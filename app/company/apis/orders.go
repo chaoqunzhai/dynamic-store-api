@@ -272,7 +272,7 @@ func (e Orders) GetPage(c *gin.Context) {
 			//订单调整了
 			r["goods_money"] = row.OrderMoney
 			//调整的时候 又把优惠卷加回去了
-			r["money"] = utils.StringDecimal(row.OrderMoney - row.CouponMoney)
+			r["order_money"] = utils.StringDecimal(row.OrderMoney - row.CouponMoney)
 		}
 		switch row.DeliveryType {
 		case global.ExpressStore:
