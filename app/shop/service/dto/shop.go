@@ -143,7 +143,7 @@ type ShopUpdateReq struct {
 	Balance        float64 `json:"balance" comment:"剩余金额"`
 	Integral      int     `json:"integral" comment:"可用积分"`
 	SalesmanPhone string  `json:"salesman_phone" comment:"推荐人"`
-	Salesman      int     `json:"salesman" comment:"推荐人"`
+	Salesman      int    `json:"salesman" comment:"推荐人"`
 	Tags          []int   `json:"tags" comment:"客户标签"`
 	common.ControlBy
 }
@@ -164,6 +164,8 @@ func (s *ShopUpdateReq) Generate(model *models.Shop) {
 	model.Latitude = s.Latitude
 	model.Image = s.Image
 	model.LineId = s.LineId
+
+
 
 	model.Salesman = s.Salesman
 }

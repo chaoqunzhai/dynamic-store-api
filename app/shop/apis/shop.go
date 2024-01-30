@@ -51,7 +51,7 @@ func (e Shop) MiniApi(c *gin.Context) {
 			"id":row.Id,
 			"name":row.Name,
 			"phone":row.Phone,
-			"shop_id":row.UserId,
+			"shop_user_id":row.UserId,
 			"text":fmt.Sprintf("%v/%v",row.Name,row.Phone),
 		})
 	}

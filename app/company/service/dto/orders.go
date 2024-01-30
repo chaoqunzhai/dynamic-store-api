@@ -15,11 +15,12 @@ type OrdersActionReq struct {
 }
 
 type OrdersGetPageReq struct {
-	dto.Pagination `search:"-"`
+	dto.Pagination `search:"- " `
+	Verify bool `form:"verify" search:"-" comment:"开启对账统计"`
 	Layer          string `form:"layer"  search:"type:exact;column:layer;table:orders" comment:"排序"`
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:orders" comment:"开关"`
 	CId            int    `form:"cId"  search:"type:exact;column:c_id;table:orders" comment:"大BID"`
-	ShopId         string `form:"shop_id"  search:"type:exact;column:shop_id;table:orders" comment:"关联客户"`
+	ShopId         int `form:"shop_id"  search:"type:exact;column:shop_id;table:orders" comment:"关联客户"`
 	ApproveStatus int `form:"approve_status" search:"-" comment:"审批状态"`
 	Status         int `form:"status"  search:"-"`
 	Number         string `form:"number"  search:"type:exact;column:number;table:orders" comment:"下单数量"`
@@ -35,6 +36,10 @@ type OrdersGetPageReq struct {
 	AfterSales     bool         `form:"after_sales" search:"type:exact;column:after_sales;table:orders"`
 	CycleType int   `form:"cycle_type" search:"-"`
 	OrdersOrder
+}
+
+func (m *OrdersGetPageReq) GetNeedSearch() interface{} {
+	return *m
 }
 
 type CyClePageReq struct {
@@ -63,9 +68,6 @@ type OrdersOrder struct {
 	Delivery  string `form:"deliveryOrder"  search:"type:order;column:delivery;table:orders"`
 }
 
-func (m *OrdersGetPageReq) GetNeedSearch() interface{} {
-	return *m
-}
 
 
 type OrdersShopGetPageReq struct {
@@ -311,4 +313,13 @@ type ApproveReq struct {
 	Desc string `json:"desc"`
 	Action int `json:"action"`//审批是否通过 1:通过 2:驳回
 	Source string `json:"source"` //来源类型 approve:审批 cancel作废
+}
+
+//订单统计
+type CountOrder struct {
+	Number int `json:"number"`
+	AllGoodsMoney float64 `json:"all_goods_money"` //总订单金额
+	AllCouponMoney float64 `json:"all_coupon_money"`//总优惠金额
+	AllOrderMoney float64 `json:"all_order_money"`//总实付金额
+	Count int `json:"count"`
 }

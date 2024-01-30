@@ -128,7 +128,7 @@ func (e *Orders) ValidTimeConf(cid int) (response *TimeConfResponse) {
 }
 
 // GetPage 获取Orders列表
-func (e *Orders) GetPage(openApprove bool,splitTableRes business.TableRow, c *dto.OrdersGetPageReq, p *actions.DataPermission, list *[]models.Orders, count *int64) error {
+func (e *Orders) GetPage(openApprove bool,splitTableRes business.TableRow,countMap *dto.CountOrder, c *dto.OrdersGetPageReq, p *actions.DataPermission, list *[]models.Orders, count *int64) error {
 	var err error
 
 	orm :=e.Orm.Table(splitTableRes.OrderTable)
@@ -155,7 +155,7 @@ func (e *Orders) GetPage(openApprove bool,splitTableRes business.TableRow, c *dt
 		orm = orm.Table(splitTableRes.OrderTable)
 	}
 
-	fmt.Println("CycleTypeCycleType!!",c.CycleType)
+
 	if c.CycleType == 2{ //下单周期的查询
 		//通过uid 获取到选择条目的
 
@@ -165,7 +165,6 @@ func (e *Orders) GetPage(openApprove bool,splitTableRes business.TableRow, c *dt
 		if OrderCycle.Id > 0{
 			orm = orm.Table(splitTableRes.OrderTable).Where("`created_at` >= ? and `created_at` <= ?",OrderCycle.StartTime,OrderCycle.EndTime)
 		}
-
 	}
 
 	err = orm.Scopes(
@@ -174,6 +173,14 @@ func (e *Orders) GetPage(openApprove bool,splitTableRes business.TableRow, c *dt
 			actions.Permission(splitTableRes.OrderTable,p)).Order(global.OrderTimeKey).
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
+	countSql:="SUM(order_money) as all_order_money,SUM(number) as number,count(*) as 'count',SUM(coupon_money) as all_coupon_money,SUM(goods_money) as all_goods_money "
+
+	if c.Verify{//根据过滤 然后在统计一次
+		//orm.Raw(countSql).Scan(&countMap)
+		orm.Select(countSql).Scan(&countMap)
+	}
+
+
 	if err != nil {
 		e.Log.Errorf("订单不存在", err)
 		return err

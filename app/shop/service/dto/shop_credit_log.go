@@ -9,7 +9,7 @@ import (
 type ShopCreditLogGetPageReq struct {
 	dto.Pagination `search:"-"`
 	Id             string `form:"id"  search:"type:exact;column:id;table:shop_credit_log" comment:"订单ID"`
-	ShopId         string `form:"shopId"  search:"type:exact;column:shop_id;table:shop_credit_log" comment:"小BID"`
+	ShopId         string `form:"shop_id"  search:"type:exact;column:shop_id;table:shop_credit_log" comment:"小BID"`
 	Money          string `form:"money"  search:"type:exact;column:money;table:shop_credit_log" comment:"变动金额"`
 	Scene          string `form:"scene"  search:"type:exact;column:scene;table:shop_credit_log" comment:"变动场景"`
 	Type           string `form:"type"  search:"type:exact;column:type;table:shop_credit_log" comment:"变动类型"`

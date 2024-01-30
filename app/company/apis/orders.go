@@ -130,9 +130,12 @@ func (e Orders) GetPage(c *gin.Context) {
 
 
 	list := make([]models.Orders, 0)
+
+	//统计查询的数据
+	countMap:=dto.CountOrder{}
 	var count int64
 	req.CId = userDto.CId
-	err = s.GetPage(openApprove,splitTableRes, &req, p, &list, &count)
+	err = s.GetPage(openApprove,splitTableRes,&countMap, &req, p, &list, &count)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取订单失败,%s", err.Error()))
 		return
@@ -292,6 +295,13 @@ func (e Orders) GetPage(c *gin.Context) {
 		"count":int(count),
 		"hasApprove":hasApprove,
 		"openApprove":openApprove,
+		"verify":map[string]interface{}{
+			"all_goods_money":utils.StringDecimal(countMap.AllCouponMoney),
+			"all_coupon_money":utils.StringDecimal(countMap.AllCouponMoney),
+			"all_order_money":utils.StringDecimal(countMap.AllOrderMoney),
+			"number":countMap.Number,
+			"count":countMap.Count,
+		},
 	}
 	e.OK(resultData,"successful")
 	return
