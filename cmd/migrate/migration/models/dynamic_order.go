@@ -36,6 +36,7 @@ type Orders struct {
 	CreatedAt      models.XTime `json:"createdAt" gorm:"comment:创建时间"`
 	UpdatedAt      models.XTime `json:"updatedAt" gorm:"comment:最后更新时间"`
 	OrderId        string       `json:"order_id" gorm:"index;size:20;comment:订单ID"`
+	EmsId string `json:"ems_id"  gorm:"index;size:20;comment:快递单号"`
 	OrderNoId string `json:"order_no_id" gorm:"size:20;comment:预支付流水号"`
 	CId            int          `gorm:"index;comment:大BID"`
 	Enable         bool         `gorm:"comment:开关"`

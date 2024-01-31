@@ -17,6 +17,7 @@ type PayCnfInsertReq struct {
 	Alipay bool `json:"alipay" gorm:"size:1;comment:是否开启阿里支付"`
 	WeChat bool `json:"we_chat" gorm:"size:1;comment:是否开启微信支付"`
 	Credit bool `json:"credit" gorm:"size:1;comment:支持授信减扣"`
+	CashOn bool `json:"cash_on"`
 
 }
 func (e *PayApi) Create(c *gin.Context) {
@@ -43,15 +44,17 @@ func (e *PayApi) Create(c *gin.Context) {
 
 	if PayCnf.Id > 0 {
 
-		//PayCnf.Ali = req.Alipay
+		PayCnf.Ali = req.Alipay
+		PayCnf.CashOn = req.CashOn
 		PayCnf.BalanceDeduct = req.BalanceDeduct
-		//PayCnf.WeChat = req.WeChat
+		PayCnf.WeChat = req.WeChat
 		PayCnf.Credit = req.Credit
 		e.Orm.Save(&PayCnf)
 	}else {
 		trade:=models.PayCnf{
-			//Ali: req.Alipay,
-			//WeChat: req.WeChat,
+			Ali: req.Alipay,
+			CashOn: req.CashOn,
+			WeChat: req.WeChat,
 			BalanceDeduct: req.BalanceDeduct,
 			Credit: req.Credit,
 		}
@@ -83,7 +86,6 @@ func (e PayApi) Detail(c *gin.Context) {
 	if PayCnf.Id == 0 {
 		object := models.PayCnf{
 			Credit: true,
-			BalanceDeduct: true,
 		}
 		object.Enable = true
 		object.CId = userDto.CId

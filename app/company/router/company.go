@@ -44,13 +44,15 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.GET("/category", api.Category)
 		//门店自提配置
 		r.GET("/express/store",api.StoreList)
-		//大B自提配置
+		//配送方式列表
 		r.GET("/express", api.ExpressList)
 		//大B的配送
-		//同城费用配置
+		//同城配置
 		r.POST("/express/cnf/local", api.ExpressCnfLocal)
-		//创建自提
+		//自提配置
 		r.POST("/express/cnf/store", api.ExpressCnfStore)
+		//物流配置
+		r.POST("/express/cnf/ems", api.ExpressCnfEms)
 
 		//展示一些限制的文案，例如当前可用路线是多少条
 		r.GET("/quota/cnf",api.QuotaCnf)

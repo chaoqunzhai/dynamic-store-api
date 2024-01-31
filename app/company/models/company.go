@@ -29,7 +29,7 @@ type Company struct {
 	RenewalTime    time.Time     `json:"renewal_time" gorm:"type:datetime(3);comment:续费时间"`
 	ExpirationTime time.Time     `json:"expiration_time" gorm:"type:datetime(3);comment:到期时间"`
 	LoginTime models.XTime      `json:"login_time" gorm:"type:datetime(3);comment:登录时间"`
-
+	CopyrightEnable bool `json:"copyright_enable"`
 	NavList        []interface{} `json:"nav_list" gorm:"-"` //展示大B的菜单
 	models.ModelTime
 	models.ControlBy

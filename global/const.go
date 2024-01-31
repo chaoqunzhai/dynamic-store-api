@@ -16,9 +16,9 @@ const (
 	LogIngPC = "company-pc"
 	LogIngUserType = "用户名登录"
 	LogIngPhoneType = "手机号登录"
-	ExpressStore     = 1 //门店自提
-	ExpressLocal     = 2 //同城配送
-	ExpressLogistics = 3 //物流配送
+	ExpressSelf     = 1 //门店自提 门店地址
+	ExpressSameCity    = 2 //同城配送 客户地址
+	ExpressEms = 3 //物流配送 客户地址
 
 	CacheImage = "cache_image/" //统一临时存放的目录
 	//商品目录
@@ -461,11 +461,11 @@ func GetPayType(v int)  string {
 }
 func GetExpressCn(v int) string {
 	switch v {
-	case ExpressStore:
+	case ExpressSelf:
 		return "门店自提"
-	case ExpressLocal:
+	case ExpressSameCity:
 		return "同城配送"
-	case ExpressLogistics:
+	case ExpressEms:
 		return "物流配送"
 	}
 	return "同城配送"

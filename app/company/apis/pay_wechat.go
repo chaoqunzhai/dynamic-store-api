@@ -88,7 +88,6 @@ func (e *PayWechat) Create(c *gin.Context) {
 	}
 	if PayCnf.Id > 0 {
 		PayCnf.SerialNumber = searchNumber
-		PayCnf.Enable = req.Enable
 		PayCnf.Refund = req.Refund
 		PayCnf.ApiV2 = strings.TrimSpace(req.ApiV2)
 		PayCnf.ApiV3 = strings.TrimSpace(req.ApiV3)
@@ -111,7 +110,7 @@ func (e *PayWechat) Create(c *gin.Context) {
 		}
 		trade.CreateBy = userDto.UserId
 		trade.CId = userDto.CId
-		trade.Enable = req.Enable
+		trade.Enable = true
 		trade.Refund = req.Refund
 		trade.Layer = 0
 		e.Orm.Create(&trade)

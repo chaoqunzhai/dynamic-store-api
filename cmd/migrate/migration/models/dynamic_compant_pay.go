@@ -46,8 +46,9 @@ func (AliPay) TableName() string {
 type PayCnf struct {
 	BigBRichGlobal
 	BalanceDeduct bool `json:"balance_deduct" gorm:"size:1;comment:是否开启余额支付"`
-	//Ali bool `json:"pay_ali" gorm:"size:1;comment:是否开启阿里支付"`
-	//WeChat bool `json:"we_chat" gorm:"size:1;comment:是否开启微信支付"`
+	Ali bool `json:"pay_ali" gorm:"size:1;comment:是否开启阿里支付"`
+	CashOn bool `json:"cash_on"  gorm:"size:1;comment:是否开启货到付款"`
+	WeChat bool `json:"we_chat" gorm:"size:1;comment:是否开启微信支付"`
 	Credit bool `json:"credit" gorm:"size:1;comment:支持授信减扣"`
 }
 

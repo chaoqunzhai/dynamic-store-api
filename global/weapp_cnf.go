@@ -22,9 +22,3 @@ func LoginCnfToCh(v string) string {
 	}
 	return ""
 }
-func CompanyGlobalExpress() []int {
-
-	return []int{
-		ExpressStore, ExpressLocal, ExpressLogistics,
-	}
-}

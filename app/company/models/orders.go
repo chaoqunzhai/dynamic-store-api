@@ -16,6 +16,7 @@ type Orders struct {
 	CreatedAt      models.XTime `json:"createdAt" gorm:"comment:创建时间"`
 	DeliveryRunAt  models.XTime `json:"delivery_run_at" gorm:"column:delivery_run_at; null; comment:开始配送时间"`
 	OrderId        string       `json:"order_id" gorm:"index;size:20;comment:订单ID"`
+	EmsId string `json:"ems_id"  gorm:"index;size:20;comment:快递单号"`
 	OutTradeNo string `json:"out_trade_no" gorm:"size:20;comment:预支付流水号"`
 	CId            int          `gorm:"index;comment:大BID"`
 	Enable         bool         `gorm:"comment:开关"`

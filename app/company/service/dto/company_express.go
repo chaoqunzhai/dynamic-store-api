@@ -5,12 +5,12 @@ type CompanyExpressCnfReq struct {
 		Enable  bool      `json:"enable"`
 		Address []Address `json:"address"`
 	} `json:"store"`
-	Local struct {
+	Cnf struct {
 		Enable       bool `json:"enable"`
 		StartMoney   int  `json:"start_money"`
 		QuotaMoney   int  `json:"quota_money"`
 		FreightMoney int  `json:"freight_money"`
-	} `json:"local"`
+	} `json:"cnf"`
 }
 type Address struct {
 	Id int `json:"id"`

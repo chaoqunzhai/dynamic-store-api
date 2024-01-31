@@ -152,9 +152,9 @@ func (e Orders) GetPage(c *gin.Context) {
 
 		if row.AddressId > 0 {
 			switch row.DeliveryType {
-			case global.ExpressStore:
+			case global.ExpressSelf:
 				cacheStoreAddressId = append(cacheStoreAddressId,row.AddressId)
-			case global.ExpressLocal:
+			case global.ExpressSameCity,global.ExpressEms: //客户的地址
 				cacheAddressId = append(cacheAddressId,row.AddressId)
 			}
 
@@ -265,12 +265,12 @@ func (e Orders) GetPage(c *gin.Context) {
 		if row.ApproveStatus == global.OrderApproveReject {
 			r["status"] = "已驳回"
 		}
-		if row.DeliveryType == global.ExpressStore{
-
+		if row.DeliveryType == global.ExpressSameCity || row.DeliveryType == global.ExpressEms{
 			if row.Status == global.OrderWaitConfirm{
 				r["status"] = "待取"
 			}
 		}
+
 		if row.Edit{
 			//订单调整了
 			r["goods_money"] = row.OrderMoney
@@ -278,7 +278,7 @@ func (e Orders) GetPage(c *gin.Context) {
 			r["order_money"] = utils.StringDecimal(row.OrderMoney - row.CouponMoney)
 		}
 		switch row.DeliveryType {
-		case global.ExpressStore:
+		case global.ExpressSelf: //自提的时候获取的是门店的地址
 			r["address"] = cacheStoreAddressMap[row.AddressId]
 		default:
 			r["address"] = cacheAddressMap[row.AddressId]
@@ -501,7 +501,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 
 
 	fmt.Println("周期配送！！",req.Cycle,"req.DeliveryType",req.DeliveryType)
-	if req.DeliveryType == 2{ //配送
+	if req.DeliveryType == global.ExpressSameCity{ //同城配送
 		var DeliveryObject models.CycleTimeConf
 		e.Orm.Model(&models2.CycleTimeConf{}).Where("c_id = ? and id = ? and enable =? ",userDto.CId, req.Cycle, true).Limit(1).Find(&DeliveryObject)
 		if DeliveryObject.Id == 0 {
@@ -521,7 +521,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.Orm.Model(&defaultAddress).Scopes(actions.PermissionSysUser(defaultAddress.TableName(),userDto)).Select("id").Where(" is_default = 1 and user_id = ?",shopObject.UserId).Limit(1).Find(&defaultAddress)
 		//用户是一定有一个默认地址的
 		orderRow.AddressId = defaultAddress.Id
-	}else { //自提
+	}else { //自提或者物流
 		orderRow.Status = global.OrderWaitConfirm
 		orderRow.DeliveryRunAt = models3.XTime{
 			Time:time.Now(),

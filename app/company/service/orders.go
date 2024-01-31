@@ -339,7 +339,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 	if object.ApproveStatus == global.OrderApproveReject {
 		result["status"] = "已驳回"
 	}
-	if object.DeliveryType == global.ExpressStore{
+	if object.DeliveryType == global.ExpressSelf {
 
 		if object.Status == global.OrderWaitConfirm{
 			result["status"] = "待取"
@@ -354,7 +354,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 
 	//如果是同城配送那就获取
 	switch object.DeliveryType {
-	case global.ExpressLocal:
+	case global.ExpressSameCity,global.ExpressEms: //同城和物流都是读取客户的地址
 		var userAddress models3.DynamicUserAddress
 		e.Orm.Model(&models3.DynamicUserAddress{}).Scopes(actions.PermissionSysUser(userAddress.TableName(),userDto)).Select("id,address").Where(" id = ?",
 			object.AddressId).Limit(1).Find(&userAddress)
@@ -364,7 +364,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 			}
 		}
 
-	case global.ExpressStore:
+	case global.ExpressSelf: //自提
 		var expressStore models3.CompanyExpressStore
 		e.Orm.Model(&models3.CompanyExpressStore{}).Scopes(actions.PermissionSysUser(expressStore.TableName(),userDto)).Select("id,address,name").Where(" id = ?",
 			object.AddressId).Limit(1).Find(&expressStore)
