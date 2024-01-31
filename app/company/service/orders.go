@@ -295,6 +295,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 		"status_int":object.Status,
 		"status":     global.OrderStatus(object.Status),
 		"delivery_type":object.DeliveryType,
+		"delivery_type_cn":global.GetExpressCn(object.DeliveryType),
 		"day":nowTimeObj.Format("2006-01-02"),
 		"now":nowTimeObj.Format("2006-01-02 15:04:05"),
 		"this_user":userDto.Username,

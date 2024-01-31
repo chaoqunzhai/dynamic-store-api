@@ -603,8 +603,8 @@ func (e Company) Info(c *gin.Context) {
 			"sort":          object.Layer,
 			"create_time":   object.CreatedAt.Format("2006-01-02 15:04:05"),
 			"update_time":   object.UpdatedAt.Format("2006-01-02 15:04:05"),
-			"start_time":object.CreatedAt.Format("2006-01-02 15:04"), //创建时间
-			"end_time":object.ExpirationTime.Format("2006-01-02 15:04"), //到期时间
+			"start_time":object.CreatedAt.Format("2006-01-02"), //创建时间
+			"end_time":object.ExpirationTime.Format("2006-01-02"), //到期时间
 			"logoImage":    logoImage,
 			"enterprise":object.Enterprise,
 			"new_phone":object.NewPhone,

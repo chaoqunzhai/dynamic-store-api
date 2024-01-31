@@ -31,6 +31,11 @@ type Shop struct {
 	Platform  string    `json:"platform" gorm:"size:10;comment:注册来源"`
 	SuggestId int       `gorm:"index;comment:推荐人ID"`
 	LoginTime time.Time     `json:"login_time" gorm:"type:datetime(3);comment:登录时间"`
+	IsBalanceDeduct bool `json:"is_balance_deduct" gorm:"size:1;comment:是否开启余额支付"`
+	IsAli bool `json:"is_pay_ali" gorm:"size:1;comment:是否开启阿里支付"`
+	IsCashOn bool `json:"is_cash_on"  gorm:"size:1;comment:是否开启货到付款"`
+	IsWeChat bool `json:"is_we_chat" gorm:"size:1;comment:是否开启微信支付"`
+	IsCredit bool `json:"is_credit" gorm:"size:1;comment:支持授信支付"`
 }
 
 func (Shop) TableName() string {

@@ -120,7 +120,8 @@ func (e CompanyAds) Insert(c *gin.Context) {
 		LinkName: req.LinkName,
 		LinkUrl: req.LinkUrl,
 		ImageUrl: req.ImageUrl,
-		Type: req.Type,
+		Type: 0,//默认顶部
+		//Type: req.Type,
 	}
 	dat.Layer = 0
 	dat.Desc = req.Desc
@@ -256,7 +257,7 @@ func (e CompanyAds) Update(c *gin.Context) {
 		"link_name":req.LinkName,
 		"desc":req.Desc,
 		"image_url":imageUrl,
-		"type":req.Type,
+		"type":0,//默认顶部
 	})
 
 	e.OK("", "修改成功")

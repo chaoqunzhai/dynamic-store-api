@@ -39,6 +39,12 @@ type Shop struct {
     OrderCount int64 `json:"order_count" gorm:"-"`
     LoginTime models.XTime     `json:"login_time" gorm:"type:datetime(3);comment:登录时间"`
 
+    IsBalanceDeduct bool `json:"is_balance_deduct" gorm:"size:1;comment:是否开启余额支付"`
+    IsAli bool `json:"is_pay_ali" gorm:"size:1;comment:是否开启阿里支付"`
+    IsCashOn bool `json:"is_cash_on"  gorm:"size:1;comment:是否开启货到付款"`
+    IsWeChat bool `json:"is_we_chat" gorm:"size:1;comment:是否开启微信支付"`
+    IsCredit bool `json:"is_credit" gorm:"size:1;comment:支持授信支付"`
+
     models.ModelTime
     models.ControlBy
 }
