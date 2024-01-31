@@ -553,6 +553,65 @@ func (e Company) Information(c *gin.Context) {
 	e.OK("","更新成功")
 	return
 }
+
+
+func (e Company) PayCnf(c *gin.Context) {
+	req := dto.CompanyGetReq{}
+	s := service.Company{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var object models2.PayCnf
+
+	e.Orm.Model(&object).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
+
+	data :=make([]map[string]interface{},0)
+	if object.WeChat{
+		data = append(data, map[string]interface{}{
+			"value":"微信支付",
+			"label":object.WeChat,
+			"key":global.PayEnWeChat,
+		})
+	}
+
+	if object.BalanceDeduct {
+		data = append(data, map[string]interface{}{
+			"value":"余额支付",
+			"label":object.BalanceDeduct,
+			"key":global.PayEnBalance,
+		})
+	}
+	if object.Credit {
+		data = append(data, map[string]interface{}{
+			"value":"授信额支付",
+			"label":object.Credit,
+			"key":global.PayEnCredit,
+		})
+	}
+	if object.CashOn {
+		data = append(data, map[string]interface{}{
+			"value":"货到付款",
+			"label":object.CashOn,
+			"key":global.PayEnCashOn,
+		})
+	}
+
+	e.OK(data,"")
+	return
+}
+
 func (e Company) Info(c *gin.Context) {
 	req := dto.CompanyGetReq{}
 	s := service.Company{}

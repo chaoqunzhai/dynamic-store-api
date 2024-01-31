@@ -20,7 +20,10 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 	r := v1.Group("/company").Use(authMiddleware.MiddlewareFunc()).
 		Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
+		//密码修改
 		r.POST("/renew",api.RenewPass)
+		//全局开启的支付方式
+		r.GET("/pay_cnf",api.PayCnf)
 		//大B信息
 		r.GET("/info", api.Info)
 		r.POST("/information",api.Information)

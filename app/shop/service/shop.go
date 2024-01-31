@@ -85,7 +85,21 @@ func (e *Shop) Insert(userDto *sys.SysUser, c *dto.ShopInsertReq) error {
 
 	//先设置请求的默认值
 	c.Generate(&data)
-
+	
+	for _,pay:=range c.SelectPay{
+		switch pay {
+		case global.PayEnWeChat:
+			data.IsWeChat = true
+		case global.PayEnBalance:
+			data.IsBalanceDeduct = true
+		case global.PayEnAli:
+			data.IsAli = true
+		case global.PayEnCredit:
+			data.IsCredit = true
+		case global.PayEnCashOn:
+			data.IsCashOn = true
+		}
+	}
 	//后面根据选择进行重新赋值
 	//到这里一定是检测通过的
 	if c.ApproveId > 0 {
@@ -163,6 +177,20 @@ func (e *Shop) Update(c *dto.ShopUpdateReq, p *actions.DataPermission) error {
 		actions.Permission(data.TableName(), p),
 	).First(&data, c.GetId())
 	c.Generate(&data)
+	for _,pay:=range c.SelectPay{
+		switch pay {
+		case global.PayEnWeChat:
+			data.IsWeChat = true
+		case global.PayEnBalance:
+			data.IsBalanceDeduct = true
+		case global.PayEnAli:
+			data.IsAli = true
+		case global.PayEnCredit:
+			data.IsCredit = true
+		case global.PayEnCashOn:
+			data.IsCashOn = true
+		}
+	}
 	//清除关联
 	_=e.Orm.Model(&data).Association("Tag").Clear()
 	if len(c.Tags) > 0 {

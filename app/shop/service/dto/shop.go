@@ -71,7 +71,7 @@ type ShopInsertReq struct {
 	Integral      int     `json:"integral" comment:"可用积分"`
 	SalesmanId string  `json:"salesman_id" comment:"推荐人"`
 	Salesman      int     `json:"salesman" comment:"推荐人"`
-
+	SelectPay []string `json:"select_pay" comment:"选择的支付方式"`
 	Tags          []int   `json:"tags" comment:"客户标签"`
 	common.ControlBy
 }
@@ -145,6 +145,7 @@ type ShopUpdateReq struct {
 	SalesmanPhone string  `json:"salesman_phone" comment:"推荐人"`
 	Salesman      int    `json:"salesman" comment:"推荐人"`
 	Tags          []int   `json:"tags" comment:"客户标签"`
+	SelectPay []string `json:"select_pay" comment:"选择的支付方式"`
 	common.ControlBy
 }
 
@@ -165,6 +166,12 @@ func (s *ShopUpdateReq) Generate(model *models.Shop) {
 	model.Image = s.Image
 	model.LineId = s.LineId
 
+	model.IsCashOn = false
+	model.IsCredit = false
+	model.IsAli = false
+	model.IsBalanceDeduct = false
+	model.IsWeChat  = false
+	
 
 
 	model.Salesman = s.Salesman

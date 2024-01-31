@@ -228,6 +228,12 @@ const (
 	InventoryApproveIn = 8 //审批驳回入库
 
 	InventoryHelpOut = 9 //代客下单出库
+
+	PayEnBalance = "balance"
+	PayEnWeChat = "we_chat"
+	PayEnCredit = "credit"
+	PayEnCashOn = "cash_on"
+	PayEnAli = "ali"
 )
 
 func GetPayCn(v int)  string {
