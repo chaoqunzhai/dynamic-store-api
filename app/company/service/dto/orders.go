@@ -9,6 +9,7 @@ import (
 type OrdersActionReq struct {
 
 	Msg    string    `json:"msg" gorm:"column:msg"`
+	EmsId string `json:"ems_id"`
 	Action    int    `json:"action" gorm:"column:action"`
 	OrderList    []string    `json:"order_list" `
 

@@ -59,8 +59,8 @@ func (e Orders) OrderAction(c *gin.Context) {
 	//更新
 	updateMap:=map[string]interface{}{
 		"status":req.Action,
+		"ems_id":req.EmsId,
 	}
-
 	switch req.Action {
 
 	case global.OrderWaitConfirm:
@@ -296,7 +296,7 @@ func (e Orders) GetPage(c *gin.Context) {
 		"hasApprove":hasApprove,
 		"openApprove":openApprove,
 		"verify":map[string]interface{}{
-			"all_goods_money":utils.StringDecimal(countMap.AllCouponMoney),
+			"all_goods_money":utils.StringDecimal(countMap.AllGoodsMoney),
 			"all_coupon_money":utils.StringDecimal(countMap.AllCouponMoney),
 			"all_order_money":utils.StringDecimal(countMap.AllOrderMoney),
 			"number":countMap.Number,

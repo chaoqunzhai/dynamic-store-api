@@ -24,6 +24,10 @@ type CompanyUserGetPage struct {
 	UserName           string `form:"username"  search:"type:exact;column:username;table:sys_user" comment:""`
 	Phone          string `form:"phone"  search:"type:exact;column:enable;table:sys_user" comment:""`
 	Role int `form:"role"  search:"type:exact;column:role_id;table:sys_user" comment:""`
+
+	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:sys_user" comment:"创建时间"`
+	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:sys_user" comment:"创建时间"`
+
 }
 
 func (m *CompanyUserGetPage) GetNeedSearch() interface{} {

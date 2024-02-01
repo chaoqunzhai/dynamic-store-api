@@ -583,6 +583,7 @@ func (e Company) PayCnf(c *gin.Context) {
 			"value":"微信支付",
 			"label":object.WeChat,
 			"key":global.PayEnWeChat,
+			"type":global.PayTypeOnlineWechat,
 		})
 	}
 
@@ -591,6 +592,7 @@ func (e Company) PayCnf(c *gin.Context) {
 			"value":"余额支付",
 			"label":object.BalanceDeduct,
 			"key":global.PayEnBalance,
+			"type":global.PayTypeBalance,
 		})
 	}
 	if object.Credit {
@@ -598,6 +600,7 @@ func (e Company) PayCnf(c *gin.Context) {
 			"value":"授信额支付",
 			"label":object.Credit,
 			"key":global.PayEnCredit,
+			"type":global.PayTypeCredit,
 		})
 	}
 	if object.CashOn {
@@ -605,6 +608,7 @@ func (e Company) PayCnf(c *gin.Context) {
 			"value":"货到付款",
 			"label":object.CashOn,
 			"key":global.PayEnCashOn,
+			"type":global.PayTypeCashOn,
 		})
 	}
 

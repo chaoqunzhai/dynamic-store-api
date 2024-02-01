@@ -1,7 +1,6 @@
 package apis
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"go-admin/app/company/service/dto"
 	models2 "go-admin/cmd/migrate/migration/models"
@@ -9,6 +8,7 @@ import (
 	customUser "go-admin/common/jwt/user"
 	"go-admin/common/utils"
 	"go-admin/global"
+	"gorm.io/gorm"
 	"strconv"
 )
 
@@ -45,6 +45,57 @@ func (e Company) StoreList(c *gin.Context) {
 	return
 }
 
+func (e Company) GetDelivery(c *gin.Context) {
+
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	var objectLists []models2.CompanyExpress
+	e.Orm.Model(&models2.CompanyExpress{}).Where("c_id = ? ",userDto.CId).Find(&objectLists)
+
+	cache:=make([]int,0)
+	cacheMap:=make(map[int]interface{},0)
+	for _,row:=range objectLists{
+		if row.Enable{
+			name :=global.GetExpressCn(row.Type)
+			cache = append(cache,row.Type)
+			cacheMap[row.Type] = map[string]interface{}{
+				"name":name,
+				"type":row.Type,
+			}
+		}
+	}
+	cache = utils.RemoveRepeatInt(cache)
+	result:=make([]interface{},0)
+	for _,row:=range cache{
+		result = append(result,cacheMap[row])
+	}
+	e.OK(result,"successful")
+	return
+}
+//保证发货方式存在一种,只有在关的时候 才会校验
+func ValidExpressLastNumber(cid int,orm *gorm.DB) bool{
+	var count int64
+	orm.Model(&models2.CompanyExpress{}).Where("c_id = ? and enable = ?",cid,true).Count(&count)
+
+	if count <=1 {
+		return false
+	}
+
+	return true
+
+}
 func (e Company) ExpressList(c *gin.Context) {
 
 	err := e.MakeContext(c).
@@ -139,6 +190,10 @@ func (e Company) ExpressCnfEms(c *gin.Context) {
 		return
 	}
 
+	if !req.Cnf.Enable && !ValidExpressLastNumber(userDto.CId,e.Orm){
+		e.Error(500, nil,"必须保留一种发货方式")
+		return
+	}
 	var object models2.CompanyExpress
 	e.Orm.Model(&models2.CompanyExpress{}).Scopes(actions.PermissionSysUser(
 		object.TableName(), userDto)).Where("type = ?",global.ExpressEms).Limit(1).Find(&object)
@@ -185,6 +240,8 @@ func (e Company) ExpressCnfEms(c *gin.Context) {
 	e.OK("更新成功", "successful")
 	return
 }
+
+
 func (e Company) ExpressCnfLocal(c *gin.Context) {
 	req := dto.CompanyExpressCnfReq{}
 	err := e.MakeContext(c).
@@ -203,8 +260,10 @@ func (e Company) ExpressCnfLocal(c *gin.Context) {
 		return
 	}
 
-	fmt.Println("!!!!",req.Cnf)
-
+	if !req.Cnf.Enable && !ValidExpressLastNumber(userDto.CId,e.Orm){
+		e.Error(500, nil,"必须保留一种发货方式")
+		return
+	}
 	var object models2.CompanyExpress
 	e.Orm.Model(&models2.CompanyExpress{}).Scopes(actions.PermissionSysUser(
 		object.TableName(), userDto)).Where("type = ?",global.ExpressSameCity).Limit(1).Find(&object)
@@ -269,7 +328,10 @@ func (e Company) ExpressCnfStore(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-
+	if !req.Cnf.Enable && !ValidExpressLastNumber(userDto.CId,e.Orm){
+		e.Error(500, nil,"必须保留一种发货方式")
+		return
+	}
 	var object models2.CompanyExpress
 	e.Orm.Model(&models2.CompanyExpress{}).Scopes(actions.PermissionSysUser(
 		object.TableName(), userDto)).Where("type = ?",global.ExpressSelf).Limit(1).Find(&object)

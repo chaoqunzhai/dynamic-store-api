@@ -171,7 +171,7 @@ func (s *ShopUpdateReq) Generate(model *models.Shop) {
 	model.IsAli = false
 	model.IsBalanceDeduct = false
 	model.IsWeChat  = false
-	
+
 
 
 	model.Salesman = s.Salesman

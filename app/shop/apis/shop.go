@@ -88,6 +88,13 @@ func (e Shop) GetPage(c *gin.Context) {
    		e.Error(500, err, err.Error())
    		return
    	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var payCnf models2.PayCnf
+	e.Orm.Model(&models2.PayCnf{}).Where("c_id = ?", userDto.CId).Limit(1).Find(&payCnf)
 
 	p := actions.GetPermissionFromContext(c)
 	list := make([]models.Shop, 0)
@@ -147,7 +154,16 @@ func (e Shop) GetPage(c *gin.Context) {
 		result = append(result,cache)
 	}
 
-	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	resultData:=map[string]interface{}{
+		"payCnf":payCnf,
+		"list":result,
+		"count":int(count),
+		"pageIndex":req.GetPageIndex(),
+		"pageSize":req.GetPageSize(),
+	}
+
+	e.OK(resultData,"")
+	return
 }
 
 // Get 获取Shop

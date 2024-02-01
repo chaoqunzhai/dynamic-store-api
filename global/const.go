@@ -191,11 +191,10 @@ const (
 
 	PayTypeBalance = 1 //余额支付
 	PayTypeCredit = 2 //授信额支付
-
 	PayTypeOnlineWechat = 3 //线上微信支付
 	PayTypeOnlineAli = 4 //线上支付宝支付
 	PayTypeOffline = 5 //线下支付
-
+	PayTypeCashOn = 6 //货到付款
 	ExportDeliveryOrder = 0 //配送订单
 	ExportSelfOrder = 1 //自提订单
 	ExportReportOrder =2 //配送报表
@@ -462,6 +461,8 @@ func GetPayType(v int)  string {
 		return "余额支付"
 	case PayTypeCredit:
 		return "授信额支付"
+	case PayTypeCashOn:
+		return "货到付款"
 	}
 	return "线上支付"
 }

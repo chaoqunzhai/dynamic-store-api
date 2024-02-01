@@ -1,8 +1,6 @@
 package dto
 
 import (
-	"time"
-
 	"go-admin/app/company/models"
 	"go-admin/common/dto"
 	common "go-admin/common/models"
@@ -16,8 +14,8 @@ type CompanyCouponGetPageReq struct {
 	Name           string    `form:"name"  search:"type:contains;column:name;table:company_coupon" comment:"优惠卷名称"`
 	Type           string    `form:"type"  search:"type:exact;column:type;table:company_coupon" comment:"类型"`
 	Range          string    `form:"range"  search:"type:exact;column:range;table:company_coupon" comment:"使用范围"`
-	StartTime      time.Time `form:"startTime"  search:"type:gte;column:start_time;table:company_coupon" comment:"开始使用时间"`
-	EndTime        time.Time `form:"endTime"  search:"type:lte;column:end_time;table:company_coupon" comment:"截止使用时间"`
+	BeginTime     string `form:"beginTime"  search:"type:gte;column:start_time;table:company_coupon" comment:"开始使用时间"`
+	EndTime        string `form:"endTime"  search:"type:lte;column:end_time;table:company_coupon" comment:"截止使用时间"`
 	Inventory      string    `form:"inventory"  search:"type:exact;column:inventory;table:company_coupon" comment:"库存"`
 	CompanyCouponOrder
 }

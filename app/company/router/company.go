@@ -22,7 +22,7 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 	{
 		//密码修改
 		r.POST("/renew",api.RenewPass)
-		//全局开启的支付方式
+		//获取全局开启的支付方式
 		r.GET("/pay_cnf",api.PayCnf)
 		//大B信息
 		r.GET("/info", api.Info)
@@ -47,7 +47,9 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.GET("/category", api.Category)
 		//门店自提配置
 		r.GET("/express/store",api.StoreList)
-		//配送方式列表
+		//获取开启的配送方式
+		r.GET("/delivery",api.GetDelivery)
+		//获取指定配送方式的信息
 		r.GET("/express", api.ExpressList)
 		//大B的配送
 		//同城配置
