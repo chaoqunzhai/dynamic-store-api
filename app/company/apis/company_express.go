@@ -202,6 +202,7 @@ func (e Company) ExpressCnfEms(c *gin.Context) {
 		object = models2.CompanyExpress{
 			Type: global.ExpressEms,
 		}
+		object.Desc = global.GetExpressCn(global.ExpressEms)
 		object.CId = userDto.CId
 		object.Enable = req.Cnf.Enable
 		e.Orm.Create(&object)
@@ -272,6 +273,7 @@ func (e Company) ExpressCnfLocal(c *gin.Context) {
 		object = models2.CompanyExpress{
 			Type: global.ExpressSameCity,
 		}
+		object.Desc = global.GetExpressCn(global.ExpressSameCity)
 		object.CId = userDto.CId
 		object.Enable = req.Cnf.Enable
 		e.Orm.Create(&object)
@@ -328,25 +330,9 @@ func (e Company) ExpressCnfStore(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	if !req.Cnf.Enable && !ValidExpressLastNumber(userDto.CId,e.Orm){
+	if !req.Store.Enable && !ValidExpressLastNumber(userDto.CId,e.Orm){
 		e.Error(500, nil,"必须保留一种发货方式")
 		return
-	}
-	var object models2.CompanyExpress
-	e.Orm.Model(&models2.CompanyExpress{}).Scopes(actions.PermissionSysUser(
-		object.TableName(), userDto)).Where("type = ?",global.ExpressSelf).Limit(1).Find(&object)
-
-	if object.Id == 0{
-		object = models2.CompanyExpress{
-			Type: global.ExpressSelf,
-		}
-		object.CId = userDto.CId
-		object.Enable = req.Cnf.Enable
-		e.Orm.Create(&object)
-	}else {
-		e.Orm.Model(&models2.CompanyExpress{}).Where("id = ?",object.Id).Updates(map[string]interface{}{
-			"enable":req.Cnf.Enable,
-		})
 	}
 
 	var objectStore models2.CompanyExpress

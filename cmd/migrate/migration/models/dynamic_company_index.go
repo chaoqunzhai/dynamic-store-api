@@ -18,7 +18,7 @@ type Ads struct {
 	BigBRichGlobal
 	Type int `json:"type"  gorm:"comment:类型: 0:顶部 1:中部"`
 	LinkName string `json:"link_name" gorm:"size:30;comment:名称"`
-	LinkUrl string `json:"link_url" gorm:"size:50;comment:链接地址"`
+	LinkUrl string `json:"link_url" gorm:"size:120;comment:链接地址"`
 	ImageUrl string `json:"image_url" gorm:"size:30;comment:图片地址"`
 	ShowImage string `json:"image" gorm:"-"` //展示字段
 }
