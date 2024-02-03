@@ -18,6 +18,12 @@ import (
 )
 
 func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOrderSpecId []int,reqDesc string,splitTableRes business.TableRow,userDto *sys.SysUser) error  {
+	updateMasterMap:=make(map[string]interface{},0)
+	updateMasterMap["edit"] = true
+	updateMasterMap["approve_msg"] = reqDesc
+	updateMasterMap["after_status"] = global.RefundCompanyCancelCType
+	updateMasterMap["approve_status"] = global.OrderApproveReject
+
 
 	var orderObject models.Orders
 	//获取订单对象
@@ -31,7 +37,9 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 
 		return errors.New("订单已作废")
 	}
-
+	if orderObject.Status == global.OrderStatusReturn {
+		return errors.New("订单已售后处理完毕")
+	}
 	if orderObject.Status == global.OrderStatusOver {
 		return errors.New("订单已验收")
 	}
@@ -64,8 +72,12 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 	}
 	orm.Find(&orderSpecsList)
 	if len(orderSpecsList) == 0 {
+		//订单无规格 订单是一个有问题的,但是需要作废订单,那就直接更改订单的状态
+		updateMasterMap["status"] = global.OrderStatusCancel
+		e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id = ?",
+			userDto.CId,reqOrderId).Updates(updateMasterMap) //更新主订单即可
 
-		return errors.New("订单无规格数据")
+		return nil
 	}
 	isAllAfterStatus := true //是否全部已经退回
 	specsId:=make([]int,0)
@@ -237,15 +249,10 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 		e.Orm.Create(&row)
 	}
 
-	updateMasterMap:=make(map[string]interface{},0)
 	if isAllAfterStatus { //增加更改主订单的状态
 		//订单直接都改为作废
 		updateMasterMap["status"] = global.OrderStatusCancel
 	}
-	updateMasterMap["edit"] = true
-	updateMasterMap["approve_msg"] = reqDesc
-	updateMasterMap["after_status"] = global.RefundCompanyCancelCType
-	updateMasterMap["approve_status"] = global.OrderApproveReject
 	//更新主订单的信息
 	e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id = ?",userDto.CId,reqOrderId).Updates(updateMasterMap) //更新主订单
 	//循环查询到规格ID

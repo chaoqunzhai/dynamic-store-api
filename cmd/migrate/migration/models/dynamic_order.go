@@ -44,6 +44,7 @@ type Orders struct {
 	OfflinePayId int `json:"offline_pay_id" gorm:"index;comment:线下付款方式"`
 	Line           string       `gorm:"size:16;comment:路线名称"`
 	LineId         int          `json:"line_id" gorm:"index;type:bigint;comment:线路ID"`
+	ParentStatus    int   `gorm:"type:tinyint(1);default:0;comment:保留上次的订单状态"`
 	Status         int          `gorm:"type:tinyint(1);default:0;index;comment:订单的状态"`
 	DeliveryCode   string       `json:"delivery_code" gorm:"size:9;index;comment:核销码"`
 	WriteOffStatus int          `json:"write_off_status" gorm:"type:tinyint(1);default:0;index;comment:核销状态,0:未核销 1:核销"`
@@ -167,6 +168,7 @@ func (OrderToRedisMap) TableName() string {
 
 type OrderReturn struct {
 	Model
+	DeliveryType   int          `json:"delivery_type" gorm:"comment:配送类型"`
 	PayType        int          `json:"pay_type" gorm:"type:tinyint(1);default:1;comment:订单支付方式"`
 	Uid        string       `json:"uid" gorm:"size:8;index;comment:关联的配送周期统一UID"`
 	CreateBy   int          `json:"createBy" gorm:"index;comment:退货人"`

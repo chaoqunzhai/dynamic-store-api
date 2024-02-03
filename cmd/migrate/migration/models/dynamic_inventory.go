@@ -58,7 +58,7 @@ type InventoryRecord struct {
 	CreateBy  string            `json:"createBy" gorm:"size:20;comment:操作人"`
 	OrderId string `json:"order_id" gorm:"index;size:20;comment:关联的订单ID,只有订单出入/才有这个ID"`
 
-	Action int  `json:"action" gorm:"type:tinyint(1);default:1;index;comment:操作, 1:入库 0:出库 3:退货入库"`
+	Action int  `json:"action" gorm:"type:tinyint(1);default:1;index;comment:操作, 1:入库 2:出库 3:退货入库"`
 	Source int `json:"source" gorm:"type:tinyint(0);default:1;index;comment:数据发起方来源, 0:正常出入库 1:售后退货的 2:管理员操作的"`
 	ArtNo string `json:"art_no" gorm:"size:20;comment:货架编号"`
 	Code      string  `gorm:"size:20;comment:条形码"`

@@ -24,7 +24,7 @@ type CompanyUserGetPage struct {
 	UserName           string `form:"username"  search:"type:exact;column:username;table:sys_user" comment:""`
 	Phone          string `form:"phone"  search:"type:exact;column:enable;table:sys_user" comment:""`
 	Role int `form:"role"  search:"type:exact;column:role_id;table:sys_user" comment:""`
-
+	All bool `json:"all" search:"-"`
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:sys_user" comment:"创建时间"`
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:sys_user" comment:"创建时间"`
 
@@ -139,8 +139,14 @@ func (e Company) MiniList(c *gin.Context) {
 	datalist := make([]sys.SysUser, 0)
 
 	//and invitation_code IS NOT NULL
-	e.Orm.Model(&sys.SysUser{}).Select("user_id,username").Where("c_id = ? and enable = ? ",
-		userDto.CId, true).Scopes(dto.MakeCondition(req.GetNeedSearch())).Find(&datalist)
+	orm := e.Orm.Model(&sys.SysUser{}).Select("user_id,username")
+	if req.All {
+		orm = orm.Where("c_id = ?",userDto.CId)
+	}else {
+		orm = orm.Where("c_id = ? and enable = ? ",
+			userDto.CId, true)
+	}
+	orm.Scopes(dto.MakeCondition(req.GetNeedSearch())).Find(&datalist)
 	result := make([]map[string]interface{}, 0)
 	for _, row := range datalist {
 		result = append(result, map[string]interface{}{

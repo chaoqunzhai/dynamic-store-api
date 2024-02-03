@@ -18,6 +18,7 @@ type OrdersActionReq struct {
 type OrdersGetPageReq struct {
 	dto.Pagination `search:"- " `
 	Verify bool `form:"verify" search:"-" comment:"开启对账统计"`
+	OrderId string  `form:"order_id"  search:"type:exact;column:order_id;table:orders" comment:"排序"`
 	Layer          string `form:"layer"  search:"type:exact;column:layer;table:orders" comment:"排序"`
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:orders" comment:"开关"`
 	CId            int    `form:"cId"  search:"type:exact;column:c_id;table:orders" comment:"大BID"`

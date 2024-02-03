@@ -235,6 +235,16 @@ const (
 	PayEnAli = "ali"
 )
 
+func GetInventoryInAll() []int  {
+
+	return  []int{InventoryIn,InventoryRefundIn,InventoryEditIn,InventoryCancelIn,InventoryApproveIn}
+}
+
+func GetInventoryOutAll() []int  {
+
+	return  []int{InventoryOut,InventoryEditOut,InventoryHelpOut}
+}
+
 func GetPayCn(v int)  string {
 
 	switch v {

@@ -113,6 +113,7 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 	//商家
 	var shopList []models.Shop
 	e.Orm.Model(&models.Shop{}).Select("id,name").Where("id in ? and c_id = ?",shopIds,userDto.CId).Find(&shopList)
+	fmt.Println("查询商家！！",shopIds,shopList)
 	shopMap:=make(map[int]models.Shop,0)
 	for _,shop:=range shopList{
 		shopMap[shop.Id] = shop
@@ -148,12 +149,11 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 
 	for _,row:=range refundList{
 
+		shopName:=""
 		shopObj,ok:=shopMap[row.ShopId]
-		if !ok{continue}
-
-		addressObj,addressOk:=addressMap[row.AddressId]
-
-		if !addressOk{continue}
+		if ok{
+			shopName = shopObj.Name
+		}
 
 
 		RefundRow,ok:=cacheParentMap[row.ReturnId]
@@ -176,7 +176,9 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 				OrderID: row.OrderId,
 				ReturnID: row.ReturnId,
 				Reason: row.Reason,
-				ShopName: shopObj.Name,
+				ShopName: shopName,
+				DeliveryType: row.DeliveryType,
+				DeliveryTypeCn: global.GetExpressCn(row.DeliveryType),
 				RefundDeliveryMoney: utils.StringDecimal(row.RefundDeliveryMoney),
 				RefundMoney: utils.StringDecimal(row.RefundApplyMoney),
 				RefundMoneyType: global.RefundMoneyTypeStr(row.RefundMoneyType),
@@ -208,10 +210,14 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 				RefundRow.CouponMoney = ordersObj.CouponMoney
 
 			}
-			RefundRow.Address = dto.RefundAddress{
-				Name: addressObj.Name,
-				Address:addressObj.Address,
-				Mobile: addressObj.Mobile,
+			addressObj,addressOk:=addressMap[row.AddressId]
+
+			if addressOk{//有地址时才会设置
+				RefundRow.Address = dto.RefundAddress{
+					Name: addressObj.Name,
+					Address:addressObj.Address,
+					Mobile: addressObj.Mobile,
+				}
 			}
 
 			if !row.RefundTime.IsZero() {
@@ -544,6 +550,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 		e.Orm.Table(splitTableRes.OrderSpecs).Where("id = ?",orderSpecsObject.Id).Updates(map[string]interface{}{
 			"after_status":global.RefundOk,
 			"number":specsNumber,
+
 		})
 
 
@@ -578,6 +585,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 	updateOrderMap:=map[string]interface{}{
 		"after_status":global.RefundOk,
 		"number":orderAllNumber,
+		"status":orderObject.ParentStatus,//还原上一次状态
 	}
 	if orderAllNumber == 0 {
 		updateOrderMap["status"] = global.OrderStatusReturn //售后处理完毕

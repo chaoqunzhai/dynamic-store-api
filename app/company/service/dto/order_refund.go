@@ -6,6 +6,8 @@ package dto
 
 
 type RefundDto struct {
+	DeliveryType int `json:"delivery_type"` //配送类型
+	DeliveryTypeCn string `json:"delivery_type_cn"` //配送类型
 	AuditName string `json:"audit_name"`
 	Reason    string    `json:"reason" gorm:"column:reason"`
 	ShopName   string   `json:"shop_name" gorm:"column:shop"`

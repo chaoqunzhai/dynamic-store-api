@@ -447,7 +447,19 @@ func (e CompanyInventory) RecordsLog(c *gin.Context) {
 
 	var count int64
 	result:=make([]interface{},0)
-	e.Orm.Table(splitTableRes.InventoryRecordLog).Where("c_id = ? ",userDto.CId).Scopes(
+	orm :=e.Orm.Table(splitTableRes.InventoryRecordLog).Where("c_id = ? ",userDto.CId)
+	if req.Type > 0 {
+
+		switch req.Type {
+		case global.InventoryIn:
+			orm = orm.Where("action in ?",global.GetInventoryInAll())
+		case global.InventoryOut:
+			orm = orm.Where("action in ?",global.GetInventoryOutAll())
+
+		}
+	}
+
+	orm.Scopes(
 		cDto.MakeSplitTableCondition(req.GetNeedSearch(),splitTableRes.InventoryRecordLog),
 		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
 	).Order("id desc").Find(&RecordsList).Limit(-1).Offset(-1).Count(&count)

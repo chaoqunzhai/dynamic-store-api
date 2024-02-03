@@ -262,6 +262,10 @@ func (e Company)Count(c *gin.Context)  {
 	thisDayS:=fmt.Sprintf("%v 00:00:00",time.Now().Format("2006-01-02"))
 	thisDayE:=fmt.Sprintf("%v 23.59.59",time.Now().Format("2006-01-02"))
 	thisDaySql:=fmt.Sprintf("c_id = '%v' and  created_at >= '%v' AND created_at <= '%v'",userDto.CId,thisDayS,thisDayE)
+
+	openApprove,_:=service.IsHasOpenApprove(userDto,e.Orm)
+
+	//检测是否开启了审核,如果开启了审核 必须是审核通过后的订单
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 	countResponse :=dto.IndexCount{
 		Goods: func() int64{
@@ -286,7 +290,14 @@ func (e Company)Count(c *gin.Context)  {
 		}(),
 		WaitOrder:func() int64{
 			var count int64
-			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and pay_status = ?",userDto.CId,global.OrderStatusWaitSend).Count(&count)
+			orm := e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and status =  ?",userDto.CId,global.OrderStatusWaitSend)
+			//待配送查询时 需要检测是否开启了审批
+			if openApprove{
+				orm.Where("approve_status = ?",global.OrderApproveOk).Count(&count)
+			}else {
+				orm.Count(&count)
+			}
+			fmt.Println("查询待发货",count)
 			return count
 		}(),
 		RefundOrder:func() int64{
@@ -296,22 +307,22 @@ func (e Company)Count(c *gin.Context)  {
 		}(),
 		WaitSelfOrder:func() int64{
 			var count int64
-			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and delivery_type = 1 and 'status' =  ?",userDto.CId,global.OrderWaitConfirm).Count(&count)
+			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and delivery_type = 1 and status =  ?",userDto.CId,global.OrderWaitConfirm).Count(&count)
 			return count
 		}(),
 		ThisDayPayOkOrder: func() int64{
 			var count int64
-			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and ?",userDto.CId,thisDaySql).Count(&count)
+			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ?",userDto.CId).Where(thisDaySql).Count(&count)
 			return count
 		}(),
 		ThisDayNewShop: func() int64{
 			var count int64
-			e.Orm.Model(&models2.Shop{}).Where("c_id = ? and ? ",userDto.CId,thisDaySql).Count(&count)
+			e.Orm.Model(&models2.Shop{}).Where("c_id = ? ",userDto.CId).Where(thisDaySql).Count(&count)
 			return count
 		}(),
 		ThisDayPayOkShopUser:func() int64{
 			var count int64
-			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and ? and 'status' = ? ",userDto.CId,thisDaySql,global.OrderStatusWaitSend).Count(&count)
+			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and 'status' = ? ",userDto.CId,global.OrderStatusWaitSend).Where(thisDaySql).Count(&count)
 			return count
 		}(),
 		ThisDayPayAll: func() string {
