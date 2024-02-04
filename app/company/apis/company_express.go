@@ -62,7 +62,7 @@ func (e Company) GetDelivery(c *gin.Context) {
 	}
 
 	var objectLists []models2.CompanyExpress
-	e.Orm.Model(&models2.CompanyExpress{}).Where("c_id = ? ",userDto.CId).Find(&objectLists)
+	e.Orm.Model(&models2.CompanyExpress{}).Where("c_id = ? ",userDto.CId).Order(global.OrderLayerKey).Find(&objectLists)
 
 	cache:=make([]int,0)
 	cacheMap:=make(map[int]interface{},0)
@@ -194,6 +194,7 @@ func (e Company) ExpressCnfEms(c *gin.Context) {
 		e.Error(500, nil,"必须保留一种发货方式")
 		return
 	}
+	layer :=1
 	var object models2.CompanyExpress
 	e.Orm.Model(&models2.CompanyExpress{}).Scopes(actions.PermissionSysUser(
 		object.TableName(), userDto)).Where("type = ?",global.ExpressEms).Limit(1).Find(&object)
@@ -204,11 +205,13 @@ func (e Company) ExpressCnfEms(c *gin.Context) {
 		}
 		object.Desc = global.GetExpressCn(global.ExpressEms)
 		object.CId = userDto.CId
+		object.Layer = layer
 		object.Enable = req.Cnf.Enable
 		e.Orm.Create(&object)
 	}else {
 		e.Orm.Model(&models2.CompanyExpress{}).Where("id = ?",object.Id).Updates(map[string]interface{}{
 			"enable":req.Cnf.Enable,
+			"layer":layer,
 		})
 	}
 	//快递配置
@@ -265,6 +268,7 @@ func (e Company) ExpressCnfLocal(c *gin.Context) {
 		e.Error(500, nil,"必须保留一种发货方式")
 		return
 	}
+	layer:=3
 	var object models2.CompanyExpress
 	e.Orm.Model(&models2.CompanyExpress{}).Scopes(actions.PermissionSysUser(
 		object.TableName(), userDto)).Where("type = ?",global.ExpressSameCity).Limit(1).Find(&object)
@@ -273,6 +277,7 @@ func (e Company) ExpressCnfLocal(c *gin.Context) {
 		object = models2.CompanyExpress{
 			Type: global.ExpressSameCity,
 		}
+		object.Layer =layer
 		object.Desc = global.GetExpressCn(global.ExpressSameCity)
 		object.CId = userDto.CId
 		object.Enable = req.Cnf.Enable
@@ -280,6 +285,7 @@ func (e Company) ExpressCnfLocal(c *gin.Context) {
 	}else {
 		e.Orm.Model(&models2.CompanyExpress{}).Where("id = ?",object.Id).Updates(map[string]interface{}{
 			"enable":req.Cnf.Enable,
+			"layer":layer,
 		})
 	}
 
@@ -334,16 +340,18 @@ func (e Company) ExpressCnfStore(c *gin.Context) {
 		e.Error(500, nil,"必须保留一种发货方式")
 		return
 	}
-
+	layer :=2
 	var objectStore models2.CompanyExpress
 	e.Orm.Model(&models2.CompanyExpress{}).Scopes(actions.PermissionSysUser(objectStore.TableName(), userDto)).Where("type = ?", global.ExpressSelf).Limit(1).Find(&objectStore)
 	if objectStore.Id > 0 {
 		objectStore.Enable = req.Store.Enable
+		objectStore.Layer = layer
 		e.Orm.Save(&objectStore)
 	} else {
 		store := models2.CompanyExpress{}
 		store.Enable = req.Store.Enable
 		store.CId = userDto.CId
+		store.Layer = layer
 		store.Type = global.ExpressSelf
 		store.Desc = global.GetExpressCn(global.ExpressSelf)
 		e.Orm.Create(&store)

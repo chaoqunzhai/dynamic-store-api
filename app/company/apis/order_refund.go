@@ -546,11 +546,11 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 			specsNumber = 0
 		}
 
-		//3、已经退货的规格订单也需要标记
+		//3、已经退货的规格订单也需要标记和改价
 		e.Orm.Table(splitTableRes.OrderSpecs).Where("id = ?",orderSpecsObject.Id).Updates(map[string]interface{}{
 			"after_status":global.RefundOk,
 			"number":specsNumber,
-
+			"all_money":utils.RoundDecimalFlot64(orderSpecsObject.Money * float64(specsNumber)),
 		})
 
 
@@ -590,13 +590,6 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 	if orderAllNumber == 0 {
 		updateOrderMap["status"] = global.OrderStatusReturn //售后处理完毕
 	}
-	//把订单商品的总金额也减少
-	GoodsMoney :=orderObject.GoodsMoney -  refundMoney
-	if GoodsMoney <= 0{
-		GoodsMoney = 0
-	}
-	updateOrderMap["goods_money"] = GoodsMoney
-	//折扣的价格不管了
 
 	//把商品的订单金额也减少
 	OrderMoney :=orderObject.OrderMoney -  refundMoney
@@ -604,10 +597,17 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 		OrderMoney = 0
 	}
 	updateOrderMap["order_money"] = OrderMoney
-	//更新订单
+
+	//把订单商品的总金额也减少
+	GoodsMoney :=orderObject.GoodsMoney -  refundMoney
+	if GoodsMoney <= 0{ //商品金额归纳到订单金额上
+		GoodsMoney = OrderMoney
+	}
+	updateOrderMap["goods_money"] = GoodsMoney
+	//折扣的价格不管了
+
+	//更新主订单状态
 	e.Orm.Table(splitTableRes.OrderTable).Where("id = ?",orderObject.Id).Updates(updateOrderMap)
-
-
 
 	e.OK("","successful")
 	return

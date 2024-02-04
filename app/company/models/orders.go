@@ -2,6 +2,8 @@ package models
 
 import (
 	"go-admin/common/models"
+	"go-admin/common/utils"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -38,7 +40,7 @@ type Orders struct {
 	DeliveryType   int          `json:"delivery_type" gorm:"comment:配送类型"`
 	DeliveryID     int          `json:"delivery_id" gorm:"comment:关联的配送ID,根据配送类型来查询相关数据"`
 	DeliveryStr    string       `json:"delivery_str" gorm:"size:25;comment:配送文案"`
-	DeliveryMoney  float64      `json:"delivery_money" gorm:"comment:配送费"`
+	DeliveryMoney  float64      `json:"delivery_money" gorm:"comment:订单总配送费"`
 	CouponId       int          `json:"coupon_id" gorm:"comment:使用优惠卷的ID"`
 	DriverId       int          `gorm:"index;comment:司机ID"`
 	AddressId      int          `json:"user_address_id" gorm:"index;comment:用户的收货地址,或者自提的店家地址"`
@@ -85,9 +87,13 @@ type OrderSpecs struct {
 	AfterStatus    int          `json:"after_status" gorm:"type:tinyint(1);default:0;;comment:售后状态:-2:撤回 -1:驳回, 0:无售后, 1:售后处理中 2:处理完毕  3: 大B退回"`
 	AllMoney  float64      `json:"all_money" gorm:"comment:计算的规格价格"` //创建时 计算好
 
-
 }
-
+func (e *OrderSpecs) BeforeCreate(_ *gorm.DB) error {
+	if e.Number > 0 && e.Money > 0 {
+		e.AllMoney = utils.RoundDecimalFlot64(e.Money * float64(e.Number))
+	}
+	return nil
+}
 func (OrderSpecs) TableName(tableName string) string {
 	if tableName == "" {
 		return "order_specs"
@@ -108,7 +114,7 @@ type OrderExtend struct {
 	CreatedAt models.XTime       `json:"createdAt" gorm:"comment:创建时间"`
 	OrderId string `json:"order_id" gorm:"index;size:20;comment:订单ID"`
 	//DriverId    int         `gorm:"comment:司机ID"`
-	////如果是同城配送,就是保存的小B地址的ID
+	////如果是周期配送,就是保存的小B地址的ID
 	////如果是自提,那保存的是大B的设置的自提点地址的ID
 	//AddressId int `json:"user_address_id" gorm:"comment:用户的收货地址,或者自提的店家地址"`
 	//CouponMoney float64 `json:"coupon_money" gorm:"comment:优惠卷金额"`

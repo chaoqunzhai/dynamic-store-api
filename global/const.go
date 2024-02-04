@@ -17,7 +17,7 @@ const (
 	LogIngUserType = "用户名登录"
 	LogIngPhoneType = "手机号登录"
 	ExpressSelf     = 1 //门店自提 门店地址
-	ExpressSameCity    = 2 //同城配送 客户地址
+	ExpressSameCity    = 2 //周期配送 客户地址
 	ExpressEms = 3 //物流配送 客户地址
 
 	CacheImage = "cache_image/" //统一临时存放的目录
@@ -481,11 +481,11 @@ func GetExpressCn(v int) string {
 	case ExpressSelf:
 		return "门店自提"
 	case ExpressSameCity:
-		return "同城配送"
+		return "周期配送"
 	case ExpressEms:
 		return "物流配送"
 	}
-	return "同城配送"
+	return "周期配送"
 }
 func GetOrderSource(v int) string {
 	switch v {

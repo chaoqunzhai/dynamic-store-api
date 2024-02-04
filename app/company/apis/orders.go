@@ -267,7 +267,7 @@ func (e Orders) GetPage(c *gin.Context) {
 		}
 		if row.DeliveryType == global.ExpressSameCity || row.DeliveryType == global.ExpressEms{
 			if row.Status == global.OrderWaitConfirm{
-				r["status"] = "待取"
+				r["status"] = "配送中"
 			}
 		}
 
@@ -501,7 +501,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 
 
 	fmt.Println("周期配送！！",req.Cycle,"req.DeliveryType",req.DeliveryType)
-	if req.DeliveryType == global.ExpressSameCity{ //同城配送
+	if req.DeliveryType == global.ExpressSameCity{ //周期配送
 		var DeliveryObject models.CycleTimeConf
 		e.Orm.Model(&models2.CycleTimeConf{}).Where("c_id = ? and id = ? and enable =? ",userDto.CId, req.Cycle, true).Limit(1).Find(&DeliveryObject)
 		if DeliveryObject.Id == 0 {
@@ -514,7 +514,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		orderRow.DeliveryTime = service.CalculateTime(DeliveryObject.GiveDay)
 		orderRow.DeliveryStr = DeliveryStr
 		orderRow.DeliveryID = DeliveryObject.Id
-		orderRow.Status = global.OrderStatusWaitSend
+		orderRow.Status = global.OrderStatusWaitSend //周期就是备货中
 
 		//代客下单,地址就是客户的默认地址
 		var defaultAddress models2.DynamicUserAddress
@@ -522,7 +522,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		//用户是一定有一个默认地址的
 		orderRow.AddressId = defaultAddress.Id
 	}else { //自提或者物流
-		orderRow.Status = global.OrderWaitConfirm
+		orderRow.Status = global.OrderWaitConfirm //其他就是 配送中
 		orderRow.DeliveryRunAt = models3.XTime{
 			Time:time.Now(),
 		}
@@ -556,6 +556,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	}
 	//代客下单，是不需要审批的,
 	orderRow.ApproveStatus =  global.OrderApproveOk
+	//类型
 	orderRow.DeliveryType = req.DeliveryType
 	orderRow.Phone = shopObject.Phone
 	//代客下单时的用户是管理员用户！！！

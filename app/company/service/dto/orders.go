@@ -261,6 +261,7 @@ type OrdersRefundReq struct {
 
 type OrdersRefundPageReq struct {
 	dto.Pagination `search:"-"`
+	DeliveryType int `form:"delivery_type"  search:"type:exact;column:delivery_type;table:order_return" comment:"订单类型"`
 	OrderId          string `form:"order_id"  search:"type:exact;column:order_id;table:order_return" comment:"排序"`
 	ReturnId          string `form:"return_id"  search:"type:exact;column:return_id;table:order_return" comment:"排序"`
 	ShopId         string `form:"shop_id"  search:"type:exact;column:shop_id;table:order_return" comment:"关联客户"`

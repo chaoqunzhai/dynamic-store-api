@@ -315,6 +315,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 		"approve_status":object.ApproveStatus,
 		"openApprove":openApprove,
 		"hasApprove":hasApprove,
+		"ems_id":object.EmsId,
 	}
 
 	if shopRow.GradeId > 0 {
@@ -343,7 +344,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 	if object.DeliveryType == global.ExpressSelf {
 
 		if object.Status == global.OrderWaitConfirm{
-			result["status"] = "待取"
+			result["status"] = "配送中"
 		}
 	}
 	if shopRow.Id > 0{
@@ -378,12 +379,15 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 
 	}
 
-	var driverCnf models.Driver
-	e.Orm.Model(&driverCnf).Scopes(actions.PermissionSysUser(driverCnf.TableName(),userDto)).Where("id = ? ",object.DriverId).Limit(1).Find(&driverCnf)
-	if driverCnf.Id > 0 {
-		result["driver_name"] = driverCnf.Name
-		result["driver_phone"] = driverCnf.Phone
+	if object.DriverId > 0 {
+		var driverCnf models.Driver
+		e.Orm.Model(&driverCnf).Scopes(actions.PermissionSysUser(driverCnf.TableName(),userDto)).Where("id = ? ",object.DriverId).Limit(1).Find(&driverCnf)
+		if driverCnf.Id > 0 {
+			result["driver_name"] = driverCnf.Name
+			result["driver_phone"] = driverCnf.Phone
+		}
 	}
+
 
 	var orderSpecs []models.OrderSpecs
 
