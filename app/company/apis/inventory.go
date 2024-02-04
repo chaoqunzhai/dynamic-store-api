@@ -306,7 +306,7 @@ func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 		}
 
 		var GoodsSpecsObjectList []models2.GoodsSpecs
-		e.Orm.Model(&models2.GoodsSpecs{}).Select("id,unit,name,image,goods_id").Where(strings.Join(findGoodsSpecKey," or ")).Find(&GoodsSpecsObjectList)
+		e.Orm.Model(&models2.GoodsSpecs{}).Select("id,unit_id,name,image,goods_id").Where(strings.Join(findGoodsSpecKey," or ")).Find(&GoodsSpecsObjectList)
 		for _,row:=range GoodsSpecsObjectList{
 			GoodsSpecsInfoMap[fmt.Sprintf("%v_%v",row.GoodsId,row.Id)] = dto.GoodsInfo{
 				Name: row.Name,
@@ -322,6 +322,7 @@ func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 		goodsData:=GoodsInfoMap[row.GoodsId]
 		goodsSpecs:=GoodsSpecsInfoMap[key]
 
+		//fmt.Println("key!!",key,"dataa",goodsSpecs)
 		imageVal := goodsSpecs.Image
 		if goodsSpecs.Image == ""{
 			//商品如果有图片,那获取第一张图片即可
@@ -913,6 +914,7 @@ func (e CompanyInventory) OutboundCreate(c *gin.Context) {
 			SourceNumber:SourceNumber, //原库存
 			ActionNumber:data.ActionNumber, //操作的库存
 			CurrentNumber:SourceNumber - data.ActionNumber, //那现库存 就是 原库存 - 操作的库存
+			SourcePrice: InventoryObject.OriginalPrice,
 			OriginalPrice:data.CostPrice,
 			Unit:service.GetUnitName(userDto.CId,goodsSpecs.UnitId,e.Orm),
 		}
