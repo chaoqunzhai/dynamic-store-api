@@ -239,10 +239,15 @@ func (e GoodsBrand) Delete(c *gin.Context) {
 		e.Error(500, errors.New("存在商品关联不可删除！"), "存在商品关联不可删除！")
 		return
 	}
-
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 
 	p := actions.GetPermissionFromContext(c)
 
+	p.CId = userDto.CId
 	err = s.Remove(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除GoodsBrand失败，\r\n失败信息 %s", err.Error()))

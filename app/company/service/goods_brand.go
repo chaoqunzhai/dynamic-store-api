@@ -95,10 +95,8 @@ func (e *GoodsBrand) Update(c *dto.GoodsBrandUpdateReq, p *actions.DataPermissio
 func (e *GoodsBrand) Remove(d *dto.GoodsBrandDeleteReq, p *actions.DataPermission) error {
 	var data models.GoodsBrand
 
-	db := e.Orm.Model(&data).
-		Scopes(
-			actions.Permission(data.TableName(), p),
-		).Delete(&data, d.GetId())
+
+	db :=e.Orm.Model(&models.GoodsBrand{}).Where("id in ? and c_id = ?",d.GetId(),p.CId).Delete(&data)
 	if err := db.Error; err != nil {
         e.Log.Errorf("Service RemoveGoodsBrand error:%s \r\n", err)
         return err
