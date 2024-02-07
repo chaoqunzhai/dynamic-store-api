@@ -27,7 +27,7 @@ type SysUser struct {
 	UnionId        string `json:"union" gorm:"size:30;"`     //微信唯一的ID
 	OffOpenId        string `json:"off_open_id" gorm:"size:30;"` //微信公众号的openid
 	InvitationCode string `json:"invitationCode" gorm:"type:varchar(10);comment:本人邀请码"`
-	AuthExamine bool `json:"auth_examine" gorm:"type:varchar(10);comment:是否拥有订单审批权限"`
+	AuthExamine bool `json:"auth_examine" gorm:"type:varchar(10);comment:是否拥有订单审批/操作权限"`
 
 	models.ControlBy
 	models.ModelTime

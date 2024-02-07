@@ -113,7 +113,7 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 	//商家
 	var shopList []models.Shop
 	e.Orm.Model(&models.Shop{}).Select("id,name").Where("id in ? and c_id = ?",shopIds,userDto.CId).Find(&shopList)
-	fmt.Println("查询商家！！",shopIds,shopList)
+	//fmt.Println("查询商家！！",shopIds,shopList)
 	shopMap:=make(map[int]models.Shop,0)
 	for _,shop:=range shopList{
 		shopMap[shop.Id] = shop
@@ -268,8 +268,16 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 	}
 
 
-
-	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	openApprove,hasApprove:=service.IsHasOpenApprove(userDto,e.Orm)
+	resultData:=map[string]interface{}{
+		"list":result,
+		"pageIndex": req.GetPageIndex(),
+		"pageSize": req.GetPageSize(),
+		"count":int(count),
+		"hasApprove":hasApprove,
+		"openApprove":openApprove,
+	}
+	e.OK(resultData,"successful")
 	return
 }
 

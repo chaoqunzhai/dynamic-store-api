@@ -261,10 +261,13 @@ func (e Orders) GetPage(c *gin.Context) {
 			if row.ApproveStatus == 0 { //还没审核,这个订单就是审核中
 				r["status"] = "待审核"
 			}
+			//作废那就是驳回了
+			if row.ApproveStatus == global.OrderApproveReject {
+				r["status"] = "已驳回"
+			}
 		}
-		if row.ApproveStatus == global.OrderApproveReject {
-			r["status"] = "已驳回"
-		}
+
+
 		if row.DeliveryType == global.ExpressSameCity || row.DeliveryType == global.ExpressEms{
 			if row.Status == global.OrderWaitConfirm{
 				r["status"] = "配送中"
