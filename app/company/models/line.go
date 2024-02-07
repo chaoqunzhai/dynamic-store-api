@@ -19,6 +19,7 @@ type Line struct {
 	ShopCount int64 `json:"shop_count" gorm:"-"`
 	ExpirationTimeStr string `json:"expiration_time_str" gorm:"-"`
 	ExpirationDay int `json:"expiration_day" gorm:"-"`
+	ExpirationValue string `json:"expiration_value" gorm:"-"`
 	models.ModelTime
 	models.ControlBy
 }

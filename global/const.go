@@ -179,9 +179,7 @@ const (
 	GoodsPreview = 0 //全部用户可以预览
 	GoodsAuthVip = 1 //只有VIP可以购买
 
-	DeductionBalance = 1 //余额抵扣
-	DeductionCredit = 2 //授信额抵扣
-	DeductionOffline = 3 //线下支付抵扣
+
 
 	OrderSourceApplet = 5 //小程序
 	OrderSourceH5 = 6 //H5
@@ -232,6 +230,7 @@ const (
 	PayEnWeChat = "we_chat"
 	PayEnCredit = "credit"
 	PayEnCashOn = "cash_on"
+	PayEnOffline = "offline"
 	PayEnAli = "ali"
 )
 
@@ -243,18 +242,6 @@ func GetInventoryInAll() []int  {
 func GetInventoryOutAll() []int  {
 
 	return  []int{InventoryOut,InventoryEditOut,InventoryHelpOut}
-}
-
-func GetPayCn(v int)  string {
-
-	switch v {
-	case DeductionBalance:
-		return "余额"
-	case DeductionCredit:
-		return "授信额"
-
-	}
-	return ""
 }
 func GetInventoryActionCn(v int) (bol,val string) {
 

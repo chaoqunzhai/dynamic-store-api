@@ -251,11 +251,23 @@ func (e Line) GetPage(c *gin.Context) {
 		row.ShopCount = shopCount
 		if !row.ExpirationTime.Time.IsZero() {
 
+			row.ExpirationDay = -1 //强制展示过期时间 和是否过期
+			isOut:=row.ExpirationTime.Sub(time.Now())
+			if isOut < 0 {//过期了
+				if -isOut.Hours() > 24{//天
+					row.ExpirationDay = int(isOut.Hours() / 24)
+				}else {
+					row.ExpirationValue = fmt.Sprintf(" %v小时 %v分",int(-isOut.Hours()),int(-isOut.Minutes()))
+				}
+			}else {
+				row.ExpirationDay = int(isOut.Hours() / 24)
+			}
 
-			row.ExpirationDay = int(row.ExpirationTime.Sub(time.Now()).Hours() / 24)
 			row.ExpirationTimeStr = row.ExpirationTime.Format("2006-01-02 15:04:05")
 		}else {
 			row.ExpirationTimeStr = "无期限"
+			//row.ExpirationDay =
+
 		}
 		result = append(result, row)
 	}

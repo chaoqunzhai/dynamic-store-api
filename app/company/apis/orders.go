@@ -462,26 +462,30 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.Error(500, errors.New(msg), msg)
 		return
 	}
+	//前段的金额
+	PayOrderMoney:=utils.RoundDecimalFlot64(req.PayMoney)
+
 	var DeductionAllMoney float64
 	switch req.DeductionType {
-	case global.DeductionBalance:
+	case global.PayTypeBalance:
 		DeductionAllMoney = shopObject.Balance
-	case global.DeductionCredit:
+		if DeductionAllMoney < PayOrderMoney {
+			e.OK(-1, "余额不足")
+			return
+		}
+	case global.PayTypeCredit:
 		DeductionAllMoney = shopObject.Credit
-	case global.DeductionOffline:
+		if DeductionAllMoney < PayOrderMoney {
+			e.OK(-1, "授信额不足")
+			return
+		}
+	case global.PayTypeOffline:
+		DeductionAllMoney = 0
+	case global.PayTypeCashOn:
 		DeductionAllMoney = 0
 	default:
 		e.OK(-1, "未知抵扣类型")
 		return
-	}
-	//前段的金额
-	PayOrderMoney:=utils.RoundDecimalFlot64(req.PayMoney)
-
-	if req.DeductionType != global.DeductionOffline { //非线下支付的时候 才会去校验是否可以抵扣
-		if DeductionAllMoney < PayOrderMoney {
-			e.OK(-1, fmt.Sprintf("%v 不足！！！",global.GetPayCn(req.DeductionType)))
-			return
-		}
 	}
 	//一个订单下了很多商品
 	orderRow := &models.Orders{
@@ -737,7 +741,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	//授信额减免
 
 	switch req.DeductionType {
-	case global.DeductionBalance:
+	case global.PayTypeBalance:
 
 		Balance:= shopObject.Balance - PayOkMoney
 		if Balance < 0 {
@@ -757,7 +761,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			Type: global.ScanShopUse,
 		}
 		e.Orm.Create(&row)
-	case global.DeductionCredit:
+	case global.PayTypeCredit:
 		Credit:=  shopObject.Credit - PayOkMoney
 		if Credit < 0 {
 			Credit = 0

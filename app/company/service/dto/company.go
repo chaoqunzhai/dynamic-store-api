@@ -171,6 +171,9 @@ func (s *CompanyGetReq) GetId() interface{} {
 	return s.Id
 }
 
+type CompanyPayReq struct {
+	Source string `form:"source"`
+}
 type CompanyRenewReq struct {
 	Time  string  `json:"time"`
 	Money float64 `json:"money"`

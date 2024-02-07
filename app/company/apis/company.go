@@ -565,9 +565,8 @@ func (e Company) Information(c *gin.Context) {
 	return
 }
 
-
 func (e Company) PayCnf(c *gin.Context) {
-	req := dto.CompanyGetReq{}
+	req := dto.CompanyPayReq{}
 	s := service.Company{}
 	err := e.MakeContext(c).
 		MakeOrm().
@@ -579,6 +578,7 @@ func (e Company) PayCnf(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	fmt.Println("payCnf",req.Source)
 	userDto, err := user.GetUserDto(e.Orm, c)
 	if err != nil {
 		e.Error(500, err, err.Error())
@@ -589,14 +589,6 @@ func (e Company) PayCnf(c *gin.Context) {
 	e.Orm.Model(&object).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
 
 	data :=make([]map[string]interface{},0)
-	if object.WeChat{
-		data = append(data, map[string]interface{}{
-			"value":"微信支付",
-			"label":object.WeChat,
-			"key":global.PayEnWeChat,
-			"type":global.PayTypeOnlineWechat,
-		})
-	}
 
 	if object.BalanceDeduct {
 		data = append(data, map[string]interface{}{
@@ -621,6 +613,24 @@ func (e Company) PayCnf(c *gin.Context) {
 			"key":global.PayEnCashOn,
 			"type":global.PayTypeCashOn,
 		})
+	}
+	//代客下单时 多返回的支付方式
+	if req.Source == "valet"{
+		data = append(data, map[string]interface{}{
+			"value":"线下支付",
+			"label":true,
+			"key":global.PayEnOffline,
+			"type":global.PayTypeOffline,
+		})
+	}else {
+		if object.WeChat{
+			data = append(data, map[string]interface{}{
+				"value":"微信支付",
+				"label":object.WeChat,
+				"key":global.PayEnWeChat,
+				"type":global.PayTypeOnlineWechat,
+			})
+		}
 	}
 
 	e.OK(data,"")
