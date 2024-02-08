@@ -20,14 +20,10 @@ type Extend struct {
 	CloudObsUrl string  `json:"cloudObsUrl"` //云对象存储
 	H5Url string `json:"h5Url"`
 	ExportDay int `json:"exportDay"`
-	Domain      string        `json:"domain"`
 	ImageBase string        `json:"imageBase"`
-
-	Callback    string        `json:"callback"`
 	PromotionCode string `json:"promotionCode"`
 
 	Qiniu Qiniu `json:"qiniu"`
-	Tx Tx `json:"tx"`
 }
 type Qiniu struct {
 	AccessKey string `json:"AccessKey"`

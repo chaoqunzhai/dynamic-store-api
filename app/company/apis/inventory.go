@@ -124,7 +124,7 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 	if len(goodsIds) > 0 {
 		goodsIds = utils.RemoveRepeatInt(goodsIds)
 		var goodsLists []models2.Goods
-		e.Orm.Model(&models2.Goods{}).Select("id,name,image").Where("id in ?",goodsIds).Scopes(cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Find(&goodsLists)
+		e.Orm.Model(&models2.Goods{}).Select("id,name,image").Where("id in ?",goodsIds).Find(&goodsLists)
 
 		for _,row:=range goodsLists{
 			//没有查到商品 在设置一次map

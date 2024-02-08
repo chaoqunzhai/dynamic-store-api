@@ -41,10 +41,9 @@ settings:
     frontpath: ../go-admin-ui/src
   extend: # 扩展项使用说明
     #推广码链接
-    promotionCode: "222"
+    promotionCode: ""
     #云端保留的天数 exportDay+1 为云端保留数据
     exportDay: 7
-    domain: "http://localhost:8098"
     cloudObsUrl: "https://qiniu.dongchuangyun.com/"
     #移动端地址
     h5Url: "https://weapp.dongchuangyun.com/"
@@ -57,9 +56,6 @@ settings:
       ip: "152.136.36.253"
       port: "26379"
       password: "dcyTestRedis@2023"
-    tx:
-      cosSecretID: "AKIDuc92sDKFwPiwymMisoVxCF5h5FBtMbcO"
-      cosSecretKey: "byAQSFpAHApGSQAiVBdrreDZhaFm9LI3"
   queue:
     memory:
       poolSize: 100
