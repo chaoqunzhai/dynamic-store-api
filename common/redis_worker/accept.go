@@ -27,15 +27,16 @@ type LoopRedisWorker struct {
 	Orm *gorm.DB
 }
 func (l *LoopRedisWorker)Start()  {
-	time.Sleep(10*time.Second)
+	//任务开启 必须睡眠时间
+	time.Sleep(7*time.Second)
 	l.Orm = sdk.Runtime.GetDbByKey("*")
 	fmt.Println("异步任务启动成功！！！",l.Orm.Name())
 
 	for {
 		//读取不同的任务Queue
 		for _,queueName:=range global.QueueGroup{
-			//随机睡12S以内的数据
-			randomSleepTime := time.Duration(rand.Intn(12000)) * time.Millisecond
+			//随机睡10S以内的数据
+			randomSleepTime := time.Duration(rand.Intn(10000)) * time.Millisecond
 			time.Sleep(WorkerSleep + randomSleepTime) //
 
 			redis_db.RedisCli.Do(global.RedisCtx, "select", global.AllQueueChannel)

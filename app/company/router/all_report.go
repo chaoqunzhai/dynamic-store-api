@@ -23,13 +23,13 @@ func registerReportOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTM
 
 		//配送周期下的路线列表
 		r.GET("/line",api.Line)
-
-		//todo:配送报表
+		//配送报表
 		r.GET("", api.Index)
-		//todo:配送报表详情
-		r.GET("/:id", api.Detail)
+		//获取指定路线下 小B的列表
+		r.GET("/detail/:line_id", api.Detail)
 
-
+		//获取小B下商品列表
+		r.GET("/detail/shop_goods/:line_id",api.DetailShopGoods)
 
 	}
 }

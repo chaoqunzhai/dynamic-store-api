@@ -235,3 +235,45 @@ type UpdateInfo struct {
 	Address        string        `form:"address" gorm:"type:varchar(155);comment:大B地址位置"`
 	ShopName       string        `form:"shop_name" gorm:"type:varchar(50);comment:店铺名称"`
 }
+
+type LineDetailReq struct {
+	dto.Pagination `search:"-"`
+	Cycle int `json:"cycle" form:"cycle"`
+}
+type ShopLineDetailReq struct {
+	dto.Pagination `search:"-"`
+	Cycle int `json:"cycle" form:"cycle"`
+	ShopId int	`json:"shop_id" form:"shop_id"`
+}
+type DetailCount struct {
+	Count int `json:"count"`
+	Money float64 `json:"money"`
+}
+type DetailGoodsRow struct {
+	Id int `json:"id"`
+	Name string `json:"name"`
+	GoodsName string `json:"goods_name"`
+	CreatedAt string `json:"created_at"`
+	Money string `json:"money"`
+	Number int `json:"number"`
+	Unit string `json:"unit"`
+	AllMoney float64 `json:"-"`
+	AllMoneyValue string `json:"all_money_value"`
+}
+
+
+
+//{
+//"id":         row.Id,
+//"name":       row.SpecsName,
+//"goods_name":row.GoodsName,
+//"created_at": row.CreatedAt.Format("2006-01-02 15:04:05"),
+//"specs":      fmt.Sprintf("%v%v", row.Number, row.Unit),
+//"unit":row.Unit,
+//"money":     utils.StringDecimal(row.Money),
+//"number":row.Number,
+//"status":row.Status,
+//"after_status":row.AfterStatus,
+//"edit_action":row.EditAction,
+//"all_money": utils.StringDecimal(row.AllMoney),
+//}

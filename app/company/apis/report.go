@@ -10,9 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 	models2 "go-admin/app/company/models"
 	"go-admin/app/company/service"
+	"go-admin/app/company/service/dto"
 	"go-admin/app/shop/models"
 	"go-admin/common/actions"
 	"go-admin/common/business"
+	cDto "go-admin/common/dto"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/common/utils"
 	"go-admin/global"
@@ -23,9 +25,7 @@ import (
 type IndexReq struct {
 	Day string `json:"day" form:"day"`
 }
-type DetailReq struct {
-	Id int `uri:"id" comment:"主键编码"`
-}
+
 type OrderShopResult struct {
 	ShopId int `json:"shop_id"`
 	GoodId int `json:"good_id"`
@@ -534,12 +534,12 @@ func (e Orders) Index(c *gin.Context) {
 
 		result = append(result, row)
 	}
-	//fmt.Println("reportRow", result)
+
 	e.OK(result, "successful")
 	return
 }
 func (e Orders) Detail(c *gin.Context) {
-	req := DetailReq{}
+	req := dto.LineDetailReq{}
 	err := e.MakeContext(c).
 		Bind(&req).
 		MakeOrm().
@@ -549,5 +549,176 @@ func (e Orders) Detail(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	result:=make([]map[string]interface{},0)
+	LineId:=c.Param("line_id")
 
+	//fmt.Println("uid!",uid,req.Cycle)
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	var data models2.OrderCycleCnf
+	e.Orm.Table(splitTableRes.OrderCycle).Select("uid,id").Scopes(
+		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Where("id = ? ",req.Cycle).Limit(1).Find(&data)
+	if data.Id == 0 {
+		e.OK(business.Response{Code: -1,Msg: "暂无周期订单数据"},"")
+		return
+	}
+
+	orderList:=make([]models2.Orders,0)
+
+	openApprove,_:=service.IsHasOpenApprove(userDto,e.Orm)
+
+
+	orm :=e.Orm.Table(splitTableRes.OrderTable).Select("order_id,shop_id,order_money,number")
+	if openApprove{ //开启了审核,那查询状态必须是审核通过的订单
+
+		orm = e.Orm.Table(splitTableRes.OrderTable).Where("approve_status = ?",global.OrderApproveOk)
+	}
+	//根据配送UID 统一查一下 订单的ID
+	orm.Where("line_id = ? and uid = ? and c_id = ? and status in ?",LineId,data.Uid,userDto.CId,global.OrderEffEct()).Find(&orderList)
+
+	shopIds:=make([]int,0)
+	shopGoodsMap:=make(map[int]dto.DetailCount,0)
+	for _,k:=range orderList{
+		shopIds = append(shopIds,k.ShopId)
+		detailRow,ok:=shopGoodsMap[k.ShopId]
+		if !ok{
+			detailRow = dto.DetailCount{
+				Count: k.Number,
+				Money: k.OrderMoney,
+			}
+		}else {
+			detailRow.Count +=k.Number
+			detailRow.Money +=k.OrderMoney
+		}
+		shopGoodsMap[k.ShopId] = detailRow
+	}
+	shopIds = utils.RemoveRepeatInt(shopIds)
+
+	var shopList []models.Shop
+	var count int64
+	e.Orm.Model(&models.Shop{}).Scopes(
+		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
+		).Order(global.OrderLayerKey).Select("name,id").Where("id in ?",
+			shopIds).Find(&shopList).Limit(-1).Offset(-1).
+		Count(&count)
+
+	for _,row:=range shopList{
+		detailItem :=shopGoodsMap[row.Id]
+		item:=map[string]interface{}{
+			"name":row.Name,
+			"count":detailItem.Count,
+			"shop_id":row.Id,
+			"all_money":detailItem.Money,
+		}
+		result = append(result,item)
+	}
+
+	mapData :=map[string]interface{}{
+		"list":result,
+		"count":count,
+		"pageIndex": req.GetPageIndex(),
+		"pageSize":req.GetPageSize(),
+	}
+	e.OK(mapData,"查询成功")
+	return
+}
+
+func (e Orders)DetailShopGoods(c *gin.Context)  {
+	req := dto.ShopLineDetailReq{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	LineId:=c.Param("line_id")
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	//
+	var data models2.OrderCycleCnf
+	e.Orm.Table(splitTableRes.OrderCycle).Select("uid,id").Scopes(
+		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Where("id = ? ",req.Cycle).Limit(1).Find(&data)
+	if data.Id == 0 {
+		e.OK(business.Response{Code: -1,Msg: "暂无周期订单数据"},"")
+		return
+	}
+	var count int64
+	orderList:=make([]models2.Orders,0)
+
+	openApprove,_:=service.IsHasOpenApprove(userDto,e.Orm)
+
+	orm := e.Orm.Table(splitTableRes.OrderTable).Select("order_id").Scopes(
+		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
+	)
+	if openApprove{ //开启了审核,那查询状态必须是审核通过的订单
+
+		orm = e.Orm.Table(splitTableRes.OrderTable).Where("approve_status = ?",global.OrderApproveOk)
+	}
+	//根据配送UID 统一查一下 订单的ID
+	orm.Where("shop_id = ? and line_id = ? and uid = ? and c_id = ? and status in ?",
+		req.ShopId,LineId,data.Uid,userDto.CId,
+		global.OrderEffEct()).Find(&orderList).Limit(-1).Offset(-1).Count(&count)
+
+	orderIds:=make([]string,0)
+	for _,row:=range orderList{
+		orderIds = append(orderIds,row.OrderId)
+	}
+	orderIds = utils.RemoveRepeatStr(orderIds)
+
+	result:=make([]interface{},0)
+
+	fmt.Println("查询周期: ",req.Cycle,"小B: ",req.ShopId,"LineId: ",LineId)
+
+	var orderSpecs []models2.OrderSpecs
+	e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id in ?", orderIds).Find(&orderSpecs)
+
+
+	mergeMap:=make(map[string]dto.DetailGoodsRow,0)
+	for _,row:=range orderSpecs{
+		//一样的需要合并
+		key :=fmt.Sprintf("%v_%v",row.GoodsId,row.SpecId)
+		goodsRow:=dto.DetailGoodsRow{
+			Id: row.Id,
+			Name: row.SpecsName,
+			GoodsName: row.GoodsName,
+			Number: row.Number,
+			CreatedAt:  row.CreatedAt.Format("2006-01-02 15:04:05"),
+			Unit: row.Unit,
+			Money: utils.StringDecimal(row.Money),
+			AllMoney: utils.RoundDecimalFlot64(row.Money  * float64(row.Number)),
+		}
+		getData,ok:=mergeMap[key]
+
+		if ok{ //如果有 那就叠加
+			getData.Number +=goodsRow.Number
+			getData.AllMoney +=goodsRow.AllMoney
+			mergeMap[key] = getData
+		}else { //如果没有赋值
+			mergeMap[key] = goodsRow
+		}
+	}
+	for _,row:=range mergeMap{
+		row.AllMoneyValue =  utils.StringDecimal(row.AllMoney)
+		result = append(result,row)
+	}
+	mapData :=map[string]interface{}{
+		"list":result,
+		"count":count,
+		"pageIndex": req.GetPageIndex(),
+		"pageSize":req.GetPageSize(),
+	}
+	e.OK(mapData,"查询成功")
+	return
 }
