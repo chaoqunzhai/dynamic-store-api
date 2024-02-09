@@ -594,6 +594,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.Error(500, errors.New("后台错误"), "后台错误")
 		return
 	}
+
 	var goodsNumber int
 
 	for key, selectSpec := range req.Goods {

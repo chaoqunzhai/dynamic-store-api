@@ -645,6 +645,7 @@ func (e Orders)DetailShopGoods(c *gin.Context)  {
 		e.Error(500, err, err.Error())
 		return
 	}
+	//fmt.Println("查询周期: ",req.Cycle,"小B: ",req.ShopId,"LineId: ",LineId)
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 	//
 	var data models2.OrderCycleCnf
@@ -679,7 +680,6 @@ func (e Orders)DetailShopGoods(c *gin.Context)  {
 
 	result:=make([]interface{},0)
 
-	fmt.Println("查询周期: ",req.Cycle,"小B: ",req.ShopId,"LineId: ",LineId)
 
 	var orderSpecs []models2.OrderSpecs
 	e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id in ?", orderIds).Find(&orderSpecs)
@@ -698,6 +698,12 @@ func (e Orders)DetailShopGoods(c *gin.Context)  {
 			Unit: row.Unit,
 			Money: utils.StringDecimal(row.Money),
 			AllMoney: utils.RoundDecimalFlot64(row.Money  * float64(row.Number)),
+			Image: func() string {
+				if row.Image == "" {
+					return ""
+				}
+				return business.GetGoodsPathFirst(userDto.CId,row.Image,global.GoodsPath)
+			}(),
 		}
 		getData,ok:=mergeMap[key]
 
@@ -721,4 +727,95 @@ func (e Orders)DetailShopGoods(c *gin.Context)  {
 	}
 	e.OK(mapData,"查询成功")
 	return
+}
+
+func (e Orders)LineGoodsDetail(c *gin.Context)  {
+	req := dto.LineGoodsDetail{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	//fmt.Println("查询周期: ",req.Cycle,"小B: ",req.ShopId,"LineId: ",LineId)
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	//
+	var data models2.OrderCycleCnf
+	e.Orm.Table(splitTableRes.OrderCycle).Select("uid,id").Scopes(
+		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Where("id = ? ",req.CycleId).Limit(1).Find(&data)
+	if data.Id == 0 {
+		e.OK(business.Response{Code: -1,Msg: "暂无周期订单数据"},"")
+		return
+	}
+	orderList:=make([]models2.Orders,0)
+
+	openApprove,_:=service.IsHasOpenApprove(userDto,e.Orm)
+
+	orm := e.Orm.Table(splitTableRes.OrderTable).Select("order_id")
+	if openApprove{ //开启了审核,那查询状态必须是审核通过的订单
+
+		orm = e.Orm.Table(splitTableRes.OrderTable).Where("approve_status = ?",global.OrderApproveOk)
+	}
+	//根据配送UID 统一查一下 订单的ID
+	orm.Where("line_id = ? and uid = ? and c_id = ? and status in ?",
+		req.LineId,data.Uid,userDto.CId,
+		global.OrderEffEct()).Find(&orderList)
+
+	orderIds:=make([]string,0)
+	for _,row:=range orderList{
+		orderIds = append(orderIds,row.OrderId)
+	}
+	orderIds = utils.RemoveRepeatStr(orderIds)
+
+	result:=make([]interface{},0)
+
+
+	//必须查商品,因为是从商品里面查出来的
+	var count int64
+	var orderSpecs []models2.OrderSpecs
+	e.Orm.Table(splitTableRes.OrderSpecs).Where("goods_id = ? and order_id in ?",
+		req.GoodsId,orderIds).Scopes(
+		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
+	).Find(&orderSpecs).Limit(-1).Offset(-1).Count(&count)
+
+	//查询商品的照片
+	for _,row:=range orderSpecs{
+		//一样的需要合并
+		goodsRow:=dto.DetailGoodsRow{
+			Id: row.Id,
+			Name: row.SpecsName,
+			GoodsName: row.GoodsName,
+			Number: row.Number,
+			CreatedAt:  row.CreatedAt.Format("2006-01-02 15:04:05"),
+			Unit: row.Unit,
+			Money: utils.StringDecimal(row.Money),
+			Image: func() string {
+				if row.Image == "" {
+					return ""
+				}
+				return business.GetGoodsPathFirst(userDto.CId,row.Image,global.GoodsPath)
+			}(),
+			AllMoney: utils.RoundDecimalFlot64(row.Money  * float64(row.Number)),
+		}
+		goodsRow.AllMoneyValue = utils.StringDecimal(row.AllMoney)
+		result = append(result,goodsRow)
+	}
+	mapData :=map[string]interface{}{
+		"list":result,
+		"count":count,
+		"pageIndex": req.GetPageIndex(),
+		"pageSize":req.GetPageSize(),
+	}
+	e.OK(mapData,"查询成功")
+	return
+
+
 }

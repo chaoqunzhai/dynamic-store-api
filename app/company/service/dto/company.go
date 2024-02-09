@@ -245,6 +245,12 @@ type ShopLineDetailReq struct {
 	Cycle int `json:"cycle" form:"cycle"`
 	ShopId int	`json:"shop_id" form:"shop_id"`
 }
+type LineGoodsDetail struct {
+	dto.Pagination `search:"-"`
+ 	CycleId int `form:"cycle_id"`
+ 	LineId int `form:"line_id"`
+ 	GoodsId int `form:"goods_id"`
+}
 type DetailCount struct {
 	Count int `json:"count"`
 	Money float64 `json:"money"`
@@ -255,25 +261,9 @@ type DetailGoodsRow struct {
 	GoodsName string `json:"goods_name"`
 	CreatedAt string `json:"created_at"`
 	Money string `json:"money"`
+	Image string `json:"image"`
 	Number int `json:"number"`
 	Unit string `json:"unit"`
 	AllMoney float64 `json:"-"`
 	AllMoneyValue string `json:"all_money_value"`
 }
-
-
-
-//{
-//"id":         row.Id,
-//"name":       row.SpecsName,
-//"goods_name":row.GoodsName,
-//"created_at": row.CreatedAt.Format("2006-01-02 15:04:05"),
-//"specs":      fmt.Sprintf("%v%v", row.Number, row.Unit),
-//"unit":row.Unit,
-//"money":     utils.StringDecimal(row.Money),
-//"number":row.Number,
-//"status":row.Status,
-//"after_status":row.AfterStatus,
-//"edit_action":row.EditAction,
-//"all_money": utils.StringDecimal(row.AllMoney),
-//}

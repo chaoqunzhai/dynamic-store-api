@@ -14,6 +14,7 @@ type GoodsClassGetPageReq struct {
 	Name           string `form:"name" uri:"name"  search:"type:contains;column:name;table:goods_class" comment:"商品分类名称"`
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:goods_class" comment:"创建时间"`
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:goods_class" comment:"创建时间"`
+	IsCount bool `json:"is_count" search:"-"`
 	GoodsClassOrder
 }
 

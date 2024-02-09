@@ -61,10 +61,12 @@ func (e GoodsClass) GetPage(c *gin.Context) {
 
 	result := make([]interface{}, 0)
 	for _, row := range list {
-		var bindCount int64
-		whereSql := fmt.Sprintf("SELECT COUNT(*) as count from goods_mark_class where class_id = %v", row.Id)
-		e.Orm.Raw(whereSql).Scan(&bindCount)
-		row.GoodsCount = bindCount
+		if req.IsCount {
+			var bindCount int64
+			whereSql := fmt.Sprintf("SELECT COUNT(*) as count from goods_mark_class where class_id = %v", row.Id)
+			e.Orm.Raw(whereSql).Scan(&bindCount)
+			row.GoodsCount = bindCount
+		}
 		result = append(result, row)
 	}
 	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
