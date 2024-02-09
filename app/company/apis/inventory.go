@@ -344,7 +344,7 @@ func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 			}(),
 			"unit":goodsSpecs.Unit,
 			"cost_price":row.OriginalPrice,
-			"original_price":utils.StringDecimal(row.OriginalPrice),
+			"original_price":global.SymBol + utils.StringDecimal(row.OriginalPrice),
 			"time":row.UpdatedAt.Format("2006-01-02 15:04:05"),
 			"stock":row.Stock,
 			"code":row.Code,
@@ -408,8 +408,8 @@ func (e CompanyInventory) ManageRecords(c *gin.Context) {
 			"source_number":row.SourceNumber,
 			"current_number":row.CurrentNumber,
 			"action":row.Action,
-			"original_price":utils.StringDecimal(row.OriginalPrice),
-			"source_price":utils.StringDecimal(row.SourcePrice),
+			"original_price":global.SymBol + utils.StringDecimal(row.OriginalPrice),
+			"source_price":global.SymBol  + utils.StringDecimal(row.SourcePrice),
 			"unit":row.Unit,
 		}
 		actionBol, actionCn :=global.GetInventoryActionCn(row.Action)
@@ -474,8 +474,8 @@ func (e CompanyInventory) RecordsLog(c *gin.Context) {
 			"goods_name":fmt.Sprintf("%v %v",row.GoodsName,row.GoodsSpecName),
 			"source_number":row.SourceNumber,
 			"current_number":row.CurrentNumber,
-			"original_price":utils.StringDecimal(row.OriginalPrice),
-			"source_price":utils.StringDecimal(row.SourcePrice),
+			"original_price":global.SymBol + utils.StringDecimal(row.OriginalPrice),
+			"source_price":global.SymBol +utils.StringDecimal(row.SourcePrice),
 			"action_number": fmt.Sprintf("+%v",row.ActionNumber),
 			"unit":row.Unit,
 		}
@@ -800,8 +800,8 @@ func (e CompanyInventory) OrderDetail(c *gin.Context) {
 			"goods_spec_name":row.GoodsSpecName,
 			"unit":row.Unit,
 			"action_number":row.ActionNumber,
-			"original_price":utils.StringDecimal(row.OriginalPrice),
-			"money":utils.StringDecimal(thisPrice),
+			"original_price":global.SymBol  + utils.StringDecimal(row.OriginalPrice),
+			"money":global.SymBol  + utils.StringDecimal(thisPrice),
 		})
 	}
 	result["CountAll"] = map[string]interface{}{

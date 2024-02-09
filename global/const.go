@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	SymBol = "¥"
 	StdOut   = "./logs/info.log"
 	StdError = "./logs/error.log"
 	DebugError = "./logs/debug.log"

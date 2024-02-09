@@ -613,7 +613,7 @@ func (e Orders) Detail(c *gin.Context) {
 			"name":row.Name,
 			"count":detailItem.Count,
 			"shop_id":row.Id,
-			"all_money":detailItem.Money,
+			"all_money":fmt.Sprintf("%v%v",global.SymBol,detailItem.Money),
 		}
 		result = append(result,item)
 	}
@@ -696,7 +696,7 @@ func (e Orders)DetailShopGoods(c *gin.Context)  {
 			Number: row.Number,
 			CreatedAt:  row.CreatedAt.Format("2006-01-02 15:04:05"),
 			Unit: row.Unit,
-			Money: utils.StringDecimal(row.Money),
+			Money: global.SymBol + utils.StringDecimal(row.Money),
 			AllMoney: utils.RoundDecimalFlot64(row.Money  * float64(row.Number)),
 			Image: func() string {
 				if row.Image == "" {
@@ -716,7 +716,7 @@ func (e Orders)DetailShopGoods(c *gin.Context)  {
 		}
 	}
 	for _,row:=range mergeMap{
-		row.AllMoneyValue =  utils.StringDecimal(row.AllMoney)
+		row.AllMoneyValue = global.SymBol + utils.StringDecimal(row.AllMoney)
 		result = append(result,row)
 	}
 	mapData :=map[string]interface{}{
@@ -796,7 +796,7 @@ func (e Orders)LineGoodsDetail(c *gin.Context)  {
 			Number: row.Number,
 			CreatedAt:  row.CreatedAt.Format("2006-01-02 15:04:05"),
 			Unit: row.Unit,
-			Money: utils.StringDecimal(row.Money),
+			Money: global.SymBol+ utils.StringDecimal(row.Money),
 			Image: func() string {
 				if row.Image == "" {
 					return ""
@@ -805,7 +805,7 @@ func (e Orders)LineGoodsDetail(c *gin.Context)  {
 			}(),
 			AllMoney: utils.RoundDecimalFlot64(row.Money  * float64(row.Number)),
 		}
-		goodsRow.AllMoneyValue = utils.StringDecimal(row.AllMoney)
+		goodsRow.AllMoneyValue = global.SymBol + utils.StringDecimal(row.AllMoney)
 		result = append(result,goodsRow)
 	}
 	mapData :=map[string]interface{}{
