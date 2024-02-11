@@ -8,6 +8,7 @@ import (
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 	sys "go-admin/app/admin/models"
 	"go-admin/app/company/models"
+	"go-admin/common/actions"
 	"go-admin/common/business"
 	"go-admin/common/dto"
 	"go-admin/common/utils"
@@ -33,7 +34,10 @@ type CompanyUserGetPage struct {
 func (m *CompanyUserGetPage) GetNeedSearch() interface{} {
 	return *m
 }
-
+type UpPass struct {
+	Id int `json:"id"`
+	Pass string `json:"pass"`
+}
 type UpdateReq struct {
 	Id       int    `uri:"id" comment:"主键编码"` // 主键编码
 	Layer    int    `json:"layer" comment:"排序"`
@@ -333,7 +337,47 @@ func (e Company) UpdateUser(c *gin.Context) {
 	return
 }
 
+func (e Company) UpPass(c *gin.Context) {
+	req :=UpPass{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	if req.Pass == ""{
+		e.Error(500, nil, "请输入密码")
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	//更新的是小B的用户
+	var sysDto sys.SysUser
+	e.Orm.Model(&sys.SysUser{}).Scopes(actions.PermissionSysUser(sysDto.TableName(), userDto)).Where("user_id = ? ",req.Id).Limit(1).Find(&sysDto)
 
+	if sysDto.UserId == 0 {
+		e.Error(500,nil,"用户不存在")
+		return
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.Pass), bcrypt.DefaultCost)
+
+	if err!=nil{
+		e.Error(500,err,"密码更新失败")
+		return
+	}
+	e.Orm.Model(&sys.SysUser{}).Scopes(actions.PermissionSysUser(sysDto.TableName(), userDto)).Where("user_id = ? ",req.Id).Updates(map[string]interface{}{
+		"password":string(hash),
+	})
+
+	e.OK("","successful")
+	return
+}
 func (e Company) CreateSalesManUser(c *gin.Context) {
 	req := UpdateReq{}
 	err := e.MakeContext(c).

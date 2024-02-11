@@ -63,13 +63,15 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		//展示一些限制的文案，例如当前可用路线是多少条
 		r.GET("/quota/cnf",api.QuotaCnf)
 	}
-	//大B用户管理 + 业务员管理 完全可以服用接口
+	//大B用户管理 + 业务员管理 完全可以复用接口
 	{
 		r.GET("/promotionCode",api.PromotionCode)
 		//用户列表
 		r.GET("/user/list", api.List)
 		//更新用户信息
 		r.PUT("/user/:id", api.UpdateUser)
+		//密码修改
+		r.POST("/user/uppass",api.UpPass)
 		//对用户进行下线,大B看不到了,但是超管还是可以看到的,更新用户的enable
 		r.POST("/user/offline", api.Offline)
 		//增加系统用户,防止恶意注册 必须是role =
