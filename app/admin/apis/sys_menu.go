@@ -9,6 +9,7 @@ import (
 	"go-admin/app/admin/service"
 	"go-admin/app/admin/service/dto"
 	models2 "go-admin/cmd/migrate/migration/models"
+	"go-admin/common/utils"
 	"sort"
 )
 
@@ -189,6 +190,7 @@ type MenuRow struct {
 }
 
 
+
 func getParentAll(parent int, rr MenuRow, data map[int]MenuRow) map[int]MenuRow {
 
 	newMap := make(map[int]MenuRow)
@@ -236,6 +238,26 @@ func (e SysMenu) GetAdminMenuRole(c *gin.Context) {
 	e.OK(result, "")
 }
 
+//parentId 父ID
+//当前
+func GetChildrenAll(row MenuRow,allMenuList *[]MenuRow) MenuRow  {
+
+	list := *allMenuList
+
+	thisRowList:= make([]MenuRow, 0)
+	for _,j:=range list{
+
+		if j.ParentId != row.ParentId{
+			continue
+		}
+		//ms := GetChildrenAll(row, allMenuList)
+		thisRowList = append(thisRowList, j)
+
+	}
+	row.Children = thisRowList
+
+	return row
+}
 func (e SysMenu) GetMenuRole(c *gin.Context) {
 	err := e.MakeContext(c).
 		MakeOrm().
@@ -246,10 +268,11 @@ func (e SysMenu) GetMenuRole(c *gin.Context) {
 		return
 	}
 	var menu = make([]models2.DyNamicMenu, 0)
-	e.Orm.Model(&models2.DyNamicMenu{}).Where("enable = ?",true).Order("layer desc").Find(&menu)
+	e.Orm.Model(&models2.DyNamicMenu{}).Where("enable = ?",true).Order("layer asc").Find(&menu)
 	cacheMap := make(map[int]MenuRow, 0)
 
 	result := make([]MenuRow, 0)
+	allMenuList:=make([]MenuRow,0)
 	for _, row := range menu {
 		r := MenuRow{
 			Id:        row.Id,
@@ -264,29 +287,36 @@ func (e SysMenu) GetMenuRole(c *gin.Context) {
 			Children:  make([]MenuRow, 0),
 			Layer: row.Layer,
 		}
-		////统计下
-		if row.ParentId > 0 {
-			data, parentOk := cacheMap[row.ParentId]
-			if !parentOk {
-				//父标签的父标签还有数据,那就需要网上找
-				//可能是一个三级标签,那就进行一个嵌套
-				cacheMap = getParentAll(row.ParentId, r, cacheMap)
-
-			} else {
-				data.Children = append(data.Children, r)
-				cacheMap[row.ParentId] = data
-			}
-		} else {
-			//父标签放到缓存中
+		allMenuList = append(allMenuList,r)
+		if row.ParentId == 0 {
+			//一级菜单 那就直接放进去
 			cacheMap[row.Id] = r
 		}
 	}
+	for _, row := range allMenuList {
+		if row.ParentId == 0 {
+			continue
+		}
+		//只查子元素
+		data,ok:=cacheMap[row.ParentId]
+
+		if ok {
+			data.Children = append(data.Children,row)
+
+			cacheMap[row.ParentId] = data
+		}else {
+			//下面的层级
+			cacheMap = getParentAll(row.ParentId, row, cacheMap)
+		}
+	}
+
 	layerList :=make([]int,0)
 	for _,row :=range cacheMap{
 		layerList = append(layerList,row.Layer)
 	}
+	layerList = utils.RemoveRepeatInt(layerList)
 	sort.Slice(layerList, func(i, j int) bool {
-		return layerList[i] > layerList[j]
+		return layerList[i] < layerList[j]
 	})
 	for _,k:=range layerList{
 		for _, row := range cacheMap {

@@ -669,7 +669,7 @@ func (e Company) Info(c *gin.Context) {
 	}
 
 	var object models.Company
-	e.Orm.Model(&models.Company{}).Where("enable = 1 and leader_id = ? ",userDto.UserId).First(&object)
+	e.Orm.Model(&models.Company{}).Where("enable = 1 and id = ? ",userDto.CId).First(&object)
 
 	if object.Id > 0 {
 

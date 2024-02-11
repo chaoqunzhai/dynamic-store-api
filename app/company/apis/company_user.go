@@ -37,8 +37,8 @@ func (m *CompanyUserGetPage) GetNeedSearch() interface{} {
 type UpdateReq struct {
 	Id       int    `uri:"id" comment:"主键编码"` // 主键编码
 	Layer    int    `json:"layer" comment:"排序"`
-	RoleId   int    `json:"role_id"` //给用户分配的角色ID
-	ThisRole int `json:"this_role"` //系统用户必须是82roleid
+	Roles   []int    `json:"roles"` //给用户分配的角色ID
+	ThisRole int `json:"this_role"` //系统用户必须是82 roleid
 	Status   string `json:"status" comment:"用户状态"`
 	UserName string `json:"username" comment:"用户名称" binding:"required"`
 	Phone    string `json:"phone" comment:"手机号"`
@@ -65,7 +65,6 @@ type RoleBindUser struct {
 }
 type RoleUserRow struct {
 	RoleId   int    `json:"role_id"`
-	UserId   int    `json:"user_id"`
 	RoleName string `json:"role_name"`
 }
 
@@ -188,38 +187,46 @@ func (e Company) List(c *gin.Context) {
 	for _, row := range userLists {
 		cacheUserIds = append(cacheUserIds, fmt.Sprintf("%v", row.UserId))
 	}
-	userBindRoleMap := make(map[int]RoleUserRow, 0)
+	RoleMap := make(map[int]RoleUserRow, 0)
+	UserRoleMap:=make(map[int][]RoleUserRow,0)
 	if len(cacheUserIds) > 0 {
 		roleMap := make([]RoleBindUser, 0)
 		//关联的用户查询到角色ID
 		sql := fmt.Sprintf("select * from company_role_user where user_id in (%v)",
 			strings.Join(cacheUserIds, ","))
 		e.Orm.Raw(sql).Scan(&roleMap)
-		//角色ID+大BID查询到角色具体名称
+
 		roleIds := make([]int, 0)
-		roleBindUser := make(map[int]RoleUserRow, 0)
+		userBindRole:=make(map[int][]int,0)
 		for _, row := range roleMap {
 			roleIds = append(roleIds, row.RoleId)
-			roleBindUser[row.RoleId] = RoleUserRow{
-				UserId: row.UserId,
-			}
+			UserRoleMap[row.UserId] = make([]RoleUserRow,0)
+			userBindRole[row.UserId] = append(userBindRole[row.UserId],row.RoleId)
 		}
-		if len(roleIds) > 0 {
+		if len(roleIds) > 0 {//统一查询角色
 			roleRows := make([]models.CompanyRole, 0)
 			e.Orm.Model(&models.CompanyRole{}).Where("c_id = ? and enable = ? and id in ?",
 				userDto.CId, true, roleIds).Find(&roleRows)
-			//查询到的role 和 user做一个map关联
 			for _, role := range roleRows {
-				bindData, ok := roleBindUser[role.Id]
-				if ok {
-					userBindRoleMap[bindData.UserId] = RoleUserRow{
-						RoleName: role.Name,
-						RoleId:   role.Id,
-					}
+				RoleMap[role.Id] = RoleUserRow{
+					RoleName: role.Name,
+					RoleId:   role.Id,
 				}
 			}
 		}
-
+		for userIdKey,userRoles:=range userBindRole{
+			userRoleList,ok:=UserRoleMap[userIdKey]
+			if !ok{
+				continue
+			}
+			for _,roleId:=range userRoles{
+				getRow,rowOk:=RoleMap[roleId]
+				if rowOk{
+					userRoleList = append(userRoleList,getRow)
+					UserRoleMap[userIdKey] = userRoleList
+				}
+			}
+		}
 	}
 	result := make([]map[string]interface{}, 0)
 	for _, row := range userLists {
@@ -244,9 +251,8 @@ func (e Company) List(c *gin.Context) {
 				return false
 			}(),
 		}
-		if roleData, ok := userBindRoleMap[row.UserId]; ok {
-			userRow["role"] = roleData.RoleName
-			userRow["role_id"] = roleData.RoleId
+		if roleData, ok := UserRoleMap[row.UserId]; ok {
+			userRow["roles"] = roleData
 		}
 		result = append(result, userRow)
 	}
@@ -301,22 +307,15 @@ func (e Company) UpdateUser(c *gin.Context) {
 		"auth_examine": req.AuthExamine,
 	}
 
-	var runSql string
+	//先情况
+	e.Orm.Exec(fmt.Sprintf("delete from company_role_user where user_id = %v", req.Id))
 	//更新第三张表角色ID
-	if req.RoleId > 0 {
-		var roleId int
-		sql := fmt.Sprintf("select count(*) from  company_role_user where user_id = %v", req.Id)
-		e.Orm.Raw(sql).Scan(&roleId)
-		if roleId > 0 {
-			runSql = fmt.Sprintf("update company_role_user set role_id = %v where user_id = %v", req.RoleId, req.Id)
-		} else {
-			runSql = fmt.Sprintf("INSERT INTO  company_role_user VALUES (%v,%v)", req.RoleId, req.Id)
+	if len(req.Roles) > 0 {
+		for _,roleId:=range req.Roles {
+			e.Orm.Exec(fmt.Sprintf("INSERT INTO  company_role_user VALUES (%v,%v)", roleId, req.Id))
 		}
 
-	} else {
-		runSql = fmt.Sprintf("delete from company_role_user where user_id = %v", req.Id)
 	}
-	e.Orm.Exec(runSql)
 
 	//密码更新
 	if req.PassWord != userObject.Password {
@@ -434,7 +433,7 @@ func (e Company) CreateUser(c *gin.Context) {
 		return
 	}
 	var phoneCount int64
-	e.Orm.Model(&sys.SysUser{}).Where("phone = ? and c_id = ? and enable = ?", req.Phone, userDto.CId, true).Count(&phoneCount)
+	e.Orm.Model(&sys.SysUser{}).Where("phone = ? and enable = ?", req.Phone,true).Count(&phoneCount)
 	if phoneCount > 0 {
 		e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
 		return
@@ -452,9 +451,11 @@ func (e Company) CreateUser(c *gin.Context) {
 	}
 	userObject.CreateBy = userDto.UserId
 	e.Orm.Create(&userObject)
-	if req.RoleId > 0 {
-		runSql := fmt.Sprintf("INSERT INTO  company_role_user VALUES (%v,%v)", req.RoleId, userObject.UserId)
-		e.Orm.Exec(runSql)
+	if len(req.Roles) > 0 {
+		for _,roleId:=range req.Roles{
+			runSql := fmt.Sprintf("INSERT INTO  company_role_user VALUES (%v,%v)", roleId, userObject.UserId)
+			e.Orm.Exec(runSql)
+		}
 	}
 	e.OK("successful", "创建成功")
 	return

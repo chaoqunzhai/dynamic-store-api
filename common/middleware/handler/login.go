@@ -19,7 +19,21 @@ type Login struct {
 	Role string `form:"role" json:"role"`
 }
 
-func LoginValidCompany(userId int,tx *gorm.DB) error {
+func LoginValidCompany(companyId int,tx *gorm.DB) error {
+
+	var companyObject models.Company
+	tx.Model(&models.Company{}).Select("id,expiration_time").Where("id = ? and enable = ?", companyId, true).Limit(1).Find(&companyObject)
+	if companyObject.Id == 0 {
+
+		return errors.New("您的系统已下线")
+	}
+	if companyObject.ExpirationTime.Before(time.Now()) {
+
+		return errors.New("账号已到期,请及时续费")
+	}
+	return nil
+}
+func LoginValidUserCompany(userId int,tx *gorm.DB) error {
 
 	var companyObject models.Company
 	tx.Model(&models.Company{}).Select("id,expiration_time").Where("leader_id = ? and enable = ?", userId, true).Limit(1).Find(&companyObject)
@@ -49,7 +63,8 @@ func (u *Login) GetUserPhone(tx *gorm.DB) (user SysUser, role SysRole, err error
 		return
 	}
 
-	err =LoginValidCompany(user.UserId,tx)
+	//if user.RoleId == global.RoleSaleMan
+	err =LoginValidCompany(user.CId,tx)
 	return
 }
 func (u *Login) GetUser(tx *gorm.DB) (user SysUser, role SysRole, err error) {
