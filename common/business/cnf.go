@@ -23,6 +23,7 @@ func DefaultCnf() map[string]int {
 		"export_worker":global.CompanyExportWorker,
 		"line_bind_shop":global.CompanyLineBindShop,
 		"salesman_number":global.CompanySalesmanNumber,
+		"order_range":global.CompanyOrderRange,
 	}
 	return defaultCnf
 }
@@ -88,6 +89,8 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 		if !ok {
 			v := 0
 			switch key {
+			case "order_range":
+				v = global.CompanyOrderRange
 			case "role":
 				v = global.CompanyMaxRole
 			case "goods_class":
@@ -120,4 +123,17 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 		}
 	}
 	return result
+}
+//返回订单的查询范围
+func GetOrderRangeTime(cid int,orm *gorm.DB) string  {
+	CompanyCnf := GetCompanyCnf(cid, "order_range", orm)
+	OrderRangeNumber := CompanyCnf["order_range"]
+
+	if OrderRangeNumber < 0 { //无期限
+		return ""
+	}
+	//有期限
+	val:=fmt.Sprintf("created_at >= DATE_SUB(CURRENT_DATE(), INTERVAL %v YEAR) ",OrderRangeNumber)
+	return val
+
 }

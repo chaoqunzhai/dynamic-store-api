@@ -128,7 +128,8 @@ func (e *Orders) ValidTimeConf(cid int) (response *TimeConfResponse) {
 }
 
 // GetPage 获取Orders列表
-func (e *Orders) GetPage(openApprove bool,splitTableRes business.TableRow,countMap *dto.CountOrder, c *dto.OrdersGetPageReq, p *actions.DataPermission, list *[]models.Orders, count *int64) error {
+func (e *Orders) GetPage(openApprove bool,splitTableRes business.TableRow,countMap *dto.CountOrder,
+	c *dto.OrdersGetPageReq, p *actions.DataPermission, list *[]models.Orders, count *int64,OrderRangeTime string) error {
 	var err error
 
 	orm :=e.Orm.Table(splitTableRes.OrderTable)
@@ -167,6 +168,9 @@ func (e *Orders) GetPage(openApprove bool,splitTableRes business.TableRow,countM
 		}
 	}
 
+	if OrderRangeTime !=""{//时间范围查询
+		orm = orm.Where(OrderRangeTime)
+	}
 	err = orm.Scopes(
 			cDto.MakeSplitTableCondition(c.GetNeedSearch(),splitTableRes.OrderTable),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),

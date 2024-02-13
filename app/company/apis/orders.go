@@ -108,7 +108,8 @@ func (e Orders) GetPage(c *gin.Context) {
 	}
 	//查询是否进行了分表
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
-
+	//查询订单查询范围
+	OrderRangeTime :=business.GetOrderRangeTime(userDto.CId,e.Orm)
 	p := actions.GetPermissionFromContext(c)
 
 	//处理不是数字字符串的问题
@@ -135,7 +136,7 @@ func (e Orders) GetPage(c *gin.Context) {
 	countMap:=dto.CountOrder{}
 	var count int64
 	req.CId = userDto.CId
-	err = s.GetPage(openApprove,splitTableRes,&countMap, &req, p, &list, &count)
+	err = s.GetPage(openApprove,splitTableRes,&countMap, &req, p, &list, &count,OrderRangeTime)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取订单失败,%s", err.Error()))
 		return
