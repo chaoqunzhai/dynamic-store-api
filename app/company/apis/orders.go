@@ -108,7 +108,7 @@ func (e Orders) GetPage(c *gin.Context) {
 	}
 	//查询是否进行了分表
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
-	//查询订单查询范围
+	//获取订单查询范围
 	OrderRangeTime :=business.GetOrderRangeTime(userDto.CId,e.Orm)
 	p := actions.GetPermissionFromContext(c)
 
@@ -389,14 +389,22 @@ func (e Orders)Cycle(c *gin.Context)  {
 
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
+	//获取订单查询范围
+	OrderRangeTime :=business.GetOrderRangeTime(userDto.CId,e.Orm)
+
 	//默认展示最近10条的配送周期
 	datalist := make([]models2.OrderCycleCnf, 0)
 	var count int64
 
-
-	e.Orm.Table(splitTableRes.OrderCycle).Scopes(
+	orm := e.Orm.Table(splitTableRes.OrderCycle).Scopes(
 		cDto.MakeSplitTableCondition(req.GetNeedSearch(),splitTableRes.OrderCycle),
-		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Select("delivery_str,create_str,uid,id,delivery_time").Order(global.OrderTimeKey).Find(&datalist).Limit(-1).Offset(-1).
+		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Select(
+		"delivery_str,create_str,uid,id,delivery_time")
+
+	if OrderRangeTime !=""{//时间范围查询
+		orm = orm.Where(OrderRangeTime)
+	}
+	orm.Order(global.OrderTimeKey).Find(&datalist).Limit(-1).Offset(-1).
 		Count(&count)
 	
 	for _,row:=range datalist {
@@ -852,14 +860,19 @@ func (e Orders) OrderCycleList(c *gin.Context) {
 		return
 	}
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
-
+	//获取订单查询范围
+	OrderRangeTime :=business.GetOrderRangeTime(userDto.CId,e.Orm)
 	//默认展示最近10条的配送周期
 	datalist := make([]models2.OrderCycleCnf, 0)
 
-	e.Orm.Table(splitTableRes.OrderCycle).Scopes(
+	orm := e.Orm.Table(splitTableRes.OrderCycle).Scopes(
 		cDto.MakeSplitTableCondition(req.GetNeedSearch(),splitTableRes.OrderCycle),
 		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto)).Order(global.OrderTimeKey).Find(&datalist)
+		actions.PermissionSysUser(splitTableRes.OrderCycle,userDto))
+	if OrderRangeTime !=""{//时间范围查询
+		orm = orm.Where(OrderRangeTime)
+	}
+	orm.Order(global.OrderTimeKey).Find(&datalist)
 
 	//下单周期
 	createTime := make([]map[string]interface{}, 0)

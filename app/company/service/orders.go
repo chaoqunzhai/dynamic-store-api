@@ -180,7 +180,6 @@ func (e *Orders) GetPage(openApprove bool,splitTableRes business.TableRow,countM
 	countSql:="SUM(order_money) as all_order_money,SUM(number) as number,count(*) as 'count',SUM(coupon_money) as all_coupon_money,SUM(goods_money) as all_goods_money "
 
 	if c.Verify{//根据过滤 然后在统计一次
-		//orm.Raw(countSql).Scan(&countMap)
 		orm.Select(countSql).Scan(&countMap)
 	}
 

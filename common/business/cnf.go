@@ -125,6 +125,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 	return result
 }
 //返回订单的查询范围
+//用于订单查询 和 查询周期配送
 func GetOrderRangeTime(cid int,orm *gorm.DB) string  {
 	CompanyCnf := GetCompanyCnf(cid, "order_range", orm)
 	OrderRangeNumber := CompanyCnf["order_range"]
