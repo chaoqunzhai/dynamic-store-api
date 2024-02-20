@@ -40,6 +40,7 @@ func (e PaymentOrder) GetPage(c *gin.Context) {
 	list := make([]models.UserApplyPaymentOrder, 0)
 	var count int64
 	var data models.UserApplyPaymentOrder
+	//撤回/驳回的订单就不统计了
 	orm :=e.Orm
 	if req.Before > 0 {
 		orm = orm.Where("status > 0 ")

@@ -134,7 +134,7 @@ func GetOrderRangeTime(cid int,orm *gorm.DB) string  {
 		return ""
 	}
 	//有期限
-	val:=fmt.Sprintf("created_at >= DATE_SUB(CURRENT_DATE(), INTERVAL %v YEAR) ",OrderRangeNumber)
+	val:=fmt.Sprintf("created_at >= DATE_SUB(CURRENT_DATE(), INTERVAL %v MONTH) ",OrderRangeNumber)
 	return val
 
 }

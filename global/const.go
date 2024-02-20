@@ -45,7 +45,7 @@ const (
 	//大B资源限制
 	CompanyVip           = 6   //大B最多可以设置6个VIP
 	CompanyLine          = 2   //默认2个路线
-	CompanyOrderRange = 1 //默认订单查询时间范围 单位为年
+	CompanyOrderRange = 18 //默认订单查询时间范围 单位为月
 	CompanyMaxRole       = 10  //大B最多可以设置10个角色
 	CompanyMaxGoods      = 100 //大B最多可以创建50个商品
 	CompanyMaxShop       = 30  //大B最多可以创建30个客户

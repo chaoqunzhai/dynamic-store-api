@@ -171,6 +171,12 @@ func (e *Orders) GetPage(openApprove bool,splitTableRes business.TableRow,countM
 	if OrderRangeTime !=""{//时间范围查询
 		orm = orm.Where(OrderRangeTime)
 	}
+
+	if c.Verify{//根据过滤 然后在统计一次
+		//作废的订单不统计
+		orm = orm.Where("status != ?", global.OrderStatusCancel)
+
+	}
 	err = orm.Scopes(
 			cDto.MakeSplitTableCondition(c.GetNeedSearch(),splitTableRes.OrderTable),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
@@ -179,10 +185,10 @@ func (e *Orders) GetPage(openApprove bool,splitTableRes business.TableRow,countM
 		Count(count).Error
 	countSql:="SUM(order_money) as all_order_money,SUM(number) as number,count(*) as 'count',SUM(coupon_money) as all_coupon_money,SUM(goods_money) as all_goods_money "
 
-	if c.Verify{//根据过滤 然后在统计一次
+	//开启对账功能
+	if c.Verify{//根据过滤 然后在统计一次,重复利用了orm对象 所以分开执行
 		orm.Select(countSql).Scan(&countMap)
 	}
-
 
 	if err != nil {
 		e.Log.Errorf("订单不存在", err)
