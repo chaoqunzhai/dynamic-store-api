@@ -259,6 +259,7 @@ func (e Company)Count(c *gin.Context)  {
 		e.Error(500, err, err.Error())
 		return
 	}
+	OrderRangeTime :=business.GetOrderRangeTime(userDto.CId,e.Orm)
 	thisDayS:=fmt.Sprintf("%v 00:00:00",time.Now().Format("2006-01-02"))
 	thisDayE:=fmt.Sprintf("%v 23.59.59",time.Now().Format("2006-01-02"))
 	thisDaySql:=fmt.Sprintf("c_id = '%v' and  created_at >= '%v' AND created_at <= '%v'",userDto.CId,thisDayS,thisDayE)
@@ -278,19 +279,23 @@ func (e Company)Count(c *gin.Context)  {
 			e.Orm.Model(&models2.Shop{}).Where("c_id = ? ",userDto.CId).Count(&count)
 			return count
 		}(),
-		Order:func() int64{
+		Line:func() int64{
 			var count int64
-			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? ",userDto.CId).Count(&count)
+			e.Orm.Model(&models.Line{}).Where("c_id = ? and enable = ? ",
+				userDto.CId,true).Count(&count)
 			return count
 		}(),
-		SelfOrder:func() int64{
+		Salesman:func() int64{
 			var count int64
-			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and delivery_type = 1",userDto.CId).Count(&count)
+			e.Orm.Model(&sys.SysUser{}).Where("c_id = ? ",userDto.CId).Count(&count)
 			return count
 		}(),
 		WaitOrder:func() int64{
 			var count int64
 			orm := e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and status =  ?",userDto.CId,global.OrderStatusWaitSend)
+			if  OrderRangeTime != ""{
+				orm = orm.Where(OrderRangeTime)
+			}
 			//待配送查询时 需要检测是否开启了审批
 			if openApprove{
 				orm.Where("approve_status = ?",global.OrderApproveOk).Count(&count)
@@ -300,14 +305,26 @@ func (e Company)Count(c *gin.Context)  {
 			fmt.Println("查询待发货",count)
 			return count
 		}(),
-		RefundOrder:func() int64{
+		RefundWaitOrder:func() int64{
 			var count int64
-			e.Orm.Table(splitTableRes.OrderReturn).Where("c_id = ? ",userDto.CId).Count(&count)
+
+			orm :=e.Orm.Table(splitTableRes.OrderReturn).Where("c_id = ? and status = ? ",userDto.CId,global.RefundDefault)
+			if  OrderRangeTime != ""{
+				orm = orm.Where(OrderRangeTime)
+			}
+			orm.Count(&count)
+
 			return count
 		}(),
 		WaitSelfOrder:func() int64{
 			var count int64
-			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and delivery_type = 1 and status =  ?",userDto.CId,global.OrderWaitConfirm).Count(&count)
+			orm :=e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and delivery_type = 1 and status =  ?",userDto.CId,global.OrderWaitConfirm).Count(&count)
+
+			if  OrderRangeTime != ""{
+				orm = orm.Where(OrderRangeTime)
+			}
+			orm.Count(&count)
+
 			return count
 		}(),
 		ThisDayPayOkOrder: func() int64{
@@ -326,8 +343,6 @@ func (e Company)Count(c *gin.Context)  {
 			return count
 		}(),
 		ThisDayPayAll: func() string {
-
-
 
 			return "0.00"
 		}(),

@@ -202,11 +202,11 @@ type IndexCount struct {
 	
 	Goods int64 `json:"goods"`  //商品总数
 	Shop int64 `json:"shop"` //小B总数
-	Order int64 `json:"order"` //订单总数
-	SelfOrder int64 `json:"self_order"` //自提订单总量
+	Line int64 `json:"line"` //路线数量
+	Salesman int64 `json:"salesman"` //业务员数据量
 
 	WaitOrder int64 `json:"wait_order"` //待发货订单
-	RefundOrder int64 `json:"refund_order"` //售后单
+	RefundWaitOrder int64 `json:"refund_wait_order"` //待处理的售后单
 	WaitSelfOrder int64 `json:"wait_self_order"` //待自提
 	GoodsSellOut int64 `json:"goods_sell_out"` //已售罄的商品
 }
