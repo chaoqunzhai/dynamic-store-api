@@ -15,11 +15,13 @@ import (
 	"go-admin/app/company/service/dto"
 	"go-admin/common/actions"
 	"go-admin/common/business"
+	cDto "go-admin/common/dto"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/common/qiniu"
 	utils2 "go-admin/common/utils"
 	"go-admin/global"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 	"net/url"
 	"os"
 	"path"
@@ -294,7 +296,7 @@ func (e Goods) GetPage(c *gin.Context) {
 	}
 
 	listType := c.Query("listType")
-
+	var stockEmpty bool
 	switch listType {
 	case "on_sale":
 		//在售中
@@ -304,13 +306,38 @@ func (e Goods) GetPage(c *gin.Context) {
 		req.Enable = "0"
 	case "sale_out":
 		//售罄 ?
-		
+		stockEmpty=true
 	}
-	p := actions.GetPermissionFromContext(c)
+
 	list := make([]models.Goods, 0)
 	var count int64
 	req.CId = userDto.CId
-	err = s.GetPage(&req, p, &list, &count)
+
+
+	query := e.Orm.Model(&models.Goods{}).
+		Scopes(
+			cDto.MakeCondition(req.GetNeedSearch()),
+			cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
+		).Order(global.OrderLayerKey).Preload("Class", func(tx *gorm.DB) *gorm.DB {
+		return tx.Select("id,name")
+	})
+	if req.Class != "" {
+		query = query.Joins("LEFT JOIN goods_mark_class ON goods.id = goods_mark_class.goods_id").Where("goods_mark_class.class_id in ?",
+			strings.Split(req.Class, ","))
+	}
+	if req.Brand != "" {
+		query = query.Joins("LEFT JOIN goods_mark_brand ON goods.id = goods_mark_brand.goods_id").Where("goods_mark_brand.brand_id in ?",
+			strings.Split(req.Brand, ","))
+	}
+
+	openInventory := service.IsOpenInventory(userDto.CId,e.Orm)
+
+	if !openInventory &&  stockEmpty{//没有开启库存 + 并且是过滤库存为0 那就查商品本身数据即可
+		query = query.Where("inventory = 0")
+	}
+
+	err = query.Find(&list).Limit(-1).Offset(-1).
+		Count(&count).Error
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("获取Goods失败,信息 %s", err.Error()))
 		return
@@ -330,6 +357,9 @@ func (e Goods) GetPage(c *gin.Context) {
 		var Inventory int
 		if openInventory{
 			Inventory = InventoryMap[row.Id]
+			if stockEmpty  && Inventory > 0{ //只查看库存为0的数据
+				continue
+			}
 		}else {
 			Inventory = row.Inventory
 		}

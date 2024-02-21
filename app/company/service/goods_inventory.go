@@ -75,7 +75,9 @@ func (e *Goods)GetBatchGoodsInventory(cid int,goodsId []int) (openInventory bool
 
 	var InventoryList []models2.Inventory
 
-	e.Orm.Model(&models2.Inventory{}).Select("goods_id,stock").Where("c_id = ? and goods_id in ?",cid,goodsId).Find(&InventoryList)
+	orm :=e.Orm.Model(&models2.Inventory{}).Select("goods_id,stock").Where("c_id = ? and goods_id in ?",cid,goodsId)
+
+	orm.Find(&InventoryList)
 	if len(InventoryList) == 0 {
 		return
 	}
