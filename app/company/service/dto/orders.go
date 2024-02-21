@@ -242,7 +242,7 @@ type OrdersEditReq struct {
 		NewAllNumber   int `json:"new_all_number"` //单规格新的总数量
 		NewAllMoney float64 `json:"new_all_money"` //单规格新的总价格
 	} `json:"editList"`
-	Deduction int    `json:"deduction"` //扣款方式|退还方式 1:余额 2:授信额
+	Deduction int    `json:"deduction"` //扣款方式|退还方式 1:余额 2:授信余额
 	Reduce    bool   `json:"reduce"` //减少数量
 	Increase  bool   `json:"increase"` //新增数量
 	Number    int    `json:"number"` //数量
@@ -299,9 +299,7 @@ type EditList struct {
 type OrderRefund struct {
 	GoodsId int
 	Specs OrderRefundSpec `json:"specs"` //规格:退回数量
-//	map[int]int{
-//	row.SpecId:row.Number,
-//},
+
 }
 type OrderRefundSpec struct {
 	SpecId int `json:"spec_id"` //规格ID
@@ -316,6 +314,12 @@ type ApproveReq struct {
 	Desc string `json:"desc"`
 	Action int `json:"action"`//审批是否通过 1:通过 2:驳回
 	Source string `json:"source"` //来源类型 approve:审批 cancel作废
+}
+//状态
+type StatusReq struct {
+	OrderList []string `json:"order_list"`
+	Desc string `json:"desc"`
+	Status int `json:"status"`//
 }
 
 //订单统计

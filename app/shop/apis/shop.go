@@ -9,6 +9,7 @@ import (
 	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/business"
 	customUser "go-admin/common/jwt/user"
+	"go-admin/common/utils"
 	"go-admin/global"
 	"golang.org/x/crypto/bcrypt"
 
@@ -563,24 +564,30 @@ func (e Shop)Credit(c *gin.Context)  {
 	Scene:=""
 	switch req.Mode {
 	case global.UserNumberAdd:
+		//增加时 是给授信额度 增加
+		//同时在授信额度增加
 		object.Credit += float64(req.Value)
-		Scene = fmt.Sprintf("手动增加%v授信额",req.Value)
+		Scene = fmt.Sprintf("手动增加%v授信额度,授信余额",req.Value)
+		object.CreditQuota += float64(req.Value)
+
 	case global.UserNumberReduce:
+		//减少授信额
 		if float64(req.Value) > object.Credit {
-			e.Error(500, errors.New("数值非法"), "数值非法")
+			e.Error(500, errors.New("授信余额不足"), "授信余额不足")
 			return
 		}
 		object.Credit -=float64(req.Value)
-		Scene = fmt.Sprintf("手动减少%v授信额",req.Value)
-	case global.UserNumberSet:
-		object.Credit = float64(req.Value)
-		Scene = fmt.Sprintf("手动设置为%v授信额",req.Value)
+		Scene = fmt.Sprintf("手动减少%v授信余额",req.Value)
+	//case global.UserNumberSet:
+	//	object.Credit = float64(req.Value)
+	//	Scene = fmt.Sprintf("手动设置为%v授信余额",req.Value)
 	default:
 		e.Error(500, nil,"操作不合法")
 		return
 	}
 	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("id = ?",object.Id).Updates(map[string]interface{}{
-		"credit":object.Credit,
+		"credit":utils.RoundDecimalFlot64(object.Credit),
+		"credit_quota":utils.RoundDecimalFlot64(object.CreditQuota),
 		"update_by":user.GetUserId(c),
 	})
 	row:=models.ShopCreditLog{
@@ -645,7 +652,7 @@ func (e Shop)Amount(c *gin.Context)  {
 		return
 	}
 	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("id = ?",object.Id).Updates(map[string]interface{}{
-		"balance":object.Balance,
+		"balance":utils.RoundDecimalFlot64(object.Balance),
 		"update_by":user.GetUserId(c),
 	})
 	row:=models.ShopBalanceLog{

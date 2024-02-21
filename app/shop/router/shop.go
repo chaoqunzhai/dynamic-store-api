@@ -24,11 +24,11 @@ func registerShopRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewar
 		r.POST("", api.Insert)
 		r.PUT("/:id", api.Update)
 		r.DELETE("", api.Delete)
-		//积分增加
+		//积分操作
 		r.POST("/integral",api.Integral)
-		//授信分增加
+		//授信操作
 		r.POST("/credit",api.Credit)
-		//金额增加
+		//金额操作
 		r.POST("/balance",api.Amount)
 		//等级修改
 		r.POST("/grade",api.Grade)

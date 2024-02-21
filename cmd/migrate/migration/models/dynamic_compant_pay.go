@@ -87,7 +87,7 @@ type UserApplyPaymentOrder struct {
 
 	TransferDate time.Time `json:"transfer_date"`
 	Money float64 `json:"money"`
-	UseTo int `json:"use_to" gorm:"size:1;comment:用途 0:记录 1:计入余额 2:计入授信额"`
+	UseTo int `json:"use_to" gorm:"size:1;comment:用途 0:记录 1:计入余额 2:计入授信余额"`
 	Status int `json:"status" gorm:"size:1;comment:付款单状态 0:提交中  1:确认到账 2:有问题"`
 	Bank string `json:"bank" gorm:"size:20;comment:银行名称"`
 	Name string `json:"name" gorm:"size:20;comment:持卡人名称"`

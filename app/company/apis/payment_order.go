@@ -149,8 +149,8 @@ func (e PaymentOrder) Update(c *gin.Context) {
 		}
 		row.CreateBy = userDto.UserId
 		e.Orm.Create(&row)
-	case 2://加入到授信额中
-		//价格加入到用户授信额中
+	case 2://加入到授信余额中
+		//价格加入到用户授信余额中
 
 		Money,_:=utils.RoundDecimal( shopObject.Credit + paymentObject.Money).Float64()
 		e.Orm.Model(&models2.Shop{}).Where("c_id = ? and user_id = ?",userDto.CId,paymentObject.CreateBy).Updates(map[string]interface{}{

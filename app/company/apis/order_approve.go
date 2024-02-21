@@ -80,8 +80,9 @@ func (e OrdersApprove)Approve(c *gin.Context) {
 	//无论是否开启审核 都把这个字段进行一个更新,防止后期开启了审核 是在校验approve_status字段
 	if req.Action == 1{ //审核通过
 		updateMap["approve_status"] = global.OrderApproveOk
+		//updateMap["status"] = global.OrderStatusReturn
 		//审批操作时 只能是更新默认状态的订单,不会动订单的状态
-		e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id in ? and status = ?",userDto.CId,req.OrderList,global.OrderStatusWaitSend).Updates(updateMap)
+		e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id in ? ",userDto.CId,req.OrderList).Updates(updateMap)
 
 	}else if req.Action == 0  {
 		

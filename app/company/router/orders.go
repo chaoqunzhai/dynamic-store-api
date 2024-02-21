@@ -67,6 +67,8 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 		//批量驳回操作
 		r3.POST("/batch/cancel",api.BatchCancelOrder)
 
+		//批量修改状态
+		r3.POST("/batch/status",api.BatchStatusOrder)
 
 	}
 }

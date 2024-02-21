@@ -231,9 +231,9 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 					Name: "退款到余额",
 					Value: global.RefundMoneyBalance,
 				})
-			case global.PayTypeCredit:		//如果是授信额支付 只能退授信额
+			case global.PayTypeCredit:		//如果是授信余额支付 只能退授信余额
 				RefundTypeAction = append(RefundTypeAction,dto.RefundTypeAction{
-					Name: "退款到授信额",
+					Name: "退款到授信余额",
 					Value: global.RefundMoneyCredit,
 				})
 			case global.PayTypeOffline: // 只能线下退款
@@ -383,7 +383,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 		updateShopMap["balance"] = utils.RoundDecimalFlot64(shop.Balance + refundMoney)
 
 
-	case global.RefundMoneyCredit:		//退授信额
+	case global.RefundMoneyCredit:		//退款到授信余额
 		updateShopMap["credit"] = utils.RoundDecimalFlot64(shop.Credit + refundMoney)
 
 	case global.RefundMoneyOffline: // 线下退款
@@ -413,7 +413,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 			}
 			row.CreateBy = userDto.UserId
 			e.Orm.Create(&row)
-		case global.RefundMoneyCredit:		//退授信额
+		case global.RefundMoneyCredit:		//退款到授信余额
 			row:=models.ShopCreditLog{
 				CId: userDto.CId,
 				ShopId: refundFirstObject.ShopId,

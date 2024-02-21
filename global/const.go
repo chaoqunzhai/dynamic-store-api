@@ -191,7 +191,7 @@ const (
 	OrderSourceAli = 9 //支付宝
 
 	PayTypeBalance = 1 //余额支付
-	PayTypeCredit = 2 //授信额支付
+	PayTypeCredit = 2 //授信余额支付
 	PayTypeOnlineWechat = 3 //线上微信支付
 	PayTypeOnlineAli = 4 //线上支付宝支付
 	PayTypeOffline = 5 //线下支付
@@ -214,7 +214,7 @@ const (
 	RefundMoneyOriginal = 1 //原路退还
 	RefundMoneyOffline = 2 //线下退款
 	RefundMoneyBalance = 3 //退款到余额
-	RefundMoneyCredit = 4 //退款到授信分
+	RefundMoneyCredit = 4 //退款到授信余额
 
 	//出入库记录
 	InventoryIn = 1 //常规入库
@@ -292,7 +292,7 @@ func RefundMoneyTypeStr(v int) string  {
 
 		return "退款至余额"
 	case RefundMoneyCredit:
-		return "退款至授信额"
+		return "退款至授信余额"
 	}
 	return ""
 }
@@ -460,7 +460,7 @@ func GetPayType(v int)  string {
 	case PayTypeBalance:
 		return "余额支付"
 	case PayTypeCredit:
-		return "授信额支付"
+		return "授信余额支付"
 	case PayTypeCashOn:
 		return "货到付款"
 	}

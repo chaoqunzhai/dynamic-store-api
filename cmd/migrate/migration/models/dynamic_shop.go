@@ -26,7 +26,8 @@ type Shop struct {
 	LineId    int       `gorm:"index;comment:归属配送路线"`
 	Balance    float64   `gorm:"comment:金额"`
 	Integral  int       `gorm:"comment:可用积分"`
-	Credit float64   `gorm:"comment:授信额"`
+	CreditQuota float64 `gorm:"comment:授信额度" json:"credit_quota"`
+	Credit    float64   `gorm:"comment:授信余额" json:"credit"`
 	GradeId   int       `gorm:"index;comment:会员等级"`
 	Platform  string    `json:"platform" gorm:"size:10;comment:注册来源"`
 	SuggestId int       `gorm:"index;comment:推荐人ID"`
@@ -99,7 +100,7 @@ func (ShopIntegralLog) TableName() string {
 	return "shop_integral_log"
 }
 
-// todo:授信额变动的明细
+// todo:授信变动的明细
 type ShopCreditLog struct {
 	Model
 	CId       int            `gorm:"index;comment:大B"`
@@ -108,7 +109,7 @@ type ShopCreditLog struct {
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
 	Action    string         `json:"action" gorm:"type:varchar(10);comment:操作"`
 	ShopId    int            `gorm:"index;comment:小BID"`
-	Number    float64        `gorm:"comment:授信额变动数值"`
+	Number    float64        `gorm:"comment:授信变动数值"`
 	Scene     string         ` gorm:"size:60;comment:变动场景"`
 	Desc      string         ` gorm:"size:20;comment:描述/说明"`
 	Type      int            `gorm:"type:tinyint(1);default:1;index;comment:操作类型"`

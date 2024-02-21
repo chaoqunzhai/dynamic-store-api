@@ -615,7 +615,7 @@ func (e Company) PayCnf(c *gin.Context) {
 	}
 	if object.Credit {
 		data = append(data, map[string]interface{}{
-			"value":"授信额支付",
+			"value":"授信余额支付",
 			"label":object.Credit,
 			"key":global.PayEnCredit,
 			"type":global.PayTypeCredit,

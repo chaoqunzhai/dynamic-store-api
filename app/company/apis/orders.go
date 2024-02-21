@@ -485,7 +485,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	case global.PayTypeCredit:
 		DeductionAllMoney = shopObject.Credit
 		if DeductionAllMoney < PayOrderMoney {
-			e.OK(-1, "授信额不足")
+			e.OK(-1, "授信余额不足")
 			return
 		}
 	case global.PayTypeOffline:
@@ -748,7 +748,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			})
 		}
 	}
-	//授信额减免
+	//授信余额减免
 
 	switch req.DeductionType {
 	case global.PayTypeBalance:
@@ -1239,7 +1239,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 		row.CreateBy = user.GetUserId(c)
 		e.Orm.Create(&row)
 	case global.PayTypeCredit:
-		EditAction = "授信额" + EditAction
+		EditAction = "授信余额" + EditAction
 		shopRow.Credit -=req.Money
 		updateMap["credit"] = shopRow.Credit
 		row:=models2.ShopCreditLog{
@@ -1351,6 +1351,40 @@ func (e Orders) EditOrder(c *gin.Context) {
 
 
 	e.OK("","更新成功")
+	return
+
+}
+
+
+func (e Orders)BatchStatusOrder(c *gin.Context) {
+	req := dto.StatusReq{}
+	s := service.Orders{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+
+	e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ?  and order_id in ?",
+		userDto.CId,req.OrderList).Updates(map[string]interface{}{
+		"status":req.Status,
+		"approve_status":global.OrderApproveOk,
+	})
+
+	zap.S().Infof("用户:%v 批量操作订单:%v,执行:%v,描述:%v",
+		userDto.Username,strings.Join(req.OrderList,","),global.OrderStatus(req.Status),req.Desc)
+	e.OK("","successful")
 	return
 
 }
