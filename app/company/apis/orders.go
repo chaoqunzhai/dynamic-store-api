@@ -766,7 +766,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			CId: userDto.CId,
 			ShopId: shopObject.Id,
 			Money: PayOkMoney,
-			Scene:fmt.Sprintf("管理员[%v] 代客下单,抵扣:%v",userDto.Username,PayOkMoney),
+			Scene:fmt.Sprintf("管理员[%v] 到店开单,抵扣:%v",userDto.Username,PayOkMoney),
 			Action: global.UserNumberReduce, //抵扣
 			Type: global.ScanShopUse,
 		}
@@ -785,7 +785,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			CId: userDto.CId,
 			ShopId: shopObject.Id,
 			Number: PayOkMoney,
-			Scene:fmt.Sprintf("管理员[%v] 代客下单,抵扣:%v",userDto.Username,PayOkMoney),
+			Scene:fmt.Sprintf("管理员[%v] 到店开单,抵扣:%v",userDto.Username,PayOkMoney),
 			Action: global.UserNumberReduce, //抵扣
 			Type: global.ScanShopUse,
 		}

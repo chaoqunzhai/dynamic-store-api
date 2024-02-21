@@ -269,7 +269,7 @@ func GetInventoryActionCn(v int) (bol,val string) {
 	case InventoryApproveIn:
 		return "+","审批驳回入库"
 	case InventoryHelpOut:
-		return "-","代客下单出库"
+		return "-","到店开单出库"
 	}
 	return "",""
 
@@ -484,7 +484,7 @@ func GetOrderSource(v int) string {
 	case OrderSourceH5:
 		return "H5"
 	case OrderSourceValet:
-		return "代客下单"
+		return "到店开单"
 	case OrderSourceWeChat:
 		return "微信公众号"
 	case OrderSourceAli:
