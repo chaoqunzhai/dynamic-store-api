@@ -65,6 +65,7 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 	}
 	//大B用户管理 + 业务员管理 完全可以复用接口
 	{
+		//返回推广码+登录的地址
 		r.GET("/promotionCode",api.PromotionCode)
 		//用户列表
 		r.GET("/user/list", api.List)

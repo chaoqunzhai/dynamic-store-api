@@ -25,6 +25,7 @@ type CompanyRegisterUserVerify struct {
 	CId int `json:"-" gorm:"index;comment:大BID"`
 	AdoptTime *time.Time `json:"adopt_time" gorm:"通过时间"`
 	AdoptUser string `json:"adopt_user" gorm:"size:11;comment:审批人"`
+	Salesman int `json:"salesman" gorm:"comment:推广业务员"`
 	Source string `json:"source" gorm:"size:6;comment:注册方式 user | mobile"`
 	Value string `json:"value" gorm:"size:15;comment:注册数据,用户名或者手机号"`
 	Phone string `json:"phone" gorm:"size:15;comment:注册数据,手机号"`

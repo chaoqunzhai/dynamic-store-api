@@ -53,7 +53,11 @@ func (e ShopRegisterList) GetPage(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	p := actions.GetPermissionFromContext(c)
 	list := make([]models.CompanyRegisterUserVerify, 0)
 	var count int64
@@ -69,7 +73,20 @@ func (e ShopRegisterList) GetPage(c *gin.Context) {
 		Find(&list).Limit(-1).Offset(-1).
 		Count(&count).Error
 
-	e.PageOK(list, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	result:=make([]interface{},0)
+
+	for _,row:=range list{
+		if row.Salesman > 0 {
+
+			var user sys.SysUser
+			e.Orm.Model(&user).Select("user_id,username").Where("c_id = ? and user_id = ?",userDto.CId,row.Salesman).Limit(1).Find(&user)
+			if user.UserId > 0 {
+				row.SalesmanUser = user.Username
+			}
+		}
+		result = append(result,row)
+	}
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
 }
 
 func (e ShopRegisterList) Detail(c *gin.Context) {

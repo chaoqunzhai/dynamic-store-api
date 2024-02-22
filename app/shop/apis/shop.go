@@ -562,6 +562,9 @@ func (e Shop)Credit(c *gin.Context)  {
 		return
 	}
 	Scene:=""
+	updateMap:=map[string]interface{}{
+		"update_by":user.GetUserId(c),
+	}
 	switch req.Mode {
 	case global.UserNumberAdd:
 		//增加时 是给授信额度 增加
@@ -569,7 +572,8 @@ func (e Shop)Credit(c *gin.Context)  {
 		object.Credit += float64(req.Value)
 		Scene = fmt.Sprintf("手动增加%v授信额度,授信余额",req.Value)
 		object.CreditQuota += float64(req.Value)
-
+		updateMap["credit_quota"] = utils.RoundDecimalFlot64(object.CreditQuota)
+		updateMap["credit"] = utils.RoundDecimalFlot64(object.Credit)
 	case global.UserNumberReduce:
 		//减少授信额
 		if float64(req.Value) > object.Credit {
@@ -578,6 +582,7 @@ func (e Shop)Credit(c *gin.Context)  {
 		}
 		object.Credit -=float64(req.Value)
 		Scene = fmt.Sprintf("手动减少%v授信余额",req.Value)
+		updateMap["credit"] = utils.RoundDecimalFlot64(object.Credit)
 	//case global.UserNumberSet:
 	//	object.Credit = float64(req.Value)
 	//	Scene = fmt.Sprintf("手动设置为%v授信余额",req.Value)
@@ -585,11 +590,7 @@ func (e Shop)Credit(c *gin.Context)  {
 		e.Error(500, nil,"操作不合法")
 		return
 	}
-	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("id = ?",object.Id).Updates(map[string]interface{}{
-		"credit":utils.RoundDecimalFlot64(object.Credit),
-		"credit_quota":utils.RoundDecimalFlot64(object.CreditQuota),
-		"update_by":user.GetUserId(c),
-	})
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("id = ?",object.Id).Updates(updateMap)
 	row:=models.ShopCreditLog{
 		CId: userDto.CId,
 		ShopId: req.ShopId,

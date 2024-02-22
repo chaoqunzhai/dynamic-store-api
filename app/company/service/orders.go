@@ -309,7 +309,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 		"now":nowTimeObj.Format("2006-01-02 15:04:05"),
 		"this_user":userDto.Username,
 		//https://weapp.dongchuangyun.com/d1#/'
-		"url":fmt.Sprintf("%vd%v#/",config.ExtConfig.H5Url,userDto.CId),
+		"url":fmt.Sprintf("%v?siteId=%v",config.ExtConfig.H5Url,userDto.CId),
 		"desc":object.Desc,
 		"buyer":object.Buyer,
 		"all_money_cn":utils.ConvertNumToCny(object.GoodsMoney),

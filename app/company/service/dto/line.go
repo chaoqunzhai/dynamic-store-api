@@ -15,6 +15,8 @@ type LineGetPageReq struct {
 	DriverId       string `form:"driver_id"  search:"type:exact;column:driver_id;table:line" comment:"关联司机"`
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:line" comment:"创建时间"`
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:line" comment:"创建时间"`
+	ExpirationTime  string `form:"expiration_time" search:"type:gte;column:expiration_time;table:line" comment:"创建时间"`
+	Effective bool `json:"effective" form:"effective" search:"-"`
 	LineOrder
 }
 

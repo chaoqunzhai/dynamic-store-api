@@ -32,21 +32,21 @@ settings:
     # sqlserver: sqlserver://用户名:密码@地址?database=数据库名
     driver: mysql
     # 数据库连接字符串 mysql 缺省信息 charset=utf8&parseTime=True&loc=Local&timeout=1000ms
-#    source: root:chao930715@tcp(127.0.0.1:3306)/dynamic?charset=utf8&parseTime=True&loc=Local&timeout=8000ms
-    source: root:@tcp(127.0.0.1:3306)/dynamic?charset=utf8&parseTime=True&loc=Local&timeout=8000ms
+    source: root:chao930715@tcp(127.0.0.1:3306)/dynamic?charset=utf8&parseTime=True&loc=Local&timeout=8000ms
+#    source: root:@tcp(127.0.0.1:3306)/dynamic?charset=utf8&parseTime=True&loc=Local&timeout=8000ms
   gen:
     # 代码生成读取的数据库名称
     dbname: dynamic
     # 代码生成是使用前端代码存放位置，需要指定到src文件夹，相对路径
     frontpath: ../go-admin-ui/src
   extend: # 扩展项使用说明
-    #推广码链接
+    #推广码链接 暂时不用这个地址
     promotionCode: ""
     #云端保留的天数 exportDay+1 为云端保留数据
     exportDay: 7
     cloudObsUrl: "https://qiniu.dongchuangyun.com/"
     #移动端地址
-    h5Url: "https://weapp.dongchuangyun.com/"
+    h5Url: "https://weapp.dongchuangyun.com/h5/"
     #本地文件路径
     imageBase: "./image/"
     qiniu:

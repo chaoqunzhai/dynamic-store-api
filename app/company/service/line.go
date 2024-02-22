@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"go-admin/global"
+	"time"
 
 	"github.com/go-admin-team/go-admin-core/sdk/service"
 	"gorm.io/gorm"
@@ -21,13 +22,16 @@ type Line struct {
 func (e *Line) GetPage(c *dto.LineGetPageReq, p *actions.DataPermission, list *[]models.Line, count *int64) error {
 	var err error
 	var data models.Line
-
-	err = e.Orm.Model(&data).
+ 	orm := e.Orm.Model(&data).
 		Scopes(
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
-		).Order(global.OrderLayerKey).
+		)
+ 	if c.Effective {
+ 		orm = orm.Where("expiration_time IS NULL OR expiration_time > ?",time.Now().Format("2006-01-02 15:04:05"))
+	}
+	err = orm.Order(global.OrderLayerKey).
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {

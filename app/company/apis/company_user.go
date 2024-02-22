@@ -116,8 +116,9 @@ func (e Company) PromotionCode(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	//后面的promotionCode值由前段来拼接即可
+	url:=fmt.Sprintf("%vpages_tool/login/register?siteId=%v",config.ExtConfig.H5Url,userDto.CId)
 
-	url:=fmt.Sprintf("%v/%v",config.ExtConfig.PromotionCode,userDto.CId)
 	e.OK(url, "successful")
 	return
 }
