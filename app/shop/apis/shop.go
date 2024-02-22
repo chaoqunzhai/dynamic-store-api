@@ -556,7 +556,7 @@ func (e Shop)Credit(c *gin.Context)  {
 
 	var count int64
 	var object models.Shop
-	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Select("credit,id").Where("id = ? ",req.ShopId).First(&object).Count(&count)
+	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Select("credit,id,credit_quota").Where("id = ? ",req.ShopId).First(&object).Count(&count)
 	if count == 0 {
 		e.Error(500, errors.New("客户不存在"), "客户不存在")
 		return
