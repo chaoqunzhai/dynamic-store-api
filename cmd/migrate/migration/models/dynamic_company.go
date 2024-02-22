@@ -134,3 +134,12 @@ type OrderReturnCnf struct {
 func (OrderReturnCnf) TableName() string {
 	return "company_order_return_cnf"
 }
+
+//协议配置 agreement
+type Agreement struct {
+	BigBRichGlobal
+	Value string `json:"value" gorm:"comment:协议内容"`
+}
+func (Agreement) TableName() string {
+	return "company_agreement"
+}

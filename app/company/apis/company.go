@@ -747,6 +747,62 @@ func (e Company) Info(c *gin.Context) {
 // @Security Bearer
 
 
+func (e Company) AgreementCnf(c *gin.Context)   {
+
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var object models2.Agreement
+	e.Orm.Model(&object).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
+	e.OK(object.Value,"")
+	return
+
+}
+
+func (e Company) AgreementUpdate(c *gin.Context)   {
+	req:=dto.Agreement{}
+	err := e.MakeContext(c).
+		Bind(&req).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	var object models2.Agreement
+	e.Orm.Model(&object).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
+	if object.Id == 0 {
+		object.CId = userDto.CId
+		object.Value = req.Value
+		object.Layer = 0
+		object.Enable = true
+		e.Orm.Save(&object)
+	}else {
+		e.Orm.Model(&object).Where("c_id = ?",userDto.CId).Updates(map[string]interface{}{
+			"value":req.Value,
+		})
+	}
+	e.OK("","")
+	return
+
+}
 func (e Company) QuotaCnf(c *gin.Context)   {
 
 	err := e.MakeContext(c).
@@ -758,7 +814,7 @@ func (e Company) QuotaCnf(c *gin.Context)   {
 		return
 	}
 	quotaType:=c.Query("type")
-	fmt.Println("quotaType",quotaType)
+	//fmt.Println("quotaType",quotaType)
 
 	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {

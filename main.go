@@ -15,3 +15,4 @@ func main() {
 	global.Version = Version
 	cmd.Execute()
 }
+

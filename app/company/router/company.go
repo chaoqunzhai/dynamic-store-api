@@ -62,6 +62,10 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 
 		//展示一些限制的文案，例如当前可用路线是多少条
 		r.GET("/quota/cnf",api.QuotaCnf)
+
+		//协议配置
+		r.GET("/agreement",api.AgreementCnf)
+		r.POST("/agreement",api.AgreementUpdate)
 	}
 	//大B用户管理 + 业务员管理 完全可以复用接口
 	{

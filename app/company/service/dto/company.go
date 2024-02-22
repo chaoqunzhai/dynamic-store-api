@@ -267,3 +267,7 @@ type DetailGoodsRow struct {
 	AllMoney float64 `json:"-"`
 	AllMoneyValue string `json:"all_money_value"`
 }
+
+type Agreement struct {
+	Value string `json:"value" form:"value"`
+}
