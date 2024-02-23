@@ -314,11 +314,13 @@ func (e Goods) GetPage(c *gin.Context) {
 	req.CId = userDto.CId
 
 
-	query := e.Orm.Model(&models.Goods{}).
+	var goods models.Goods
+	query := e.Orm.Model(&goods).
 		Scopes(
+			actions.PermissionSysUser(goods.TableName(),userDto),
 			cDto.MakeCondition(req.GetNeedSearch()),
 			cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-		).Order(global.OrderLayerKey).Preload("Class", func(tx *gorm.DB) *gorm.DB {
+		).Where("c_id = ?",userDto.CId).Order(global.OrderLayerKey).Preload("Class", func(tx *gorm.DB) *gorm.DB {
 		return tx.Select("id,name")
 	})
 	if req.Class != "" {

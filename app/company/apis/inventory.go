@@ -9,6 +9,7 @@ import (
 	"go-admin/app/company/service"
 	"go-admin/app/company/service/dto"
 	models2 "go-admin/cmd/migrate/migration/models"
+	"go-admin/common/actions"
 	"go-admin/common/business"
 	cDto "go-admin/common/dto"
 	customUser "go-admin/common/jwt/user"
@@ -237,7 +238,7 @@ func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	whereSql :=fmt.Sprintf("c_id = %v ",userDto.CId)
+	var whereSql string
 	//进行商品名称的查询
 	if req.Name != "" {
 		likeVal:=fmt.Sprintf("%%%v%%",req.Name)
@@ -263,7 +264,9 @@ func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 	var count int64
 	result:=make([]interface{},0)
 	InventoryList :=make([]models2.Inventory,0)
-	query := e.Orm.Model(&models2.Inventory{}).Where(whereSql).Scopes(
+	var object models2.Inventory
+	query := e.Orm.Model(&object).Where(whereSql).Scopes(
+		actions.PermissionSysUser(object.TableName(),userDto),
 		cDto.MakeCondition(req.GetNeedSearch()),
 		cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Order(global.OrderLayerKey)
 
