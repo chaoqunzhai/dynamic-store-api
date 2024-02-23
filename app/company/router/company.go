@@ -27,6 +27,7 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 
 		//大B信息
 		r.GET("/info", api.Info)
+		//系统信息更改
 		r.POST("/information",api.Information)
 		//首页的一些数值统计
 		r.GET("/count",api.Count)

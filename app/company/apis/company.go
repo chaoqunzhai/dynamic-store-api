@@ -545,6 +545,7 @@ func (e Company) Information(c *gin.Context) {
 		"shop_name":req.ShopName,
 		"address":req.Address,
 		"filings":req.Filings,
+		"shop_status":req.ShopStatus,
 	}
 	if req.ActionImage {
 		file, fileErr := c.FormFile("file")
@@ -709,6 +710,7 @@ func (e Company) Info(c *gin.Context) {
 			"new_phone":object.NewPhone,
 			"filings":object.Filings,
 			"address":object.Address,
+			"shop_status":object.ShopStatus,
 		}
 
 	}else {

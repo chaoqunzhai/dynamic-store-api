@@ -234,6 +234,7 @@ type UpdateInfo struct {
 	NewPhone string   `form:"new_phone" gorm:"size:11;comment:联系手机号"`
 	Address        string        `form:"address" gorm:"type:varchar(155);comment:大B地址位置"`
 	ShopName       string        `form:"shop_name" gorm:"type:varchar(50);comment:店铺名称"`
+	ShopStatus int `form:"shop_status"`
 }
 
 type LineDetailReq struct {

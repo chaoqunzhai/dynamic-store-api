@@ -15,7 +15,7 @@ type Company struct {
 	Name           string        `json:"name" gorm:"type:varchar(30);comment:公司(大B)名称"`
 	Address        string        `json:"address" gorm:"type:varchar(80);comment:大B地址位置"`
 	ShopName       string        `json:"shop_name" gorm:"type:varchar(50);comment:店铺名称"`
-
+	ShopStatus int `json:"shop_status" gorm:"default:1;index;comment:营业状态"`
 	Layer          int           `json:"layer" gorm:"type:tinyint(4);comment:排序"`
 	Enable         bool          `json:"enable" gorm:"type:tinyint(1);comment:开关"`
 	Desc           string        `json:"desc" gorm:"type:varchar(25);comment:描述信息"`
