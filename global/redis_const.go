@@ -7,7 +7,7 @@ import (
 
 const (
 	//手机号验证DB iota上面不能有其他元素 iota是一个计数
-	PhoneMobileCodeDB = iota //0
+	PhoneMobileCodeDB = iota //0 手机号验证码的DB
 	SmallBLoginCnfDB         //1
 
 	//小B小程序颜色插件
@@ -50,7 +50,7 @@ const (
 	OrderCloseExpirationTime = 20 *time.Minute
 
 	//要设置的比预期长点
-	PhoneMobileDbTimeOut = 130
+	PhoneMobileDbTimeOut = 660
 
 	PhoneMobileLogin = "login"
 	PhoneMobileFind  = "find"
@@ -74,6 +74,7 @@ const (
 
 	CloudExportOrderFilePath = "order_export" //云端目录
 
+	ForgotPrefix = "c_forgot" //大B密码找回
 )
 
 type ExportRedisInfo struct {

@@ -86,7 +86,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 
 		return nil, ErrInvalidVerification
 	}
-	if loginVals.Phone != "" {
+	if loginVals.Phone != "" { //手机号登录
 		userRow, role, e := loginVals.GetUserPhone(db)
 		messageData:=map[string]interface{}{
 			"ipaddr":common.GetClientIP(c),
@@ -109,8 +109,15 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 		} else {
 			return nil, e
 		}
-	} else {
+	} else {//用户名或者手机号登录
+		//先查询下用户名
 		userRow, role, e := loginVals.GetUser(db)
+		if e !=nil{//如果查询用户名没有,继续查询手机号
+			//然后查询下手机号
+			loginVals.Phone = loginVals.UserName
+			userRow, role, e = loginVals.GetUserPhone(db)
+		}
+
 		messageData:=map[string]interface{}{
 			"ipaddr":common.GetClientIP(c),
 			"user":loginVals.UserName,

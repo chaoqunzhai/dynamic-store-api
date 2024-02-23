@@ -88,4 +88,5 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.POST("/user/code", api.MakeCode)
 	}
 
+
 }
