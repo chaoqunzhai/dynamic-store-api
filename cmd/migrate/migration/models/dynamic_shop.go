@@ -19,7 +19,7 @@ type Shop struct {
 	Address   string  `gorm:"size:70;comment:小B收货地址"`
 	Longitude float64 //经度
 	Latitude  float64 //纬度
-	Image     string  `gorm:"size:80;comment:图片"`
+	Image     string  `gorm:"size:15;comment:图片"`
 	Salesman  int     `json:"salesman" gorm:"index;comment:业务员ID"`
 	//给小B打标签
 	Tag       []ShopTag `json:"tag" gorm:"many2many:shop_mark_tag;foreignKey:id;joinForeignKey:shop_id;references:id;joinReferences:tag_id;"`
@@ -73,7 +73,7 @@ type ShopBalanceLog struct {
 	Action    string         `json:"action" gorm:"type:varchar(10);comment:操作"`
 	Money     float64        `gorm:"comment:变动金额"`
 	Scene     string         ` gorm:"size:30;comment:变动场景"`
-	Desc      string         ` gorm:"size:50;comment:描述/说明"`
+	Desc      string         ` gorm:"size:30;comment:描述/说明"`
 	Type      int            `gorm:"type:tinyint(1);default:1;index;comment:操作类型"`
 }
 
@@ -92,7 +92,7 @@ type ShopIntegralLog struct {
 	ShopId    int            `gorm:"index;comment:小BID"`
 	Number    float64        `gorm:"comment:积分变动数值"`
 	Scene     string         ` gorm:"size:30;comment:变动场景"`
-	Desc      string         ` gorm:"size:50;comment:描述/说明"`
+	Desc      string         ` gorm:"size:30;comment:描述/说明"`
 	Type      int            `gorm:"type:tinyint(1);default:1;index;comment:操作类型"`
 }
 
@@ -110,8 +110,8 @@ type ShopCreditLog struct {
 	Action    string         `json:"action" gorm:"type:varchar(10);comment:操作"`
 	ShopId    int            `gorm:"index;comment:小BID"`
 	Number    float64        `gorm:"comment:授信变动数值"`
-	Scene     string         ` gorm:"size:60;comment:变动场景"`
-	Desc      string         ` gorm:"size:20;comment:描述/说明"`
+	Scene     string         ` gorm:"size:30;comment:变动场景"`
+	Desc      string         ` gorm:"size:30;comment:描述/说明"`
 	Type      int            `gorm:"type:tinyint(1);default:1;index;comment:操作类型"`
 }
 
