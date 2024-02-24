@@ -50,6 +50,14 @@ settings:
     #本地文件路径
     imageBase: "./image/"
     qiniu:
+      #是线上
+#      BucketName: "dcy-goods"
+#      Region: "ZheJiang2"
+      #是测试
+#      BucketName: "dcy-test-env"
+#      Region: "ZoneHuadong"
+      BucketName: "dcy-goods"
+      Region: "ZheJiang2"
       AccessKey: "ZsSiKjddNXag9by7jqeaINFIbC050MXMMBM4pKEA"
       SecretKey: "xqZ-FEAUiJzbYDFgbZzC8pxn3Tg6lSKhRG2urnTZ"
     redis:

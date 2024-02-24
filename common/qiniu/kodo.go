@@ -151,7 +151,11 @@ func (q *QinUi)InitClient()  {
 	secretKey := config.ExtConfig.Qiniu.SecretKey
 	cfg := storage.Config{}
 	// 空间对应的机房
-	cfg.Region = &storage.ZoneHuadongZheJiang2
+	if config.ExtConfig.Qiniu.Region == "ZoneHuadong"{
+		cfg.Region = &storage.ZoneHuadong
+	}else {
+		cfg.Region = &storage.ZoneHuadongZheJiang2
+	}
 	// 是否使用https域名
 	cfg.UseHTTPS = true
 	// 上传是否使用CDN上传加速
@@ -161,8 +165,8 @@ func (q *QinUi)InitClient()  {
 	q.Cfg = cfg
 
 	//存储图片的桶
-	q.BucketName = "dcy-goods"
-
+	//q.BucketName = "dcy-goods"
+	q.BucketName = config.ExtConfig.Qiniu.BucketName
 	putPolicy:=storage.PutPolicy{
 		Scope: q.BucketName,
 	}

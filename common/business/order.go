@@ -83,7 +83,7 @@ func (t *GetSplitTable)GetDbTableMapCnf() (res TableRow)  {
 		}(),
 	}
 }
-//请求频率比较高，需要缓存到redis中
+//请求频率比较高，需要缓存到redis中,如果redis不存在 在DB中Load一份
 func (t *GetSplitTable)GetTableMap() (res TableRow)  {
 
 

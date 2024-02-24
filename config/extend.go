@@ -26,6 +26,8 @@ type Extend struct {
 	Qiniu Qiniu `json:"qiniu"`
 }
 type Qiniu struct {
+	Region string `json:"region"`
+	BucketName string `json:"BucketName"`
 	AccessKey string `json:"AccessKey"`
 	SecretKey string `json:"SecretKey"`
 }
