@@ -39,8 +39,11 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 
 	splitTableRes := business.GetTableName(e.Dat.CId, e.Orm)
 	//查这个配送周期下 路线的
+
+	//并且必须是 order_money >0 + 成交没问题的
 	e.Orm.Table(splitTableRes.OrderTable).Select(
-		"order_id,line_id,created_at").Where("line_id in ? and uid = ?",e.Dat.LineId,e.CycleUid).Find(&orderList)
+		"order_id,line_id,created_at").Where("line_id in ? and uid = ? and status in ? and order_money > 0 ",
+			e.Dat.LineId,e.CycleUid,global.OrderEffEct()).Find(&orderList)
 
 
 	//线路和司机信息

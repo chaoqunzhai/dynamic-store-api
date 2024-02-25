@@ -231,7 +231,8 @@ type UpdateInfo struct {
 	ActionImage bool `form:"action_image"` //是否操作了头像
 	Enterprise string `form:"enterprise" gorm:"size:20;comment:企业名称"`
 	Filings string `form:"filings" gorm:"size:20;comment:备案号"`
-	NewPhone string   `form:"new_phone" gorm:"size:11;comment:联系手机号"`
+	HelpPhone string   `form:"help_phone" gorm:"size:11;comment:联系手机号"`
+	HelpMessage string   `form:"help_message" gorm:"size:50;comment:联系我们"`
 	Address        string        `form:"address" gorm:"type:varchar(155);comment:大B地址位置"`
 	ShopName       string        `form:"shop_name" gorm:"type:varchar(50);comment:店铺名称"`
 	ShopStatus int `form:"shop_status"`

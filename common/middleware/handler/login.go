@@ -25,7 +25,7 @@ func LoginValidCompany(companyId int,tx *gorm.DB) error {
 	tx.Model(&models.Company{}).Select("id,expiration_time").Where("id = ? and enable = ?", companyId, true).Limit(1).Find(&companyObject)
 	if companyObject.Id == 0 {
 
-		return errors.New("您的系统已下线")
+		return errors.New("账号不存在")
 	}
 	if companyObject.ExpirationTime.Before(time.Now()) {
 
@@ -68,7 +68,7 @@ func (u *Login) GetUserPhone(tx *gorm.DB) (user SysUser, role SysRole, err error
 	return
 }
 func (u *Login) GetUser(tx *gorm.DB) (user SysUser, role SysRole, err error) {
-	err = tx.Table("sys_user").Where("username = ?  and status = '2'", u.UserName).First(&user).Error
+	err = tx.Table("sys_user").Where("username = ?  and status = '2' and enable = ? ", u.UserName,true).First(&user).Error
 	if err != nil {
 		err = errors.New("用户不存在")
 		return

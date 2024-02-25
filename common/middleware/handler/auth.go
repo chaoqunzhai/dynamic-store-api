@@ -111,11 +111,12 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 		}
 	} else {//用户名或者手机号登录
 		//先查询下用户名
-		userRow, role, e := loginVals.GetUser(db)
-		if e !=nil{//如果查询用户名没有,继续查询手机号
+		userRow, role, userErr := loginVals.GetUser(db)
+		var lastErr error
+		if userErr !=nil{//如果查询用户名没有,继续查询手机号
 			//然后查询下手机号
 			loginVals.Phone = loginVals.UserName
-			userRow, role, e = loginVals.GetUserPhone(db)
+			userRow, role, lastErr = loginVals.GetUserPhone(db)
 		}
 
 		messageData:=map[string]interface{}{
@@ -127,7 +128,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 			"client":global.LogIngPC,
 			"user_type":global.LogIngUserType,
 		}
-		if e == nil {
+		if lastErr == nil {
 			messageData["c_id"] = userRow.CId
 			messageData["user_id"] = userRow.UserId
 			systemChan.SendMessage(&systemChan.Message{
@@ -137,7 +138,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 			})
 			return map[string]interface{}{"user": userRow, "role": role}, nil
 		} else {
-			return nil, e
+			return nil, lastErr
 		}
 	}
 

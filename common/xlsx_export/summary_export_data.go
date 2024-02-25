@@ -44,14 +44,14 @@ func (e *SummaryExportObj)ReadSummaryDetail() (dat *SheetRow,err error )  {
 
 	orderList:=make([]models.Orders,0)
 	//根据配送UID 统一查一下
-	e.Orm.Table(splitTableRes.OrderTable).Select("order_id").Where("uid = ?", data.Uid).Find(&orderList)
-	orderIds:=make([]string,0)
+	e.Orm.Table(splitTableRes.OrderTable).Select("id").Where("uid = ? and status in ? and order_money > 0", data.Uid,global.OrderEffEct()).Find(&orderList)
+	orderIds:=make([]int,0)
 	for _,k:=range orderList{
-		orderIds = append(orderIds,k.OrderId)
+		orderIds = append(orderIds,k.Id)
 	}
 	orderSpecs:=make([]models.OrderSpecs,0)
 	//查下数据 获取规格 在做一次统计
-	e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id in ?",orderIds).Find(&orderSpecs)
+	e.Orm.Table(splitTableRes.OrderSpecs).Where("id in ?",orderIds).Find(&orderSpecs)
 
 	tableRow := make([]*XlsxTableRow,0)
 	for index,row:=range orderSpecs{

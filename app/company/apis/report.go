@@ -210,14 +210,14 @@ func (e Orders)Line(c *gin.Context){
 	openApprove,_:=service.IsHasOpenApprove(userDto,e.Orm)
 
 
-	orm :=e.Orm.Table(splitTableRes.OrderTable).Select("line_id,order_id")
+	orm :=e.Orm.Table(splitTableRes.OrderTable).Select("line_id,order_id,id")
 	if openApprove{ //开启了审核,那查询状态必须是审核通过的订单
 
 		orm = e.Orm.Table(splitTableRes.OrderTable).Where("approve_status = ?",global.OrderApproveOk)
 	}
 
-	orderOrm :=orm.Where("uid = ? and c_id = ? and status in ?", data.Uid,userDto.CId,global.OrderEffEct())
-
+	orderOrm :=orm.Where("uid = ? and c_id = ? and status in ? and order_money > 0", data.Uid,userDto.CId,global.OrderEffEct())
+	fmt.Println("orderOrm",orderOrm)
 	//进行路线名称查询
 	//首先查出的路线 必须在订单中
 	if req.LineName != ""{
@@ -234,18 +234,19 @@ func (e Orders)Line(c *gin.Context){
 	}else {
 		orderOrm.Find(&orderList)
 	}
-
+	fmt.Println("查询完订单了")
 	queryOrderTime:=time.Since(queryStart)
 
 	lineIds:=make([]int,0)
-	orderIds:=make([]string,0)
+	orderIds:=make([]int,0)
 	//订单和线路做一个map,方便把订单放到线路里面
 	orderLinMapping:=make(map[string]CacheMapping,0)
 	for _,k:=range orderList{
+
 		//统一查询路线
 		lineIds = append(lineIds,k.LineId)
 		//统一查询订单
-		orderIds = append(orderIds,k.OrderId)
+		orderIds = append(orderIds,k.Id)
 		//路线和订单做一个映射
 		orderLinMapping[k.OrderId] = CacheMapping{
 			LineId: k.LineId,
@@ -284,7 +285,7 @@ func (e Orders)Line(c *gin.Context){
 	queryStart2:=time.Now()
 	orderSpecs:=make([]models2.OrderSpecs,0)
 	//查下数据 获取规格 在做一次统计
-	e.Orm.Table(splitTableRes.OrderSpecs).Select("goods_name,goods_id,number,image,order_id").Where("order_id in ?",orderIds).Find(&orderSpecs)
+	e.Orm.Table(splitTableRes.OrderSpecs).Select("goods_name,goods_id,number,image,order_id").Where("id in ?",orderIds).Find(&orderSpecs)
 
 	queryOrderSpecsTime:=time.Since(queryStart2)
 

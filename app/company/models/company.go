@@ -11,7 +11,6 @@ type Company struct {
 	LeaderId uint `json:"leader_id"`
 	Enterprise string `json:"enterprise" gorm:"size:20;comment:企业名称"`
 	Filings string `json:"filings" gorm:"size:20;comment:备案号"`
-	NewPhone string   `gorm:"size:11;comment:联系手机号"`
 	Name           string        `json:"name" gorm:"type:varchar(30);comment:公司(大B)名称"`
 	Address        string        `json:"address" gorm:"type:varchar(80);comment:大B地址位置"`
 	ShopName       string        `json:"shop_name" gorm:"type:varchar(50);comment:店铺名称"`
@@ -29,6 +28,8 @@ type Company struct {
 	RenewalTime    time.Time     `json:"renewal_time" gorm:"type:datetime(3);comment:续费时间"`
 	ExpirationTime time.Time     `json:"expiration_time" gorm:"type:datetime(3);comment:到期时间"`
 	LoginTime models.XTime      `json:"login_time" gorm:"type:datetime(3);comment:登录时间"`
+	HelpPhone string `json:"help_phone" gorm:"type:varchar(11);comment:联系我们的电话"`
+	HelpMessage string `json:"help_message"  gorm:"type:varchar(50);comment:联系我们信息"`
 	CopyrightEnable bool `json:"copyright_enable"`
 	NavList        []interface{} `json:"nav_list" gorm:"-"` //展示大B的菜单
 	models.ModelTime

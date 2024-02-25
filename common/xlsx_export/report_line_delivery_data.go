@@ -40,11 +40,11 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 	//根据路线获取这个路线的商品
 	var orderList []models.Orders
 
-	//fmt.Println("导出配送表")
 	splitTableRes := business.GetTableName(e.Dat.CId, e.Orm)
-	//查这个配送周期下 路线的
+	//查这个配送周期下 路线的 有效数据
 	e.Orm.Table(splitTableRes.OrderTable).Select(
-		"order_id,line_id,created_at,shop_id").Where("line_id in ? and uid = ?",e.Dat.LineId,e.CycleUid).Find(&orderList)
+		"order_id,line_id,created_at,shop_id").Where("line_id in ? and uid = ? and status in ? and order_money > 0",
+			e.Dat.LineId,e.CycleUid,global.OrderEffEct()).Find(&orderList)
 
 	//线路和司机信息
 	lineList:=make([]models.Line,0)

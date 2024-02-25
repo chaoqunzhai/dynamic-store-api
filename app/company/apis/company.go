@@ -541,7 +541,8 @@ func (e Company) Information(c *gin.Context) {
 
 	updateMap:=map[string]interface{}{
 		"enterprise":req.Enterprise,
-		"new_phone":req.NewPhone,
+		"help_phone":req.HelpPhone,
+		"help_message":req.HelpMessage,
 		"shop_name":req.ShopName,
 		"address":req.Address,
 		"filings":req.Filings,
@@ -707,10 +708,11 @@ func (e Company) Info(c *gin.Context) {
 			"end_time":object.ExpirationTime.Format("2006-01-02"), //到期时间
 			"logoImage":    logoImage,
 			"enterprise":object.Enterprise,
-			"new_phone":object.NewPhone,
 			"filings":object.Filings,
 			"address":object.Address,
 			"shop_status":object.ShopStatus,
+			"help_phone":object.HelpPhone,
+			"help_message":object.HelpMessage,
 		}
 
 	}else {
