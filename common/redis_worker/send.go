@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"go-admin/common/redis_db"
 	"go-admin/global"
+	"go.uber.org/zap"
 )
 
 func getExportWorkerName(cid int,q string) string  {
@@ -17,14 +18,16 @@ func getExportWorkerName(cid int,q string) string  {
 }
 //发送数据到队列中
 func SendExportQueue(r global.ExportRedisInfo)  error {
-
+	zap.S().Infof("%v 报表导出任务,发送至redis:%v开始",r.CId,global.AllQueueChannel,)
 	data,err :=json.Marshal(r)
 	if err!=nil{
+		zap.S().Errorf("%v 报表导出任务,发送至redis:%v 失败:%v",r.CId,global.AllQueueChannel,err.Error())
 		return err
 	}
 
 	redis_db.RedisCli.Do(global.RedisCtx, "select", global.AllQueueChannel)
 	redis_db.RedisCli.LPush(global.RedisCtx,getExportWorkerName(r.CId,r.Queue),string(data))
+	zap.S().Infof("%v 报表导出任务,发送至redis:%v 成功",r.CId,global.AllQueueChannel)
 	return nil
 }
 

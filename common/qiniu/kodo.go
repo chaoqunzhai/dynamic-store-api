@@ -226,7 +226,7 @@ func (q *QinUi)PostImageFile(filePath  string) (name string,err  error)  {
 	targetPath :=q.ClearCacheImageName(sizeFilePath)
 
 	//保留全路径 会在七牛云上创建目录
-	fmt.Printf("本地路径: %v 对象存储路径:%v\n",sizeFilePath,targetPath)
+	//fmt.Printf("本地路径: %v 对象存储路径:%v\n",sizeFilePath,targetPath)
 
 	err = formUploader.PutFile(context.Background(), &ret, q.Token, targetPath, sizeFilePath, &putExtra)
 	if err != nil {
@@ -254,10 +254,8 @@ func (q *QinUi)PostFile(filePath  string) (name string,err  error)  {
 	//绝对路径
 
 	putExtra := storage.PutExtra{}
-
 	//创建全路径 会在七牛云上创建目录
 	pathValue :=path.Join(fmt.Sprintf("%v",q.CId),global.CloudExportOrderFilePath,filePath)
-
 	err = formUploader.PutFile(context.Background(), &ret, q.Token, pathValue, filePath, &putExtra)
 	if err != nil {
 		zap.S().Infof("BackName:%v 七牛云上传文件：%v 失败:%v",q.BucketName,filePath,err,)

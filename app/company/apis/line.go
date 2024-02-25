@@ -414,7 +414,7 @@ func (e Line) Update(c *gin.Context) {
 	}
 	//如果选择了司机,判断司机是否已经被其他路线关联
 
-	if req.DriverId > 0 {
+	if req.DriverId !="" {
 
 		var validLine models.Line
 		e.Orm.Model(&models.Line{}).Scopes(actions.PermissionSysUser(validLine.TableName(),userDto)).Where("driver_id = ? ", req.DriverId).Limit(1).Find(&validLine)

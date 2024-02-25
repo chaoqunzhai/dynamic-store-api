@@ -77,8 +77,6 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 				DriverVal: lineRowsData.DriverVal, //放司机信息
 			}
 		}
-
-
 		//获取订单关联的具体规格
 		var orderSpecs []models.OrderSpecs
 

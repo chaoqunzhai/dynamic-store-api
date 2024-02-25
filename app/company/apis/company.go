@@ -302,7 +302,7 @@ func (e Company)Count(c *gin.Context)  {
 			}else {
 				orm.Count(&count)
 			}
-			fmt.Println("查询待发货",count)
+			//fmt.Println("查询待发货",count)
 			return count
 		}(),
 		RefundWaitOrder:func() int64{

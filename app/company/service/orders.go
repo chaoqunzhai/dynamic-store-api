@@ -174,7 +174,7 @@ func (e *Orders) GetPage(openApprove bool,splitTableRes business.TableRow,countM
 
 	if c.Verify{//根据过滤 然后在统计一次
 		//作废的订单不统计
-		orm = orm.Where("status != ?", global.OrderStatusCancel)
+		orm = orm.Where("status != ? and order_money > 0 ", global.OrderStatusCancel)
 
 	}
 	err = orm.Scopes(

@@ -1,9 +1,11 @@
 package dto
 
 import (
+	"fmt"
 	"go-admin/app/company/models"
 	"go-admin/common/dto"
 	common "go-admin/common/models"
+	"strconv"
 )
 
 type LineGetPageReq struct {
@@ -97,7 +99,7 @@ type LineUpdateReq struct {
 	Enable   bool   `json:"enable" comment:"开关"`
 	Desc     string `json:"desc" comment:"描述信息"`
 	Name     string `json:"name" comment:"路线名称"  binding:"required"`
-	DriverId int    `json:"driver_id" comment:"关联司机" `
+	DriverId interface{}    `json:"driver_id" comment:"关联司机" `
 	common.ControlBy
 }
 
@@ -110,7 +112,8 @@ func (s *LineUpdateReq) Generate(model *models.Line) {
 	model.Enable = s.Enable
 	model.Desc = s.Desc
 	model.Name = s.Name
-	model.DriverId = s.DriverId
+	DriverId,_:=strconv.Atoi(fmt.Sprintf("%v",s.DriverId))
+	model.DriverId = DriverId
 }
 
 func (s *LineUpdateReq) GetId() interface{} {

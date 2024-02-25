@@ -474,7 +474,7 @@ func (e CompanyInventory) RecordsLog(c *gin.Context) {
 			"id":row.Id,
 			"create_at":row.CreatedAt.Format("2006-01-02 15:04:05"),
 			"user":row.CreateBy,
-			"goods_name":fmt.Sprintf("%v %v",row.GoodsName,row.GoodsSpecName),
+			"goods_name":fmt.Sprintf("%v-%v",row.GoodsName,row.GoodsSpecName),
 			"source_number":row.SourceNumber,
 			"current_number":row.CurrentNumber,
 			"original_price":global.SymBol + utils.StringDecimal(row.OriginalPrice),
