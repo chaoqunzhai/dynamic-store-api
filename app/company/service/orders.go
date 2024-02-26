@@ -39,15 +39,17 @@ type TimeConfResponse struct {
 	EndTime models2.XTime
 }
 
-//生成核销码
+//生成随机码
 
-func DeliveryCode() string {
+func RandomCode() string {
 	//9位
-
-	guid,_ := uuid.NewRandom()
-	code:=fmt.Sprintf("%v",guid.ID())
-
-	return code[:9]
+	guid, _ := uuid.NewRandom()
+	code := fmt.Sprintf("%v", guid.ID())
+	if len(code) >= 9 {
+		return code[:9]
+	}else {
+		return code
+	}
 }
 func CalculateTime(day int) (t models2.XTime) {
 	//选择的天数，计算出配送周期

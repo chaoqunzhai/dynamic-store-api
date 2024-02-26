@@ -677,7 +677,7 @@ func (e Goods) Insert(c *gin.Context) {
 	//fmt.Println("规格DB",specDbMap)
 	//fmt.Println("规格图片",specFiles)
 	for index, file := range specFiles {
-		fmt.Println("规格索引",index)
+		//fmt.Println("规格索引",index)
 		specId,specOk:=specDbMap[index]
 		if !specOk{
 			continue

@@ -185,7 +185,7 @@ func (e Company) List(c *gin.Context) {
 	e.Orm.Model(&sys.SysUser{}).Where("c_id = ? and enable = ?", userDto.CId, true).Scopes(
 		dto.MakeCondition(req.GetNeedSearch()),
 		dto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-	).Order(global.OrderLayerKey).Find(&userLists).Count(&count)
+	).Order(global.OrderUserLayerKey).Find(&userLists).Count(&count)
 
 	//角色查询
 	cacheUserIds := make([]string, 0)

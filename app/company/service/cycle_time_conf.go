@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk/service"
-	"github.com/google/uuid"
 	models2 "go-admin/common/models"
 	"go-admin/common/utils"
 	"go-admin/global"
@@ -204,10 +203,9 @@ func CheckOrderCyCleCnfIsDb(cid int,table string,DeliveryObject models.CycleTime
 	//查询天！！
 	orm.Table(table).Model(&models.OrderCycleCnf{}).Where("c_id = ? and delivery_time = ?",cid,deliveryTime.Format("2006-01-02")).Find(&cycleCnf)
 	if cycleCnf.Id == 0 {
-		guid,_ := uuid.NewRandom()
-		code:=fmt.Sprintf("%v",guid.ID())
+
 		//生成一个新的uid,让订单来记录
-		uid = code[:8]
+		uid = RandomCode()
 
 		//把生成的配送信息录入到DB中,做一个订单统筹
 

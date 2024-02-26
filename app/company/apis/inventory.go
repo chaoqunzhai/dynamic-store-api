@@ -89,6 +89,16 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 		query = query.Where("goods_id in ?",bindGoodsId)
 
 	}
+	if req.Brand != ""{
+		//获取到品牌关联的商品ID
+		var goodsBrand []models.GoodsBrand
+		e.Orm.Model(&models.GoodsBrand{}).Where("c_id = ? and id in ?",userDto.CId,strings.Split(req.Class, ",")).Find(&goodsBrand)
+
+		var bindGoodsId []int
+		e.Orm.Raw(fmt.Sprintf("select goods_id from goods_mark_brand where brand_id in (%v)",req.Brand)).Scan(&bindGoodsId)
+		query = query.Where("goods_id in ?",bindGoodsId)
+
+	}
 	//根据分页获取商品
 	query.Find(&goodsSpecs).Limit(-1).Offset(-1).Count(&count)
 
@@ -253,13 +263,13 @@ func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 		goodsIds = utils.RemoveRepeatStr(goodsIds)
 
 		if len(goodsIds) > 0 {
-			whereSql =fmt.Sprintf("%v and goods_id in (%v)",whereSql,strings.Join(goodsIds,","))
+			whereSql =fmt.Sprintf("%v and goods_id in (%v) and ",whereSql,strings.Join(goodsIds,","))
 		}
 	}
 
 
 	if req.Action == "out" { //如果是出库 那只查看大于0的数据
-		whereSql += " and stock > 0 "
+		whereSql += "stock > 0 "
 	}
 	var count int64
 	result:=make([]interface{},0)

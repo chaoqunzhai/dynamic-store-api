@@ -18,6 +18,8 @@ type Goods struct {
 	Money     string       `gorm:"size:30;comment:价格区间"`
 	Tag       []GoodsTag   `gorm:"many2many:goods_mark_tag;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:tag_id;"`
 	Class     []GoodsClass `gorm:"many2many:goods_mark_class;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:class_id;"`
+	Brand []GoodsBrand `gorm:"many2many:goods_mark_brand;foreignKey:id;joinForeignKey:goods_id;references:id;joinReferences:brand_id;"`
+
 }
 
 func (Goods) TableName() string {
@@ -93,7 +95,17 @@ type GoodsClass struct {
 func (GoodsClass) TableName() string {
 	return "goods_class"
 }
-
+type GoodsBrand struct {
+	Model
+	ModelTime
+	ControlBy
+	Layer  int    `json:"layer" gorm:"default:1;index;comment:排序"` //排序
+	CId    int `gorm:"index;comment:大BID"`
+	Name  string `gorm:"index;size:8;comment:品牌名称"`
+}
+func (GoodsBrand) TableName() string {
+	return "goods_brand"
+}
 // todo:商品标签
 type GoodsTag struct {
 	BigBRichGlobal

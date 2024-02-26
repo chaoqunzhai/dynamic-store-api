@@ -566,7 +566,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	//代客下单,需要把配送周期保存，方便周期配送
 
 	orderRow.PayStatus = global.OrderStatusPaySuccess
-	orderRow.DeliveryCode = service.DeliveryCode()
+	orderRow.DeliveryCode = service.RandomCode()
 	orderRow.PayTime = models3.XTime{
 		Time:time.Now(),
 	}

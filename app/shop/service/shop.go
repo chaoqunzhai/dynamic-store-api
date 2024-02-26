@@ -128,7 +128,7 @@ func (e *Shop) Insert(userDto *sys.SysUser, c *dto.ShopInsertReq) error {
 		userId = shopUserDto.UserId
 	}
 
-	//把创建的用户关联到这个小B上面来
+	//把创建的用户关联到这个小B上面来 重要，否则会检测不存在
 	data.UserId = userId
 	//关联的ID
 	data.CId = userDto.CId

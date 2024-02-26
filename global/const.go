@@ -64,7 +64,8 @@ const (
 	CompanyMaxUnit = 100 //商品单位100个
 	CompanyMaxBrand = 200 //商品品牌
 	CompanySmsRecordTag = true
-	OrderLayerKey    = "layer desc"
+	OrderLayerKey    = "layer,id desc"
+	OrderUserLayerKey    = "layer,user_id desc"
 	OrderTimeKey     = "created_at desc"
 	UserNumberAdd    = "add"    //增加
 	UserNumberReduce = "reduce" //减少
