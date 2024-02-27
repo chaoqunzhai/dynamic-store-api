@@ -118,6 +118,10 @@ func (e *Worker)Download(c *gin.Context)  {
 		return
 	}
 
+	if data.Status == 0{
+		e.Error(500, nil,"任务执行中...,请稍后下载")
+		return
+	}
 	downloadUrl :=config.ExtConfig.CloudObsUrl + path.Join(fmt.Sprintf("%v",userDto.CId),global.CloudExportOrderFilePath,data.Path)
 
 	e.OK(downloadUrl,"")

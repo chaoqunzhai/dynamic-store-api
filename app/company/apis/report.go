@@ -119,20 +119,20 @@ func (e Orders)Summary(c *gin.Context)  {
 	openApprove,_:=service.IsHasOpenApprove(userDto,e.Orm)
 
 
-	orm :=e.Orm.Table(splitTableRes.OrderTable).Select("order_id")
+	orm :=e.Orm.Table(splitTableRes.OrderTable).Select("order_id,id")
 	if openApprove{ //开启了审核,那查询状态必须是审核通过的订单
 
 		orm = e.Orm.Table(splitTableRes.OrderTable).Where("approve_status = ?",global.OrderApproveOk)
 	}
 	//根据配送UID 统一查一下 订单的ID
 	orm.Where("uid = ? and c_id = ? and status in ?", data.Uid,userDto.CId,global.OrderEffEct()).Find(&orderList)
-	orderIds:=make([]string,0)
+	orderIds:=make([]int,0)
 	for _,k:=range orderList{
-		orderIds = append(orderIds,k.OrderId)
+		orderIds = append(orderIds,k.Id)
 	}
 	orderSpecs:=make([]models2.OrderSpecs,0)
 	//查下数据 获取规格 在做一次统计
-	e.Orm.Table(splitTableRes.OrderSpecs).Select("id,goods_name,goods_id,number,image").Where("order_id in ?",orderIds).Find(&orderSpecs)
+	e.Orm.Table(splitTableRes.OrderSpecs).Select("id,goods_name,goods_id,number,image").Where("id in ?",orderIds).Find(&orderSpecs)
 
 	//resultTable:=make([]interface{},0)
 	goodsId:=make([]int,0)
@@ -238,7 +238,7 @@ func (e Orders)Line(c *gin.Context){
 	queryOrderTime:=time.Since(queryStart)
 
 	lineIds:=make([]int,0)
-	orderIds:=make([]int,0)
+	orderIds:=make([]string,0)
 	//订单和线路做一个map,方便把订单放到线路里面
 	orderLinMapping:=make(map[string]CacheMapping,0)
 	for _,k:=range orderList{
@@ -246,7 +246,7 @@ func (e Orders)Line(c *gin.Context){
 		//统一查询路线
 		lineIds = append(lineIds,k.LineId)
 		//统一查询订单
-		orderIds = append(orderIds,k.Id)
+		orderIds = append(orderIds,k.OrderId)
 		//路线和订单做一个映射
 		orderLinMapping[k.OrderId] = CacheMapping{
 			LineId: k.LineId,
@@ -285,7 +285,7 @@ func (e Orders)Line(c *gin.Context){
 	queryStart2:=time.Now()
 	orderSpecs:=make([]models2.OrderSpecs,0)
 	//查下数据 获取规格 在做一次统计
-	e.Orm.Table(splitTableRes.OrderSpecs).Select("goods_name,goods_id,number,image,order_id").Where("id in ?",orderIds).Find(&orderSpecs)
+	e.Orm.Table(splitTableRes.OrderSpecs).Select("goods_name,goods_id,number,image,order_id").Where("order_id in ?",orderIds).Find(&orderSpecs)
 
 	queryOrderSpecsTime:=time.Since(queryStart2)
 
@@ -683,7 +683,7 @@ func (e Orders)DetailShopGoods(c *gin.Context)  {
 
 
 	var orderSpecs []models2.OrderSpecs
-	e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id in ?", orderIds).Find(&orderSpecs)
+	e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id in ?", orderIds).Order("id desc").Find(&orderSpecs)
 
 
 	mergeMap:=make(map[string]dto.DetailGoodsRow,0)
@@ -785,7 +785,7 @@ func (e Orders)LineGoodsDetail(c *gin.Context)  {
 	e.Orm.Table(splitTableRes.OrderSpecs).Where("goods_id = ? and order_id in ?",
 		req.GoodsId,orderIds).Scopes(
 		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-	).Find(&orderSpecs).Limit(-1).Offset(-1).Count(&count)
+	).Find(&orderSpecs).Order("id desc").Limit(-1).Offset(-1).Count(&count)
 
 	//查询商品的照片
 	for _,row:=range orderSpecs{

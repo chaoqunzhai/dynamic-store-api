@@ -34,7 +34,10 @@ type Orders struct {
 	api.Api
 }
 
-
+type GroupByOrderSpec struct {
+	Count int
+	OrderId string
+}
 func (e Orders) OrderAction(c *gin.Context) {
 	req := dto.OrdersActionReq{}
 	s := service.Orders{}
@@ -146,6 +149,7 @@ func (e Orders) GetPage(c *gin.Context) {
 	//统一查询用户地址
 	cacheAddressId:=make([]int,0)
 	cacheStoreAddressId:=make([]int,0)
+	orderIds:=make([]string,0)
 	for _, row := range list {
 		if row.ShopId > 0 {
 			cacheShopId = append(cacheShopId,row.ShopId)
@@ -160,6 +164,7 @@ func (e Orders) GetPage(c *gin.Context) {
 			}
 
 		}
+		orderIds = append(orderIds,row.OrderId)
 
 	}
 	cacheShopId = utils.RemoveRepeatInt(cacheShopId)
@@ -221,14 +226,22 @@ func (e Orders) GetPage(c *gin.Context) {
 		}
 	}
 
-
 	result := make([]map[string]interface{}, 0)
+
+
+
+	OrderSpecsSql:=fmt.Sprintf("SELECT count(*) as 'count',order_id FROM `%v` WHERE order_id in (%v) GROUP BY order_id",splitTableRes.OrderSpecs,strings.Join(orderIds,","))
+
+	orderResult := make([]GroupByOrderSpec, 0)
+	e.Orm.Table(splitTableRes.OrderSpecs).Raw(OrderSpecsSql).Scan(&orderResult)
+	cacheCountSpecs:=make(map[string]interface{},0)
+	for _,k:=range orderResult{
+		cacheCountSpecs[k.OrderId] = k.Count
+	}
+
 	for _, row := range list {
 
-
-		var specCount int64
-		e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ?", row.OrderId).Count(&specCount)
-
+		specCount :=cacheCountSpecs[row.OrderId]
 
 		r := map[string]interface{}{
 			"order_id":   row.OrderId,

@@ -30,7 +30,7 @@ dynamic!@#eos
 1.项目初始化,数据库初始化
 ./go-admin migrate -c config/settings.yml
 
-2.项目启动s
+2.项目启动
 ./go-admin server -c config/settings.yml
 
 3.生成migrate模板
