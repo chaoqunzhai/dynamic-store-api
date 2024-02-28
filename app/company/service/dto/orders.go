@@ -44,6 +44,10 @@ func (m *OrdersGetPageReq) GetNeedSearch() interface{} {
 	return *m
 }
 
+type DetailReq struct {
+
+	Action string `form:"action"` //一般是print 打印才会携带
+}
 type CyClePageReq struct {
 	dto.Pagination `search:"-"`
 

@@ -334,8 +334,10 @@ func (e Orders) GetPage(c *gin.Context) {
 // @Security Bearer
 func (e Orders) Get(c *gin.Context) {
 	s := service.Orders{}
+	req := dto.DetailReq{}
 	err := e.MakeContext(c).
 		MakeOrm().
+		Bind(&req).
 		MakeService(&s.Service).
 		Errors
 	if err != nil {
@@ -349,7 +351,7 @@ func (e Orders) Get(c *gin.Context) {
 		return
 	}
 	orderId:=c.Param("orderId")
-	result,err :=s.DetailOrder(orderId,userDto)
+	result,err :=s.DetailOrder(orderId,userDto,req)
 	if err!=nil{
 		e.Error(500, err, err.Error())
 		return

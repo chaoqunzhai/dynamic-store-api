@@ -132,7 +132,7 @@ func (e Orders)Summary(c *gin.Context)  {
 	}
 	orderSpecs:=make([]models2.OrderSpecs,0)
 	//查下数据 获取规格 在做一次统计
-	e.Orm.Table(splitTableRes.OrderSpecs).Select("id,goods_name,goods_id,number,image").Where("order_id in ?",orderIds).Find(&orderSpecs)
+	e.Orm.Table(splitTableRes.OrderSpecs).Select("id,goods_name,goods_id,number,image").Where("order_id in ? and status in ? ",orderIds,global.OrderEffEct()).Find(&orderSpecs)
 
 	//resultTable:=make([]interface{},0)
 	goodsId:=make([]int,0)
@@ -285,7 +285,7 @@ func (e Orders)Line(c *gin.Context){
 	queryStart2:=time.Now()
 	orderSpecs:=make([]models2.OrderSpecs,0)
 	//查下数据 获取规格 在做一次统计
-	e.Orm.Table(splitTableRes.OrderSpecs).Select("goods_name,goods_id,number,image,order_id").Where("order_id in ?",orderIds).Find(&orderSpecs)
+	e.Orm.Table(splitTableRes.OrderSpecs).Select("goods_name,goods_id,number,image,order_id").Where("order_id in ? and status in ? ",orderIds,global.OrderEffEct()).Find(&orderSpecs)
 
 	queryOrderSpecsTime:=time.Since(queryStart2)
 

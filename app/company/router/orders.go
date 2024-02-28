@@ -62,7 +62,7 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 		//todo:对订单进行修改
 		r3.POST("/edit/:orderId",api.EditOrder)
 
-		//todo:对订单进行作废 费用,库存都需要退回
+		//todo:对订单进行作废 费用,库存都需要退回,实付金额也需要扣减
 		r3.POST("/cancel",api.CancelOrder)
 		//批量驳回操作
 		r3.POST("/batch/cancel",api.BatchCancelOrder)

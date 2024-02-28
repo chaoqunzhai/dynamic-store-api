@@ -271,7 +271,7 @@ func (e *Orders) Remove(tableName string, d *dto.OrdersDeleteReq, p *actions.Dat
 	return nil
 }
 
-func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[string]interface{},err error)  {
+func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser,req dto.DetailReq) (result map[string]interface{},err error)  {
 	nowTimeObj :=time.Now()
 	var object models.Orders
 
@@ -289,6 +289,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 	e.Orm.Model(&models3.Shop{}).Scopes(actions.PermissionSysUser(shopRow.TableName(),userDto)).Where("id = ? ", object.ShopId).Limit(1).Find(&shopRow)
 	openApprove,hasApprove:=IsHasOpenApprove(userDto,e.Orm)
 	result = map[string]interface{}{
+		"order":object.OrderId,
 		"order_money":fmt.Sprintf("%v", utils.StringDecimal(object.OrderMoney)),
 		"order_goods_money":fmt.Sprintf("%v", utils.StringDecimal(object.GoodsMoney)),
 		"coupon_money":fmt.Sprintf("%v", utils.StringDecimal(object.CouponMoney)),
@@ -403,7 +404,12 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser) (result map[str
 	var orderSpecs []models.OrderSpecs
 
 
-	e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ?", orderId).Find(&orderSpecs)
+	if req.Action == "print"{
+		e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ? and status in ?", orderId,global.OrderEffEct()).Find(&orderSpecs)
+	}else {
+		e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ?", orderId).Find(&orderSpecs)
+	}
+
 
 	specsList := make([]map[string]interface{}, 0)
 	//因为编辑需要有库存上限的

@@ -17,6 +17,19 @@ import (
 	"strings"
 )
 
+
+//订单作废
+//1.如果是全部订单作废,
+//	1.订单数,金额设置为0 状态为作废
+//	2.金额原路退
+//	3.库存退回
+//	4.状态更改
+
+//2.如果是单规格的作废
+//	1.数量减少
+//	2.金额减少
+//	3.库存增加
+
 func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOrderSpecId []int,reqDesc string,splitTableRes business.TableRow,userDto *sys.SysUser) error  {
 	updateMasterMap:=make(map[string]interface{},0)
 	updateMasterMap["edit"] = true
@@ -82,6 +95,8 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 	isAllAfterStatus := true //是否全部已经退回
 	specsId:=make([]int,0)
 	var returnOrderSpecMoney float64
+
+	var OrderReduce int //需要减的库存
 	for _,row:=range orderSpecsList{
 		specsId = append(specsId,row.Id)
 
@@ -94,15 +109,28 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 				OrderId: row.OrderId,
 			},
 		})
+		OrderReduce += row.Number
 	}
 
 	if reqAll { //如果是整个订单退回,那就更新整个订单
 		//获取整个订单的金额, 用于退款
 		returnOrderMoney += utils.RoundDecimalFlot64(orderObject.OrderMoney)
 
+
 		isAllAfterStatus = true //全部退回订单
+		//订单数为0
+		updateMasterMap["number"] = 0
 
 	}else {//不是全部退还 那就是用查询到的规格的价格 叠加退还
+
+		updateMasterMap["number"] = func() int {
+			newNumber :=orderObject.Number - OrderReduce
+			if newNumber < 0 {
+				return 0
+			}
+			return newNumber
+		}()
+
 		returnOrderMoney = returnOrderSpecMoney
 
 		var allOrderSpecs []models.OrderSpecs
@@ -112,7 +140,7 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 			if utils.IsArrayInt(row.Id,reqOrderSpecId) { //不检测当前规格ID，因为当前规格ID在进行操作
 				continue
 			}
-			if row.AfterStatus != global.RefundCompanyCancelCType { //只要有一个规格订单 不是大B退回操作 那就不需要修改整个订单
+			if row.AfterStatus != global.RefundCompanyCancelCType { //只要有一个规格订单不是 作废的订单. 那就不需要修改整个订单
 				isAllAfterStatus = false
 			}
 		}
@@ -252,7 +280,17 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 	if isAllAfterStatus { //增加更改主订单的状态
 		//订单直接都改为作废
 		updateMasterMap["status"] = global.OrderStatusCancel
+		updateMasterMap["number"] = 0
+		updateMasterMap["order_money"] = 0
+	}else {
+		//订单的实付金额进行扣除
+		newOrderMoney := orderObject.OrderMoney - returnOrderMoney
+		if newOrderMoney < 0 {
+			newOrderMoney = 0
+		}
+		updateMasterMap["order_money"] = newOrderMoney
 	}
+
 	//更新主订单的信息
 	e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id = ?",userDto.CId,reqOrderId).Updates(updateMasterMap) //更新主订单
 	//循环查询到规格ID
