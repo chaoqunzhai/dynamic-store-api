@@ -46,7 +46,7 @@ func (e Driver) MiniApi(c *gin.Context) {
 			"name":row.Name,
 		})
 	}
-	e.OK(result,"successful")
+	e.OK(result,"操作成功")
 	return
 }
 // GetPage 获取Driver列表

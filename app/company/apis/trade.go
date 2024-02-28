@@ -77,7 +77,7 @@ func (e *Trade) Create(c *gin.Context) {
 	}else {
 		e.Orm.Save(&orderApprove)
 	}
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 }
 func (e Trade) Detail(c *gin.Context) {
@@ -118,10 +118,10 @@ func (e Trade) Detail(c *gin.Context) {
 		object.CId = userDto.CId
 		e.Orm.Create(&object)
 		result["order_trade"] = object
-		e.OK(object,"successful")
+		e.OK(object,"操作成功")
 		return
 	}
 	result["order_trade"] = object
-	e.OK(result,"successful")
+	e.OK(result,"操作成功")
 	return
 }

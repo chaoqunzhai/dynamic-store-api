@@ -63,6 +63,6 @@ func (e Tools)SaveImage(c *gin.Context)  {
 	//只返回重命名的文件名字就行
 	e.OK(map[string]string{
 		"path": fileName,
-	}, "successful")
+	}, "操作成功")
 	return
 }

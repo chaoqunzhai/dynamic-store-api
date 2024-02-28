@@ -34,6 +34,6 @@ func (e *Crontab)SyncOrder(c *gin.Context)  {
 	}
 	crontabMain.RunCompanySplitOrderSync()
 
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 }

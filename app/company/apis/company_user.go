@@ -96,7 +96,7 @@ func (e Company) MakeCode(c *gin.Context) {
 		"invitation_code": InvitationCode,
 	})
 
-	e.OK("", "successful")
+	e.OK("", "操作成功")
 	return
 }
 
@@ -119,7 +119,7 @@ func (e Company) PromotionCode(c *gin.Context) {
 	//后面的promotionCode值由前段来拼接即可
 	url:=fmt.Sprintf("%vpages_tool/login/register?siteId=%v",config.ExtConfig.H5Url,userDto.CId)
 
-	e.OK(url, "successful")
+	e.OK(url, "操作成功")
 	return
 }
 
@@ -158,7 +158,7 @@ func (e Company) MiniList(c *gin.Context) {
 			"name": row.Username,
 		})
 	}
-	e.OK(result, "successful")
+	e.OK(result, "操作成功")
 	return
 }
 
@@ -334,7 +334,7 @@ func (e Company) UpdateUser(c *gin.Context) {
 		}
 	}
 	e.Orm.Model(&sys.SysUser{}).Where("c_id = ? and user_id = ?", userDto.CId, req.Id).Updates(&updateMap)
-	e.OK("", "successful")
+	e.OK("", "操作成功")
 	return
 }
 
@@ -376,7 +376,7 @@ func (e Company) UpPass(c *gin.Context) {
 		"password":string(hash),
 	})
 
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 }
 func (e Company) CreateSalesManUser(c *gin.Context) {
@@ -441,7 +441,7 @@ func (e Company) CreateSalesManUser(c *gin.Context) {
 	}
 	userObject.CreateBy = userDto.UserId
 	e.Orm.Create(&userObject)
-	e.OK("successful", "创建成功")
+	e.OK("操作成功", "创建成功")
 	return
 }
 
@@ -502,7 +502,7 @@ func (e Company) CreateUser(c *gin.Context) {
 			e.Orm.Exec(runSql)
 		}
 	}
-	e.OK("successful", "创建成功")
+	e.OK("操作成功", "创建成功")
 	return
 }
 func (e Company) Offline(c *gin.Context) {

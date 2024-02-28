@@ -277,7 +277,7 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 		"hasApprove":hasApprove,
 		"openApprove":openApprove,
 	}
-	e.OK(resultData,"successful")
+	e.OK(resultData,"操作成功")
 	return
 }
 
@@ -617,7 +617,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 	//更新主订单状态
 	e.Orm.Table(splitTableRes.OrderTable).Where("id = ?",orderObject.Id).Updates(updateOrderMap)
 
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 
 }
@@ -668,6 +668,6 @@ func (e OrdersRefund)Edit(c *gin.Context)  {
 	}
 
 
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 }

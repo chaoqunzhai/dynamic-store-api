@@ -236,7 +236,7 @@ func (e ExtendUser) Grade(c *gin.Context)()  {
 		"update_by":user.GetUserId(c),
 	})
 
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 
 }

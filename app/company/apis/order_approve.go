@@ -41,7 +41,7 @@ func (e OrdersApprove)Config(c *gin.Context) {
 		"openApprove":openApprove,
 		"hasApprove":hasApprove,
 	}
-	e.OK(result,"successful")
+	e.OK(result,"操作成功")
 
 	return
 }
@@ -101,7 +101,7 @@ func (e OrdersApprove)Approve(c *gin.Context) {
 	}
 
 
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 
 }

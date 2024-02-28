@@ -56,7 +56,7 @@ func (e Shop) MiniApi(c *gin.Context) {
 			"text":fmt.Sprintf("%v/%v",row.Name,row.Phone),
 		})
 	}
-	e.OK(result,"successful")
+	e.OK(result,"操作成功")
 	return
 }
 // GetPage 获取Shop列表
@@ -528,7 +528,7 @@ func (e Shop)Grade(c *gin.Context)  {
 		"grade_id":req.GradeId,
 		"update_by":user.GetUserId(c),
 	})
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 }
 
@@ -602,7 +602,7 @@ func (e Shop)Credit(c *gin.Context)  {
 	}
 	row.CreateBy = user.GetUserId(c)
 	e.Orm.Create(&row)
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 }
 func (e Shop)Amount(c *gin.Context)  {
@@ -667,7 +667,7 @@ func (e Shop)Amount(c *gin.Context)  {
 	}
 	row.CreateBy = user.GetUserId(c)
 	e.Orm.Create(&row)
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 }
 func (e Shop)Integral(c *gin.Context)  {
@@ -731,7 +731,7 @@ func (e Shop)Integral(c *gin.Context)  {
 	}
 	row.CreateBy = user.GetUserId(c)
 	e.Orm.Create(&row)
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 
 }
@@ -775,7 +775,7 @@ func (e Shop) UpPass(c *gin.Context) {
 		"password":string(hash),
 	})
 
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 }
 func (e Shop) GetLine(c *gin.Context) {
@@ -829,7 +829,7 @@ func (e Shop) GetLine(c *gin.Context) {
 
 	}
 
-	e.OK(result,"successful")
+	e.OK(result,"操作成功")
 	return
 
 }

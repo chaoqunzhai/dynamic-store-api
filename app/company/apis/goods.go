@@ -79,7 +79,7 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 	e.Orm.Raw(fmt.Sprintf("select goods_id from goods_mark_class where class_id = %v",ClassID)).Scan(&bindGoodsId)
 
 	if len(bindGoodsId) == 0 {
-		e.OK(result, "successful")
+		e.OK(result, "操作成功")
 		return
 	}
 	var goods []models.Goods
@@ -136,7 +136,7 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 		}
 		result = append(result,specData)
 	}
-	e.OK(result, "successful")
+	e.OK(result, "操作成功")
 	return
 
 }
@@ -231,7 +231,7 @@ func (e Goods) CosRemoveImage(c *gin.Context) {
 	buckClient.InitClient()
 
 	buckClient.RemoveFile(cosImagePath)
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 }
 func (e Goods) MiniApi(c *gin.Context) {
@@ -258,7 +258,7 @@ func (e Goods) MiniApi(c *gin.Context) {
 			"name": row.Name,
 		})
 	}
-	e.OK(result, "successful")
+	e.OK(result, "操作成功")
 	return
 }
 

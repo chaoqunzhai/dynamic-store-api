@@ -113,7 +113,7 @@ func (e Company) MonitorData(c *gin.Context) {
 		"pending":    pending,
 		"tradeTrend": tradeTrend,
 	}
-	e.OK(result, "successful")
+	e.OK(result, "操作成功")
 	return
 }
 
@@ -242,7 +242,7 @@ func (e Company)Pie(c *gin.Context) {
 	}
 	e.OK(map[string]interface{}{
 		"order":orderChat,
-	},"successful")
+	},"操作成功")
 	return
 }
 func (e Company)Count(c *gin.Context)  {
@@ -421,7 +421,7 @@ func (e Company) Category(c *gin.Context) {
 	}else {
 		result["type"] = 1
 	}
-	e.OK(result,"successful")
+	e.OK(result,"操作成功")
 	return
 
 }
@@ -448,12 +448,12 @@ func (e Company) RegisterCnfInfo(c *gin.Context) {
 	var object models2.CompanyRegisterRule
 	e.Orm.Model(&models2.CompanyRegisterRule{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&object)
 	if object.Id == 0 {
-		e.OK(data, "successful")
+		e.OK(data, "操作成功")
 		return
 	}
 	data["userRule"] = object.UserRule
 	data["text"] = object.Text
-	e.OK(data, "successful")
+	e.OK(data, "操作成功")
 	return
 }
 func (e Company) RegisterCnf(c *gin.Context) {
@@ -489,7 +489,7 @@ func (e Company) RegisterCnf(c *gin.Context) {
 		})
 	}
 
-	e.OK("", "successful")
+	e.OK("", "操作成功")
 	return
 }
 func (e Company) Cnf(c *gin.Context) {
@@ -508,7 +508,7 @@ func (e Company) Cnf(c *gin.Context) {
 		return
 	}
 	cnf := business.GetCompanyCnf(userDto.CId, "", e.Orm)
-	e.OK(cnf, "successful")
+	e.OK(cnf, "操作成功")
 	return
 }
 
@@ -734,7 +734,7 @@ func (e Company) Info(c *gin.Context) {
 		}
 	}
 
-	e.OK(storeInfo, "successful")
+	e.OK(storeInfo, "操作成功")
 	return
 }
 
@@ -906,6 +906,6 @@ func (e Company) QuotaCnf(c *gin.Context)   {
 		res["count"] =  0
 	}
 
-	e.OK(res,"successful")
+	e.OK(res,"操作成功")
 	return
 }

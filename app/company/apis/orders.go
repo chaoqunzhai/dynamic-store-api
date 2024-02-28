@@ -86,7 +86,7 @@ func (e Orders) OrderAction(c *gin.Context) {
 	zap.S().Infof("用户 %v,操作订单 %v 进行 %v,备注:%v",userDto.Username,strings.Join(req.OrderList,","),actionCN,req.Msg)
 	
 
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 
 }
@@ -320,7 +320,7 @@ func (e Orders) GetPage(c *gin.Context) {
 			"count":countMap.Count,
 		},
 	}
-	e.OK(resultData,"successful")
+	e.OK(resultData,"操作成功")
 	return
 }
 
@@ -611,6 +611,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	orderRow.GoodsMoney = utils.RoundDecimalFlot64(req.GoodsMoney) //商品金额
 	orderRow.DeductionMoney = PayOkMoney //抵扣金额 因为不是实际的付款,也是要存抵扣金额的
 	orderRow.CouponMoney = DiscountMoney //优惠的金额 在一个优惠卷字段来存储
+	fmt.Println("orderRow",orderRow.Uid)
 	createErr:=e.Orm.Table(splitTableRes.OrderTable).Create(&orderRow).Error
 	if createErr !=nil {
 		e.Error(500, errors.New("后台错误"), "后台错误")
@@ -805,7 +806,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.Orm.Create(&row)
 	}
 
-	e.OK(1, "successful")
+	e.OK(1, "操作成功")
 	return
 }
 
@@ -850,7 +851,7 @@ func (e Orders) ToolsOrders(c *gin.Context) {
 		}
 	}
 
-	e.OK("", "successful")
+	e.OK("", "操作成功")
 	return
 }
 
@@ -928,7 +929,7 @@ func (e Orders) OrderCycleList(c *gin.Context) {
 		"cycle_create": createTime,
 		"cycle_give":   giveTime,
 	}
-	e.OK(result, "successful")
+	e.OK(result, "操作成功")
 
 	return
 }
@@ -985,7 +986,7 @@ func (e Orders) Times(c *gin.Context) {
 		m["give"] = giveStr
 		result = append(result, m)
 	}
-	e.PageOK(result, len(result), 1, -1, "successful")
+	e.PageOK(result, len(result), 1, -1, "操作成功")
 	return
 }
 func (e Orders) ValidTimeConf(c *gin.Context) {
@@ -1012,7 +1013,7 @@ func (e Orders) ValidTimeConf(c *gin.Context) {
 	e.OK(map[string]interface{}{
 		"time": result.CycleTime,
 		"str":  result.CycleStr,
-	}, "successful")
+	}, "操作成功")
 	return
 }
 
@@ -1397,7 +1398,7 @@ func (e Orders)BatchStatusOrder(c *gin.Context) {
 
 	zap.S().Infof("用户:%v 批量操作订单:%v,执行:%v,描述:%v",
 		userDto.Username,strings.Join(req.OrderList,","),global.OrderStatus(req.Status),req.Desc)
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 
 }
@@ -1430,7 +1431,7 @@ func (e Orders)BatchCancelOrder(c *gin.Context) {
 		}
 	}
 
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 
 }

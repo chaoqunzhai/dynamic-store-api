@@ -179,6 +179,6 @@ func (e DetailCnf) Detail(c *gin.Context) {
 	}
 	result["preview_vip_list"] = previewVipList
 	result["buying_auth_list"] = buyingAuthList
-	e.OK(result,"successful")
+	e.OK(result,"操作成功")
 	return
 }

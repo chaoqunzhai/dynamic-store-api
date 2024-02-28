@@ -41,7 +41,7 @@ func (e Company) StoreList(c *gin.Context) {
 			"id":r.Id,
 		})
 	}
-	e.OK(address, "successful")
+	e.OK(address, "操作成功")
 	return
 }
 
@@ -81,7 +81,7 @@ func (e Company) GetDelivery(c *gin.Context) {
 	for _,row:=range cache{
 		result = append(result,cacheMap[row])
 	}
-	e.OK(result,"successful")
+	e.OK(result,"操作成功")
 	return
 }
 //保证发货方式存在一种,只有在关的时候 才会校验
@@ -168,7 +168,7 @@ func (e Company) ExpressList(c *gin.Context) {
 		"cnf_data":cnf,
 	}
 
-	e.OK(result, "successful")
+	e.OK(result, "操作成功")
 	return
 }
 
@@ -227,7 +227,7 @@ func (e Company) ExpressCnfEms(c *gin.Context) {
 			"start_money":   localReq.StartMoney,
 			"freight_Money": localReq.FreightMoney,
 		})
-		e.OK("更新成功", "successful")
+		e.OK("更新成功", "操作成功")
 		return
 	}
 	localObject = models2.CompanyFreight{
@@ -241,7 +241,7 @@ func (e Company) ExpressCnfEms(c *gin.Context) {
 	localObject.Enable = true
 
 	e.Orm.Save(&localObject)
-	e.OK("更新成功", "successful")
+	e.OK("更新成功", "操作成功")
 	return
 }
 
@@ -301,7 +301,7 @@ func (e Company) ExpressCnfLocal(c *gin.Context) {
 			"start_money":   localReq.StartMoney,
 			"freight_Money": localReq.FreightMoney,
 		})
-		e.OK("更新成功", "successful")
+		e.OK("更新成功", "操作成功")
 		return
 	}
 	localObject = models2.CompanyFreight{
@@ -315,7 +315,7 @@ func (e Company) ExpressCnfLocal(c *gin.Context) {
 	localObject.Enable = true
 
 	e.Orm.Save(&localObject)
-	e.OK("更新成功", "successful")
+	e.OK("更新成功", "操作成功")
 	return
 }
 
@@ -395,6 +395,6 @@ func (e Company) ExpressCnfStore(c *gin.Context) {
 		}
 
 	}
-	e.OK("更新成功", "successful")
+	e.OK("更新成功", "操作成功")
 	return
 }

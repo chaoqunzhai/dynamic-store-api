@@ -10,7 +10,7 @@ import (
 type Orders struct {
 	models.Model
 
-	Uid            string       `json:"uid" gorm:"size:9;index;comment:关联的配送周期统一标识UID"`
+	Uid            string       `json:"uid" gorm:"size:21;index;comment:关联的OrderCycleCnf标识UID"`
 	CreateBy       int          `json:"createBy" gorm:"index;comment:创建者"`
 	SourceType     int          `json:"source_type" gorm:"type:tinyint(1);default:1;index;comment:订单来源"`
 	PayType        int          `json:"pay_type" gorm:"type:tinyint(1);default:1;comment:支付方式"`
@@ -139,7 +139,7 @@ type OrderCycleCnf struct {
 	models.Model
 	CreatedAt models.XTime `json:"createdAt" gorm:"comment:创建时间"`
 	CId       int       `gorm:"index;comment:大BID"`
-	Uid       string    `gorm:"type:varchar(9);comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
+	Uid            string       `json:"uid" gorm:"size:21;index;comment:标识UID"`
 	//StartTime 查看下单周期开始时间 EndTime 查看下单结束周期
 	//直接算好时间,方便订单查询,因为下单的时候 是可以算出来的
 	StartTime time.Time `json:"start_time" gorm:"comment:记录可下单周期开始时间"`

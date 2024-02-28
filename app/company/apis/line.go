@@ -52,7 +52,7 @@ func (e Line) UnusedOneLine(c *gin.Context) {
 		"name":object.Name,
 	}
 
-	e.OK(result, "successful")
+	e.OK(result, "操作成功")
 	return
 }
 func (e Line) BindShop(c *gin.Context) {
@@ -85,7 +85,7 @@ func (e Line) BindShop(c *gin.Context) {
 		"update_by":  user.GetUserId(c),
 	})
 
-	e.OK("", "successful")
+	e.OK("", "操作成功")
 	return
 }
 
@@ -124,7 +124,7 @@ func (e Line) UpdateLineBindShopList(c *gin.Context) {
 		"longitude": req.Longitude,
 		"latitude":  req.Latitude,
 	})
-	e.OK("successful", "successful")
+	e.OK("操作成功", "操作成功")
 	return
 }
 func (e Line) LineBindShopList(c *gin.Context) {
@@ -208,7 +208,7 @@ func (e Line) MiniApi(c *gin.Context) {
 			"name":row.Name,
 		})
 	}
-	e.OK(result,"successful")
+	e.OK(result,"操作成功")
 	return
 }
 

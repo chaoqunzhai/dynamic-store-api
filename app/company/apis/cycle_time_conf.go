@@ -3,18 +3,18 @@ package apis
 import (
 	"errors"
 	"fmt"
-	customUser "go-admin/common/jwt/user"
-	"go-admin/global"
-
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
-
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
 	"go-admin/app/company/service/dto"
 	"go-admin/common/actions"
+	customUser "go-admin/common/jwt/user"
+	"go-admin/common/utils"
+	"go-admin/global"
+	"time"
 )
 
 type CycleTimeConf struct {
@@ -49,7 +49,7 @@ func (e CycleTimeConf) Switch(c *gin.Context) {
 		"type":switchType,
 		"update_by":userDto.UserId,
 	})
-	e.OK("切换成功","successful")
+	e.OK("切换成功","操作成功")
 	return
 
 }
@@ -75,7 +75,7 @@ func (e CycleTimeConf) TypeCnf(c *gin.Context) {
 	} else {
 		cnf["type"] = cycleObject.Type
 	}
-	e.OK(cnf, "successful")
+	e.OK(cnf, "操作成功")
 	return
 }
 
@@ -235,19 +235,35 @@ func (e CycleTimeConf) Insert(c *gin.Context) {
 	case global.CyCleTimeDay:
 		whereSql = fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v'",
 			userDto.CId, true, global.CyCleTimeDay, req.StartTime, req.EndTime)
+
+
 		var dayCount int64
 		e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and `type` = ?",userDto.CId,global.CyCleTimeDay).Count(&dayCount)
 		if dayCount >= global.CyCleTimeDayMaxNumber{
-			msg :=fmt.Sprintf("下单周期为每天时,仅支持 %v个配置",global.CyCleTimeDayMaxNumber)
+			msg :=fmt.Sprintf("当前周期配置为每天, 仅支持 %v个配置",global.CyCleTimeDayMaxNumber)
 			e.Error(500, errors.New(msg), msg)
 			return
 		}
-
-
+		//检测时间是否重叠
+		if e.CheckOverlapDayCycle(userDto.CId,req.StartTime,req.EndTime,0){
+			e.Error(500, nil, "时间不可重叠")
+			return
+		}
 
 	case global.CyCleTimeWeek:
 		whereSql = fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v' and start_week = %v and end_week = %v",
 			userDto.CId, true, global.CyCleTimeWeek, req.StartTime, req.EndTime, req.StartWeek, req.EndWeek)
+
+		var dayCount int64
+		e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and `type` = ?",userDto.CId,global.CyCleTimeWeek).Count(&dayCount)
+		if dayCount >= global.CyCleTimeWeekMaxNumber{
+			msg :=fmt.Sprintf("当前周期配置为每周, 仅支持 %v个配置",global.CyCleTimeWeekMaxNumber)
+			e.Error(500, errors.New(msg), msg)
+			return
+		}
+		//每周的时间是否吻合
+
+
 
 	default:
 		e.Error(500, nil, "非法类型")
@@ -267,18 +283,37 @@ func (e CycleTimeConf) Insert(c *gin.Context) {
 
 	e.OK(req.GetId(), "创建成功")
 }
+//检测时间是否重叠
+func (e CycleTimeConf) CheckOverlapDayCycle(CID int,reqStart,reqEnd string,ExcludId int) bool {
 
-// Update 修改CycleTimeConf
-// @Summary 修改CycleTimeConf
-// @Description 修改CycleTimeConf
-// @Tags CycleTimeConf
-// @Accept application/json
-// @Product application/json
-// @Param id path int true "id"
-// @Param data body dto.CycleTimeConfUpdateReq true "body"
-// @Success 200 {object} response.Response	"{"code": 200, "message": "修改成功"}"
-// @Router /api/v1/cycle-time-conf/{id} [put]
-// @Security Bearer
+	//获取所有的配置,检测是否有重复的
+	var allTimeConf []models.CycleTimeConf
+	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and type = ?",CID,global.CyCleTimeDay).Find(&allTimeConf)
+
+	for _,row:=range allTimeConf{
+
+		if ExcludId >0 && row.Id == ExcludId{continue}
+		if row.StartTime!="" && row.EndTime!="" {
+
+			timeRange1Start, _ := time.Parse("15:04", reqStart)
+			timeRange1End, _ := time.Parse("15:04", reqEnd)
+
+			timeRange2Start, _ := time.Parse("15:04", row.StartTime)
+			timeRange2End, _ := time.Parse("15:04", row.EndTime)
+
+			overlap := utils.IsTimeOverlap(timeRange1Start, timeRange1End, timeRange2Start, timeRange2End)
+
+			if overlap {
+				fmt.Println("row!",row.Id,row.GiveTime,overlap)
+				return true
+			}
+		}
+	}
+	return false
+
+
+}
+
 func (e CycleTimeConf) Update(c *gin.Context) {
 	req := dto.CycleTimeConfUpdateReq{}
 	s := service.CycleTimeConf{}
@@ -309,6 +344,11 @@ func (e CycleTimeConf) Update(c *gin.Context) {
 		whereSql = fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v'",
 			userDto.CId, true, global.CyCleTimeDay, req.StartTime, req.EndTime)
 
+
+		 if e.CheckOverlapDayCycle(userDto.CId,req.StartTime,req.EndTime,req.Id){
+			 e.Error(500, nil, "时间不可重叠")
+			 return
+		 }
 	case global.CyCleTimeWeek:
 		whereSql = fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v' and start_week = %v and end_week = %v",
 			userDto.CId, true, global.CyCleTimeWeek, req.StartTime, req.EndTime, req.StartWeek, req.EndWeek)
@@ -329,14 +369,6 @@ func (e CycleTimeConf) Update(c *gin.Context) {
 	e.OK(req.GetId(), "修改成功")
 }
 
-// Delete 删除CycleTimeConf
-// @Summary 删除CycleTimeConf
-// @Description 删除CycleTimeConf
-// @Tags CycleTimeConf
-// @Param data body dto.CycleTimeConfDeleteReq true "body"
-// @Success 200 {object} response.Response	"{"code": 200, "message": "删除成功"}"
-// @Router /api/v1/cycle-time-conf [delete]
-// @Security Bearer
 func (e CycleTimeConf) Delete(c *gin.Context) {
 	s := service.CycleTimeConf{}
 	req := dto.CycleTimeConfDeleteReq{}

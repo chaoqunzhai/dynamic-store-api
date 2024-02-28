@@ -47,7 +47,7 @@ func (e CompanyArticle) Message(c *gin.Context) {
 	e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Limit(1).Find(&object)
 
 
-	e.OK(object.Context,"successful")
+	e.OK(object.Context,"操作成功")
 	return
 }
 
@@ -83,7 +83,7 @@ func (e CompanyArticle) UpdateMessage(c *gin.Context) {
 		object.CreateBy = userDto.UserId
 		e.Orm.Create(&object)
 	}
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 
 }

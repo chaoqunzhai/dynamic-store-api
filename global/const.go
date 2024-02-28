@@ -157,8 +157,9 @@ const (
 	CyCleTimeDay = 1
 	//每周
 	CyCleTimeWeek = 2
-	CyCleTimeDayMaxNumber = 3 //配送周期为每天时,最多支持3个时间配置创建
 
+	CyCleTimeDayMaxNumber = 3 //配送周期为每天时,最多支持3个时间配置创建
+	CyCleTimeWeekMaxNumber = 6 //配送周期为每周时,最多支持6个时间配置创建
 	//支付状态
 
 	OrderToolsActionStatus   = 1

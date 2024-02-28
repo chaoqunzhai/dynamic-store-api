@@ -282,7 +282,7 @@ func GenUUID() int {
 	return int(number)
 }
 func CreateCode() string {
-	return fmt.Sprintf("%04v", rand.New(rand.NewSource(time.Now().UnixNano())).Int31n(10000)) //这里面前面的04v是和后面的1000相对应的
+	return fmt.Sprintf("%06v", rand.New(rand.NewSource(time.Now().UnixNano())).Int31n(1000000)) //这里面前面的04v是和后面的1000相对应的
 }
 
 // 求并集
@@ -405,4 +405,15 @@ func RemoveDirectory(dir string) error {
 		return err
 	}
 	return os.Remove(dir) // 删除空目录本身
+}
+// isTimeOverlap 检查两个时间范围是否有重叠
+func IsTimeOverlap(start1, end1, start2, end2 time.Time) bool {
+	// 如果第一个时间范围的结束时间在第二个时间范围的开始时间之前，
+	// 或者第二个时间范围的结束时间在第一个时间范围的开始时间之前，
+	// 则两个时间范围不重叠。
+	if end1.Before(start2) || end2.Before(start1) {
+		return false
+	}
+	// 否则，两个时间范围有重叠。
+	return true
 }

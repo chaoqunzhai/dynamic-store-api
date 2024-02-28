@@ -47,7 +47,7 @@ func (e *CycleTimeConf) GetPage(c *dto.CycleTimeConfGetPageReq, p *actions.DataP
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
-		).Order("created_at desc").
+		).Order("layer desc").
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {
@@ -101,7 +101,7 @@ func (e *CycleTimeConf) Update(c *dto.CycleTimeConfUpdateReq, p *actions.DataPer
 	e.Orm.Scopes(
 		actions.Permission(data.TableName(), p),
 	).First(&data, c.GetId())
-	//判断时间是否有变动,如果有变动更新uid标记
+	//判断时间是否有变动,如果有变动更新uid标记.因为是要产生新的订单周期UID
 	uidTag := false
 	if c.StartTime != data.StartTime || c.EndTime != data.EndTime {
 		uidTag = true
@@ -116,8 +116,9 @@ func (e *CycleTimeConf) Update(c *dto.CycleTimeConfUpdateReq, p *actions.DataPer
 		data.Uid = utils.CreateCode()
 		fmt.Println("数据发生变更更新code")
 	}
-	c.Generate(&data)
 
+	c.Generate(&data)
+	data.Layer = c.Layer
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("CycleTimeConfService Save error:%s \r\n", err)
@@ -184,12 +185,18 @@ func GetOrderCreateStr(row models.CycleTimeConf) string {
 
 }
 
+//用当前时间 + 大BID + 周期配送的随机ID 这个ID也就是订单的周期ID
+func GetThisDayCycleUid(cid int,uid string) string {
+	nowTime:=time.Now().Format("060102")
+	return fmt.Sprintf("%v_%v_%v",nowTime,cid,uid)
+}
+
 //只有支付成功的时候才会调用这个方法
 //1.记录当前时间的哪个下单的时间段,获取到这个下单开始和结束时间 和文案 记录下来
 //2.计算这个配送时间也需要录入DB中
 
 //只需要返回这个上层的UID
-func CheckOrderCyCleCnfIsDb(cid int,table string,DeliveryObject models.CycleTimeConf,orm *gorm.DB) (uid,deliveryMsg string)  {
+func CheckOrderCyCleCnfIsDb(cid int,table string,DeliveryObject models.CycleTimeConf,orm *gorm.DB) (cycleUid,deliveryMsg string)  {
 
 	//计算出配送的周期
 	deliveryTime,deliveryMsg:=GetOrderCyClyCnf(DeliveryObject)
@@ -197,16 +204,11 @@ func CheckOrderCyCleCnfIsDb(cid int,table string,DeliveryObject models.CycleTime
 	//检测下,然后直接返回吧
 	var cycleCnf models.OrderCycleCnf
 
-	//查询大B + 配送时间为同一天
-	//如果没有,那就创建
-	//如果有,那就统一订单的这个UID
-	//查询天！！
-	orm.Table(table).Model(&models.OrderCycleCnf{}).Where("c_id = ? and delivery_time = ?",cid,deliveryTime.Format("2006-01-02")).Find(&cycleCnf)
+	//计算出当天+选择的周期配送UID
+	cycleUid =GetThisDayCycleUid(cid,DeliveryObject.Uid)
+
+	orm.Table(table).Model(&models.OrderCycleCnf{}).Where("c_id = ? and uid = ?",cid,cycleUid).Find(&cycleCnf)
 	if cycleCnf.Id == 0 {
-
-		//生成一个新的uid,让订单来记录
-		uid = RandomCode()
-
 		//把生成的配送信息录入到DB中,做一个订单统筹
 
 		nowTime:=time.Now()
@@ -224,7 +226,7 @@ func CheckOrderCyCleCnfIsDb(cid int,table string,DeliveryObject models.CycleTime
 
 			orm.Table(table).Create(&models.OrderCycleCnf{
 				CId:cid,
-				Uid: uid,
+				Uid: cycleUid,
 				StartTime: sTime,
 				EndTime: eTime,
 				CreateStr: CreateStr,
@@ -234,9 +236,7 @@ func CheckOrderCyCleCnfIsDb(cid int,table string,DeliveryObject models.CycleTime
 		}
 
 
-	}else {
-		uid = cycleCnf.Uid
 	}
-	return uid,deliveryMsg
+	return cycleUid,deliveryMsg
 
 }

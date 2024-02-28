@@ -167,7 +167,7 @@ func (e Orders)Summary(c *gin.Context)  {
 	sort.Slice(sortData, func(i, j int) bool {
 		return sortData[i].Layer > sortData[j].Layer
 	})
-	e.OK(business.Response{Code: 1,Msg: "successful",Data: sortData,Extend: fmt.Sprintf("query run time %v",time.Since(queryStart))},"")
+	e.OK(business.Response{Code: 1,Msg: "操作成功",Data: sortData,Extend: fmt.Sprintf("query run time %v",time.Since(queryStart))},"")
 	return
 }
 
@@ -373,7 +373,7 @@ func (e Orders)Line(c *gin.Context){
 		"queryOrderTime":fmt.Sprintf("%v",queryOrderTime),
 		"queryOrderSpecsTime":fmt.Sprintf("%v",queryOrderSpecsTime),
 	}
-	e.OK(business.Response{Code: 1,Msg: "successful",Data: resultTable,Extend:ExtendMap},"")
+	e.OK(business.Response{Code: 1,Msg: "操作成功",Data: resultTable,Extend:ExtendMap},"")
 	return
 }
 
@@ -536,7 +536,7 @@ func (e Orders) Index(c *gin.Context) {
 		result = append(result, row)
 	}
 
-	e.OK(result, "successful")
+	e.OK(result, "操作成功")
 	return
 }
 func (e Orders) Detail(c *gin.Context) {

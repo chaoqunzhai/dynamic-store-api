@@ -49,7 +49,7 @@ func (e Theme) Create(c *gin.Context) {
 		trade.Enable = true
 		e.Orm.Create(&trade)
 	}
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 }
 func (e Theme) Detail(c *gin.Context) {
@@ -70,6 +70,6 @@ func (e Theme) Detail(c *gin.Context) {
 	e.Orm.Model(&models.WeAppExtendCnf{}).Scopes(actions.PermissionSysUser(PayCnf.TableName(),userDto)).Select("style_theme").Limit(1).Find(&PayCnf)
 
 
-	e.OK(PayCnf.StyleTheme,"successful")
+	e.OK(PayCnf.StyleTheme,"操作成功")
 	return
 }

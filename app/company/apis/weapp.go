@@ -73,7 +73,7 @@ func (e WeApp) LoginList(c *gin.Context) {
 		"login":    loginResult,
 		"register": registerResult,
 	}
-	e.OK(result, "successful")
+	e.OK(result, "操作成功")
 	return
 }
 
@@ -163,7 +163,7 @@ func (e WeApp) UpdateLoginList(c *gin.Context) {
 
 	_,_=redis_db.SetLoginCnf(userDto.CId, redisData)
 
-	e.OK("", "successful")
+	e.OK("", "操作成功")
 	return
 }
 
@@ -394,5 +394,5 @@ func (e WeApp) UpdateQuick(c *gin.Context) {
 	makeCnf.ToolsData = quickToolsData
 	makeCnf.LoadRedis()
 
-	e.OK("", "successful")
+	e.OK("", "操作成功")
 }

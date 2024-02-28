@@ -67,7 +67,7 @@ func (e *PayALI) Create(c *gin.Context) {
 		trade.Refund = req.Refund
 		e.Orm.Create(&trade)
 	}
-	e.OK("","successful")
+	e.OK("","操作成功")
 
 	return
 }
@@ -91,6 +91,6 @@ func (e *PayALI) Detail(c *gin.Context) {
 	e.Orm.Model(&models.AliPay{}).Scopes(
 		actions.PermissionSysUser(data.TableName(),userDto)).Limit(1).Find(&data)
 
-	e.OK(data,"successful")
+	e.OK(data,"操作成功")
 	return
 }

@@ -115,7 +115,7 @@ func (e *PayWechat) Create(c *gin.Context) {
 		trade.Layer = 0
 		e.Orm.Create(&trade)
 	}
-	e.OK("","successful")
+	e.OK("","操作成功")
 
 	return
 }
@@ -148,6 +148,6 @@ func (e *PayWechat) Detail(c *gin.Context) {
 	//}
 	//data.AppId = appCnf.AppId
 	//data.AppSecret = appCnf.AppSecret
-	e.OK(data,"successful")
+	e.OK(data,"操作成功")
 	return
 }

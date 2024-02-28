@@ -62,7 +62,7 @@ func (e *PayApi) Create(c *gin.Context) {
 		trade.Enable = true
 		e.Orm.Create(&trade)
 	}
-	e.OK("","successful")
+	e.OK("","操作成功")
 	return
 }
 func (e PayApi) Detail(c *gin.Context) {
@@ -90,8 +90,8 @@ func (e PayApi) Detail(c *gin.Context) {
 		object.Enable = true
 		object.CId = userDto.CId
 		e.Orm.Create(&object)
-		e.OK(object,"successful")
+		e.OK(object,"操作成功")
 	}
-	e.OK(PayCnf,"successful")
+	e.OK(PayCnf,"操作成功")
 	return
 }

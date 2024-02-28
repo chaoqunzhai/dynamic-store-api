@@ -823,7 +823,7 @@ func (e CompanyInventory) OrderDetail(c *gin.Context) {
 		"money":utils.StringDecimal(money),
 	}
 	result["table"] = table
-	e.OK(result,"successful")
+	e.OK(result,"操作成功")
 	return
 }
 
