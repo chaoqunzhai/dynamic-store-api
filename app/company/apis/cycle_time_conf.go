@@ -262,7 +262,10 @@ func (e CycleTimeConf) Insert(c *gin.Context) {
 			return
 		}
 		//每周的时间是否吻合
-
+		if e.CheckOverWeekCycle(userDto.CId,req.StartWeek,req.EndWeek,req.StartTime,req.EndTime,0){
+			e.Error(500, nil, "时间不可重叠")
+			return
+		}
 
 
 	default:
@@ -284,34 +287,75 @@ func (e CycleTimeConf) Insert(c *gin.Context) {
 	e.OK(req.GetId(), "创建成功")
 }
 
-func (e CycleTimeConf)CheckOverWeekCycle()  {
+func WeekDay(t time.Weekday) int {
+	addDay :=0
+	switch t {
+	case time.Sunday:
+		addDay = 6
+	case time.Monday:
+		addDay = 0
+	case time.Tuesday:
+		addDay = 1
+	case time.Wednesday:
+		addDay = 2
+	case time.Thursday:
+		addDay = 3
+	case time.Friday:
+		addDay = 4
+	case time.Saturday:
+		addDay = 5
+	}
+	return  addDay
+}
+func (e CycleTimeConf)CheckOverWeekCycle(CID int,reqStartWeek,reqEndWeek int,reqStartTime,reqEndTime string, ExcludeId int) bool {
 	// isTimeRangeOverlap 判断两个时间段是否有重叠
-	func isTimeRangeOverlap(timeRange1Start, timeRange1End, timeRange2Start, timeRange2End time.Time) bool {
-		// 如果第一个时间段的结束时间在第二个时间段的开始时间之前，
-		// 或者第二个时间段的结束时间在第一个时间段的开始时间之前，
-		// 则两个时间段不重叠。
-		if timeRange1End.Before(timeRange2Start) || timeRange2End.Before(timeRange1Start) {
-		return false
-	}
-		return true
-	}
-	func validWeek()  {
-		// 每周一 17:00 到 每周三 19:00
-		monday := time.Monday
-		start1 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 17, 0, 0, 0, time.Local).AddDate(0, 0, int(monday-time.Now().Weekday()))
-		end1 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 19, 0, 0, 0, time.Local).AddDate(0, 0, int(monday-time.Now().Weekday())+2)
+	var allTimeConf []models.CycleTimeConf
+	e.Orm.Model(&models.CycleTimeConf{}).Where("c_id = ? and type = ?",CID,global.CyCleTimeWeek).Find(&allTimeConf)
+
+
+	for _,row:=range allTimeConf {
+
+		if ExcludeId > 0 && row.Id == ExcludeId {
+			continue
+		}
+
+		//原数据开始
+		parsedStartTime, _ := time.Parse("15:04", row.StartTime)
+		parsedEndTime, _ := time.Parse("15:04", row.EndTime)
+		startWeek1 := time.Weekday(row.StartWeek)
+		endWeek1 := time.Weekday(row.EndWeek)
+		start1 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), parsedStartTime.Hour(),
+			parsedStartTime.Minute(), 0, 0, time.Local).AddDate(0, 0, int(startWeek1-time.Now().Weekday()) + WeekDay(startWeek1))
+		end1 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), parsedEndTime.Hour(),
+			parsedEndTime.Minute(), 0, 0, time.Local).AddDate(0, 0, int(endWeek1-time.Now().Weekday())  + WeekDay(endWeek1))
 
 		// 每周二 18:00 - 20:00
-		start2 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 18, 0, 0, 0, time.Local).AddDate(0, 0, int(time.Friday-time.Now().Weekday())+1)
-		end2 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 20, 0, 0, 0, time.Local).AddDate(0, 0, int(time.Friday-time.Now().Weekday())+1)
+		startWeek2 := time.Weekday(reqStartWeek)
+		endWeek2 := time.Weekday(reqEndWeek)
+
+		fmt.Println("endWeek2!!",endWeek2)
+		parsedStartTime2, _ := time.Parse("15:04", reqStartTime)
+		parsedEndTime2, _ := time.Parse("15:04",reqEndTime)
+
+		start2 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), parsedStartTime2.Hour(),
+			parsedStartTime2.Minute(), 0, 0, time.Local).AddDate(0, 0, int(startWeek2-time.Now().Weekday())  + WeekDay(startWeek2))
+		end2 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), parsedEndTime2.Hour(),
+			parsedEndTime2.Minute(), 0, 0, time.Local).AddDate(0, 0, int(endWeek2-time.Now().Weekday()) + WeekDay(endWeek2))
 
 		// 检查两个时间段是否有重叠
-		overlap := isTimeRangeOverlap(start1, end1, start2, end2)
-		fmt.Println("Time ranges overlap:", overlap)
+		overlap := utils.IsTimeOverlap(start1, end1, start2, end2)
+		//fmt.Println("是否范围内:",row.Id, overlap,"|| 数据库时间",start1, end1,"|| 请求的时间",start2, end2,"reqStartWeek",reqStartWeek,reqEndWeek)
+		if overlap {
+			return true
+		}
+
+
 	}
+
+	return false
 }
 //检测时间是否重叠
-func (e CycleTimeConf) CheckOverlapDayCycle(CID int,reqStart,reqEnd string,ExcludId int) bool {
+func (e CycleTimeConf) CheckOverlapDayCycle(CID int,reqStart,reqEnd string, ExcludeId int) bool {
 
 	//获取所有的配置,检测是否有重复的
 	var allTimeConf []models.CycleTimeConf
@@ -319,7 +363,7 @@ func (e CycleTimeConf) CheckOverlapDayCycle(CID int,reqStart,reqEnd string,Exclu
 
 	for _,row:=range allTimeConf{
 
-		if ExcludId >0 && row.Id == ExcludId{continue}
+		if ExcludeId >0 && row.Id == ExcludeId {continue}
 		if row.StartTime!="" && row.EndTime!="" {
 
 			timeRange1Start, _ := time.Parse("15:04", reqStart)
@@ -331,7 +375,6 @@ func (e CycleTimeConf) CheckOverlapDayCycle(CID int,reqStart,reqEnd string,Exclu
 			overlap := utils.IsTimeOverlap(timeRange1Start, timeRange1End, timeRange2Start, timeRange2End)
 
 			if overlap {
-				fmt.Println("row!",row.Id,row.GiveTime,overlap)
 				return true
 			}
 		}
@@ -379,6 +422,13 @@ func (e CycleTimeConf) Update(c *gin.Context) {
 	case global.CyCleTimeWeek:
 		whereSql = fmt.Sprintf("c_id = %v and enable = %v and type = %v and start_time = '%v' and end_time = '%v' and start_week = %v and end_week = %v",
 			userDto.CId, true, global.CyCleTimeWeek, req.StartTime, req.EndTime, req.StartWeek, req.EndWeek)
+
+
+		if e.CheckOverWeekCycle(userDto.CId,req.StartWeek,req.EndWeek,req.StartTime,req.EndTime,req.Id){
+			e.Error(500, nil, "时间不可重叠")
+			return
+		}
+
 	default:
 		e.Error(500, nil, "非法类型")
 		return
