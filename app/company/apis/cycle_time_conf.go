@@ -283,6 +283,33 @@ func (e CycleTimeConf) Insert(c *gin.Context) {
 
 	e.OK(req.GetId(), "创建成功")
 }
+
+func (e CycleTimeConf)CheckOverWeekCycle()  {
+	// isTimeRangeOverlap 判断两个时间段是否有重叠
+	func isTimeRangeOverlap(timeRange1Start, timeRange1End, timeRange2Start, timeRange2End time.Time) bool {
+		// 如果第一个时间段的结束时间在第二个时间段的开始时间之前，
+		// 或者第二个时间段的结束时间在第一个时间段的开始时间之前，
+		// 则两个时间段不重叠。
+		if timeRange1End.Before(timeRange2Start) || timeRange2End.Before(timeRange1Start) {
+		return false
+	}
+		return true
+	}
+	func validWeek()  {
+		// 每周一 17:00 到 每周三 19:00
+		monday := time.Monday
+		start1 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 17, 0, 0, 0, time.Local).AddDate(0, 0, int(monday-time.Now().Weekday()))
+		end1 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 19, 0, 0, 0, time.Local).AddDate(0, 0, int(monday-time.Now().Weekday())+2)
+
+		// 每周二 18:00 - 20:00
+		start2 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 18, 0, 0, 0, time.Local).AddDate(0, 0, int(time.Friday-time.Now().Weekday())+1)
+		end2 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 20, 0, 0, 0, time.Local).AddDate(0, 0, int(time.Friday-time.Now().Weekday())+1)
+
+		// 检查两个时间段是否有重叠
+		overlap := isTimeRangeOverlap(start1, end1, start2, end2)
+		fmt.Println("Time ranges overlap:", overlap)
+	}
+}
 //检测时间是否重叠
 func (e CycleTimeConf) CheckOverlapDayCycle(CID int,reqStart,reqEnd string,ExcludId int) bool {
 
