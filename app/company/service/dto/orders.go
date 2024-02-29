@@ -15,6 +15,9 @@ type OrdersActionReq struct {
 
 }
 
+type OrdersActionGetPageReq struct {
+	dto.Pagination `search:"- " `
+}
 type OrdersGetPageReq struct {
 	dto.Pagination `search:"- " `
 	Verify bool `form:"verify" search:"-" comment:"开启对账统计"`

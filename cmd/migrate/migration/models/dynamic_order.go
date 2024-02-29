@@ -214,12 +214,13 @@ func (OrderReturn) TableName() string {
 type OrderEdit struct {
 	Model
 	CId          int          `gorm:"index;comment:大BID"`
-	CreateBy     int          `json:"createBy" gorm:"index;comment:修改人"`
+	CreateBy     string          `json:"createBy" gorm:"size:20;comment:修改人"`
 	CreatedAt    models.XTime `json:"createdAt" gorm:"comment:修改日期"`
 	OrderId      string       `json:"order_id" gorm:"index;size:20;comment:订单ID"`
-	SpecId       int          `json:"spec_id" gorm:"comment:规格表ID"`
+	SpecsName string       `gorm:"size:30;comment:规格名称"`
 	SourerNumber int          `json:"sourer_number" gorm:"comment:原数量"`
 	SourerMoney  float64      `json:"sourer_money" gorm:"comment:原价格"`
+	Action int `json:"action" gorm:"comment:减少/新增 0:减少 1:新增"`
 	Number       int          `gorm:"comment:新数量"`
 	Money        float64      `gorm:"comment:新价格"`
 	Status       int          `gorm:"type:tinyint(1);default:1;index;comment:修改结果"`

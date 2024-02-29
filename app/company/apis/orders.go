@@ -38,6 +38,62 @@ type GroupByOrderSpec struct {
 	Count int
 	OrderId string
 }
+
+func (e Orders) OrderActionList(c *gin.Context) {
+	req := dto.OrdersActionGetPageReq{}
+	s := service.Orders{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	orderId := c.Param("orderId")
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	//先获取分页
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	var list []models2.OrderEdit
+	var count int64
+	err = e.Orm.Table(splitTableRes.OrderEdit).Scopes(
+		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
+		actions.PermissionSysUser(splitTableRes.OrderEdit,userDto)).Order(global.OrderTimeKey).
+		Where("order_id = ? and c_id = ?",orderId,userDto.CId).
+		Find(&list).Limit(-1).Offset(-1).
+		Count(&count).Error
+
+	result:=make([]map[string]interface{},0)
+	for _,row:=range list{
+		//获取下规格名称
+		data :=map[string]interface{}{
+			"id":row.Id,
+			"user":row.CreateBy,
+			"source_number":row.SourerNumber,
+			"number":row.Number,
+			"source_money":row.SourerMoney,
+			"money":row.Money,
+			"desc":row.Desc,
+			"spec_name":row.SpecsName,
+		}
+		if row.Action == 0 {
+			data["action"] = "减少"
+		}else {
+			data["action"] = "增加"
+		}
+		result = append(result,data)
+	}
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	return
+
+}
+
 func (e Orders) OrderAction(c *gin.Context) {
 	req := dto.OrdersActionReq{}
 	s := service.Orders{}
@@ -1183,15 +1239,22 @@ func (e Orders) EditOrder(c *gin.Context) {
 		}
 		//只要一直操作就会一直记录
 		editRow:=&models2.OrderEdit{
-			CreateBy: userDto.UserId,
+			CreateBy: userDto.Username,
 			OrderId: orderId,
-			SpecId: orderSpecs.Id,
+			SpecsName: orderSpecs.SpecsName,
 			SourerMoney: orderSpecs.AllMoney,
 			SourerNumber: orderSpecs.Number,
 			Number: order.NewAllNumber,
 			Money: order.NewAllMoney,
 			Desc: req.Desc,
 		}
+		if req.Reduce {
+			editRow.Action = 0
+		}
+		if req.Increase {
+			editRow.Action = 1
+		}
+
 		editRow.CId = userDto.CId
 		e.Orm.Table(splitTableRes.OrderEdit).Create(&editRow)
 

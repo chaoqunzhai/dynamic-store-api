@@ -1,13 +1,11 @@
 package apis
 
 import (
-
 	"go-admin/app/admin/models"
 	models2 "go-admin/app/company/models"
 	"go-admin/common/business"
 	"go-admin/global"
 	"net/http"
-
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -121,7 +119,7 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 	super := false
 	//超管是获取所有的菜单的
 
-
+	//只有超管 和大B 大B下员工可以登录
 	switch sysUser.RoleId {
 	case global.RoleSuper:
 		//超管
