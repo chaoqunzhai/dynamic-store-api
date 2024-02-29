@@ -242,9 +242,8 @@ func (e GoodsUnit) Delete(c *gin.Context) {
 		return
 	}
 
-	p := actions.GetPermissionFromContext(c)
 
-	err = s.Remove(&req, p)
+	err = s.Remove(&req, userDto.CId)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除GoodsUnit失败，\r\n失败信息 %s", err.Error()))
         return

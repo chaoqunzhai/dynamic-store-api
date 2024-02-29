@@ -227,11 +227,13 @@ func (e GradeVip) Delete(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 
-	// req.SetUpdateBy(user.GetUserId(c))
-	p := actions.GetPermissionFromContext(c)
-
-	err = s.Remove(&req, p)
+	err = s.Remove(&req,userDto.CId)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除GradeVip失败，\r\n失败信息 %s", err.Error()))
 		return

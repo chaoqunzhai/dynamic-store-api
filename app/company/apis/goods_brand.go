@@ -245,10 +245,7 @@ func (e GoodsBrand) Delete(c *gin.Context) {
 		return
 	}
 
-	p := actions.GetPermissionFromContext(c)
-
-	p.CId = userDto.CId
-	err = s.Remove(&req, p)
+	err = s.Remove(&req, userDto.CId)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除GoodsBrand失败，\r\n失败信息 %s", err.Error()))
         return

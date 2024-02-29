@@ -91,13 +91,10 @@ func (e *GoodsTag) Update(c *dto.GoodsTagUpdateReq, p *actions.DataPermission) e
 }
 
 // Remove 删除GoodsTag
-func (e *GoodsTag) Remove(d *dto.GoodsTagDeleteReq, p *actions.DataPermission) error {
+func (e *GoodsTag) Remove(d *dto.GoodsTagDeleteReq, cid int) error {
 	var data models.GoodsTag
 
-	db := e.Orm.Model(&data).
-		Scopes(
-			actions.Permission(data.TableName(), p),
-		).Delete(&data, d.GetId())
+	db :=e.Orm.Model(&data).Where("c_id = ? and id in ?",cid,d.GetId()).Delete(&data)
 	if err := db.Error; err != nil {
         e.Log.Errorf("Service RemoveGoodsTag error:%s \r\n", err)
         return err

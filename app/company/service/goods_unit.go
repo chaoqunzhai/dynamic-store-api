@@ -93,15 +93,10 @@ func (e *GoodsUnit) Update(c *dto.GoodsUnitUpdateReq, p *actions.DataPermission)
 }
 
 // Remove 删除GoodsUnit
-func (e *GoodsUnit) Remove(d *dto.GoodsUnitDeleteReq, p *actions.DataPermission) error {
+func (e *GoodsUnit) Remove(d *dto.GoodsUnitDeleteReq, cid int) error {
 	var data models.GoodsUnit
 
-	db := e.Orm.Model(&data).
-		Scopes(
-			actions.Permission(data.TableName(), p),
-		).Delete(&data, d.GetId())
-
-
+	db :=e.Orm.Model(&data).Where("c_id = ? and id in ?",cid,d.GetId()).Delete(&data)
 	if err := db.Error; err != nil {
         e.Log.Errorf("Service RemoveGoodsUnit error:%s \r\n", err)
         return err

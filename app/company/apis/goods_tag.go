@@ -234,9 +234,11 @@ func (e GoodsTag) Delete(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-
-	p := actions.GetPermissionFromContext(c)
-
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 	newIds := make([]int, 0)
 	for _, t := range req.Ids {
 		var count int64
@@ -251,7 +253,7 @@ func (e GoodsTag) Delete(c *gin.Context) {
 		return
 	}
 	req.Ids = newIds
-	err = s.Remove(&req, p)
+	err = s.Remove(&req,userDto.CId)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除标签失败,%s", err.Error()))
 		return

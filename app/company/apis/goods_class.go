@@ -254,7 +254,7 @@ func (e GoodsClass) Delete(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	p := actions.GetPermissionFromContext(c)
+
 	newIds := make([]int, 0)
 	for _, t := range req.Ids {
 		var count int64
@@ -268,7 +268,7 @@ func (e GoodsClass) Delete(c *gin.Context) {
 		e.Error(500, errors.New("存在关联不可删除！"), "存在关联不可删除！")
 		return
 	}
-	err = s.Remove(&req, p)
+	err = s.Remove(&req, userDto.CId)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除分类失败,%s", err.Error()))
 		return

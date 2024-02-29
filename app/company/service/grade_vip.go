@@ -94,13 +94,10 @@ func (e *GradeVip) Update(c *dto.GradeVipUpdateReq, p *actions.DataPermission) e
 }
 
 // Remove 删除GradeVip
-func (e *GradeVip) Remove(d *dto.GradeVipDeleteReq, p *actions.DataPermission) error {
+func (e *GradeVip) Remove(d *dto.GradeVipDeleteReq, cid int) error {
 	var data models.GradeVip
 
-	db := e.Orm.Model(&data).
-		Scopes(
-			actions.Permission(data.TableName(), p),
-		).Delete(&data, d.GetId())
+	db :=e.Orm.Model(&data).Where("c_id = ? and id in ?",cid,d.GetId()).Delete(&data)
 	if err := db.Error; err != nil {
         e.Log.Errorf("Service RemoveGradeVip error:%s \r\n", err)
         return err

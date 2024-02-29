@@ -2,6 +2,7 @@ package apis
 
 import (
     "fmt"
+	customUser "go-admin/common/jwt/user"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -186,10 +187,12 @@ func (e GoodsVip) Delete(c *gin.Context) {
         return
     }
 
-	// req.SetUpdateBy(user.GetUserId(c))
-	p := actions.GetPermissionFromContext(c)
-
-	err = s.Remove(&req, p)
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	err = s.Remove(&req, userDto.CId)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("删除GoodsVip失败，\r\n失败信息 %s", err.Error()))
         return

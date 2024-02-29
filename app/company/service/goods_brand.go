@@ -92,11 +92,11 @@ func (e *GoodsBrand) Update(c *dto.GoodsBrandUpdateReq, p *actions.DataPermissio
 }
 
 // Remove 删除GoodsBrand
-func (e *GoodsBrand) Remove(d *dto.GoodsBrandDeleteReq, p *actions.DataPermission) error {
+func (e *GoodsBrand) Remove(d *dto.GoodsBrandDeleteReq, cid int) error {
 	var data models.GoodsBrand
 
 
-	db :=e.Orm.Model(&models.GoodsBrand{}).Where("id in ? and c_id = ?",d.GetId(),p.CId).Delete(&data)
+	db :=e.Orm.Model(&data).Where("c_id = ? and id in ?",cid,d.GetId()).Delete(&data)
 	if err := db.Error; err != nil {
         e.Log.Errorf("Service RemoveGoodsBrand error:%s \r\n", err)
         return err
