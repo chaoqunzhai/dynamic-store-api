@@ -109,6 +109,7 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 		specsList := make([]*XlsxTableRow, 0)
 		for _, row := range orderSpecs {
 			xlsx :=&XlsxTableRow{
+				Key: fmt.Sprintf("%v_%v",row.GoodsId,row.SpecId),
 				GoodsName: row.GoodsName,
 				GoodsSpecs: row.SpecsName,
 				Unit: row.Unit,
@@ -150,11 +151,35 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 		//循环每一个小B
 		for sheetShopIndex,sheetShop:=range SheetDataRowMap{
 			//对table的数据进行汇总
-			for index,v :=range sheetShop.Table{
-				v.Id = index + 1
-				sheetShop.AllNumber+=v.Number
-				sheetShop.AllMoney = utils.RoundDecimalFlot64(sheetShop.AllMoney) + v.TotalMoney
+
+			mergeMap:=make(map[string]*XlsxTableRow,0)
+			for _,xlsxRow :=range sheetShop.Table{
+
+				//对数据进行去重
+				mergeDat,mergeOk:=mergeMap[xlsxRow.Key]
+				if !mergeOk{
+					mergeMap[xlsxRow.Key] = xlsxRow
+					continue
+				}else {
+					mergeDat.Number +=xlsxRow.Number
+					mergeDat.TotalMoney += xlsxRow.TotalMoney
+
+				}
+				//合并起来,统一存放到xlsx中
+				mergeMap[xlsxRow.Key] = mergeDat
 			}
+			xlsxIndex:=0
+			newTable:=make([]*XlsxTableRow,0)
+			//进行数据合并
+			for _,mergeXlsx:=range mergeMap{
+				xlsxIndex+=1
+				mergeXlsx.Id = xlsxIndex
+				newTable = append(newTable,mergeXlsx)
+
+				sheetShop.AllNumber +=mergeXlsx.Number
+				sheetShop.AllMoney = utils.RoundDecimalFlot64(sheetShop.AllMoney) + mergeXlsx.TotalMoney
+			}
+			sheetShop.Table = newTable
 			sheetShop.MoneyCn = utils.ConvertNumToCny(sheetShop.AllMoney)
 			//设置回去
 			SheetDataRowMap[sheetShopIndex] = sheetShop

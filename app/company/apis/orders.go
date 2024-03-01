@@ -528,20 +528,6 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		return
 	}
 
-	if shopObject.LineId == 0 {
-		e.Error(500, errors.New("商家暂无路线"), "商家暂无路线")
-		return
-	}
-	var lineObject models2.Line
-	e.Orm.Model(&models2.Line{}).Scopes(actions.PermissionSysUser(lineObject.TableName(),userDto)).Where("id = ?  and enable = ?", shopObject.LineId, true).Limit(1).Find(&lineObject)
-	if lineObject.Id == 0 {
-		e.Error(500, errors.New("商家路线路线未开启"), "商家路线路线未开启")
-		return
-	}
-	if msg,ExpiredOrNot :=service.CheckLineExpire(userDto.CId,shopObject.LineId,e.Orm);!ExpiredOrNot{
-		e.Error(500, errors.New(msg), msg)
-		return
-	}
 	//前段的金额
 	PayOrderMoney:=utils.RoundDecimalFlot64(req.PayMoney)
 
@@ -589,6 +575,34 @@ func (e Orders) ValetOrder(c *gin.Context) {
 
 	fmt.Println("周期配送！！",req.Cycle,"req.DeliveryType",req.DeliveryType)
 	if req.DeliveryType == global.ExpressSameCity{ //周期配送
+
+		//如果是到店自提/快递物流是不检测 商家是否有路线和司机的
+
+		if shopObject.LineId == 0 {
+			e.Error(500, errors.New("商家暂无路线"), "商家暂无路线")
+			return
+		}
+		var lineObject models2.Line
+		e.Orm.Model(&models2.Line{}).Scopes(actions.PermissionSysUser(lineObject.TableName(),userDto)).Where("id = ?  and enable = ?", shopObject.LineId, true).Limit(1).Find(&lineObject)
+		if lineObject.Id == 0 {
+			e.Error(500, errors.New("商家路线路线未开启"), "商家路线路线未开启")
+			return
+		}
+		if msg,ExpiredOrNot :=service.CheckLineExpire(userDto.CId,shopObject.LineId,e.Orm);!ExpiredOrNot{
+			e.Error(500, errors.New(msg), msg)
+			return
+		}
+		orderRow.Line = lineObject.Name
+		orderRow.LineId = lineObject.Id
+
+		var DriverObject models2.Driver
+		e.Orm.Model(&models2.Driver{}).Scopes(actions.PermissionSysUser(DriverObject.TableName(),userDto)).Where("id = ? and enable = ?", lineObject.DriverId, true).Limit(1).Find(&DriverObject)
+
+		if DriverObject.Id == 0 {
+			e.Error(500, errors.New("路线暂无司机"), "路线暂无司机")
+			return
+		}
+		orderRow.DriverId = DriverObject.Id
 		var DeliveryObject models.CycleTimeConf
 		e.Orm.Model(&models2.CycleTimeConf{}).Where("c_id = ? and id = ? and enable =? ",userDto.CId, req.Cycle, true).Limit(1).Find(&DeliveryObject)
 		if DeliveryObject.Id == 0 {
@@ -608,6 +622,8 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.Orm.Model(&defaultAddress).Scopes(actions.PermissionSysUser(defaultAddress.TableName(),userDto)).Select("id").Where(" is_default = 1 and user_id = ?",shopObject.UserId).Limit(1).Find(&defaultAddress)
 		//用户是一定有一个默认地址的
 		orderRow.AddressId = defaultAddress.Id
+
+
 	}else { //自提或者物流
 		orderRow.Status = global.OrderWaitConfirm //其他就是 配送中
 		orderRow.DeliveryRunAt = models3.XTime{
@@ -615,18 +631,6 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		}
 		orderRow.AddressId = req.StoreAddressId
 		orderRow.DeliveryStr = req.DeliveryStr
-	}
-
-
-	orderRow.Line = lineObject.Name
-	orderRow.LineId = lineObject.Id
-
-	var DriverObject models2.Driver
-	e.Orm.Model(&models2.Driver{}).Scopes(actions.PermissionSysUser(DriverObject.TableName(),userDto)).Where("id = ? and enable = ?", lineObject.DriverId, true).Limit(1).Find(&DriverObject)
-
-	if DriverObject.Id == 0 {
-		e.Error(500, errors.New("路线暂无司机"), "路线暂无司机")
-		return
 	}
 
 	//保存商品和规格的一些映射
@@ -649,7 +653,6 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	//代客下单时的用户是管理员用户！！！
 	orderRow.CreateBy = userDto.UserId
 	orderRow.Buyer = req.Desc
-	orderRow.DriverId = DriverObject.Id
 
 
 	//设置价格
@@ -669,7 +672,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	orderRow.GoodsMoney = utils.RoundDecimalFlot64(req.GoodsMoney) //商品金额
 	orderRow.DeductionMoney = PayOkMoney //抵扣金额 因为不是实际的付款,也是要存抵扣金额的
 	orderRow.CouponMoney = DiscountMoney //优惠的金额 在一个优惠卷字段来存储
-	fmt.Println("orderRow",orderRow.Uid)
+
 	createErr:=e.Orm.Table(splitTableRes.OrderTable).Create(&orderRow).Error
 	if createErr !=nil {
 		e.Error(500, errors.New("后台错误"), "后台错误")

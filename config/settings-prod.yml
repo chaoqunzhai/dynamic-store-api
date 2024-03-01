@@ -45,25 +45,24 @@ settings:
     promotionCode: ""
     # 云端保留的天数 exportDay+1 为云端保留数据
     exportDay: 7
-    cloudObsUrl: "http://testqiniu.36580.cn/"
-    imageUrl: "http://testqiniu.36580.cn/"
+    cloudObsUrl: "https://qiniu.dongchuangyun.com/"
+    imageUrl: "https://qiniu.dongchuangyun.com/"
     #移动端地址
-    h5Url: "http://weapp-test.36580.cn/h5/"
+    h5Url: "https://weapp.dongchuangyun.com/h5/"
     #移动端MP配置,用于授权登录
-    h5AuthUrl: "http://weapp-test.36580.cn/wx/mp_auth"
+    h5AuthUrl: "https://weapp.dongchuangyun.com/wx/mp_auth"
     #公众号支付回调接口 不带/
-    WeChatPayCallback: "http://weapp-test.36580.cn/weapp/api/v1/pay/official/call"
+    WeChatPayCallback: "https://weapp.dongchuangyun.com/weapp/api/v1/pay/official/call"
     imageBase: "./image/"
     qiniu:
-      BucketName: "dcy-test-env"
-      Region: "ZoneHuadong"
+      Region: "ZheJiang2"
+      BucketName: "dcy-goods"
       AccessKey: "ZsSiKjddNXag9by7jqeaINFIbC050MXMMBM4pKEA"
       SecretKey: "xqZ-FEAUiJzbYDFgbZzC8pxn3Tg6lSKhRG2urnTZ"
     redis:
-      ip: "152.136.36.253"
+      ip: "159.75.177.143"
       port: "26379"
-      password: "dcyTestRedis@2023"
-
+      password: "dcyRedis@2023"
   queue:
     memory:
       poolSize: 100

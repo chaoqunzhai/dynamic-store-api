@@ -65,6 +65,7 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 	}
 
 	linSheetMap:=make(map[int]*SheetRow,0)
+
 	for _,orderRow:=range orderList{
 
 		//放到一个线路里面
@@ -83,22 +84,23 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 		//获取订单关联的具体规格
 		var orderSpecs []models.OrderSpecs
 
-
 		e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ?", orderRow.OrderId).Find(&orderSpecs)
-
 		specsList := make([]*XlsxTableRow, 0)
 		for _, row := range orderSpecs {
+
+			TotalMoney:=utils.RoundDecimalFlot64(row.Money  * float64(row.Number))
 			xlsx :=&XlsxTableRow{
+				Key: fmt.Sprintf("%v_%v",row.GoodsId,row.SpecId),
 				GoodsName: row.GoodsName,
 				GoodsSpecs: row.SpecsName,
 				Unit: row.Unit,
 				Number: row.Number,
 				Price: row.Money,
-				TotalMoney: utils.RoundDecimalFlot64(row.Money  * float64(row.Number)),
+				TotalMoney: TotalMoney,
 			}
-
 			specsList = append(specsList, xlsx)
 		}
+
 		sheetRow.Table = append(sheetRow.Table ,specsList...)
 		//重新赋值
 		linSheetMap[orderRow.LineId] = sheetRow
@@ -122,12 +124,38 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 			zap.S().Errorf("导出配送路线时,不在数据Map中,ResultData 和 sheetRowObject.Data 线路数据不匹配")
 			continue
 		}
+
+
 		//对table的数据进行汇总
-		for index,v :=range SheetRowVal.Table{
-			v.Id = index + 1
-			SheetRowVal.AllNumber+=v.Number
-			SheetRowVal.AllMoney = utils.RoundDecimalFlot64(SheetRowVal.AllMoney) + v.TotalMoney
+		mergeMap:=make(map[string]*XlsxTableRow,0)
+		for _,xlsxRow :=range SheetRowVal.Table{
+
+			//对数据进行去重
+			mergeDat,mergeOk:=mergeMap[xlsxRow.Key]
+			if !mergeOk{
+				mergeMap[xlsxRow.Key] = xlsxRow
+				continue
+			}else {
+				mergeDat.Number +=xlsxRow.Number
+				mergeDat.TotalMoney += xlsxRow.TotalMoney
+
+			}
+			//合并起来,统一存放到xlsx中
+			mergeMap[xlsxRow.Key] = mergeDat
+
 		}
+		xlsxIndex:=0
+		newTable:=make([]*XlsxTableRow,0)
+		//进行数据合并
+		for _,mergeXlsx:=range mergeMap{
+			xlsxIndex+=1
+			mergeXlsx.Id = xlsxIndex
+			newTable = append(newTable,mergeXlsx)
+
+			SheetRowVal.AllNumber +=mergeXlsx.Number
+			SheetRowVal.AllMoney = utils.RoundDecimalFlot64(SheetRowVal.AllMoney) + mergeXlsx.TotalMoney
+		}
+		SheetRowVal.Table = newTable
 		SheetRowVal.MoneyCn = utils.ConvertNumToCny(SheetRowVal.AllMoney)
 		//fmt.Println("线路",SheetRowVal.SheetName,SheetRowVal.AllMoney,SheetRowVal.AllNumber,sheetRowObject.LineName,sheetRowObject)
 		//回传设置到上层

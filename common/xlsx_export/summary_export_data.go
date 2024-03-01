@@ -6,6 +6,7 @@ package xlsx_export
 
 import (
 	"errors"
+	"fmt"
 	"go-admin/app/company/models"
 	"go-admin/common/business"
 	"go-admin/common/qiniu"
@@ -44,27 +45,51 @@ func (e *SummaryExportObj)ReadSummaryDetail() (dat *SheetRow,err error )  {
 
 	orderList:=make([]models.Orders,0)
 	//根据配送UID 统一查一下
-	e.Orm.Table(splitTableRes.OrderTable).Select("id").Where("uid = ? and status in ? and order_money > 0", data.Uid,global.OrderEffEct()).Find(&orderList)
-	orderIds:=make([]int,0)
+	e.Orm.Table(splitTableRes.OrderTable).Select("order_id").Where("uid = ? and status in ? and order_money > 0", data.Uid,global.OrderEffEct()).Find(&orderList)
+	orderIds:=make([]string,0)
 	for _,k:=range orderList{
-		orderIds = append(orderIds,k.Id)
+		orderIds = append(orderIds,k.OrderId)
 	}
 	orderSpecs:=make([]models.OrderSpecs,0)
 	//查下数据 获取规格 在做一次统计
-	e.Orm.Table(splitTableRes.OrderSpecs).Where("id in ?",orderIds).Find(&orderSpecs)
+	//orderId 是一一对应的
+	e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id in ?",orderIds).Find(&orderSpecs)
 
 	tableRow := make([]*XlsxTableRow,0)
-	for index,row:=range orderSpecs{
-		index +=1
+	//进行数据合并。同等的商品规格:总价
+	//汇总表 只需要数量进行合并汇总即可
+	mergeMap:=make(map[string]*XlsxTableRow,0)
+
+	for _,row:=range orderSpecs{
+		key:=fmt.Sprintf("%v_%v",row.GoodsId,row.SpecId)
+		TotalMoney:=utils.RoundDecimalFlot64(row.Money  * float64(row.Number))
+
 		xlsx :=&XlsxTableRow{
+			Key: key,
 			GoodsName: row.GoodsName,
 			GoodsSpecs: row.SpecsName,
 			Unit: row.Unit,
 			Number: row.Number,
 			Price: row.Money,
-			Id: index,
-			TotalMoney: utils.RoundDecimalFlot64(row.Money  * float64(row.Number)),
+			TotalMoney: TotalMoney,
 		}
+		mergeDat,ok:=mergeMap[key]
+		if !ok{
+			mergeMap[key] = xlsx
+			continue
+		}else {
+			mergeDat.Number +=row.Number
+			mergeDat.TotalMoney += TotalMoney
+
+		}
+		//合并起来,统一存放到xlsx中
+		mergeMap[key] = mergeDat
+	}
+
+	xlsxIndex:=0
+	for _,xlsx:=range mergeMap{
+		xlsxIndex+=1
+		xlsx.Id =xlsxIndex
 		dat.AllNumber +=xlsx.Number
 		dat.AllMoney = utils.RoundDecimalFlot64(dat.AllMoney) + xlsx.TotalMoney
 		tableRow = append(tableRow, xlsx)

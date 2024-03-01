@@ -46,6 +46,7 @@ type SheetRow struct {
 }
 type XlsxTableRow struct {
 	Id int `json:"id"`
+	Key string `json:"key"` //=商品ID_规格ID
 	GoodsName string `json:"goods_name"`
 	GoodsSpecs string `json:"goods_specs"`
 	Unit string `json:"unit"`
@@ -97,7 +98,7 @@ func (e *OrderExportObj)ReadOrderDetail() (dat map[int]*SheetRow,err error )  {
 		var orderSpecs []models.OrderSpecs
 
 
-		e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ?", orderRow.OrderId).Find(&orderSpecs)
+		e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ? and status in ?", orderRow.OrderId,global.OrderEffEct()).Find(&orderSpecs)
 
 		specsList := make([]*XlsxTableRow, 0)
 		for _, row := range orderSpecs {

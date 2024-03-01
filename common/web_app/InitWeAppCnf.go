@@ -181,7 +181,7 @@ func (m *MakeWeAppInitConf) SetLoadRedis() map[string]interface{} {
 		},
 	}
 	if _,setRedisErr:=redis_db.SetConfigManyInit(m.CId,  global.SmallBConfigKey,dat);setRedisErr!=nil{
-		zap.S().Errorf("Redis操作,设置大B小程序Config失败,原因:%v", setRedisErr.Error())
+		zap.S().Errorf("大B %v,Redis操作,设置大B小程序Config失败,原因:%v",m.CId,setRedisErr.Error())
 	}
 	return dat
 

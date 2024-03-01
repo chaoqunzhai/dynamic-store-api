@@ -475,7 +475,7 @@ func GetExpressCn(v int) string {
 	case ExpressSameCity:
 		return "周期配送"
 	case ExpressEms:
-		return "物流配送"
+		return "快递物流"
 	}
 	return "周期配送"
 }

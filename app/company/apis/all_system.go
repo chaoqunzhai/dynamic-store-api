@@ -182,8 +182,8 @@ func (e *Worker)Create(c *gin.Context)  {
 	var Queue string
 	var title string
 	var LineExport int
-	//2分钟限制一次
-	mathKey := time.Now().Add(-2 * time.Minute).Format("200601021504")
+	//1分钟限制一次
+	mathKey := time.Now().Add(-30 * time.Second).Format("200601021504")
 
 	switch req.Type {
 
@@ -225,7 +225,7 @@ func (e *Worker)Create(c *gin.Context)  {
 	e.Orm.Model(&models2.CompanyTasks{}).Where("`key` = ? and c_id = ? and type = ?",mathKey,userDto.CId,req.Type).Count(&count)
 
 	if count > 0 {
-		e.Error(500, nil,"请勿在2分钟内重复提交相同任务")
+		e.Error(500, nil,"请勿在30秒内重复提交相同任务")
 		return
 	}
 

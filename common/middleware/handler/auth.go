@@ -6,7 +6,9 @@ import (
 	"go-admin/app/admin/models"
 	"go-admin/common"
 	"go-admin/common/systemChan"
+	"go-admin/common/web_app"
 	"go-admin/global"
+	"go.uber.org/zap"
 	"net/http"
 	"time"
 
@@ -105,6 +107,10 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 				Data: messageData,
 				Orm: db,
 			})
+			go func() {
+				zap.S().Infof("大B:%v登录,获取移动端配置数据",userRow.CId)
+				web_app.SearchAndLoadData(userRow.CId,db)
+			}()
 			return map[string]interface{}{"user": userRow, "role": role}, nil
 		} else {
 			return nil, e
@@ -136,6 +142,10 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 				Data: messageData,
 				Orm: db,
 			})
+			go func() {
+				zap.S().Infof("大B:%v登录,获取移动端配置数据",userRow.CId)
+				web_app.SearchAndLoadData(userRow.CId,db)
+			}()
 			return map[string]interface{}{"user": userRow, "role": role}, nil
 		} else {
 			return nil, lastErr

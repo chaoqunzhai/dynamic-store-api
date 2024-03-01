@@ -62,7 +62,7 @@ const (
 	SmallBMemberToolsKey = "member_"
 	SmallBCategoryKey = "category_"
 	CompanySplitKey = "table_split_"
-	WorkerOrderStartName = "order" //订单导出
+	WorkerOrderStartName = "order" //单订单导出
 	WorkerReportSummaryStartName = "summary_report" //汇总
 	WorkerReportLineStartName = "line_report" //路线
 	WorkerReportLineDeliveryStartName = "line_delivery_report" //路线配送报表
