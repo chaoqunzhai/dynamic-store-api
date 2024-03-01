@@ -37,7 +37,7 @@ func (l *LoopRedisWorker)Start()  {
 		for _,queueName:=range global.QueueGroup{
 			//fmt.Println("开始巡检Queue",queueName)
 
-			//随机睡10S以内的数据
+			//随机睡10秒
 			randomSleepTime := time.Duration(rand.Intn(10000)) * time.Millisecond
 			time.Sleep(WorkerSleep + randomSleepTime) //
 
@@ -52,7 +52,7 @@ func (l *LoopRedisWorker)Start()  {
 				continue
 			}
 			//所有的大B -Key数据
-			fmt.Println("queueName",queueName,"keys",keys)
+			zap.S().Debugf("下载中心任务开始 Queue:%v data:%v,",queueName,keys)
 			for _,key:=range keys{
 				data,keyErr:=redis_db.RedisCli.LRange(global.RedisCtx,key,0,-1).Result()
 

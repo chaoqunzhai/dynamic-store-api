@@ -19,6 +19,7 @@ func (x *XlsxBaseExport)SetLineDeliveryXlsxRun(cid int,lineName string,data map[
 		var err error
 		//创建sheet页面
 		// 创建一个工作表
+		row.SheetName = x.ReplaceAllString(row.SheetName)
 		_, err = x.File.NewSheet(row.SheetName)
 		if err != nil {
 			zap.S().Errorf("SetXlsxRun error %v",err)
@@ -36,7 +37,7 @@ func (x *XlsxBaseExport)SetLineDeliveryXlsxRun(cid int,lineName string,data map[
 	}
 
 	_=x.File.DeleteSheet("Sheet1")
-
+	lineName = x.ReplaceAllString(lineName)
 	xlsxName:=fmt.Sprintf("%v-%v配送表.xlsx",x.ExportTime,lineName)
 	if err := x.File.SaveAs(xlsxName); err != nil {
 		zap.S().Errorf("路线数据导出 大B%v,错误err%v",cid,err.Error())

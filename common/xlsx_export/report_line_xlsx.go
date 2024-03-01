@@ -18,9 +18,12 @@ func (x *XlsxBaseExport)SetLineXlsxRun(cid int,lineName string,data map[int]*She
 		var err error
 		//创建sheet页面
 		// 创建一个工作表
+		//标签页
+		row.SheetName = x.ReplaceAllString(row.SheetName)
+		//fmt.Println("标签页名称",row.SheetName)
 		_, err = x.File.NewSheet(row.SheetName)
 		if err != nil {
-			zap.S().Errorf("SetXlsxRun error %v",err)
+			zap.S().Errorf("SetXlsxRun error %v,SheetName:%v",err,row.SheetName)
 			continue
 		}
 
@@ -67,8 +70,8 @@ func (x *XlsxBaseExport)SetLineXlsxRun(cid int,lineName string,data map[int]*She
 
 
 
-
-	xlsxName:=fmt.Sprintf("%v-%v 路线表.xlsx",x.ExportTime,lineName)
+	lineName = x.ReplaceAllString(lineName)
+	xlsxName:=fmt.Sprintf("%v-%v路线表.xlsx",x.ExportTime,lineName)
 	if err := x.File.SaveAs(xlsxName); err != nil {
 		zap.S().Errorf("路线数据导出 大B%v,错误err%v",cid,err.Error())
 		return ""

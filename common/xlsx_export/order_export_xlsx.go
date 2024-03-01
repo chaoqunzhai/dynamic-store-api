@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"github.com/xuri/excelize/v2"
 	"go.uber.org/zap"
+
+	"strings"
 	"time"
 )
 
@@ -26,7 +28,15 @@ type XlsxBaseExport struct {
 	XlsxName string `json:"xlsx_name"`
 
 }
+//处理带有特殊字符 导致save xlsx失败
+func (x *XlsxBaseExport)ReplaceAllString(originalString string) string  {
+	for _,r:=range []string{"/","*","?","[","]",".",","}{
 
+		originalString = strings.Replace(originalString, r, "_", -1)
+
+	}
+	return originalString
+}
 func (x *XlsxBaseExport)SetRowBackGroundCellValue(index int,row string)  {
 	var err error
 	//设置:长度
@@ -167,6 +177,7 @@ func (x *XlsxBaseExport)SetXlsxRun(cid int,data map[int]*SheetRow) string  {
 		var err error
 		//创建sheet页面
 		// 创建一个工作表
+		row.SheetName = x.ReplaceAllString(row.SheetName)
 		_, err = x.File.NewSheet(row.SheetName)
 		if err != nil {
 			zap.S().Errorf("SetXlsxRun error %v",err)
