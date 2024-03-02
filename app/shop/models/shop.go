@@ -69,6 +69,7 @@ type CompanyRegisterUserVerify struct {
     CreatedAt models.XTime `json:"created_at" gorm:"comment:创建时间"`
     DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
     CId int `json:"-" gorm:"index;comment:大BID"`
+    ShopName string `json:"shop_name" gorm:"size:30;comment:店铺名称"`
     AdoptTime models.XTime  `json:"adopt_time" gorm:"通过时间"`
     AdoptUser string `json:"adopt_user" gorm:"size:11;comment:审批人"`
     Salesman int `json:"salesman" gorm:"comment:推广业务员"`

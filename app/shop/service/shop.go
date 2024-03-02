@@ -85,7 +85,7 @@ func (e *Shop) Insert(userDto *sys.SysUser, c *dto.ShopInsertReq) error {
 
 	//先设置请求的默认值
 	c.Generate(&data)
-	
+
 	for _,pay:=range c.SelectPay{
 		switch pay {
 		case global.PayEnWeChat:
