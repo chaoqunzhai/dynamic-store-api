@@ -287,7 +287,7 @@ func (e Company)Count(c *gin.Context)  {
 		}(),
 		Salesman:func() int64{
 			var count int64
-			e.Orm.Model(&sys.SysUser{}).Where("c_id = ? ",userDto.CId).Count(&count)
+			e.Orm.Model(&sys.SysUser{}).Where("c_id = ? and role_id = ? ",userDto.CId,global.RoleSaleMan).Count(&count)
 			return count
 		}(),
 		WaitOrder:func() int64{

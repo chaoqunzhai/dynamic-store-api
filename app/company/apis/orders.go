@@ -285,20 +285,23 @@ func (e Orders) GetPage(c *gin.Context) {
 	result := make([]map[string]interface{}, 0)
 
 
-
-	OrderSpecsSql:=fmt.Sprintf("SELECT count(*) as 'count',order_id FROM `%v` WHERE order_id in (%v) GROUP BY order_id",splitTableRes.OrderSpecs,strings.Join(orderIds,","))
-
-	orderResult := make([]GroupByOrderSpec, 0)
-	e.Orm.Table(splitTableRes.OrderSpecs).Raw(OrderSpecsSql).Scan(&orderResult)
 	cacheCountSpecs:=make(map[string]interface{},0)
-	for _,k:=range orderResult{
-		cacheCountSpecs[k.OrderId] = k.Count
+	if len(orderIds) > 0 {
+		OrderSpecsSql:=fmt.Sprintf("SELECT count(*) as 'count',order_id FROM `%v` WHERE order_id in (%v) GROUP BY order_id",splitTableRes.OrderSpecs,strings.Join(orderIds,","))
+
+		orderResult := make([]GroupByOrderSpec, 0)
+		e.Orm.Table(splitTableRes.OrderSpecs).Raw(OrderSpecsSql).Scan(&orderResult)
+		for _,k:=range orderResult{
+			cacheCountSpecs[k.OrderId] = k.Count
+		}
 	}
 
 	for _, row := range list {
 
-		specCount :=cacheCountSpecs[row.OrderId]
-
+		specCount,ok :=cacheCountSpecs[row.OrderId]
+		if !ok{
+			specCount = 0
+		}
 		r := map[string]interface{}{
 			"order_id":   row.OrderId,
 			"order_no_id":row.OutTradeNo,
