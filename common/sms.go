@@ -45,12 +45,11 @@ var (
 	SmsClient http.Client
 )
 
-func SendAliEms(Mobile, code string) (status int) {
+func SendAliEms(Mobile, content string) (status int) {
 	status = -1
 	SmsClient = http.Client{
 		Timeout: 10 * time.Second,
 	}
-	content := fmt.Sprintf("【动创云】您的验证码为：%v（10分钟内有效），为了保证您的帐户安全，请勿向任何人提供此验证码。", code)
 	smsBody := SmsPostBody{
 		UserId:   "dongchuangyun",
 		Account:  "dongchuangyun",
@@ -127,7 +126,8 @@ func SendSms(source, phone string, cid int, orm *gorm.DB) (code string, err erro
 	vCode := fmt.Sprintf("%06v", rnd.Int31n(1000000))
 
 	go func(vCode string) {
-		status := SendAliEms(phone, vCode)
+		content := fmt.Sprintf("【动创云】您的验证码为：%v（10分钟内有效），为了保证您的帐户安全，请勿向任何人提供此验证码。", vCode)
+		status := SendAliEms(phone, content)
 		//发送成功.减一条
 		if status == 1 {
 			orm.Model(&emsQuotaCnf).Where("c_id = ?", cid).Updates(map[string]interface{}{
@@ -148,4 +148,55 @@ func SendSms(source, phone string, cid int, orm *gorm.DB) (code string, err erro
 		//如果开启短信记录,就写入DB
 	}(vCode)
 	return vCode, nil
+}
+
+
+//发送注册成功的短信通知
+
+func SendRegisterSuccessSms(source,CompanyShopName, phone string, cid int, orm *gorm.DB) (val string, err error) {
+
+	var emsQuotaCnf models2.CompanySmsQuotaCnf
+	Available := global.CompanySmsNumber
+	RecordTag := global.CompanySmsRecordTag
+	orm.Model(&emsQuotaCnf).Select("available,id,record").Where("c_id = ?", cid).Limit(1).Find(&emsQuotaCnf)
+	if emsQuotaCnf.Id > 0 {
+		Available = emsQuotaCnf.Available
+		if Available <= 0 {
+			return "", errors.New("短信条数使用完毕")
+		}
+		RecordTag = emsQuotaCnf.Record
+	} else {
+		//
+		emsQuotaCnf = models2.CompanySmsQuotaCnf{
+			Available: Available - 1,
+		}
+		emsQuotaCnf.CId = cid
+		emsQuotaCnf.Layer = 0
+		emsQuotaCnf.Enable = true
+		emsQuotaCnf.Record = RecordTag
+		orm.Create(&emsQuotaCnf)
+	}
+
+
+	go func() {
+		content := fmt.Sprintf("【动创云】恭喜您, 您在[%v]的注册已审核通过,请使用手机号登录查看", CompanyShopName)
+		status := SendAliEms(phone, content)
+		//发送成功.减一条
+		if status == 1 {
+			orm.Model(&emsQuotaCnf).Where("c_id = ?", cid).Updates(map[string]interface{}{
+				"available": Available - 1,
+			})
+			//如果开启了短信记录就记录在DB中
+			if RecordTag {
+				orm.Create(&models2.CompanySmsRecordLog{
+					CId:    cid,
+					Phone:  phone,
+					Source: source,
+				})
+			}
+
+		}
+
+	}()
+	return "", nil
 }

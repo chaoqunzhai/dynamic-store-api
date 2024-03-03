@@ -8,6 +8,7 @@ import (
 	"go-admin/app/shop/models"
 	"go-admin/app/shop/service/dto"
 	models2 "go-admin/cmd/migrate/migration/models"
+	"go-admin/common"
 	"go-admin/common/actions"
 	cDto "go-admin/common/dto"
 	"go-admin/global"
@@ -159,7 +160,17 @@ func (e *Shop) Insert(userDto *sys.SysUser, c *dto.ShopInsertReq) error {
 	createErr:=e.Orm.Create(&userAddress).Error
 	if createErr==nil{
 		if c.ApproveId > 0 {
-			e.Orm.Model(&models.CompanyRegisterUserVerify{}).Where("id = ?",c.ApproveId).Updates(map[string]interface{}{
+			//更新审批状态
+			var RegisterUserVerify models.CompanyRegisterUserVerify
+			e.Orm.Model(&RegisterUserVerify).Where("id = ?",c.ApproveId).Limit(1).Find(&RegisterUserVerify)
+			//给用户发送短信通知
+			if RegisterUserVerify.Phone !="" { //有手机号 开始发送门店创建成功的短信
+				//获取大B的名称
+				var company models2.Company
+				e.Orm.Model(&company).Select("shop_name").Where("id = ?",userDto.CId).Limit(1).Find(&company)
+				common.SendRegisterSuccessSms("门店创建成功通知",company.ShopName,RegisterUserVerify.Phone,userDto.CId,e.Orm)
+			}
+			e.Orm.Model(&RegisterUserVerify).Where("id = ?",c.ApproveId).Updates(map[string]interface{}{
 				"status":2,
 			})
 		}
