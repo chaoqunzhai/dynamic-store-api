@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go-admin/global"
 	"go.uber.org/zap"
+	"strings"
 	"time"
 )
 // 设置验证码
@@ -78,7 +79,8 @@ func SetCompanyTableSplitCnf(siteId int, value interface{}) {
 	if err != nil {
 		zap.S().Errorf("Redis操作,设置大B分表记录失败,原因:%v", err.Error())
 	}
-	if res != "ok"{
+	res = strings.ToLower(res)
+	if res != "ok" {
 		zap.S().Errorf("Redis操作,设置大B分表记录失败,返回:%v", res)
 	}
 	return
