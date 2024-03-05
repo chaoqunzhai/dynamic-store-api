@@ -144,9 +144,9 @@ func (e ShopRegisterList) Update(c *gin.Context) {
 		actions.Permission(data.TableName(), p),
 	).First(&data, req.GetId())
 
-	//已经审核通过了,是不可以重复的去审核的
-	if data.Status == 1{
-		e.Error(500, nil,"申请已经通过,无需审核")
+	//必须是没有创建门店 才可以把状态扭转
+	if data.Status == 2  {
+		e.Error(500, nil,"门店已经创建,不可进行审批操作")
 		return
 	}
 	data.Status  = req.Status
@@ -173,7 +173,6 @@ func (e ShopRegisterList) Update(c *gin.Context) {
 			e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
 			return
 		}
-
 		//创建用户
 		shopUserDto:=sys.SysShopUser{
 			Username: data.Value,
@@ -192,7 +191,18 @@ func (e ShopRegisterList) Update(c *gin.Context) {
 		//创建的ID保存进去
 		data.ShopUserId = shopUserDto.UserId
 
+	}else {
+		//搜索这个手机号是否是有门店的
+		var shopCount int64
+		e.Orm.Model(&models.Shop{}).Where("c_id = ? and phone = ?",data.CId,data.Phone).Count(&shopCount)
+		if shopCount > 0 {
+			e.Error(500, nil,"手机号以创建门店,不可驳回")
+			return
+		}
 
+		//驳回后,删除用户,也就是软删除
+		var sysUser sys.SysShopUser
+		e.Orm.Model(&sys.SysShopUser{}).Where("c_id = ? and phone = ?",data.CId,data.Phone).Delete(&sysUser)
 	}
 	saveErr2:=e.Orm.Save(&data).Error
 	if saveErr2 != nil{
