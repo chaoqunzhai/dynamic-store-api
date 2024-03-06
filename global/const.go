@@ -43,27 +43,28 @@ const (
 	SysUserSuccess = 2
 
 	//大B资源限制
-	CompanyVip           = 6   //大B最多可以设置6个VIP
-	CompanyLine          = 2   //默认2个路线
+	CompanyVip           = 10   //大B最多可以设置
+	CompanyLine          = 4   //默认路线
 	CompanyOrderRange = 18 //默认订单查询时间范围 单位为月
-	CompanyMaxRole       = 10  //大B最多可以设置10个角色
-	CompanyMaxGoods      = 100 //大B最多可以创建50个商品
-	CompanyMaxShop       = 30  //大B最多可以创建30个客户
-	CompanyMaxGoodsClass = 20  //大B最多可以设置分类个数
-	CompanyMaxGoodsTag   = 20  //大B最多可以设置标签个数
-	CompanyMaxGoodsImage = 4   //大B最多可以设置单个商品做多6张图片
+	CompanyMaxRole       = 10  //大B最多可以设置个角色
+	CompanyMaxGoods      = 500 //大B最多可以创建个商品
+	CompanyMaxShop       = 10000  //大B最多可以创建个小B客户
+	CompanyMaxGoodsClass = 50  //大B最多可以设置分类个数
+	CompanyMaxGoodsTag   = 30  //大B最多可以设置标签个数
+	CompanyMaxGoodsImage = 4   //大B最多可以设置单个商品做多张图片
 	CompanyUserTag       = 30  //大B最多可以设置客户标签个数
-	CompanySmsNumber = 100 //大B默认的可用短信条数
-	CompanyMaxLocal = 10 //大B支持最多自提设置,不支持动态配置 现在是固定的
-	OffLinePay = 6 //大B最多可以设置线下支付的个数
+	CompanySmsNumber = 100 //大B默认的可用短信条数,因为短信涉及到缴费,所以短信的可用条数是在其他表中(CompanyEmsQuotaCnf)颗粒度控制
 	CompanyIndexMessage = 3 //首页消息条目
-	CompanyIndexAds = 3 //广告数量
-	CompanyLineBindShop = 100 //路线最多支持绑定多少个客户
+	CompanyIndexAds = 5 //广告数量
+	CompanyLineBindShop = 500 //路线最多支持绑定多少个客户
 	CompanyExportWorker = 5 //导出任务队列个数
-	CompanySalesmanNumber = 10 //大B默认拥有10个业务员
+	CompanySalesmanNumber = 20 //大B默认拥有个业务员
+	CompanySmsRecordTag = true //大B的短信消费记录，默认是开启
+	OffLinePay = 8 //大B最多可以设置线下支付的个数
+	CompanyMaxLocal = 10 //大B支持最多自提设置,不支持动态配置 现在是固定的
 	CompanyMaxUnit = 100 //商品单位100个
 	CompanyMaxBrand = 200 //商品品牌
-	CompanySmsRecordTag = true
+
 	OrderLayerKey    = " layer desc,id desc "
 	OrderUserLayerKey    = "layer,user_id desc"
 	OrderTimeKey     = "created_at desc"
