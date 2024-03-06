@@ -9,8 +9,10 @@ import (
 	"go-admin/app/admin/service"
 	"go-admin/app/admin/service/dto"
 	models2 "go-admin/cmd/migrate/migration/models"
+	JwtUser "go-admin/common/jwt/user"
 	"go-admin/common/utils"
 	"sort"
+	"strings"
 )
 
 type SysMenu struct {
@@ -267,6 +269,15 @@ func (e SysMenu) GetMenuRole(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+
+	userDto, err := JwtUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var CompanyModel models2.Company
+	e.Orm.Model(&models2.Company{}).Where("enable = 1 and id = ? ",userDto.CId).First(&CompanyModel)
+
 	var menu = make([]models2.DyNamicMenu, 0)
 	e.Orm.Model(&models2.DyNamicMenu{}).Where("enable = ?",true).Order("layer asc").Find(&menu)
 	cacheMap := make(map[int]MenuRow, 0)
@@ -274,6 +285,17 @@ func (e SysMenu) GetMenuRole(c *gin.Context) {
 	result := make([]MenuRow, 0)
 	allMenuList:=make([]MenuRow,0)
 	for _, row := range menu {
+		if !CompanyModel.InventoryModule {//没有开启仓库功能,那就跳出
+
+			if strings.HasPrefix(row.Path,"/inventory/"){
+				continue
+			}
+		}
+		if !CompanyModel.SaleUserModule { //没有开启业务员功能,那就跳出
+			if strings.HasPrefix(row.Path,"/user/salesman"){
+				continue
+			}
+		}
 		r := MenuRow{
 			Id:        row.Id,
 			Name:      row.Name,

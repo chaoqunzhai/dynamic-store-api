@@ -74,6 +74,86 @@ func init() {
 
 }
 
+//检测大B是否开启了库存管理
+
+func PermissionCompanyInventory() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		db, err := pkg.GetOrm(c)
+		if err != nil {
+			log.Error(err)
+			return
+		}
+
+		msgID := pkg.GenerateMsgIDFromContext(c)
+		var p = new(DataPermission)
+		if userId := user.GetUserIdStr(c); userId != "" {
+			p, err = newDataPermission(db, userId)
+			if err != nil {
+				log.Errorf("MsgID[%s] PermissionAction error: %s", msgID, err)
+				response.Error(c, 500, err, "用户信息获取失败")
+				c.Abort()
+				return
+			}
+		}
+		//fmt.Printf("pp:%v\n",p)
+		if !p.Enable {
+			response.Error(c, 401, errors.New("您账户已被停用！"), "您账户已被停用！")
+			c.Abort()
+			return
+		}
+
+		if p.RoleId == 0 {
+			response.Error(c, 401, errors.New("您没有权限访问"), "您没有权限访问")
+			c.Abort()
+			return
+		}
+
+		//权限校验
+		if p.DataScope == 0 {
+			response.Error(c, 401, errors.New("您没有权限访问"), "您没有权限访问")
+			c.Abort()
+			return
+		}
+		if p.DataScope == global.RoleShop || p.DataScope == global.RoleUser {
+			response.Error(c, 401, errors.New("您没有权限访问"), "您没有权限访问")
+			c.Abort()
+			return
+		}
+		//如果是超管直接返回即可
+		if p.DataScope == global.RoleSuper {
+			c.Set(PermissionKey, p)
+			c.Next()
+			return
+		}
+		//是否过期校验
+		var companyObject models.Company
+		if p.CId == 0 {
+			response.Error(c, 500, errors.New("您暂无系统"), "您暂无系统")
+			c.Abort()
+			return
+		}
+		db.Model(&models.Company{}).Where("id = ? and enable = ?", p.CId, true).First(&companyObject)
+		if companyObject.Id == 0 {
+			response.Error(c, 401, errors.New("您的系统已下线"), "您的系统已下线")
+			c.Abort()
+			return
+		}
+		if companyObject.ExpirationTime.Before(time.Now()) {
+			response.Error(c, 401, errors.New("账号已到期,请及时续费"), "账号已到期,请及时续费")
+			c.Abort()
+			return
+		}
+		if !companyObject.InventoryModule{
+			response.Error(c, 401, errors.New("未开启库存管理"), "未开启库存管理")
+			c.Abort()
+			return
+		}
+
+		c.Set(PermissionKey, p)
+		c.Next()
+	}
+}
+
 // 大B的权限
 func PermissionCompanyRole() gin.HandlerFunc {
 	return func(c *gin.Context) {

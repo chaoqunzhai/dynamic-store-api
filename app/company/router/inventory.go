@@ -16,7 +16,7 @@ func init() {
 // registerGradeVipRouter
 func registerInventoryRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
 	api := apis.CompanyInventory{}
-	r := v1.Group("/inventory").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
+	r := v1.Group("/inventory").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyInventory())
 	{
 		//获取信息
 		r.GET("/cnf_info", api.Info)

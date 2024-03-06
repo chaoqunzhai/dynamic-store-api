@@ -68,6 +68,7 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.GET("/agreement",api.AgreementCnf)
 		r.POST("/agreement",api.AgreementUpdate)
 	}
+
 	//大B用户管理 + 业务员管理 完全可以复用接口
 	{
 		//返回推广码+登录的地址
@@ -88,6 +89,7 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.GET("/user/mini", api.MiniList)
 		r.POST("/user/code", api.MakeCode)
 	}
+
 
 
 }

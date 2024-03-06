@@ -11,13 +11,12 @@ import (
 	"go-admin/common/actions"
 	"go-admin/common/business"
 	"go-admin/common/dto"
+	customUser "go-admin/common/jwt/user"
 	"go-admin/common/utils"
 	"go-admin/config"
 	"go-admin/global"
 	"golang.org/x/crypto/bcrypt"
 	"strings"
-
-	customUser "go-admin/common/jwt/user"
 )
 
 type CompanyUserGetPage struct {
@@ -379,6 +378,12 @@ func (e Company) UpPass(c *gin.Context) {
 	e.OK("","操作成功")
 	return
 }
+func (e Company)IsOpenSalesUser(cid int) bool{
+	var companyObject models.Company
+	e.Orm.Model(&models.Company{}).Where("id = ? and enable = ?", cid, true).First(&companyObject)
+
+	return companyObject.InventoryModule
+}
 func (e Company) CreateSalesManUser(c *gin.Context) {
 	req := UpdateReq{}
 	err := e.MakeContext(c).
@@ -390,9 +395,15 @@ func (e Company) CreateSalesManUser(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+
 	userDto, err := customUser.GetUserDto(e.Orm, c)
 	if err != nil {
 		e.Error(500, err, err.Error())
+		return
+	}
+	//检测是否开启了业务员功能
+	if e.IsOpenSalesUser(userDto.CId){
+		e.Error(500, errors.New("暂未开启业务员功能"), "暂未开启业务员功能")
 		return
 	}
 	if req.ThisRole == 0 {

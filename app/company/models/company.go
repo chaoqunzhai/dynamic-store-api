@@ -30,6 +30,10 @@ type Company struct {
 	LoginTime models.XTime      `json:"login_time" gorm:"type:datetime(3);comment:登录时间"`
 	HelpPhone string `json:"help_phone" gorm:"type:varchar(11);comment:联系我们的电话"`
 	HelpMessage string `json:"help_message"  gorm:"type:varchar(50);comment:联系我们信息"`
+	Vip 			int 		`json:"vip" gorm:"type:tinyint(1);comment:vip版本"`
+	InventoryModule bool `json:"inventory_module" gorm:"comment:仓库功能"`
+	SaleUserModule bool `json:"sale_user_module" gorm:"comment:业务员功能"`
+
 	CopyrightEnable bool `json:"copyright_enable"`
 	NavList        []interface{} `json:"nav_list" gorm:"-"` //展示大B的菜单
 	models.ModelTime

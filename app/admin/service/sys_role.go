@@ -16,6 +16,7 @@ import (
 
 	"go-admin/app/admin/models"
 	"go-admin/app/admin/service/dto"
+	models3 "go-admin/app/company/models"
 	models2 "go-admin/cmd/migrate/migration/models"
 	cDto "go-admin/common/dto"
 )
@@ -375,8 +376,32 @@ func (e *SysRole) GetCustomAdmin(userId int) []string{
 	}
 	return perms
 }
+//获取大B开启的菜单
+func (e *SysRole) RoleCompany(userId int,CompanyModel models3.Company) []string{
+
+	permissions := make([]string, 0)
+	dyNamingMenu :=make([]models2.DyNamicMenu,0)
+	e.Orm.Model(&models2.DyNamicMenu{}).Select("path").Where("enable = ?",true).Find(&dyNamingMenu)
+	for _,t:=range dyNamingMenu {
+
+		if !CompanyModel.InventoryModule {//没有开启仓库功能,那就跳出
+
+			if strings.HasPrefix(t.Path,"/inventory/"){
+				continue
+			}
+		}
+		if !CompanyModel.SaleUserModule { //没有开启业务员功能,那就跳出
+			if strings.HasPrefix(t.Path,"/user/salesman"){
+				continue
+			}
+		}
+		permissions = append(permissions,t.Path)
+	}
+	return permissions
+
+}
 //获取这个用户关联的自定义菜单权限列表
-func (e *SysRole) GetCustomById(userId int) []string{
+func (e *SysRole) GetCustomById(userId int,CompanyModel models3.Company) []string{
 	permissions := make([]string, 0)
 	roleResult:=make([]RoleRow,0)
 	//获取用户关联了哪些角色
@@ -407,8 +432,19 @@ func (e *SysRole) GetCustomById(userId int) []string{
 		menuList =append(menuList,m.MenuId)
 	}
 	dyNamingMenu :=make([]models2.DyNamicMenu,0)
-	e.Orm.Model(&models2.DyNamicMenu{}).Select("path").Where("id in ?",menuList).Find(&dyNamingMenu)
+	e.Orm.Model(&models2.DyNamicMenu{}).Select("path").Where("id in ? and enable = ?",menuList,true).Find(&dyNamingMenu)
 	for _,t:=range dyNamingMenu {
+		if !CompanyModel.InventoryModule {//没有开启仓库功能,那就跳出
+
+			if strings.HasPrefix(t.Path,"/inventory/"){
+				continue
+			}
+		}
+		if !CompanyModel.SaleUserModule { //没有开启业务员功能,那就跳出
+			if strings.HasPrefix(t.Path,"/user/salesman"){
+				continue
+			}
+		}
 		permissions = append(permissions,t.Path)
 	}
 	return permissions

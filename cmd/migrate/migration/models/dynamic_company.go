@@ -10,17 +10,26 @@ import (
 type Company struct {
 	RichGlobal
 	LeaderId uint `json:"leader_id"`
-	Name           string    `gorm:"index;size:30;comment:公司(大B)名称"`
+	Enterprise string `json:"enterprise" gorm:"size:20;comment:企业名称"`
+	Filings string `json:"filings" gorm:"size:20;comment:备案号"`
+	Image          string    `gorm:"size:20;comment:logo图片地址"`
+	Name           string    `gorm:"index;size:20;comment:公司名称"`
 	Phone          string    `gorm:"size:11;comment:负责人联系手机号"`
-	UserName       string    `gorm:"size:20;comment:大B负责人名称"`
-	ShopName       string    `gorm:"size:50;comment:自定义大B系统名称"`
-	Address        string    `gorm:"size:120;comment:大B地址位置"`
+	UserName       string    `gorm:"size:12;comment:大B负责人名称"`
+	ShopName       string    `gorm:"size:16;comment:自定义大B系统名称"`
+	ShopStatus int `json:"shop_status" gorm:"default:1;index;comment:营业状态"`
+	Address        string    `gorm:"size:80;comment:大B地址位置"`
 	Longitude      float64   //经度
 	Latitude       float64   //纬度
-	Image          string    `gorm:"size:80;comment:logo图片"`
 	RenewalTime    time.Time `json:"renewal_time" gorm:"comment:续费时间"`
 	ExpirationTime time.Time `json:"expiration_time" gorm:"comment:到期时间"`
-	LoginTime time.Time     `json:"login_time" gorm:"type:datetime(3);comment:登录时间"`
+	LoginTime models.XTime     `json:"login_time" gorm:"type:datetime(3);comment:登录时间"`
+	CopyrightEnable bool `json:"copyright_enable" gorm:"comment:开启版本展示"`
+	HelpPhone string `json:"help_phone" gorm:"type:varchar(11);comment:联系我们的电话"`
+	HelpMessage string `json:"help_message"  gorm:"type:varchar(120);comment:联系我们信息"`
+	Vip 			int 		`json:"vip" gorm:"type:tinyint(1);comment:vip版本"`
+	InventoryModule bool `json:"inventory_module" gorm:"comment:仓库功能"`
+	SaleUserModule bool `json:"sale_user_module" gorm:"comment:业务员功能"`
 }
 
 func (Company) TableName() string {

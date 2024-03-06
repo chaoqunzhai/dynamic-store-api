@@ -689,7 +689,12 @@ func (e Company) Info(c *gin.Context) {
 	e.Orm.Model(&models.Company{}).Where("enable = 1 and id = ? ",userDto.CId).First(&object)
 
 	if object.Id > 0 {
+		var CompanyLineCnf models2.CompanyLineCnf
+		//获取配置的最大路线
+		e.Orm.Model(&CompanyLineCnf).Where("c_id = ?",userDto.CId).Limit(1).Find(&CompanyLineCnf)
+		//当前路线的使用数
 
+		e.Orm.Model(&models2.Line{}).Where("")
 		var logoImage  string
 		if object.Image != ""{
 			logoImage = business.GetGoodsPathFirst(userDto.CId,object.Image,global.AvatarPath)
@@ -713,6 +718,8 @@ func (e Company) Info(c *gin.Context) {
 			"shop_status":object.ShopStatus,
 			"help_phone":object.HelpPhone,
 			"help_message":object.HelpMessage,
+			"inventory_module":object.InventoryModule,
+			"sale_user_module":object.SaleUserModule,
 		}
 
 	}else {
