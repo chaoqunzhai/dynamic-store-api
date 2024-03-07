@@ -18,12 +18,15 @@ func registerLineRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewar
 	api := apis.Line{}
 	r := v1.Group("/line").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
+		//获取当前可用的路线
+		r.GET("/active",api.Active)
 		//获取一条闲置的路线
 		r.GET("unused",api.UnusedOneLine)
 		r.GET("",  api.GetPage)
 		r.GET("/mini",api.MiniApi)
 		r.GET("/:id", api.Get)
 
+		r.POST("",api.Insert)
 		//路线更新,路线名字必须唯一
 		r.PUT("/:id",  api.Update)
 		//大B路线不能删除了,因为有过期时间

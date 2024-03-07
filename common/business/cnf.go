@@ -38,7 +38,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 	switch key {
 	case "line":
 		var lineCnf models.CompanyLineCnf
-		orm.Model(&models.CompanyLineCnf{}).Select("number").Where("c_id = ?",cid).Limit(1).Find(&lineCnf)
+		orm.Model(&models.CompanyLineCnf{}).Where("c_id = ?",cid).Limit(1).Find(&lineCnf)
 		if lineCnf.Id == 0 {
 			lineNumber = global.CompanyLine
 		}else {
@@ -47,7 +47,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 		defaultCnf["line"] = lineNumber
 	case "sms":
 		var smsCnf models.CompanySmsQuotaCnf
-		orm.Model(&models.CompanySmsQuotaCnf{}).Select("available").Where("c_id = ?",cid).Limit(1).Find(&smsCnf)
+		orm.Model(&models.CompanySmsQuotaCnf{}).Where("c_id = ?",cid).Limit(1).Find(&smsCnf)
 		if smsCnf.Id == 0 {
 			smsNumber = global.CompanySmsNumber
 		}else {
@@ -63,6 +63,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 		sql = fmt.Sprintf("c_id = %v and enable = %v", cid, true)
 	}
 	orm.Model(&models.CompanyQuotaCnf{}).Where(sql).Find(&cnf)
+
 	//没有进行特殊配置,那就都返回系统初始化配置的值
 	if len(cnf) == 0 {
 		return defaultCnf

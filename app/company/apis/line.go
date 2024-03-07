@@ -27,6 +27,36 @@ type Line struct {
 }
 
 
+func (e Line) Active(c *gin.Context) {
+
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var count int64
+	//创建的路线
+	e.Orm.Model(&models.Line{}).Where("enable = ? and c_id = ?",true,userDto.CId).Count(&count)
+
+	//分配的路线
+	var CompanyLineCnf models2.CompanyLineCnf
+	e.Orm.Model(&models2.CompanyLineCnf{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&CompanyLineCnf)
+
+	ActiveNumber := int64(CompanyLineCnf.Number) - count
+	if ActiveNumber < 0 {
+		ActiveNumber = 0
+	}
+	e.OK(ActiveNumber, "操作成功")
+	return
+}
 func (e Line) UnusedOneLine(c *gin.Context) {
 
 	err := e.MakeContext(c).
@@ -340,6 +370,7 @@ func (e Line) Insert(c *gin.Context) {
 	e.Orm.Model(&models.Line{}).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&countAll)
 
 	CompanyCnf := business.GetCompanyCnf(userDto.CId, "line", e.Orm)
+	fmt.Println("CompanyCnf",CompanyCnf)
 	MaxNumber := CompanyCnf["line"]
 
 	if countAll >= int64(MaxNumber) {
@@ -349,7 +380,7 @@ func (e Line) Insert(c *gin.Context) {
 	// 设置创建人
 	req.SetCreateBy(user.GetUserId(c))
 	var count int64
-	e.Orm.Model(&models.Line{}).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Where("name = ?", userDto.CId, req.Name).Count(&count)
+	e.Orm.Model(&models.Line{}).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Where("c_id = ? and name = ?", userDto.CId, req.Name).Count(&count)
 	if count > 0 {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return

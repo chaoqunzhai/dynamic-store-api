@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	models2 "go-admin/common/models"
 	"go-admin/global"
 	"time"
 
@@ -67,6 +68,11 @@ func (e *Line) Insert(cid int,c *dto.LineInsertReq) error {
     var err error
     var data models.Line
     c.Generate(&data)
+    //如果可以创建路线,那路线就是一个无期限
+    data.RenewalTime = models2.XTime{ //续费时间:当前
+    	Time:time.Now(),
+	}
+	data.ExpirationTime = models2.XTime{} //到期时间:无期限
     data.CId = cid
 	err = e.Orm.Create(&data).Error
 	if err != nil {
