@@ -38,7 +38,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 	switch key {
 	case "line":
 		var lineCnf models.CompanyLineCnf
-		orm.Model(&models.CompanyLineCnf{}).Where("c_id = ?",cid).Limit(1).Find(&lineCnf)
+		orm.Model(&models.CompanyLineCnf{}).Where("c_id = ? and enable = ?",cid,true).Limit(1).Find(&lineCnf)
 		if lineCnf.Id == 0 {
 			lineNumber = global.CompanyLine
 		}else {
@@ -47,7 +47,7 @@ func GetCompanyCnf(cid int, key string, orm *gorm.DB) map[string]int {
 		defaultCnf["line"] = lineNumber
 	case "sms":
 		var smsCnf models.CompanySmsQuotaCnf
-		orm.Model(&models.CompanySmsQuotaCnf{}).Where("c_id = ?",cid).Limit(1).Find(&smsCnf)
+		orm.Model(&models.CompanySmsQuotaCnf{}).Where("c_id = ? and enable = ?",cid,true).Limit(1).Find(&smsCnf)
 		if smsCnf.Id == 0 {
 			smsNumber = global.CompanySmsNumber
 		}else {

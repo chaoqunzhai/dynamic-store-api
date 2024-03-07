@@ -370,7 +370,7 @@ func (e Line) Insert(c *gin.Context) {
 	e.Orm.Model(&models.Line{}).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&countAll)
 
 	CompanyCnf := business.GetCompanyCnf(userDto.CId, "line", e.Orm)
-	fmt.Println("CompanyCnf",CompanyCnf)
+
 	MaxNumber := CompanyCnf["line"]
 
 	if countAll >= int64(MaxNumber) {
