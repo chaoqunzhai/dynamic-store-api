@@ -144,7 +144,7 @@ func PermissionCompanyInventory() gin.HandlerFunc {
 			return
 		}
 		if !companyObject.InventoryModule{
-			response.Error(c, 401, errors.New("未开启库存管理"), "未开启库存管理")
+			response.Error(c, 200, errors.New("未开启库存管理"), "未开启库存管理")
 			c.Abort()
 			return
 		}
