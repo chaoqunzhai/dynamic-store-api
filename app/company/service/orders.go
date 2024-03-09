@@ -330,6 +330,11 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser,req dto.DetailRe
 		"ems_id":object.EmsId,
 	}
 
+	if object.HelpBy > 0 {
+		var user *sys.SysUser
+		e.Orm.Model(&user).Select("username").Where("user_id = ?",object.HelpBy).Limit(1).Find(&user)
+		result["help_user"] = user.Username
+	}
 	if shopRow.GradeId > 0 {
 		var gradeRow models3.GradeVip
 		e.Orm.Model(&models3.GradeVip{}).Select("name,id").Where("id = ? and enable = ?",shopRow.GradeId,true).Limit(1).Find(&gradeRow)
