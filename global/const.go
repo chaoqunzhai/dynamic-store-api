@@ -192,7 +192,7 @@ const (
 	OrderSourceValet = 7 //代客下单
 	OrderSourceWeChat = 8 //微信公众号
 	OrderSourceAli = 9 //支付宝
-
+	OrderSourceApp  = 10 //app
 	PayTypeBalance = 1 //余额支付
 	PayTypeCredit = 2 //授信余额支付
 	PayTypeOnlineWechat = 3 //线上微信支付

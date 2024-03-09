@@ -9,7 +9,7 @@ import (
 
 type Orders struct {
 	models.Model
-
+	HelpBy int `json:"helpBy" gorm:"comment:代客下单用户ID"`
 	Uid            string       `json:"uid" gorm:"size:21;index;comment:关联的OrderCycleCnf标识UID"`
 	CreateBy       int          `json:"createBy" gorm:"index;comment:创建者"`
 	SourceType     int          `json:"source_type" gorm:"type:tinyint(1);default:1;index;comment:订单来源"`

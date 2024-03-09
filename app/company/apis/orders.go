@@ -654,7 +654,9 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	orderRow.DeliveryType = req.DeliveryType
 	orderRow.Phone = shopObject.Phone
 	//代客下单时的用户是管理员用户！！！
-	orderRow.CreateBy = userDto.UserId
+	orderRow.CreateBy = shopObject.UserId
+	//代客下单的用户
+	orderRow.HelpBy = userDto.UserId
 	orderRow.Buyer = req.Desc
 
 
