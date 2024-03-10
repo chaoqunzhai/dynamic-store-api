@@ -3,7 +3,11 @@ package apis
 import (
 	"errors"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
+	"github.com/go-admin-team/go-admin-core/sdk/api"
+	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
+	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 	sys "go-admin/app/admin/models"
 	service2 "go-admin/app/company/service"
 	models2 "go-admin/cmd/migrate/migration/models"
@@ -12,11 +16,6 @@ import (
 	"go-admin/common/utils"
 	"go-admin/global"
 	"golang.org/x/crypto/bcrypt"
-
-	"github.com/gin-gonic/gin"
-	"github.com/go-admin-team/go-admin-core/sdk/api"
-	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
-	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 
 	"go-admin/app/shop/models"
 	"go-admin/app/shop/service"
@@ -147,10 +146,10 @@ func (e Shop) GetPage(c *gin.Context) {
 
 		//获取下用户默认地址
 		var defaultAddress models2.DynamicUserAddress
-		e.Orm.Model(&defaultAddress).Select("address,id").Where("c_id = ? and is_default = 1 and user_id = ?",row.CId,row.UserId).Limit(1).Find(&defaultAddress)
+		e.Orm.Model(&defaultAddress).Select("id,address,full_address").Where("c_id = ? and is_default = 1 and user_id = ?",row.CId,row.UserId).Limit(1).Find(&defaultAddress)
 
 		if defaultAddress.Id > 0 {
-			cache.DefaultAddress = defaultAddress.Address
+			cache.DefaultAddress = defaultAddress.AddressAll()
 		}
 		result = append(result,cache)
 	}
@@ -227,6 +226,7 @@ func (e Shop) Get(c *gin.Context) {
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 	e.Orm.Table(splitTableRes.OrderTable).Where("shop_id = ?",object.Id).Count(&shopOrderCount)
 	object.OrderCount = shopOrderCount
+
 
 	e.OK( object, "查询成功")
 }
@@ -736,7 +736,56 @@ func (e Shop)Integral(c *gin.Context)  {
 
 }
 
+func (e Shop) cacheChildren(pid int,cache []interface{},lists []models2.ChinaData) (data []interface{},hs bool)  {
 
+	filterList:=make([]models2.ChinaData,0)
+
+	for _,row:=range lists{
+		if row.Pid == pid {
+			filterList = append(filterList,row)
+		}
+	}
+	if len(filterList) == 0 {
+
+		return cache,false
+	}
+
+	for _,dat:=range filterList{
+
+		CascaderRow:=dto.CascaderRow{
+			Code: dat.Id,
+			Name: dat.Name,
+		}
+		cacheChildren:=make([]interface{},0)
+		Children,valid:=e.cacheChildren(dat.Id,cacheChildren,lists)
+		if valid{
+			CascaderRow.Children = Children
+		}
+		cache = append(cache,CascaderRow)
+	}
+
+	return cache,true
+}
+func (e Shop) Cascader(c *gin.Context) {
+	err := e.MakeContext(c).
+
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	var lists []models2.ChinaData
+	e.Orm.Model(&models2.ChinaData{}).Find(&lists)
+
+
+
+	cacheChildren:=make([]interface{},0)
+	result,_ :=e.cacheChildren(0,cacheChildren,lists)
+	e.OK(result,"")
+	return
+}
 func (e Shop) UpPass(c *gin.Context) {
 	req :=dto.UpPass{}
 	err := e.MakeContext(c).

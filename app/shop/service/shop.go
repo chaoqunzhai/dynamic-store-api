@@ -13,6 +13,7 @@ import (
 	cDto "go-admin/common/dto"
 	"go-admin/global"
 	"gorm.io/gorm"
+	"strings"
 )
 
 type Shop struct {
@@ -154,11 +155,29 @@ func (e *Shop) Insert(userDto *sys.SysUser, c *dto.ShopInsertReq) error {
 		Mobile: data.Phone,
 		IsDefault: true,
 	}
+	fullAddressName:=make([]string,0)
+	strNumbersIds:=make([]string,0)
+	for _,mapId:=range c.FullAddress{
+		var chinaObject models2.ChinaData
+		e.Orm.Model(&chinaObject).Where("id = ? ",mapId).Limit(1).Find(&chinaObject)
+		if chinaObject.Id > 0 {
+			fullAddressName = append(fullAddressName,chinaObject.Name)
+		}
+		strNumbersIds = append(strNumbersIds,fmt.Sprintf("%v",mapId))
+	}
+	//最后一个
+	userAddress.ChinaId = c.FullAddress[len(c.FullAddress)-1]
+	userAddress.FullAddress = strings.Join(fullAddressName,"-")
 	//存储的是创建小B的用户ID,因为这个地址是小B的
 	userAddress.UserId = userId
 	userAddress.CId = userDto.CId
 	createErr:=e.Orm.Create(&userAddress).Error
 	if createErr==nil{
+		//更新地址
+		e.Orm.Model(&models.Shop{}).Where("id = ?",data.Id).Updates(map[string]interface{}{
+			"china_id":strings.Join(strNumbersIds,","), //存ID
+			"full_address":userAddress.FullAddress,
+		})
 		if c.ApproveId > 0 {
 			//更新审批状态
 			var RegisterUserVerify models.CompanyRegisterUserVerify
@@ -237,6 +256,20 @@ func (e *Shop) Update(c *dto.ShopUpdateReq, p *actions.DataPermission) error {
 	e.Orm.Model(&models2.DynamicUserAddress{}).Where("user_id = ? and is_default = 1 and c_id = ?",shopUserId,data.CId).Count(&isDefault)
 	//用户把大B创建的地址删了
 	e.Orm.Model(&models2.DynamicUserAddress{}).Where("user_id = ? and source = 1 and c_id = ?",shopUserId,data.CId).Limit(1).Find(&userAddress)
+
+	fullAddressName:=make([]string,0)
+	strNumbersIds:=make([]string,0)
+	for _,mapId:=range c.FullAddress{
+		var chinaObject models2.ChinaData
+		e.Orm.Model(&chinaObject).Where("id = ? ",mapId).Limit(1).Find(&chinaObject)
+		if chinaObject.Id > 0 {
+			fullAddressName = append(fullAddressName,chinaObject.Name)
+		}
+		strNumbersIds = append(strNumbersIds,fmt.Sprintf("%v",mapId))
+	}
+	//最后一个
+	ChinaId := c.FullAddress[len(c.FullAddress)-1]
+	FullAddress := strings.Join(fullAddressName,"-")
 	if userAddress.Id == 0  {
 		address:=models2.DynamicUserAddress{
 			Source: 1,
@@ -253,15 +286,23 @@ func (e *Shop) Update(c *dto.ShopUpdateReq, p *actions.DataPermission) error {
 		//存储的是创建小B的用户ID,因为这个地址是小B的
 		address.UserId = shopUserId
 		address.CId = data.CId
+		address.ChinaId  = ChinaId
+		address.FullAddress = FullAddress
 		e.Orm.Create(&address)
 	}else {
 		e.Orm.Model(&models2.DynamicUserAddress{}).Where("user_id = ? and source = 1 and c_id = ?",shopUserId,data.CId).Updates(map[string]interface{}{
 			"name":data.Name,
 			"address":data.Address,
 			"mobile":data.Phone,
+			"china_id":ChinaId,
+			"full_address":FullAddress,
 		})
 	}
 
+	e.Orm.Model(&models.Shop{}).Where("id = ?",data.Id).Updates(map[string]interface{}{
+		"china_id":strings.Join(strNumbersIds,","), //存ID
+		"full_address":FullAddress,
+	})
 	return nil
 }
 

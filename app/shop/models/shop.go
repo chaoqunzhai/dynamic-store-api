@@ -16,6 +16,8 @@ type Shop struct {
     Name       string    `json:"name" gorm:"type:varchar(30);comment:小B名称"`
     Phone      string    `json:"phone" gorm:"type:varchar(11);comment:联系手机号"`
     UserName   string    `json:"username" gorm:"type:varchar(20);comment:小B负责人名称"`
+    FullAddress string `json:"full_address"  gorm:"size:50;comment:省市区"`
+    ChinaId string `json:"china_id"  gorm:"size:50;comment:省市区数据中区对应的id"`
     Address    string    `json:"address" gorm:"type:varchar(60);comment:小B收货地址"`
     Longitude  float64       `json:"longitude" gorm:"type:double;comment:Longitude"`
     Latitude   float64       `json:"latitude" gorm:"type:double;comment:Latitude"`

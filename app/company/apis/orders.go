@@ -258,13 +258,13 @@ func (e Orders) GetPage(c *gin.Context) {
 	cacheAddressMap := make(map[int]map[string]interface{}, 0)
 	if len(cacheAddressId) > 0 {
 		cacheAddressObject := make([]models2.DynamicUserAddress, 0)
-		e.Orm.Model(&models2.DynamicUserAddress{}).Select("id,address").Where("c_id = ? and id in ?",
+		e.Orm.Model(&models2.DynamicUserAddress{}).Select("id,address,full_address").Where("c_id = ? and id in ?",
 			userDto.CId, cacheAddressId).Find(&cacheAddressObject)
 		//保存为map
 		//应该是获取的用户下单的地址
 		for _, k := range cacheAddressObject {
 			cacheAddressMap[k.Id] = map[string]interface{}{
-				"value":k.Address,
+				"value":k.AddressAll(),
 			}
 		}
 	}

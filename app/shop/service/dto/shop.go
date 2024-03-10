@@ -73,6 +73,7 @@ type ShopInsertReq struct {
 	Salesman      int     `json:"salesman" comment:"推荐人"`
 	SelectPay []string `json:"select_pay" comment:"选择的支付方式"`
 	Tags          []int   `json:"tags" comment:"客户标签"`
+	FullAddress []int `json:"full_address" comment:"省市区的id"`
 	common.ControlBy
 }
 
@@ -146,6 +147,7 @@ type ShopUpdateReq struct {
 	Salesman      int    `json:"salesman" comment:"推荐人"`
 	Tags          []int   `json:"tags" comment:"客户标签"`
 	SelectPay []string `json:"select_pay" comment:"选择的支付方式"`
+	FullAddress []int `json:"full_address" comment:"省市区的id"`
 	common.ControlBy
 }
 
@@ -202,4 +204,9 @@ func (s *ShopDeleteReq) GetId() interface{} {
 type UpPass struct {
 	Id int `json:"id"`
 	Pass string `json:"pass"`
+}
+type CascaderRow struct {
+	Code int `json:"code"`
+	Name string `json:"name"`
+	Children []interface{} `json:"children"`
 }

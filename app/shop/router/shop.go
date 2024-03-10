@@ -36,5 +36,7 @@ func registerShopRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewar
 		r.GET("/line/:id",api.GetLine)
 		//密码修改
 		r.POST("/uppass",api.UpPass)
+		//获取城市的级联数据
+		r.GET("/cascader",api.Cascader)
 	}
 }

@@ -215,7 +215,7 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 			if addressOk{//有地址时才会设置
 				RefundRow.Address = dto.RefundAddress{
 					Name: addressObj.Name,
-					Address:addressObj.Address,
+					Address:addressObj.AddressAll(),
 					Mobile: addressObj.Mobile,
 				}
 			}
