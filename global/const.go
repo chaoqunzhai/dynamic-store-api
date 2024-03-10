@@ -480,6 +480,27 @@ func GetExpressCn(v int) string {
 	}
 	return "周期配送"
 }
+func GetAppTypeName(v string) string {
+	switch v {
+	case "weapp":
+		return "微信小程序"
+	case "h5":
+		return "H5"
+	case "official":
+		return "微信公众号"
+	case "aliapp":
+		return "支付宝小程序"
+	case "baiduapp":
+		return "百度小程序"
+	case "mptoutiao":
+		return "头条小程序"
+	case "mpqq":
+		return "QQ小程序"
+	case "app":
+		return "app"
+	}
+	return ""
+}
 func GetOrderSource(v int) string {
 	switch v {
 	case OrderSourceApplet:

@@ -84,6 +84,9 @@ func (e ShopRegisterList) GetPage(c *gin.Context) {
 				row.SalesmanUser = user.Username
 			}
 		}
+		if AppTypeName :=global.GetAppTypeName(row.AppTypeName);AppTypeName!=""{
+			row.AppTypeName = AppTypeName
+		}
 		result = append(result,row)
 	}
 	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
