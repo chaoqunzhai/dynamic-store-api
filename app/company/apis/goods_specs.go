@@ -129,6 +129,7 @@ func (e GoodsSpecs) GetPage(c *gin.Context) {
 			if vipSpec.CustomPrice == 0 {
 				continue
 			}
+			//在查询会员 并且 查询到了会员数据,那就把价格设置为VIP价格
 			if  shopGrade > 0  && shopGrade == vipSpec.GradeId {
 				//是在查询会员的价格
 				dd["price"] = utils2.StringDecimal(vipSpec.CustomPrice)

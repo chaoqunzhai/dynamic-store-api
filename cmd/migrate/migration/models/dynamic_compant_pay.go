@@ -10,7 +10,24 @@ type WeChatAppIdCnf struct {
 func (WeChatAppIdCnf) TableName() string {
 	return "company_wechat_app_cnf"
 }
-//微信支付配置
+
+//微信小程序支付
+type WeChatAppPay struct {
+	BigBRichGlobal
+	MchId string `json:"mch_id" gorm:"index;size:20;comment:商户号"`
+	ApiV2 string `json:"api_v2" gorm:"size:32;"`
+	ApiV3 string `json:"api_v3" gorm:"size:32;"`
+	Refund bool `json:"refund" gorm:"comment:支持退款;"`
+	CertText string `json:"cert_text" gorm:"comment:支付证书cert内容"`
+	KeyText string  `json:"key_text" gorm:"comment:支付证书key路径"`
+	AppId string `json:"app_id" gorm:"size:30;comment:微信小程序APPID"`
+	AppSecret string `json:"app_secret" gorm:"size:40"`
+	SerialNumber string `json:"serial_number" gorm:"size:60;comment:证书序列号"`
+}
+func (WeChatAppPay) TableName() string {
+	return "company_wechat_app_pay"
+}
+//微信公众号支付配置
 type WeChatOfficialPay struct {
 	BigBRichGlobal
 	MchId string `json:"mch_id" gorm:"index;size:20;comment:商户号"`

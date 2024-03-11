@@ -22,9 +22,17 @@ func registerPayCnfRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 		//todo:获取配置
 		r.GET("", api.Detail)
 	}
-
-	r2 := v1.Group("/wechat_pay").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
+	r1 := v1.Group("/wechat_app_pay").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	apiWechatPay := apis.PayWechat{}
+	{
+
+		r1.POST("", apiWechatPay.CreateWechatAppPay)
+
+
+		r1.GET("",apiWechatPay.WechatAppDetail)
+	}
+	r2 := v1.Group("/wechat_pay").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
+
 	{
 
 		r2.POST("", apiWechatPay.Create)
@@ -42,4 +50,6 @@ func registerPayCnfRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 
 		r3.GET("",apiAliPay.Detail)
 	}
+
+
 }
