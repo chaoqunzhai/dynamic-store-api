@@ -1,16 +1,16 @@
 package apis
 
 import (
-    "fmt"
-	"go-admin/common/business"
-	customUser "go-admin/common/jwt/user"
-	utils2 "go-admin/common/utils"
-	"go-admin/global"
-
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
+	models2 "go-admin/cmd/migrate/migration/models"
+	"go-admin/common/business"
+	customUser "go-admin/common/jwt/user"
+	utils2 "go-admin/common/utils"
+	"go-admin/global"
 
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
@@ -87,11 +87,19 @@ func (e GoodsSpecs) GetPage(c *gin.Context) {
 	}
 	openInventory,InventoryMap:=service.GetBatchSpecInventory(userDto.CId,strList,e.Orm)
 
+	shopGrade:=0//会员的等级
+	if req.ShopId > 0 {//获取客户的VIP价格
+		var shop models2.Shop
+		e.Orm.Model(&models2.Shop{}).Select("grade_id").Where("c_id = ? and id = ?",
+			userDto.CId,req.ShopId).Limit(1).Find(&shop)
+		shopGrade = shop.GradeId
+	}
 	result:=make([]map[string]interface{},0)
+
 	for _,row:=range list {
+		key :=fmt.Sprintf("%v_%v",row.GoodsId,row.Id)
 		var Inventory int
 		if openInventory{
-			key :=fmt.Sprintf("%v_%v",row.GoodsId,row.Id)
 			Inventory = InventoryMap[key]
 		}else {
 			Inventory = row.Inventory
@@ -120,6 +128,10 @@ func (e GoodsSpecs) GetPage(c *gin.Context) {
 		for _, vipSpec :=range vipSpecs{
 			if vipSpec.CustomPrice == 0 {
 				continue
+			}
+			if  shopGrade > 0  && shopGrade == vipSpec.GradeId {
+				//是在查询会员的价格
+				dd["price"] = utils2.StringDecimal(vipSpec.CustomPrice)
 			}
 			var vipRow models.GradeVip
 			e.Orm.Model(&vipRow).Select("name,id").Where("c_id = ? and id = ?",row.CId, vipSpec.GradeId).Limit(1).Find(&vipRow)

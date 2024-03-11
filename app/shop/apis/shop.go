@@ -107,8 +107,16 @@ func (e Shop) GetPage(c *gin.Context) {
 	}
 	result :=make([]interface{},0)
 	for _,row:=range list{
-
+		GradeName :=""
+		if row.GradeId > 0 {
+			var gradeRow models2.GradeVip
+			e.Orm.Model(&models2.GradeVip{}).Select("name,id").Where("id = ? and enable = ?",row.GradeId,true).Limit(1).Find(&gradeRow)
+			if gradeRow.Id > 0 {
+				GradeName = gradeRow.Name
+			}
+		}
 		if req.Filter == "mini"{
+			row.GradeName = GradeName
 			result = append(result,row)
 			continue
 		}
@@ -128,19 +136,13 @@ func (e Shop) GetPage(c *gin.Context) {
 				cache.SalesmanPhone = userRow.Phone
 			}
 		}
-		if row.GradeId > 0 {
-			var gradeRow models2.GradeVip
-			e.Orm.Model(&models2.GradeVip{}).Select("name,id").Where("id = ? and enable = ?",row.GradeId,true).Limit(1).Find(&gradeRow)
-			if gradeRow.Id > 0 {
-				cache.GradeName = gradeRow.Name
-			}
-		}
 		cacheTag:=make([]int,0)
 		cacheTagName:=make([]string,0)
 		for _,t:=range row.Tag{
 			cacheTag = append(cacheTag,t.Id)
 			cacheTagName = append(cacheTagName,t.Name)
 		}
+		cache.GradeName = GradeName
 		cache.Tags = cacheTag
 		cache.TagName = cacheTagName
 

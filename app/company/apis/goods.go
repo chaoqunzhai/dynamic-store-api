@@ -13,6 +13,7 @@ import (
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
 	"go-admin/app/company/service/dto"
+	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/actions"
 	"go-admin/common/business"
 	cDto "go-admin/common/dto"
@@ -349,12 +350,37 @@ func (e Goods) GetPage(c *gin.Context) {
 	result := make([]map[string]interface{}, 0)
 
 	goodsId:=make([]int,0)
+	goodsStrs:= make([]string,0)
+	//需要展示客户的VIP价格,那就展示低价的即可
 	for _, row := range list {
 		goodsId = append(goodsId,row.Id)
+		goodsStrs = append(goodsStrs,fmt.Sprintf("%v",row.Id))
 
 	}
 	goodsId = utils2.RemoveRepeatInt(goodsId)
 	openInventory,InventoryMap:=s.GetBatchGoodsInventory(userDto.CId,goodsId)
+
+	goodsVipMap:=make(map[int]interface{},0)
+	if req.ShopId > 0 { //代客下单 就需要会员价格
+
+		//获取会员的等级
+		var shop models2.Shop
+		e.Orm.Model(&models2.Shop{}).Select("grade_id").Where("c_id = ? and id = ?",
+			userDto.CId,req.ShopId).Limit(1).Find(&shop)
+
+
+		if shop.GradeId > 0 {
+
+			goodsVip:=make([]models.GoodsVip,0)
+			e.Orm.Model(&models.GoodsVip{}).Select("goods_id,custom_price").Where("enable = ? and goods_id in ? and grade_id = ?",
+				true,goodsStrs,shop.GradeId).Order("layer desc,custom_price asc ").Limit(1).Find(&goodsVip)
+			for _,row:=range goodsVip{
+				goodsVipMap[row.GoodsId] = utils2.StringDecimal(row.CustomPrice)
+			}
+		}
+
+
+	}
 	for _, row := range list {
 		var Inventory int
 		if openInventory{
@@ -365,7 +391,6 @@ func (e Goods) GetPage(c *gin.Context) {
 		}else {
 			Inventory = row.Inventory
 		}
-
 		r := map[string]interface{}{
 			"id":       row.Id,
 			"name":     row.Name,
@@ -391,6 +416,12 @@ func (e Goods) GetPage(c *gin.Context) {
 			"spec_name":row.SpecName,
 			//规格的价格从小到大
 			"money": row.Money,
+		}
+
+		CustomPrice,ok:=goodsVipMap[row.Id]
+
+		if ok{
+			r["money"] = fmt.Sprintf("¥%v",CustomPrice)
 		}
 		result = append(result, r)
 	}
