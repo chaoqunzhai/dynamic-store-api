@@ -25,7 +25,6 @@ func registerPayCnfRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 	r1 := v1.Group("/wechat_app_pay").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	apiWechatPay := apis.PayWechat{}
 	{
-
 		r1.POST("", apiWechatPay.CreateWechatAppPay)
 
 
