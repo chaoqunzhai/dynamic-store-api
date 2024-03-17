@@ -64,7 +64,8 @@ type GoodsInsertReq struct {
 	Name     string `form:"name"  comment:"商品名称" binding:"required"`
 	Subtitle string `form:"subtitle"  comment:"副标题"`
 	Quota    int    `form:"quota"  comment:"活动类型"`
-	VipSale  bool   `form:"vip_sale"  comment:"会员价"`
+	EnjoyVipSale  bool   `form:"enjoy_vip_sale"  comment:"享受会员功能"`
+	VipSale  bool   `form:"vip_sale"  comment:"单独会员价"`
 	Code     string `form:"code" comment:"条形码"`
 	Tag      string `form:"tag" comment:"标签"`
 	Class    string `form:"class"  comment:"分类"`
@@ -148,6 +149,7 @@ func (s *GoodsInsertReq) Generate(model *models.Goods) {
 	model.Subtitle = s.Subtitle
 	model.Quota = s.Quota
 	model.VipSale = s.VipSale
+	model.EnjoyVipSale = s.EnjoyVipSale
 	model.Recommend = s.Recommend
 	model.RubikCube = s.RubikCube
 }
@@ -163,6 +165,7 @@ type GoodsUpdateReq struct {
 	Name      string `form:"name"  comment:"商品名称" binding:"required"`
 	Subtitle  string `form:"subtitle"  comment:"副标题"`
 	Quota     int    `form:"quota"  comment:"活动类型"`
+	EnjoyVipSale  bool   `form:"enjoy_vip_sale"  comment:"享受会员功能"`
 	VipSale   bool   `form:"vip_sale"  comment:"会员价"`
 	Brand int `form:"brand" comment:"品牌"`
 	Code      string `form:"code" comment:"条形码"`
@@ -191,10 +194,10 @@ func (s *GoodsUpdateReq) Generate(model *models.Goods) {
 	model.Name = s.Name
 	model.Subtitle = s.Subtitle
 	model.Quota = s.Quota
+	model.EnjoyVipSale = s.EnjoyVipSale
 	model.VipSale = s.VipSale
 	model.SpecName = s.SpecName
 	model.Recommend = s.Recommend
-
 	model.RubikCube = s.RubikCube
 }
 

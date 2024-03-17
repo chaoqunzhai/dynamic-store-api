@@ -499,6 +499,7 @@ func (e Goods) Get(c *gin.Context) {
 			}
 			return t
 		}(),
+		"enjoy_vip_sale":object.EnjoyVipSale,
 		"vip_sale": object.VipSale,
 		"quota":    object.Quota,
 		"enable":   object.Enable,

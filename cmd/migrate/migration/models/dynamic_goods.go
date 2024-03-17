@@ -9,6 +9,7 @@ type Goods struct {
 	Subtitle  string       `gorm:"size:8;comment:商品广告"`
 	Image     string       `gorm:"size:100;comment:商品图片路径"`
 	Quota     bool         `gorm:"comment:是否限购"`
+	EnjoyVipSale bool `json:"enjoy_vip_sale" gorm:"comment:是否享受会员功能"`
 	VipSale   bool         `gorm:"comment:会员价"`
 	Inventory int          `json:"inventory" gorm:"comment:库存"`
 	Sale      int          `json:"sale" gorm:"comment:销量"`

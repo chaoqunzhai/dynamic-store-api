@@ -14,7 +14,8 @@ type Goods struct {
 	Subtitle  string       `json:"subtitle" gorm:"type:varchar(8);comment:宣发文案"`
 	Image     string       `json:"image" gorm:"type:varchar(155);comment:商品图片路径"`
 	Quota     int          `json:"quota" gorm:"type:tinyint(1);comment:是否限购"`
-	VipSale   bool         `json:"vipSale" gorm:"type:tinyint(1);comment:会员价"`
+	EnjoyVipSale bool `json:"enjoy_vip_sale" gorm:"comment:是否享受会员功能"`
+	VipSale   bool         `json:"vipSale" gorm:"type:tinyint(1);comment:单独会员价"`
 	Inventory int          `json:"inventory" gorm:"comment:库存"`
 	Sale      int          `json:"sale" gorm:"comment:销量"`
 	Money     string       `gorm:"size:30;comment:价格区间"`
