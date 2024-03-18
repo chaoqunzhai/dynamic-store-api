@@ -19,7 +19,7 @@ import (
 )
 
 var (
-	WorkerSleep = 10000 * time.Millisecond //默认睡10秒
+	WorkerSleep = 8000 * time.Millisecond //默认睡8秒
 
 )
 
@@ -37,8 +37,8 @@ func (l *LoopRedisWorker)Start()  {
 		for _,queueName:=range global.QueueGroup{
 			//fmt.Println("开始巡检Queue",queueName)
 
-			//随机睡10秒
-			randomSleepTime := time.Duration(rand.Intn(10000)) * time.Millisecond
+			//随机睡8秒
+			randomSleepTime := time.Duration(rand.Intn(8000)) * time.Millisecond
 			time.Sleep(WorkerSleep + randomSleepTime) //
 
 			redis_db.RedisCli.Do(global.RedisCtx, "select", global.AllQueueChannel)
