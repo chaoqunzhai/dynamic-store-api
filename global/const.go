@@ -98,9 +98,9 @@ const (
 
 	OrderStatusReturn = 5 //售后处理完毕
 
-	OrderPayStatusOfflineSuccess = 6 //线下付款已收款
+	OrderPayStatusOfflineWait = 6 //线下付款 未付款
 
-	OrderPayStatusOfflineDefault = 7 //线下付款默认状态
+	OrderPayStatusOfflineSuccess = 7 //线下收款 已收款
 
 	OrderStatusPaySuccess = 8 //线上支付成功
 
@@ -347,8 +347,8 @@ func GetOrderPayStatus(v int) string {
 		return "未付款"
 	case OrderStatusPaySuccess:
 		return "已付款"
-	case OrderPayStatusOfflineDefault:
-		return "线下付款"
+	case OrderPayStatusOfflineWait:
+		return "线下未收款"
 	case OrderPayStatusOfflineSuccess:
 		return "线下已收款"
 
@@ -377,8 +377,8 @@ func OrderStatus(v int) string {
 		return "售后完毕"
 	case OrderPayStatusOfflineSuccess:
 		return "线下已收款"
-	case OrderPayStatusOfflineDefault:
-		return "线下付款"
+	case OrderPayStatusOfflineWait:
+		return "线下未收款"
 	case OrderStatusPaySuccess:
 		return "支付成功"
 	case OrderStatusWaitPayDefault:
