@@ -94,6 +94,122 @@ func (e Orders) OrderActionList(c *gin.Context) {
 
 }
 
+
+func (e Orders) Accept(c *gin.Context) {
+	req := dto.AcceptReq{}
+	s := service.Orders{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	updateOrderMap:=map[string]interface{}{
+		"accept_msg":req.Desc,
+	}
+
+
+	switch req.Resource {
+	case "0": //未收款，根据选择的方式进行扣款
+		var orderObject models.Orders
+		e.Orm.Table(splitTableRes.OrderTable).Select("id,order_money,shop_id").Where("c_id = ? and order_id = ?",userDto.CId,req.OrderId).Limit(1).Find(&orderObject)
+		if orderObject.Id == 0 {
+			e.Error(500, nil,"订单不存在")
+			return
+		}
+		orderMoney:=orderObject.OrderMoney
+		
+		var shopObject models2.Shop
+		
+		e.Orm.Model(&models2.Shop{}).Where("c_id = ? and id = ?",userDto.CId,orderObject.ShopId).Limit(1).Find(&shopObject)
+
+		if shopObject.Id == 0 {
+			e.Error(500, nil,"订单用户不存在")
+			return
+		}
+
+
+		switch req.DeductionType {
+
+		case global.PayTypeBalance:
+
+			if orderMoney > shopObject.Balance {
+				e.Error(500, nil,"余额不足")
+				return
+			}
+			Balance:= shopObject.Balance - orderMoney
+			if Balance < 0 {
+				Balance = 0
+			}
+			Balance = utils.RoundDecimalFlot64(Balance)
+			e.Orm.Model(&models2.Shop{}).Where("id = ?",shopObject.Id).Updates(map[string]interface{}{
+				"balance":Balance,
+			})
+			//余额变动记录
+			row:=models2.ShopBalanceLog{
+				CId: userDto.CId,
+				ShopId: shopObject.Id,
+				Money: orderMoney,
+				Scene:fmt.Sprintf("管理员[%v] 收账抵扣:%v",userDto.Username,orderMoney),
+				Action: global.UserNumberReduce, //抵扣
+				Type: global.ScanShopUse,
+			}
+			e.Orm.Create(&row)
+			updateOrderMap["accept_msg"] = "余额抵扣," + req.Desc
+			updateOrderMap["status"] = global.OrderStatusOver
+		case global.PayTypeCredit:
+			if orderMoney > shopObject.Credit {
+				e.Error(500, nil,"授信余额不足")
+				return
+			}
+			Credit:=  shopObject.Credit - orderMoney
+			if Credit < 0 {
+				Credit = 0
+			}
+			Credit = utils.RoundDecimalFlot64(Credit)
+			e.Orm.Model(&models2.Shop{}).Where("id = ?",shopObject.Id).Updates(map[string]interface{}{
+				"credit":Credit,
+			})
+			//授信变动记录
+			row:=models2.ShopCreditLog{
+				CId: userDto.CId,
+				ShopId: shopObject.Id,
+				Number: orderMoney,
+				Scene:fmt.Sprintf("管理员[%v] 收账抵扣:%v",userDto.Username,orderMoney),
+				Action: global.UserNumberReduce, //抵扣
+				Type: global.ScanShopUse,
+			}
+			e.Orm.Create(&row)
+			updateOrderMap["accept_msg"] = "授信余额抵扣," + req.Desc
+			updateOrderMap["status"] = global.OrderStatusOver
+		case global.PayTypeOffline:
+
+			updateOrderMap["offline_pay_id"] = req.OfflinePayId
+			updateOrderMap["status"] = global.OrderStatusOver
+		}
+
+
+		e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id = ?",userDto.CId,req.OrderId).Updates(&updateOrderMap)
+
+	case "1"://确认到账了
+		updateOrderMap["status"] = global.OrderStatusOver
+
+	}
+	e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id = ?",userDto.CId,req.OrderId).Updates(&updateOrderMap)
+	e.OK("","操作成功")
+	return
+}
 func (e Orders) OrderAction(c *gin.Context) {
 	req := dto.OrdersActionReq{}
 	s := service.Orders{}

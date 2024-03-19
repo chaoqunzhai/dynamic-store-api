@@ -72,6 +72,7 @@ type Orders struct {
 	AfterStatus    int          `json:"after_status" gorm:"type:tinyint(1);default:0;;comment:售后状态:-2:撤回 -1:驳回, 0:无售后, 1:售后处理中 2:处理完毕  3: 大B退回"`
 	ApproveMsg  string    `json:"approve_msg" gorm:"type:varchar(12);comment:审批信息/驳回信息"`
 	ApproveStatus int `json:"approve_status" gorm:"type:tinyint(1);default:0;comment:订单审核状态 11:通过 120:驳回"`
+	AcceptMsg string `json:"accept_msg"  gorm:"type:varchar(35);comment:欠账验收信息"`
 }
 
 func (Orders) TableName() string {

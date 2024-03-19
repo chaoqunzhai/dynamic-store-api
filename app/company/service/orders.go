@@ -318,6 +318,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser,req dto.DetailRe
 		"all_money_cn":utils.ConvertNumToCny(object.GoodsMoney),
 		"order_money_cn":utils.ConvertNumToCny(object.OrderMoney),
 		"run_time":"",
+		"accept_msg":object.AcceptMsg,
 		"balance":map[string]interface{}{
 			"credit":shopRow.Credit,
 			"balance":shopRow.Balance,

@@ -38,6 +38,10 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 		//⭐️ 订单流程扭转
 		r.POST("/action",api.OrderAction)
 		r.GET("/action/:orderId",api.OrderActionList)
+
+		//⭐️已收货未付款的订单进行处理
+		r.POST("/accept",api.Accept)
+
 	}
 
 	r2 := v1.Group("/orders").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole())

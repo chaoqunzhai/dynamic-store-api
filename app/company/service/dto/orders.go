@@ -47,6 +47,14 @@ func (m *OrdersGetPageReq) GetNeedSearch() interface{} {
 	return *m
 }
 
+type AcceptReq struct {
+	Resource      string `json:"resource"`
+	OrderId       string `json:"order_id"`
+	OfflinePayId int `json:"offline_pay_id"`
+	DeductionType int    `json:"deduction_type"`
+	Desc          string `json:"desc"`
+}
+
 type DetailReq struct {
 
 	Action string `form:"action"` //一般是print 打印才会携带
