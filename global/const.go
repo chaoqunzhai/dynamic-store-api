@@ -112,25 +112,7 @@ const (
 
 	OrderApproveReject = 12 //审批驳回
 
-	//OrderStatusWaitPay = 0 //默认状态，就是待支付
-	//
-	//OrderStatusWaitSend = 1//支持成功: 待发货
-	//
-	//OrderDelivery = 2// 配送中 到了配送周期 默认就成了一个配送中
-	//
-	//OrderWaitReturn = 3 // 退货 /退款中
-	//
-	//OrderStatusReject   = 4 //已驳回
-	//
-	//OrderStatusOver = 5 //订单收尾,那就是收货了,确认了
-	//
-	//OrderPayStatusOfflineSuccess = 6 	//线下付款已收款
-	//
-	//OrderPayStatusOfflineDefault = 7 	//线下付款默认状态
-	//
-	//OrderStatusPaySuccess  = 8 //线上支付成功
-	//
-	//OrderStatusWaitPayDefault = 9 //下单了,但是没有支付的状态,还是放在redis中的
+
 
 
 	//分表的逻辑

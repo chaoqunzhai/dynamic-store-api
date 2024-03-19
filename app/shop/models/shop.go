@@ -40,6 +40,7 @@ type Shop struct {
     TagName []string `json:"tag_name" gorm:"-"`
     DefaultAddress string `json:"default_address" gorm:"-"`
     OrderCount int64 `json:"order_count" gorm:"-"`
+    Arrears float64 `json:"arrears"  gorm:"-"`
     LoginTime models.XTime     `json:"login_time" gorm:"type:datetime(3);comment:登录时间"`
 
     IsBalanceDeduct bool `json:"is_balance_deduct" gorm:"size:1;comment:是否开启余额支付"`

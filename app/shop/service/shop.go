@@ -19,7 +19,9 @@ import (
 type Shop struct {
 	service.Service
 }
-
+type ShopArrears struct {
+	Money float64 `json:"money"`
+}
 // GetPage 获取Shop列表
 func (e *Shop) GetPage(c *dto.ShopGetPageReq, p *actions.DataPermission, list *[]models.Shop, count *int64) error {
 	var err error

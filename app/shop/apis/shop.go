@@ -58,23 +58,8 @@ func (e Shop) MiniApi(c *gin.Context) {
 	e.OK(result,"操作成功")
 	return
 }
-// GetPage 获取Shop列表
-// @Summary 获取Shop列表
-// @Description 获取Shop列表
-// @Tags Shop
-// @Param layer query string false "排序"
-// @Param enable query string false "开关"
-// @Param cId query string false "大BID"
-// @Param userId query string false "管理员ID"
-// @Param name query string false "小B名称"
-// @Param phone query string false "联系手机号"
-// @Param userName query string false "小B负责人名称"
-// @Param lineId query string false "归属配送路线"
-// @Param pageSize query int false "页条数"
-// @Param pageIndex query int false "页码"
-// @Success 200 {object} response.Response{data=response.Page{list=[]models.Shop}} "{"code": 200, "data": [...]}"
-// @Router /api/v1/shop [get]
-// @Security Bearer
+
+
 func (e Shop) GetPage(c *gin.Context) {
     req := dto.ShopGetPageReq{}
     s := service.Shop{}
@@ -105,6 +90,7 @@ func (e Shop) GetPage(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("获取用户信息失败,%s", err.Error()))
         return
 	}
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 	result :=make([]interface{},0)
 	for _,row:=range list{
 		GradeName :=""
@@ -153,6 +139,12 @@ func (e Shop) GetPage(c *gin.Context) {
 		if defaultAddress.Id > 0 {
 			cache.DefaultAddress = defaultAddress.AddressAll()
 		}
+		//统计欠款数据
+		var ShopArrears service.ShopArrears
+		e.Orm.Table(splitTableRes.OrderTable).Select("SUM(pay_money) as money").Where("c_id = ? and shop_id = ? and pay_type = ? and status = ?",
+			row.CId,row.Id,global.PayTypeCashOn,global.OrderPayStatusOfflineWait).Scan(&ShopArrears)
+		//fmt.Println("ShopArrears",ShopArrears.Money)
+		cache.Arrears = ShopArrears.Money
 		result = append(result,cache)
 	}
 
