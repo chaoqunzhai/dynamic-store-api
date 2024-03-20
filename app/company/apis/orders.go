@@ -128,7 +128,11 @@ func (e Orders) Accept(c *gin.Context) {
 			e.Error(500, nil,"订单不存在")
 			return
 		}
-		orderMoney:=orderObject.OrderMoney
+		if req.DeductionMoney > orderObject.OrderMoney {
+			e.Error(500, nil,"金额超出")
+			return
+		}
+		orderMoney:=req.DeductionMoney
 		
 		var shopObject models2.Shop
 		

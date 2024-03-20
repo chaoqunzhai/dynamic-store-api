@@ -53,6 +53,7 @@ type AcceptReq struct {
 	OfflinePayId int `json:"offline_pay_id"`
 	DeductionType int    `json:"deduction_type"`
 	Desc          string `json:"desc"`
+	DeductionMoney float64 `json:"deduction_money"`
 }
 
 type DetailReq struct {
