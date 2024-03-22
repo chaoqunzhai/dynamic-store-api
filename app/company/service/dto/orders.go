@@ -53,7 +53,7 @@ type AcceptReq struct {
 	OfflinePayId int `json:"offline_pay_id"`
 	DeductionType int    `json:"deduction_type"`
 	Desc          string `json:"desc"`
-	DeductionMoney float64 `json:"deduction_money"`
+	AcceptMoney float64 `json:"accept_money"`
 }
 
 type DetailReq struct {
@@ -344,5 +344,6 @@ type CountOrder struct {
 	AllGoodsMoney float64 `json:"all_goods_money"` //总订单金额
 	AllCouponMoney float64 `json:"all_coupon_money"`//总优惠金额
 	AllOrderMoney float64 `json:"all_order_money"`//总实付金额
+	AllAcceptMoney float64 `json:"all_accept_money"` //总欠款金额
 	Count int `json:"count"`
 }

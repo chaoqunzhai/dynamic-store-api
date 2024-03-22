@@ -54,7 +54,8 @@ type Orders struct {
 	ApproveMsg  string    `json:"approve_msg" gorm:"type:varchar(12);comment:审批信息/驳回|作废信息"`
 	ApproveStatus int `json:"approve_status" gorm:"type:tinyint(1);default:0;;comment:订单审核状态 1:通过 0:驳回"`
 	AcceptMsg string `json:"accept_msg"  gorm:"type:varchar(35);comment:欠账验收信息"`
-	AcceptMoney float64      `json:"accept_money" gorm:"comment:收款费用"`
+	AcceptMoney float64      `json:"accept_money" gorm:"comment:欠款最终收款费用"`
+	AcceptOk bool `json:"accept_ok" gorm:"default:false;comment:是否欠款结清"`
 }
 
 func (Orders) TableName(tableName string) string {

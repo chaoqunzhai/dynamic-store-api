@@ -231,3 +231,17 @@ type OrderEdit struct {
 func (OrderEdit) TableName() string {
 	return "order_edit_record"
 }
+
+//订单收款记录
+type OrderAccept struct {
+	Model
+	CId       int       `gorm:"index;comment:大BID"`
+	CreateBy   int          `json:"createBy" gorm:"index;comment:创建人"`
+	CreatedAt  models.XTime `json:"createdAt" gorm:"comment:创建时间"`
+	OrderId    string       `json:"order_id" gorm:"index;size:20;comment:订单ID"`
+	Money float64 `json:"money" gorm:"comment:收款额度"`
+	Desc string  `json:"msg"  gorm:"comment:收款描述"`
+}
+func (OrderAccept) TableName() string {
+	return "order_accept"
+}

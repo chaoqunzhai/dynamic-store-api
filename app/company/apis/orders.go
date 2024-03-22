@@ -123,16 +123,16 @@ func (e Orders) Accept(c *gin.Context) {
 	switch req.Resource {
 	case "0": //未收款，根据选择的方式进行扣款
 		var orderObject models.Orders
-		e.Orm.Table(splitTableRes.OrderTable).Select("id,order_money,shop_id").Where("c_id = ? and order_id = ?",userDto.CId,req.OrderId).Limit(1).Find(&orderObject)
+		e.Orm.Table(splitTableRes.OrderTable).Select("id,order_money,shop_id,order_id").Where("c_id = ? and order_id = ?",userDto.CId,req.OrderId).Limit(1).Find(&orderObject)
 		if orderObject.Id == 0 {
 			e.Error(500, nil,"订单不存在")
 			return
 		}
-		if req.DeductionMoney > orderObject.OrderMoney {
+		if req.AcceptMoney > orderObject.OrderMoney {
 			e.Error(500, nil,"金额超出")
 			return
 		}
-		orderMoney:=req.DeductionMoney
+		orderMoney:=req.AcceptMoney
 		
 		var shopObject models2.Shop
 		
@@ -142,7 +142,14 @@ func (e Orders) Accept(c *gin.Context) {
 			e.Error(500, nil,"订单用户不存在")
 			return
 		}
-
+		//还款记录
+		e.Orm.Create(&models2.OrderAccept{
+			CId: userDto.CId,
+			CreateBy: userDto.UserId,
+			OrderId: orderObject.OrderId,
+			Money: orderMoney,
+			Desc: req.Desc,
+		})
 
 		switch req.DeductionType {
 
@@ -171,7 +178,7 @@ func (e Orders) Accept(c *gin.Context) {
 			}
 			e.Orm.Create(&row)
 			updateOrderMap["accept_msg"] = "余额抵扣," + req.Desc
-			updateOrderMap["status"] = global.OrderStatusOver
+
 		case global.PayTypeCredit:
 			if orderMoney > shopObject.Credit {
 				e.Error(500, nil,"授信余额不足")
@@ -196,14 +203,22 @@ func (e Orders) Accept(c *gin.Context) {
 			}
 			e.Orm.Create(&row)
 			updateOrderMap["accept_msg"] = "授信余额抵扣," + req.Desc
-			updateOrderMap["status"] = global.OrderStatusOver
+
 		case global.PayTypeOffline:
 
 			updateOrderMap["offline_pay_id"] = req.OfflinePayId
-			updateOrderMap["status"] = global.OrderStatusOver
+
 		}
 
-
+		acceptMoney :=orderObject.OrderMoney - req.AcceptMoney
+		if acceptMoney < 0 {
+			acceptMoney = 0
+		}
+		if acceptMoney == 0 { //抵扣为0,清算成功,并且状态完成了
+			updateOrderMap["accept_ok"] = true
+			updateOrderMap["status"] = global.OrderStatusOver
+		}
+		updateOrderMap["accept_money"] = acceptMoney
 		e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id = ?",userDto.CId,req.OrderId).Updates(&updateOrderMap)
 
 	case "1"://确认到账了
@@ -240,21 +255,38 @@ func (e Orders) OrderAction(c *gin.Context) {
 		"status":req.Action,
 		"ems_id":req.EmsId,
 	}
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+
+	orderList:=make([]models.Orders,0)
+	e.Orm.Table(splitTableRes.OrderTable).Select("pay_type,order_id").Where("c_id = ? and order_id in ?",userDto.CId,req.OrderList).Find(&orderList)
 	switch req.Action {
 
 	case global.OrderWaitConfirm:
 		actionCN = "配送中"
+
+		e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id in ?",userDto.CId,req.OrderList).Updates(updateMap)
 	case global.OrderStatusOver:
 		actionCN = "收货完成"
+		//
+
 		//审核也通过
 		updateMap["approve_status"] = global.OrderApproveOk
+
+		for _,row:=range orderList{
+			if row.PayType == global.PayTypeCashOn { //如果是一个货到付款
+				if row.Status != global.OrderStatusOver { //订单状态 不是一个已经over结束的订单,那就都可以变更未未收款
+					updateMap["status"] = global.OrderPayStatusOfflineWait
+				}
+			}
+			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id = ?",userDto.CId,row.OrderId).Updates(updateMap)
+
+		}
 	default:
 		e.Error(500, nil,"不可识别的操作")
 		return
 	}
-	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
-	e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id in ?",userDto.CId,req.OrderList).Updates(updateMap)
+
 
 	e.Orm.Table(splitTableRes.OrderSpecs).Where("c_id = ? and order_id in ?",userDto.CId,req.OrderList).Updates(map[string]interface{}{
 		"status":req.Action,
@@ -449,6 +481,11 @@ func (e Orders) GetPage(c *gin.Context) {
 			"delivery":row.DeliveryType,
 			"approve_status":row.ApproveStatus,
 		}
+		if row.AcceptOk { //已经结清 就是0
+			r["accept_money"] = 0
+		}else {
+			r["accept_money"] = row.AcceptMoney
+		}
 		if openApprove {
 			//开启了审核
 			if row.ApproveStatus == 0 { //还没审核,这个订单就是审核中
@@ -495,6 +532,7 @@ func (e Orders) GetPage(c *gin.Context) {
 			"all_goods_money":utils.StringDecimal(countMap.AllGoodsMoney),
 			"all_coupon_money":utils.StringDecimal(countMap.AllCouponMoney),
 			"all_order_money":utils.StringDecimal(countMap.AllOrderMoney),
+			"all_accept_money":utils.StringDecimal(countMap.AllAcceptMoney),
 			"number":countMap.Number,
 			"count":countMap.Count,
 		},

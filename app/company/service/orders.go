@@ -185,7 +185,7 @@ func (e *Orders) GetPage(openApprove bool,splitTableRes business.TableRow,countM
 			actions.Permission(splitTableRes.OrderTable,p)).Order(global.OrderTimeKey).
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
-	countSql:="SUM(order_money) as all_order_money,SUM(number) as number,count(*) as 'count',SUM(coupon_money) as all_coupon_money,SUM(goods_money) as all_goods_money "
+	countSql:="SUM(accept_money) as all_accept_money,SUM(order_money) as all_order_money,SUM(number) as number,count(*) as 'count',SUM(coupon_money) as all_coupon_money,SUM(goods_money) as all_goods_money "
 
 	//开启对账功能
 	if c.Verify{//根据过滤 然后在统计一次,重复利用了orm对象 所以分开执行
