@@ -225,6 +225,7 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 			}
 
 			RefundTypeAction:=make([]dto.RefundTypeAction,0)
+
 			switch row.PayType {
 			case global.PayTypeBalance:		//余额支付 只能退余额
 				RefundTypeAction = append(RefundTypeAction,dto.RefundTypeAction{
@@ -241,7 +242,7 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 					Name: "线下退款",
 					Value: global.RefundMoneyOffline,
 				})
-			case global.PayTypeOnlineWechat,global.PayTypeOnlineAli: ////线上支付 可以线下退款 和退款余额
+			case global.PayTypeOnlineWechat,global.PayTypeOnlineAli,global.PayTypeCashOn: ////线上支付,货到付款 可以线下退款 和退款余额
 				RefundTypeAction = append(RefundTypeAction,dto.RefundTypeAction{
 					Name: "线下退款",
 					Value: global.RefundMoneyOffline,
@@ -250,7 +251,12 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 					Name: "退款到余额",
 					Value: global.RefundMoneyBalance,
 				})
+
 			}
+			RefundTypeAction = append(RefundTypeAction,dto.RefundTypeAction{
+				Name: "其他",
+				Value: global.RefundMoneyOther,
+			})
 			RefundRow.RefundTypeAction = RefundTypeAction
 
 		}
@@ -393,8 +399,8 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 	if len(updateShopMap) > 0 {
 		shopRes :=e.Orm.Model(&models.Shop{}).Where("c_id = ? and id = ?",userDto.CId,refundFirstObject.ShopId).Updates(&updateShopMap)
 		if shopRes.Error !=nil{
-			zap.S().Errorf("售后订单客户积分更新失败,updateShopMap:%v err:%v ",updateShopMap, shopRes.Error)
-			e.Error(500,nil,"客户积分增加失败")
+			zap.S().Errorf("售后订单客户更新失败,updateShopMap:%v err:%v ",updateShopMap, shopRes.Error)
+			e.Error(500,nil,"操作失败")
 			return
 		}
 	}

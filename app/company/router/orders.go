@@ -42,6 +42,8 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 		//⭐️已收货未付款的订单进行处理
 		r.POST("/accept",api.Accept)
 
+		//获取订单的待付款的结算
+		r.GET("/accept",api.AcceptList)
 	}
 
 	r2 := v1.Group("/orders").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole())

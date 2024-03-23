@@ -55,7 +55,13 @@ type AcceptReq struct {
 	Desc          string `json:"desc"`
 	AcceptMoney float64 `json:"accept_money"`
 }
-
+type AcceptReqPage struct {
+	dto.Pagination `search:"- " `
+	OrderId string `form:"order_id"  search:"type:exact;column:order_id;table:order_accept"`
+}
+func (m *AcceptReqPage) GetNeedSearch() interface{} {
+	return *m
+}
 type DetailReq struct {
 
 	Action string `form:"action"` //一般是print 打印才会携带

@@ -867,7 +867,7 @@ func (e Company) QuotaCnf(c *gin.Context)   {
 		MaxNumber = CompanyCnf["vip"]
 		var object models.GradeVip
 		e.Orm.Model(&object).Scopes(actions.PermissionSysUser(object.TableName(),userDto)).Count(&dbCount)
-		msg = "个VIP等级可以创建"
+		msg = "个客户等级可以创建"
 	case "shop_tag":
 		CompanyCnf := business.GetCompanyCnf(userDto.CId, "shop_tag", e.Orm)
 		MaxNumber = CompanyCnf["shop_tag"]

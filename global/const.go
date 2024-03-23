@@ -200,7 +200,7 @@ const (
 	RefundMoneyOffline = 2 //线下退款
 	RefundMoneyBalance = 3 //退款到余额
 	RefundMoneyCredit = 4 //退款到授信余额
-
+	RefundMoneyOther = 5 //其他
 	//出入库记录
 	InventoryIn = 1 //常规入库
 	InventoryOut = 2 //常规出库
@@ -278,6 +278,8 @@ func RefundMoneyTypeStr(v int) string  {
 		return "退款至余额"
 	case RefundMoneyCredit:
 		return "退款至授信余额"
+	case RefundMoneyOther:
+		return "其他"
 	}
 	return ""
 }

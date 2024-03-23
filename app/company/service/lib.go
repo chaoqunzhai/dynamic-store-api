@@ -22,8 +22,9 @@ func IsHasOpenApprove(user *sys.SysUser,orm *gorm.DB) (openApprove,hasApprove bo
 	var Approve models2.OrderApproveCnf
 	orm.Model(&Approve).Where("c_id = ?",user.CId).Limit(1).Find(&Approve)
 
-	if Approve.Id == 0 { //如果查不到 默认就返回一个true,因为没有专门配置权限
-		return true,true
+	if Approve.Id == 0 { //如果查不到
+		//返回没有开启审批功能,那就拥有很多功能
+		return false,true
 	}
 	return Approve.Enable,user.AuthExamine
 }

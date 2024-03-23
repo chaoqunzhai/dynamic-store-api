@@ -7,6 +7,7 @@ import (
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
+	sys "go-admin/app/admin/models"
 	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/business"
 	cDto "go-admin/common/dto"
@@ -95,6 +96,50 @@ func (e Orders) OrderActionList(c *gin.Context) {
 }
 
 
+func (e Orders) AcceptList(c *gin.Context) {
+	req := dto.AcceptReqPage{}
+	s := service.Orders{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	var count int64
+	list:=make([]models2.OrderAccept,0)
+	baseOrm := e.Orm.Model(&models2.OrderAccept{}).Scopes(
+		cDto.MakeCondition(req.GetNeedSearch()),
+		cDto.Paginate(req.GetPageSize(), req.GetPageIndex()))
+	baseOrm.Order(global.OrderTimeKey).Where("c_id = ? ",userDto.CId).Find(&list).Limit(-1).Offset(-1).Count(&count)
+
+	result:=make([]interface{},0)
+	for _,row:=range list{
+		var userObj sys.SysUser
+		e.Orm.Model(&sys.SysUser{}).Select("username,user_id").Where("c_id = ? and user_id = ?",row.CId,row.CreateBy).Limit(1).Find(&userObj)
+		if userObj.UserId > 0 {
+			row.User = userObj.Username
+		}
+		result = append(result,row)
+	}
+
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+
+	return
+
+
+}
+
 func (e Orders) Accept(c *gin.Context) {
 	req := dto.AcceptReq{}
 	s := service.Orders{}
@@ -123,15 +168,16 @@ func (e Orders) Accept(c *gin.Context) {
 	switch req.Resource {
 	case "0": //未收款，根据选择的方式进行扣款
 		var orderObject models.Orders
-		e.Orm.Table(splitTableRes.OrderTable).Select("id,order_money,shop_id,order_id").Where("c_id = ? and order_id = ?",userDto.CId,req.OrderId).Limit(1).Find(&orderObject)
+		e.Orm.Table(splitTableRes.OrderTable).Select("id,shop_id,order_id,accept_money").Where("c_id = ? and order_id = ?",userDto.CId,req.OrderId).Limit(1).Find(&orderObject)
 		if orderObject.Id == 0 {
 			e.Error(500, nil,"订单不存在")
 			return
 		}
-		if req.AcceptMoney > orderObject.OrderMoney {
+		if req.AcceptMoney > orderObject.AcceptMoney {
 			e.Error(500, nil,"金额超出")
 			return
 		}
+		//前段选择还款的金额
 		orderMoney:=req.AcceptMoney
 		
 		var shopObject models2.Shop
@@ -210,7 +256,7 @@ func (e Orders) Accept(c *gin.Context) {
 
 		}
 
-		acceptMoney :=orderObject.OrderMoney - req.AcceptMoney
+		acceptMoney :=orderObject.AcceptMoney - req.AcceptMoney
 		if acceptMoney < 0 {
 			acceptMoney = 0
 		}
@@ -335,6 +381,7 @@ func (e Orders) GetPage(c *gin.Context) {
 
 	openApprove,hasApprove:=service.IsHasOpenApprove(userDto,e.Orm)
 
+	fmt.Println("是否开启了订单审核",openApprove,"是否拥有审核功能",hasApprove)
 	//配送周期传入的值是:14_2023-09-23
 	//配送周期查询
 
@@ -728,6 +775,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	}else {
 		orderRow.PayType = req.DeductionType
 	}
+
 	//是否开启了库存管理
 	openInventory:=service.IsOpenInventory(userDto.CId,e.Orm)
 
@@ -832,6 +880,10 @@ func (e Orders) ValetOrder(c *gin.Context) {
 
 	orderRow.PayMoney = PayOkMoney  //支付金额
 	orderRow.OrderMoney = PayOkMoney //订单金额
+	if orderRow.PayType == global.PayTypeCashOn{ //货到付款 那就是一个欠账的行为,需要进行演示
+		orderRow.AcceptMoney = PayOkMoney
+	}
+
 	orderRow.GoodsMoney = utils.RoundDecimalFlot64(req.GoodsMoney) //商品金额
 	orderRow.DeductionMoney = PayOkMoney //抵扣金额 因为不是实际的付款,也是要存抵扣金额的
 	orderRow.CouponMoney = DiscountMoney //优惠的金额 在一个优惠卷字段来存储
