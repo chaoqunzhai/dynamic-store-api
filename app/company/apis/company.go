@@ -14,6 +14,7 @@ import (
 	customUser "go-admin/common/jwt/user"
 	"go-admin/common/qiniu"
 	"go-admin/common/utils"
+	"go-admin/config"
 	"go-admin/global"
 	"golang.org/x/crypto/bcrypt"
 	"os"
@@ -727,6 +728,7 @@ func (e Company) Info(c *gin.Context) {
 			"help_message":object.HelpMessage,
 			"inventory_module":object.InventoryModule,
 			"sale_user_module":object.SaleUserModule,
+			"url":config.ExtConfig.H5Url + fmt.Sprintf("?siteId=%v",object.Id),
 		}
 
 	}else {
