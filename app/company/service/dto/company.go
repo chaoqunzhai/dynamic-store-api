@@ -209,6 +209,7 @@ type IndexCount struct {
 	RefundWaitOrder int64 `json:"refund_wait_order"` //待处理的售后单
 	WaitSelfOrder int64 `json:"wait_self_order"` //待自提
 	GoodsSellOut int64 `json:"goods_sell_out"` //已售罄的商品
+	SurplusEms int `json:"surplus_ems"` //剩余短信
 }
 
 type NoticeRow struct {

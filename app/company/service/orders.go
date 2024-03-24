@@ -331,6 +331,9 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser,req dto.DetailRe
 		"ems_id":object.EmsId,
 	}
 
+	var acceptInt int64
+	e.Orm.Model(&models3.OrderAccept{}).Where("c_id = ? and order_id = ?",userDto.CId,object.OrderId).Count(&acceptInt)
+	result["accept_count"] = acceptInt
 	if object.HelpBy > 0 {
 		var user *sys.SysUser
 		e.Orm.Model(&user).Select("username").Where("user_id = ?",object.HelpBy).Limit(1).Find(&user)

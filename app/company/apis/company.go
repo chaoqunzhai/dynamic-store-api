@@ -346,6 +346,13 @@ func (e Company)Count(c *gin.Context)  {
 
 			return "0.00"
 		}(),
+		SurplusEms: func() int{
+			var CompanySmsQuotaCnf models2.CompanySmsQuotaCnf
+
+			e.Orm.Model(&models2.CompanySmsQuotaCnf{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&CompanySmsQuotaCnf)
+			return  CompanySmsQuotaCnf.Available
+
+		}(),
 	}
 	list:=make([]models2.Orders,0)
 	e.Orm.Table(splitTableRes.OrderTable).Select("order_money,after_sales,after_status").Where(thisDaySql).Find(&list)
