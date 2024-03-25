@@ -171,6 +171,21 @@ func (s *CompanyGetReq) GetId() interface{} {
 	return s.Id
 }
 
+type SmsUseGetPage struct {
+	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:company_sms_record_log" comment:"创建时间"`
+	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:company_sms_record_log" comment:"创建时间"`
+	Phone        string `form:"phone" search:"type:contains;column:phone;table:company_sms_record_log" comment:"发送人"`
+	dto.Pagination `search:"-"`
+}
+func (m *SmsUseGetPage) GetNeedSearch() interface{} {
+	return *m
+}
+
+type CompanySmsUpdate struct {
+	Enable bool  `form:"source"`
+	Record bool `json:"record" form:"record"`
+
+}
 type CompanyPayReq struct {
 	Source string `form:"source"`
 }

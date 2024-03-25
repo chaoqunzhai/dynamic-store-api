@@ -24,7 +24,12 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.POST("/renew",api.RenewPass)
 		//获取全局开启的支付方式
 		r.GET("/pay_cnf",api.PayCnf)
-
+		//短信配置列表
+		r.GET("/sms",api.SmsCnf)
+		//短信配置修改
+		r.POST("/sms",api.SmsCnfUpdate)
+		//短信消费记录
+		r.GET("/sms_use_list",api.SmsUseList)
 		//大B信息
 		r.GET("/info", api.Info)
 		//系统信息更改

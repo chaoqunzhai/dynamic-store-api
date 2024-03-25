@@ -57,7 +57,8 @@ func (CompanyLineCnfLog) TableName() string {
 type CompanySmsQuotaCnf struct {
 	BigBRichGlobal
 	Available int `json:"available" gorm:"comment:可用次数"`
-	Record bool `gorm:"comment:是否开启消费记录"`
+	Record bool `json:"record" gorm:"comment:是否开启消费记录"`
+	OrderNotice bool `json:"order_notice" gorm:"default:false;comment:是否开启下订单短信通知"`
 }
 
 func (CompanySmsQuotaCnf) TableName() string {
@@ -81,9 +82,11 @@ type CompanySmsRecordLog struct {
 	CId            int       `json:"c_id" gorm:"index;comment:公司(大B)ID"`
 	CreatedAt time.Time      `json:"createdAt" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`
+	Status bool `json:"status" gorm:"default:true;comment:发送状态"`
 	Source string `gorm:"size:18;comment:发送源头"`
 	Phone string `gorm:"size:11;comment:手机号"`
 	Code string `gorm:"size:6;comment:验证码"`
+	Msg string `json:"msg" gorm:"size:80;comment:其他情况下发送的内容"`
 }
 func (CompanySmsRecordLog) TableName() string {
 	return "company_sms_record_log"

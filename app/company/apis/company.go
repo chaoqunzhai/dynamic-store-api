@@ -10,6 +10,7 @@ import (
 	sys "go-admin/app/admin/models"
 	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/business"
+	cDto "go-admin/common/dto"
 	"go-admin/common/jwt/user"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/common/qiniu"
@@ -590,6 +591,116 @@ func (e Company) Information(c *gin.Context) {
 	return
 }
 
+
+func (e Company) SmsUseList(c *gin.Context) {
+	req := dto.SmsUseGetPage{}
+	s := service.Company{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	list := make([]models2.CompanySmsRecordLog, 0)
+	var count int64
+
+	e.Orm.Model(&models2.CompanySmsRecordLog{}).Unscoped().
+		Scopes(
+			cDto.MakeCondition(req.GetNeedSearch()),
+			cDto.Paginate(req.GetPageSize(), req.GetPageIndex())).Where("c_id = ?",userDto.CId).Order("id desc").
+		Find(&list).Limit(-1).Offset(-1).
+		Count(&count)
+	result:=make([]interface{},0)
+	companyList:=make([]int,0)
+	for _,row:=range list{
+		companyList = append(companyList,row.CId)
+	}
+
+
+	for _,row:=range list{
+		body:=""
+		if row.Msg != ""{
+			body = row.Msg
+		}else {
+			body = row.Code
+		}
+		mm := map[string]interface{}{
+			"body":body,
+			"source":row.Source,
+			"phone":row.Phone,
+			"id":row.Id,
+			"create_time":row.CreatedAt.Format("2006-01-02 15:04:05"),
+		}
+
+		result = append(result,mm)
+	}
+	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")
+	return
+
+}
+
+func (e Company) SmsCnfUpdate(c *gin.Context) {
+	req := dto.CompanySmsUpdate{}
+	s := service.Company{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	e.Orm.Model(&models2.CompanySmsQuotaCnf{}).Where("c_id = ?",userDto.CId).Updates(map[string]interface{}{
+		"record":req.Record,
+		"order_notice":req.Enable,
+	})
+	e.OK("","successful")
+	return
+}
+
+func (e Company) SmsCnf(c *gin.Context) {
+	s := service.Company{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var CompanySmsQuotaCnf models2.CompanySmsQuotaCnf
+	e.Orm.Model(&models2.CompanySmsQuotaCnf{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&CompanySmsQuotaCnf)
+
+
+	e.OK(CompanySmsQuotaCnf,"successful")
+	return
+}
 func (e Company) PayCnf(c *gin.Context) {
 	req := dto.CompanyPayReq{}
 	s := service.Company{}
@@ -603,7 +714,7 @@ func (e Company) PayCnf(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	fmt.Println("payCnf",req.Source)
+	//fmt.Println("payCnf",req.Source)
 	userDto, err := user.GetUserDto(e.Orm, c)
 	if err != nil {
 		e.Error(500, err, err.Error())
