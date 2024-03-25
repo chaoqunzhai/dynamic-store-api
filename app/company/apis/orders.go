@@ -808,10 +808,8 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.Orm.Model(&models2.Driver{}).Scopes(actions.PermissionSysUser(DriverObject.TableName(),userDto)).Where("id = ? and enable = ?", lineObject.DriverId, true).Limit(1).Find(&DriverObject)
 
 		if DriverObject.Id == 0 {
-			e.Error(500, errors.New("路线暂无司机"), "路线暂无司机")
-			return
+			orderRow.DriverId = DriverObject.Id
 		}
-		orderRow.DriverId = DriverObject.Id
 		var DeliveryObject models.CycleTimeConf
 		e.Orm.Model(&models2.CycleTimeConf{}).Where("c_id = ? and id = ? and enable =? ",userDto.CId, req.Cycle, true).Limit(1).Find(&DeliveryObject)
 		if DeliveryObject.Id == 0 {
