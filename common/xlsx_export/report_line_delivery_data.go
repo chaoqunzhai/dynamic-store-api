@@ -145,7 +145,7 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 
 		SheetDataRowMap,ok := sheetRowObject.DeliveryData[l]
 		if !ok{
-			zap.S().Errorf("导出配送表时,不在数据Map中,ResultData 和 sheetRowObject.Data 线路数据不匹配")
+			zap.S().Errorf("导出路线明细表时,不在数据Map中,ResultData 和 sheetRowObject.Data 线路数据不匹配")
 			continue
 		}
 		//循环每一个小B

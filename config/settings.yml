@@ -47,6 +47,8 @@ settings:
     exportDay: 7
     cloudObsUrl: "http://testqiniu.36580.cn/"
     imageUrl: "http://testqiniu.36580.cn/"
+    #API域名
+    domainUrl: "http://merchant-test.36580.cn/"
     #移动端地址
     h5Url: "http://weapp-test.36580.cn/h5/"
     #移动端MP配置,用于授权登录

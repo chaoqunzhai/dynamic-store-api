@@ -11,12 +11,14 @@ import (
 
 func init() {
 	routerCheckRole = append(routerCheckRole, registerReportOrdersRouter)
+	routerNoCheckRole = append(routerNoCheckRole, registerNoAuthReportOrdersRouter)
 }
 
 // registerOrdersRouter
 func registerReportOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
 	api := apis.Orders{}
 	r := v1.Group("/report").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
+
 	{
 		//配送周期 下汇总的商品数
 		r.GET("/summary",api.Summary)
@@ -35,4 +37,15 @@ func registerReportOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTM
 		r.GET("/detail/line_goods_detail",api.LineGoodsDetail)
 
 	}
+}
+func registerNoAuthReportOrdersRouter(v1 *gin.RouterGroup) {
+
+	api := apis.Orders{}
+	r := v1.Group("/report")
+
+	{
+		r.GET("/line_summary/:path/:xlsx",api.LineSummary)
+	}
+
+
 }

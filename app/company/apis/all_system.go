@@ -7,6 +7,8 @@ import (
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
 	"go-admin/app/company/models"
 	"go-admin/common/qiniu"
+	"go-admin/common/utils"
+	"go-admin/common/xlsx_export"
 	"go-admin/config"
 	"go-admin/global"
 	"path"
@@ -24,14 +26,20 @@ import (
 type Worker struct {
 	api.Api
 }
-type WorkerExportReq struct {
-	Order   []string   `json:"order"`
-	Cycle int `json:"cycle"`
-	Type int `json:"type"`
-	Detail bool `json:"detail"` //是否单商品导出
-	LineId []int `json:"line_id"`
-	LineName []string `json:"line_name"`
+type WorkerExportLineSummaryReq struct {
+	Cycle int `json:"cycle" form:"cycle"`
+	LineId int `json:"line_id" form:"line_id"`
 }
+
+type WorkerExportReq struct {
+	Order   []string   `json:"order" form:"order"`
+	Cycle int `json:"cycle" form:"cycle"`
+	Type int `json:"type" form:"type"`
+	Detail bool `json:"detail" form:"detail"` //是否单商品导出
+	LineId []int `json:"line_id" form:"line_id"`
+	LineName []string `json:"line_name" form:"line_name"`
+}
+
 type GetPageReq struct {
 	dto.Pagination `search:"-"`
 	Type string `json:"type" form:"type" search:"-" `
@@ -129,6 +137,81 @@ func (e *Worker)Download(c *gin.Context)  {
 
 }
 
+
+func (e *Worker)LineSummary(c *gin.Context) {
+	req := WorkerExportLineSummaryReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	//先查询配送数据
+	//在查询配送周期下的订单 + 路线
+	var CycleCnfObj models.OrderCycleCnf
+	e.Orm.Table(splitTableRes.OrderCycle).Select("uid,id").Model(
+		&models.OrderCycleCnf{}).Where("id = ?",req.Cycle).Limit(1).Find(&CycleCnfObj)
+	if CycleCnfObj.Id == 0 {
+
+		e.Error(500, nil, "暂无周期")
+		return
+	}
+	CycleUid  := CycleCnfObj.Uid
+
+	var list []models2.Orders
+	e.Orm.Table(splitTableRes.OrderTable).Select("shop_id,number,order_money").Where(
+		"c_id = ? and line_id = ? and uid = ? and status in ? ",
+		userDto.CId, req.LineId,CycleUid,global.OrderEffEct(),
+		).Find(&list)
+
+	var lineObject models2.Line
+	e.Orm.Model(&lineObject).Where("c_id = ? and id = ?",userDto.CId,req.LineId).Limit(1).Find(&lineObject)
+	cacheShopMap:=make(map[int]xlsx_export.LineSummaryRow,0)
+	for _,row:=range list{
+		shopData,ok:=cacheShopMap[row.ShopId]
+		if !ok{
+			var shopObject models2.Shop
+			e.Orm.Model(&shopObject).Where("c_id = ? and id = ?",userDto.CId,row.ShopId).Limit(1).Find(&shopObject)
+			if shopObject.Id == 0 { //没有客户就退出
+				continue
+			}
+
+			shopData = xlsx_export.LineSummaryRow{
+				Layer: shopObject.Layer,
+				ShopId: row.ShopId,
+				ShopName: shopObject.Name,
+				ShopAddress: shopObject.Address,
+				ShopPhone:shopObject.Phone,
+			}
+		}
+		shopData.OrderCount +=row.Number
+		shopData.OrderMoney +=utils.RoundDecimalFlot64(row.OrderMoney)
+		cacheShopMap[row.ShopId] = shopData
+	}
+	fmt.Println("cacheShopMap",cacheShopMap)
+	//sort.Slice(cacheShopMap, func(i, j int) bool {
+	//	fmt.Println("cacheShopMap[i]",cacheShopMap[i])
+	//	return cacheShopMap[i].Layer > cacheShopMap[j].Layer
+	//})
+	export :=xlsx_export.XlsxBaseExport{}
+	xlsxPath,_ := export.ExportLineSummary(userDto.CId,lineObject.Name,cacheShopMap)
+
+	//downloadUrl :=path.Join(config.ExtConfig.DomainUrl,"/company/api/v1/report/line_summary",xlsxPath)
+	downloadUrl :=path.Join("/company/api/v1/report/line_summary",xlsxPath)
+	e.OK(downloadUrl,"")
+	return
+
+}
 func (e *Worker)Create(c *gin.Context)  {
 	req:=WorkerExportReq{}
 	err := e.MakeContext(c).
@@ -203,18 +286,18 @@ func (e *Worker)Create(c *gin.Context)  {
 		mathKey = fmt.Sprintf("%v_summary",mathKey)
 	case global.ExportTypeLine:
 		if len(req.LineName) > 1{
-			title = fmt.Sprintf("批量导出【%v】条路线表",len(req.LineName))
+			title = fmt.Sprintf("批量导出【%v】条路线汇总表",len(req.LineName))
 		}else {
-			title = fmt.Sprintf("导出【%v】路线表",req.LineName[0])
+			title = fmt.Sprintf("导出【%v】路线汇总表",req.LineName[0])
 		}
 		LineExport = 0
 		Queue = global.WorkerReportLineStartName
 		mathKey = fmt.Sprintf("%v_line",mathKey)
 	case global.ExportTypeLineShopDelivery:
 		if len(req.LineName) > 1{
-			title = fmt.Sprintf("批量导出【%v】条路线配送表",len(req.LineName))
+			title = fmt.Sprintf("批量导出【%v】条路线明细表",len(req.LineName))
 		}else {
-			title = fmt.Sprintf("导出【%v】路线配送表",req.LineName[0])
+			title = fmt.Sprintf("导出【%v】路线明细表",req.LineName[0])
 		}
 		LineExport = 1
 		Queue = global.WorkerReportLineDeliveryStartName

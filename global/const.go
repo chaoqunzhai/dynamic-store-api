@@ -263,10 +263,7 @@ func OrderEffEct() []int { //配送报表 有效订单状态
 
 	return []int{OrderStatusWaitSend,OrderWaitConfirm,OrderWaitRefunding,OrderStatusOver}
 }
-func OrderApproveEffEct() []int { //配送报表 有效订单状态
 
-	return []int{OrderStatusWaitSend,OrderWaitConfirm,OrderWaitRefunding,OrderStatusOver}
-}
 func RefundMoneyTypeStr(v int) string  {
 	switch v {
 	case RefundMoneyOriginal:

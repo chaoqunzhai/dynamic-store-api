@@ -141,10 +141,10 @@ func (e Shop) GetPage(c *gin.Context) {
 		}
 		//统计欠款数据
 		var ShopArrears service.ShopArrears
-		e.Orm.Table(splitTableRes.OrderTable).Select("SUM(pay_money) as money").Where("c_id = ? and shop_id = ? and pay_type = ? and status = ?",
+		e.Orm.Table(splitTableRes.OrderTable).Select("SUM(accept_money) as money").Where("c_id = ? and shop_id = ? and pay_type = ? and status = ?",
 			row.CId,row.Id,global.PayTypeCashOn,global.OrderPayStatusOfflineWait).Scan(&ShopArrears)
 		//fmt.Println("ShopArrears",ShopArrears.Money)
-		cache.Arrears = ShopArrears.Money
+		cache.Arrears = utils.RoundDecimalFlot64(ShopArrears.Money)
 		result = append(result,cache)
 	}
 

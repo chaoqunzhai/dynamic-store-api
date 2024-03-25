@@ -19,6 +19,27 @@ import (
 	"time"
 )
 
+func DirNotCreate(dir string) {
+
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		// 目录不存在，创建它
+		err = os.Mkdir(dir, 0755) // 0755是权限设置，你可以根据需要修改
+		if err != nil {
+			fmt.Printf("创建目录 %s 失败: %s\n", dir, err)
+			return
+		}
+		fmt.Printf("目录 %s 已创建\n", dir)
+	} else if err != nil {
+		// 出现了其他错误
+		fmt.Printf("获取目录 %s 信息时出错: %s\n", dir, err)
+		return
+	} else {
+		// 目录已经存在
+		//fmt.Printf("目录 %s 已存在\n", dir)
+	}
+	return
+
+}
 func StructToMap(obj interface{}) map[string]interface{} {
 
 	value := reflect.ValueOf(obj)

@@ -87,7 +87,7 @@ type ExportRedisInfo struct {
 	ExportUser string `json:"export_user"`
 	ExportTime string `json:"export_time"`
 	LineId []int `json:"line_id"`
-	LineExport int `json:"line_export"` //0:导出路线  1:导出路线小B配送表
+	LineExport int `json:"line_export"` //0:导出路线  1:导出路线小B配送明细表
 	Type string `json:"type"` //类型 0:配送订单导出 1:自提订单导出 2:总汇总表导出 3:基于路线导出
 }
 

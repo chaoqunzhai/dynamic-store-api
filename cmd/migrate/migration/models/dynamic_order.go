@@ -49,7 +49,7 @@ type Orders struct {
 	DeliveryCode   string       `json:"delivery_code" gorm:"size:9;index;comment:核销码"`
 	WriteOffStatus int          `json:"write_off_status" gorm:"type:tinyint(1);default:0;index;comment:核销状态,0:未核销 1:核销"`
 	PayMoney       float64      `gorm:"comment:实际支付价"`
-	OrderMoney     float64      `json:"order_money" gorm:"comment:需要支付价"`
+	OrderMoney     float64      `json:"order_money" gorm:"comment:需要支付的价"`
 	GoodsMoney     float64      `json:"goods_money" gorm:"comment:商品总价格"`
 	DeductionMoney float64      `json:"deduction_money" gorm:"comment:抵扣费用"`
 	Number         int          `gorm:"comment:下单数量"`

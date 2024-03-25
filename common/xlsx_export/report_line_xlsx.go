@@ -71,7 +71,7 @@ func (x *XlsxBaseExport)SetLineXlsxRun(cid int,lineName string,data map[int]*She
 
 
 	lineName = x.ReplaceAllString(lineName)
-	xlsxName:=fmt.Sprintf("%v-%v路线表.xlsx",x.ExportTime,lineName)
+	xlsxName:=fmt.Sprintf("%v-%v路线汇总表.xlsx",x.ExportTime,lineName)
 	if err := x.File.SaveAs(xlsxName); err != nil {
 		zap.S().Errorf("路线数据导出 大B%v,错误err%v",cid,err.Error())
 		return ""

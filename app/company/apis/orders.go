@@ -998,6 +998,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 				"inventory": goodsSpecs.Inventory - selectSpec.Number,
 				"sale":	goodsSpecs.Sale + selectSpec.Number,
 			})
+			fmt.Println("更新库存",)
 		}
 
 		goodsNumber += selectSpec.Number
@@ -1026,7 +1027,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		for goodsId,goodsRow:=range goodsCacheList{
 			//商品减库存 + 销量
 			var goodsObject models.Goods
-			e.Orm.Model(&models.Goods{}).Scopes(actions.PermissionSysUser(goodsObject.TableName(),userDto)).Select("sale,inventory,id").Where("id = ?  and enable = ?", goodsId, userDto.CId, true).Limit(1).Find(&goodsObject)
+			e.Orm.Model(&models.Goods{}).Scopes(actions.PermissionSysUser(goodsObject.TableName(),userDto)).Select("sale,inventory,id").Where("id = ?  and enable = ?", goodsId,true).Limit(1).Find(&goodsObject)
 			if goodsObject.Id == 0 {
 				continue
 			}
@@ -1034,6 +1035,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 				"sale":    goodsObject.Sale + goodsRow.Number,
 				"inventory": goodsObject.Inventory - goodsRow.Number,
 			})
+			fmt.Println("更新商品总库存")
 		}
 	}
 	//授信余额减免

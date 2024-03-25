@@ -37,6 +37,8 @@ func registerReportRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 		//单条路线配送导出
 		r.POST("/export/worker",api.Create)
 
+		r.POST("/export/line_summary",api.LineSummary)
+
 	}
 
 

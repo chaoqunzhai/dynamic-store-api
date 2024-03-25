@@ -65,10 +65,10 @@ func (l *LoopRedisWorker)Start()  {
 					go l.GetExportQueueInfo(key,data)
 				case global.WorkerReportSummaryStartName: //汇总导出
 					go l.GetSummaryExportQueueInfo(key,data)
-				case global.WorkerReportLineStartName: //路线导出
+				case global.WorkerReportLineStartName: //路线汇总导出
 					go l.GetReportLineExportQueueInfo(key,data)
 
-				case global.WorkerReportLineDeliveryStartName: //路线配送表导出
+				case global.WorkerReportLineDeliveryStartName: //路线配送明细表导出
 
 					go l.GetReportLineDeliveryExportQueueInfo(key,data)
 				}
@@ -249,7 +249,7 @@ func (l *LoopRedisWorker)GetReportLineExportQueueInfo(key string,data []string) 
 		}
 
 		//保存到云端
-		zipFile:=fmt.Sprintf("%v 多路线表导出.zip",row.ExportTime)
+		zipFile:=fmt.Sprintf("%v 多路线汇总表导出.zip",row.ExportTime)
 		FileName :=xlsx_export.SaveLineExportXlsx("line",zipFile,orderExportFunc.UpCloud,row,sheetData)
 
 		if err = xlsx_export.SaveExportDb(
@@ -295,7 +295,7 @@ func (l *LoopRedisWorker)GetReportLineDeliveryExportQueueInfo(key string,data []
 			CycleUid: row.CycleUid,
 		}
 		if orderExportFunc.Orm == nil{
-			zap.S().Errorf("读取redis 导出[路线配送表] Orm对象为空")
+			zap.S().Errorf("读取redis 导出[路线明细表] Orm对象为空")
 			continue
 		}
 		successTag:=true
@@ -306,7 +306,7 @@ func (l *LoopRedisWorker)GetReportLineDeliveryExportQueueInfo(key string,data []
 		if detailErr!=nil{
 			successTag =false
 			errorMsg = detailErr.Error()
-			zap.S().Errorf("读取redis 导出[路线配送表] ReadOrderDetail,错误:%v",detailErr)
+			zap.S().Errorf("读取redis 导出[路线明细表] ReadOrderDetail,错误:%v",detailErr)
 			continue
 
 		}
@@ -323,14 +323,14 @@ func (l *LoopRedisWorker)GetReportLineDeliveryExportQueueInfo(key string,data []
 		//		}
 		//	}
 		//}
-		zipFile:=fmt.Sprintf("%v 多路线配送表导出.zip",row.ExportTime)
+		zipFile:=fmt.Sprintf("%v 多路线明细表导出.zip",row.ExportTime)
 		FileName :=xlsx_export.SaveLineExportXlsx("delivery",zipFile,orderExportFunc.UpCloud,row,sheetData)
 
 		if err = xlsx_export.SaveExportDb(
 			orderExportFunc.Dat.OrmId,orderExportFunc.Dat.CId,
 			FileName,
 			successTag,errorMsg,orderExportFunc.Orm);err!=nil{
-			zap.S().Errorf("读取redis 导出[路线配送表] SaveExportDb,错误:%v",err)
+			zap.S().Errorf("读取redis 导出[路线明细表] SaveExportDb,错误:%v",err)
 			continue
 		}
 		//最后在删除

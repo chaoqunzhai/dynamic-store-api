@@ -105,7 +105,7 @@ func (s *ThisDaySyncOrderCycle)OverStatus()  {
 func (s *ThisDaySyncOrderCycle)MakeOrderCycleCnfTable()  {
 
 
-	for cid, splitCnf := range s.CompanyMap { //循环的是每一个大B的周期配送表
+	for cid, splitCnf := range s.CompanyMap { //循环的是每一个大B的周期明细表
 		findCycleCnfList := make([]string,0) //
 		var orderCycleList []models.OrderCycleCnf
 		if !s.Orm.Table(splitCnf.OrderCycle).Migrator().HasTable(splitCnf.OrderCycle){

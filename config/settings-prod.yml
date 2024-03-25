@@ -49,6 +49,8 @@ settings:
     imageUrl: "https://qiniu.dongchuangyun.com/"
     #移动端地址
     h5Url: "https://weapp.dongchuangyun.com/h5/"
+    #API域名
+    domainUrl: "https://merchant.dongchuangyun.com"
     #移动端MP配置,用于授权登录
     h5AuthUrl: "https://weapp.dongchuangyun.com/wx/mp_auth"
     #公众号支付回调接口 不带/

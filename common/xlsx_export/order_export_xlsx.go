@@ -10,7 +10,6 @@ import (
 	"go.uber.org/zap"
 
 	"strings"
-	"time"
 )
 
 //订单导出的模板
@@ -25,7 +24,6 @@ type XlsxBaseExport struct {
 	StyleSubtitleId int `json:"style_subtitle_id"` //副标题
 	StyleRowSubtitleId int `json:"style_row_subtitle_id"` //行标头样式
 	StyleRowInfoId int `json:"style_row_info"` //内容
-	XlsxName string `json:"xlsx_name"`
 
 }
 //处理带有特殊字符 导致save xlsx失败
@@ -81,7 +79,7 @@ func (x *XlsxBaseExport)SetRowBackGroundCellValue(index int,row string)  {
 }
 func (x *XlsxBaseExport)NewStyle()  {
 
-	x.XlsxName =fmt.Sprintf("%v-订单数据.xlsx",time.Now().Format("2006-01-02 15-04-05"))
+
 	StyleTitle, _ := x.File.NewStyle(&excelize.Style{
 		Font: &excelize.Font{
 			Bold:   true,

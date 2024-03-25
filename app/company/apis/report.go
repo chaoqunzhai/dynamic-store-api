@@ -18,6 +18,10 @@ import (
 	customUser "go-admin/common/jwt/user"
 	"go-admin/common/utils"
 	"go-admin/global"
+	"io"
+	"net/url"
+	"os"
+	"path"
 	"sort"
 	"time"
 )
@@ -730,6 +734,39 @@ func (e Orders)DetailShopGoods(c *gin.Context)  {
 	return
 }
 
+
+func (e Orders)LineSummary(c *gin.Context)  {
+	err := e.MakeContext(c).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	xlsxPath:=c.Param("path")
+	xlsxName:=c.Param("xlsx")
+	xlsxFilePath:=path.Join(xlsxPath,xlsxName)
+	file, fileErr := os.Open(xlsxFilePath)
+	if fileErr != nil {
+		e.OK("文件不存在","文件不存在")
+		return
+	}
+	defer file.Close()
+	//content, _ := ioutil.ReadAll(file)
+	fileNames := url.QueryEscape(xlsxName) // 防止中文乱码
+
+	_, err = io.Copy(c.Writer, file)
+
+	c.Header("Content-Description", "File Transfer")
+	c.Header("Content-Transfer-Encoding", "binary")
+	c.Header("Content-Disposition", "attachment; filename=example.txt")
+	c.Header("Content-Type", "application/octet-stream")
+	c.Header("Content-Disposition", "attachment; filename=\""+fileNames+"\"")
+	//c.Data(http.StatusOK, "application/vnd.ms-excel", content)
+	os.Remove(xlsxFilePath)
+	return
+}
 func (e Orders)LineGoodsDetail(c *gin.Context)  {
 	req := dto.LineGoodsDetail{}
 	err := e.MakeContext(c).
