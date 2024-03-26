@@ -56,6 +56,7 @@ func (CompanyLineCnfLog) TableName() string {
 // todo:大B短信可用条数配置
 type CompanySmsQuotaCnf struct {
 	BigBRichGlobal
+	AcceptPhone string `json:"accept_phone" gorm:"size:11;comment:接受手机号"`
 	Available int `json:"available" gorm:"comment:可用次数"`
 	Record bool `json:"record" gorm:"comment:是否开启消费记录"`
 	OrderNotice bool `json:"order_notice" gorm:"default:false;comment:是否开启下订单短信通知"`

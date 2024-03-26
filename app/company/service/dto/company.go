@@ -184,7 +184,7 @@ func (m *SmsUseGetPage) GetNeedSearch() interface{} {
 type CompanySmsUpdate struct {
 	Enable bool  `form:"source"`
 	Record bool `json:"record" form:"record"`
-
+	AcceptPhone string `json:"accept_phone" form:"record"`
 }
 type CompanyPayReq struct {
 	Source string `form:"source"`

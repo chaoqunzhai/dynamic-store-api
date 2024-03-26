@@ -672,6 +672,7 @@ func (e Company) SmsCnfUpdate(c *gin.Context) {
 	e.Orm.Model(&models2.CompanySmsQuotaCnf{}).Where("c_id = ?",userDto.CId).Updates(map[string]interface{}{
 		"record":req.Record,
 		"order_notice":req.Enable,
+		"accept_phone":req.AcceptPhone,
 	})
 	e.OK("","successful")
 	return
@@ -698,7 +699,18 @@ func (e Company) SmsCnf(c *gin.Context) {
 	e.Orm.Model(&models2.CompanySmsQuotaCnf{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&CompanySmsQuotaCnf)
 
 
-	e.OK(CompanySmsQuotaCnf,"successful")
+	data :=map[string]interface{}{
+		"accept_phone":CompanySmsQuotaCnf.AcceptPhone,
+		"record":CompanySmsQuotaCnf.Record,
+		"order_notice":CompanySmsQuotaCnf.OrderNotice,
+	}
+	if CompanySmsQuotaCnf.AcceptPhone == ""{
+		var object models.Company
+		e.Orm.Model(&object).Select("phone").Where("id = ?",userDto.CId).Limit(1).Find(&object)
+		data["accept_phone"] = object.Phone
+	}
+
+	e.OK(data,"successful")
 	return
 }
 func (e Company) PayCnf(c *gin.Context) {
