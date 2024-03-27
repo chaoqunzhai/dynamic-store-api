@@ -140,6 +140,7 @@ func (e CycleTimeConf) GetPage(c *gin.Context) {
 		switch row.Type {
 		case global.CyCleTimeDay:
 			cnf["type_cn"] = "每天"
+
 		case global.CyCleTimeWeek:
 			cnf["type_cn"] = "每周"
 		}

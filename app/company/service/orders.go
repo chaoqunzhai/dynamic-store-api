@@ -59,6 +59,14 @@ func CalculateTime(day int) (t models2.XTime) {
 	x.Time = time.Date(newTime.Year(), newTime.Month(), newTime.Day(), 0, 0, 0, 0, time.Local)
 	return x
 }
+func CalculateSendTime(day int,addTime time.Time) (t models2.XTime) {
+	//选择的天数，计算出配送周期
+
+	newTime := addTime.AddDate(0, 0, day)
+	x := models2.XTime{}
+	x.Time = time.Date(newTime.Year(), newTime.Month(), newTime.Day(), 0, 0, 0, 0, time.Local)
+	return x
+}
 //23:30 to 2023年06月12日23:30:30
 func (e *Orders) MakeTime(value string) (x models2.XTime) {
 	x = models2.XTime{}

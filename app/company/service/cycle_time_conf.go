@@ -152,22 +152,44 @@ func GetOrderCyClyCnf(CyCleCnf models.CycleTimeConf) (day models2.XTime, dayValu
 	//时间检测返回以下内容
 	//配送的具体日期Time对象
 	//配送的具体时间文案做展示
-	nowDay:=models2.XTime{
-		Time:time.Now(),
-	}
 
-	if CyCleCnf.GiveDay == 0 {
-		if CyCleCnf.GiveTime != ""{
-			return nowDay,fmt.Sprintf("%v", CyCleCnf.GiveTime)
+
+	var dayNumber int
+
+	switch CyCleCnf.Type {
+	case global.CyCleTimeDay:
+		if CyCleCnf.GiveDay == 0 {
+			dayNumber = 0
+			if CyCleCnf.GiveTime == "" {
+				CyCleCnf.GiveTime = "当天配送"
+			}
+
+		}else {
+			dayNumber = CyCleCnf.GiveDay
 		}
-		return nowDay,"当天配送"
+
+		cycleTimeValue := CalculateTime(dayNumber)
+
+		cycleVal := fmt.Sprintf("%v %v", cycleTimeValue.Format("2006-01-02"), CyCleCnf.GiveTime)
+
+		return cycleTimeValue, cycleVal
+	case global.CyCleTimeWeek: //截止时间送达
+		//通过截止的周配置 获取具体的日期
+
+		dayNumber = CyCleCnf.GiveDay
+
+		endTimeValue,_:=utils.GetWeekdayTimestamps(CyCleCnf.EndWeek)
+
+		cycleTimeValue := CalculateSendTime(dayNumber,endTimeValue)
+
+		cycleVal := fmt.Sprintf("%v %v", cycleTimeValue.Format("2006-01-02"), CyCleCnf.GiveTime)
+
+		return cycleTimeValue, cycleVal
+
+	default:
+		return models2.XTime{}, "时间非法"
 	}
 
-	cycleTimeValue :=CalculateTime(CyCleCnf.GiveDay)
-
-	cycleVal := fmt.Sprintf("%v %v",cycleTimeValue.Format("2006-01-02"), CyCleCnf.GiveTime)
-
-	return cycleTimeValue,cycleVal
 
 }
 func GetOrderCreateStr(row models.CycleTimeConf) string {

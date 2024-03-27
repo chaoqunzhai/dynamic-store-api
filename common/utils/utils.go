@@ -40,6 +40,40 @@ func DirNotCreate(dir string) {
 	return
 
 }
+// GetWeekdayTimestamps 获取指定星期几的开始和结束时间戳
+func GetWeekdayTimestamps(weekdayNumber int) (weekTime time.Time, err error) {
+	// 获取当前时间
+
+	now := time.Now()
+	var weekday time.Weekday
+	switch weekdayNumber {
+	case 0:
+		weekday = time.Sunday
+
+		return now.AddDate(0, 0, int(now.Weekday()) + 1),nil
+	case 1:
+		weekday = time.Monday
+	case 2:
+		weekday = time.Tuesday
+	case 3:
+		weekday = time.Wednesday
+	case 4:
+		weekday = time.Thursday
+	case 5:
+		weekday = time.Friday
+	case 6:
+		weekday = time.Saturday
+
+	default:
+
+		return  time.Time{},errors.New("非法日期")
+	}
+	// 获取当前周的第一天的时间
+	startOfWeek := now.AddDate(0, 0, int(-now.Weekday()+weekday))
+
+
+	return startOfWeek,nil
+}
 func StructToMap(obj interface{}) map[string]interface{} {
 
 	value := reflect.ValueOf(obj)
