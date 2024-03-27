@@ -321,31 +321,31 @@ func (e CycleTimeConf)CheckOverWeekCycle(CID int,reqStartWeek,reqEndWeek int,req
 		}
 
 		//原数据开始
-		parsedStartTime, _ := time.Parse("15:04", row.StartTime)
-		parsedEndTime, _ := time.Parse("15:04", row.EndTime)
-		startWeek1 := time.Weekday(row.StartWeek)
-		endWeek1 := time.Weekday(row.EndWeek)
-		start1 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), parsedStartTime.Hour(),
-			parsedStartTime.Minute(), 0, 0, time.Local).AddDate(0, 0, int(startWeek1-time.Now().Weekday()) + WeekDay(startWeek1))
-		end1 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), parsedEndTime.Hour(),
-			parsedEndTime.Minute(), 0, 0, time.Local).AddDate(0, 0, int(endWeek1-time.Now().Weekday())  + WeekDay(endWeek1))
+		startWeek1,_:=utils.GetWeekdayTimestamps(row.StartWeek)
+		endWeek1,_:=utils.GetWeekdayTimestamps(row.EndWeek)
+
+		parsedStartTime1 := fmt.Sprintf("%v %v",startWeek1.Format("2006-01-02"),row.StartTime)
+		parsedEndTime1 := fmt.Sprintf("%v %v",endWeek1.Format("2006-01-02"),row.EndTime)
+
+		start1,_:=time.ParseInLocation("2006-01-02 15:04", parsedStartTime1, time.Local)
+		end1,_:=time.ParseInLocation("2006-01-02 15:04", parsedEndTime1, time.Local)
+
+
 
 		// 每周二 18:00 - 20:00
-		startWeek2 := time.Weekday(reqStartWeek)
-		endWeek2 := time.Weekday(reqEndWeek)
 
-		fmt.Println("endWeek2!!",endWeek2)
-		parsedStartTime2, _ := time.Parse("15:04", reqStartTime)
-		parsedEndTime2, _ := time.Parse("15:04",reqEndTime)
+		startWeek2,_:=utils.GetWeekdayTimestamps(reqStartWeek)
+		endWeek2,_:=utils.GetWeekdayTimestamps(reqEndWeek)
 
-		start2 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), parsedStartTime2.Hour(),
-			parsedStartTime2.Minute(), 0, 0, time.Local).AddDate(0, 0, int(startWeek2-time.Now().Weekday())  + WeekDay(startWeek2))
-		end2 := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), parsedEndTime2.Hour(),
-			parsedEndTime2.Minute(), 0, 0, time.Local).AddDate(0, 0, int(endWeek2-time.Now().Weekday()) + WeekDay(endWeek2))
+		parsedStartTime2 := fmt.Sprintf("%v %v",startWeek2.Format("2006-01-02"),reqStartTime)
+		parsedEndTime2 := fmt.Sprintf("%v %v",endWeek2.Format("2006-01-02"),reqEndTime)
+
+		start2,_:=time.ParseInLocation("2006-01-02 15:04", parsedStartTime2, time.Local)
+		end2,_:=time.ParseInLocation("2006-01-02 15:04", parsedEndTime2, time.Local)
 
 		// 检查两个时间段是否有重叠
 		overlap := utils.IsTimeOverlap(start1, end1, start2, end2)
-		//fmt.Println("是否范围内:",row.Id, overlap,"|| 数据库时间",start1, end1,"|| 请求的时间",start2, end2,"reqStartWeek",reqStartWeek,reqEndWeek)
+		fmt.Println("是否范围内比较！！！！！:",row.Id, overlap,"|| 数据库时间",start1, end1,"|| 请求的时间",start2, end2,"reqStartWeek",reqStartWeek,reqEndWeek)
 		if overlap {
 			return true
 		}
@@ -417,7 +417,7 @@ func (e CycleTimeConf) Update(c *gin.Context) {
 
 
 		 if e.CheckOverlapDayCycle(userDto.CId,req.StartTime,req.EndTime,req.Id){
-			 e.Error(500, nil, "时间不可重叠")
+			 e.Error(500, nil, "下单时间配置不可重叠")
 			 return
 		 }
 	case global.CyCleTimeWeek:
@@ -426,7 +426,7 @@ func (e CycleTimeConf) Update(c *gin.Context) {
 
 
 		if e.CheckOverWeekCycle(userDto.CId,req.StartWeek,req.EndWeek,req.StartTime,req.EndTime,req.Id){
-			e.Error(500, nil, "时间不可重叠")
+			e.Error(500, nil, "下单时间配置不可重叠")
 			return
 		}
 
