@@ -66,6 +66,7 @@ func (e Driver) MiniApi(c *gin.Context) {
 // @Security Bearer
 func (e Driver) GetPage(c *gin.Context) {
 	req := dto.DriverGetPageReq{}
+
 	s := service.Driver{}
 	err := e.MakeContext(c).
 		MakeOrm().
@@ -80,6 +81,7 @@ func (e Driver) GetPage(c *gin.Context) {
 
 	p := actions.GetPermissionFromContext(c)
 	list := make([]models.Driver, 0)
+
 	var count int64
 
 	err = s.GetPage(&req, p, &list, &count)
@@ -257,8 +259,9 @@ func (e Driver) Update(c *gin.Context) {
 // @Router /api/v1/driver [delete]
 // @Security Bearer
 func (e Driver) Delete(c *gin.Context) {
-	s := service.Driver{}
 	req := dto.DriverDeleteReq{}
+
+	s := service.Driver{}
 	err := e.MakeContext(c).
 		MakeOrm().
 		Bind(&req).

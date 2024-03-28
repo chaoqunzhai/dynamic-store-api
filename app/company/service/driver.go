@@ -1,6 +1,5 @@
 package service
 
-import "C"
 import (
 	"errors"
 	sys "go-admin/app/admin/models"

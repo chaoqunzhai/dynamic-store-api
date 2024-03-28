@@ -111,13 +111,14 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 	for _,row:=range goodsSpecs{
 
 		inventoryKey = append(inventoryKey,fmt.Sprintf("(goods_id = %v and spec_id = %v)",row.GoodsId,row.Id))
-		//已经查询过了,那就不用查询了
-		if _,ok:=goodsCnfMap[row.GoodsId];ok{
-			continue
-		}
+
 		goodsIds = append(goodsIds,row.GoodsId)
 		if row.UnitId > 0 {
 			unitIds = append(unitIds,row.UnitId)
+		}
+		//已经查询过了,那就不用查询了
+		if _,ok:=goodsCnfMap[row.GoodsId];ok{
+			continue
 		}
 
 	}
@@ -153,7 +154,6 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 		for _,row:=range unitList{
 			unitCnfMap[row.Id] = row.Name
 		}
-
 
 	}
 	result :=make([]dto.GoodsSpecs,0)
