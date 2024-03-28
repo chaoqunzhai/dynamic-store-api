@@ -48,6 +48,7 @@ type DriverInsertReq struct {
 	CId    int    `json:"cId" comment:"大BID"`
 	Name   string `json:"name" comment:"司机名称" binding:"required"`
 	Phone  string `json:"phone" comment:"联系手机号" binding:"required"`
+	PassWord string `json:"password" comment:"密码" binding:"required"`
 	common.ControlBy
 }
 
@@ -76,6 +77,7 @@ type DriverUpdateReq struct {
 	CId    int    `json:"cId" comment:"大BID"`
 	Name   string `json:"name" comment:"司机名称" binding:"required"`
 	Phone  string `json:"phone" comment:"联系手机号" binding:"required"`
+	PassWord string `json:"password" comment:"密码" binding:"required"`
 	common.ControlBy
 }
 

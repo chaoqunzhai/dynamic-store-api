@@ -61,9 +61,9 @@ sudo CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.Version=2.
 4.  ssh git@github.com 测试是否可访问
 ### Systemd 方式启动:
 ```shell
-cat > /etc/systemd/system/dc-api.service << "END"
+cat > /etc/systemd/system/dc-store.service << "END"
 [Unit]
-Description=DyApi
+Description=DcStore
 After=network.target
 
 [Service]
@@ -80,15 +80,15 @@ RestartSec=1
 
 [Install]
 WantedBy=multi-user.target
-##################################
+
 END
 
 
 systemctl daemon-reload
 
-systemctl start api.service
-systemctl status api.service
-systemctl enable api.service
+systemctl start dc-store.service
+systemctl status dc-store.service
+systemctl enable dc-store.service
 
 ```
 

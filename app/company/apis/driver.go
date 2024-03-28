@@ -3,14 +3,14 @@ package apis
 import (
 	"errors"
 	"fmt"
-	"github.com/gin-gonic/gin/binding"
-	customUser "go-admin/common/jwt/user"
-	"go-admin/global"
-
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	"github.com/go-admin-team/go-admin-core/sdk/pkg/jwtauth/user"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
+	sys "go-admin/app/admin/models"
+	customUser "go-admin/common/jwt/user"
+	"go-admin/global"
 
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
@@ -99,6 +99,11 @@ func (e Driver) GetPage(c *gin.Context) {
 			}
 			row.LineName = bindLine.Name
 
+		}
+		if row.UserId > 0 {
+			var userObject sys.SysUser
+			e.Orm.Model(&sys.SysUser{}).Select("password").Where("user_id = ? and c_id = ?",row.UserId,row.CId).Limit(1).Find(&userObject)
+			row.Password = userObject.Password
 		}
 		result = append(result, row)
 	}
@@ -233,11 +238,13 @@ func (e Driver) Update(c *gin.Context) {
 		}
 	}
 
+
 	err = s.Update(userDto.CId, &req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("创建失败,%s", err.Error()))
 		return
 	}
+
 	e.OK(req.GetId(), "修改成功")
 }
 
@@ -282,7 +289,7 @@ func (e Driver) Delete(c *gin.Context) {
 		e.Error(500, errors.New("存在关联路线不可删除！"), "存在关联路线不可删除！")
 		return
 	}
-	err = s.Remove(&req, p)
+	err = s.Remove(&req, p,userDto.CId)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("司机信息删除失败,%s", err.Error()))
 		return

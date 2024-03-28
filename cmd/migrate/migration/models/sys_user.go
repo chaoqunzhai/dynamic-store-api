@@ -26,6 +26,7 @@ type SysUser struct {
 	AppOpenId string `json:"-" gorm:"size:30;"` //微信小程序的openid
 	OffOpenId        string `json:"off_open_id" gorm:"size:30;"` //微信公众号的openid
 	InvitationCode string `json:"invitationCode" gorm:"type:varchar(10);comment:本人邀请码"`
+	ExtendedRule       []SysRole   `gorm:"many2many:extend_sys_user_rule;foreignKey:user_id;joinForeignKey:user_id;references:role_id;joinReferences:role_id;"`
 	ControlBy
 	ModelTime
 }
