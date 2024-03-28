@@ -26,6 +26,7 @@ type Inventory struct {
 	Stock int `json:"stock" gorm:"comment:仓库数量"`
 	ArtNo string `json:"art_no" gorm:"size:20;comment:货架编号"`
 	Code      string  `gorm:"size:20;comment:条形码"`
+	SerialNumber string `json:"serial_number" gorm:"size:20;comment:编号"`
 	OriginalPrice float64 `json:"original_price" gorm:"comment:当前入库价/成本价"`
 	Status     int          `json:"status" gorm:"type:tinyint(1);default:1;index;comment:销售状态  1:销售中 0:下线"`
 }

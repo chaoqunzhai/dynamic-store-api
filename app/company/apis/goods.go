@@ -545,6 +545,8 @@ func (e Goods) Get(c *gin.Context) {
 			"key":       now,
 			"name":      specs.Name,
 			"code":      specs.Code,
+			"virtually_sale":specs.VirtuallySale,
+			"serial_number":    specs.SerialNumber,
 			"price":     specs.Price,
 			"market":specs.Market,
 			"original":  specs.Original,

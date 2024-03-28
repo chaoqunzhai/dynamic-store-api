@@ -25,6 +25,7 @@ type GoodsSpecs struct {
 	Stock int `json:"stock"`
 	Image string `json:"image"`
 	Code string `json:"code"`
+	SerialNumber string `json:"serial_number"`
 	ArtNo string `json:"art_no"`
 }
 
@@ -81,6 +82,7 @@ type WarehousingRow struct {
 	Unit string `json:"unit"`
 	ArtNo string `json:"art_no" `
 	Code      string  `json:"code"`
+	SerialNumber string `json:"serial_number"`
 }
 type GoodsInfo struct {
 	Name string `json:"name"`

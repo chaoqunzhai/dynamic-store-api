@@ -25,6 +25,8 @@ type GoodsSpecs struct {
 	Max int  `json:"max" gorm:"type:bigint(20);comment:起售量"`
 	Image     string         `json:"image" gorm:"size:100;comment:商品图片路径"`
 	Code      string         `json:"code" gorm:"type:varchar(30);comment:规格名称"`
+	VirtuallySale int `json:"virtually_sale" gorm:"comment:虚拟库存"`
+	SerialNumber string `json:"serial_number" gorm:"size:20;comment:编号"`
 	CreateBy  int            `json:"-" gorm:"index;comment:创建者"`
 	CreatedAt time.Time      `json:"created_at" gorm:"comment:创建时间"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index;comment:删除时间"`

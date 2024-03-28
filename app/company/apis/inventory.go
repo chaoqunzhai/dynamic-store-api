@@ -169,6 +169,8 @@ func (e CompanyInventory) Goods(c *gin.Context) {
 			Key: fmt.Sprintf("%v_%v",row.GoodsId,row.Id),
 			Name: fmt.Sprintf("%v %v",goodsData.Name,row.Name),
 			Unit: unitCnfMap[row.UnitId],
+			Code: row.Code,
+			SerialNumber: row.SerialNumber,
 			Image: func() string {
 				if row.Image == "" {
 					return business.GetGoodsPathFirst(row.CId,goodsData.Image,global.GoodsPath)
@@ -692,6 +694,7 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 				GoodsId: goodsId,
 				SpecId: specsId,
 				Code: data.Code,
+				SerialNumber: data.SerialNumber,
 				ArtNo: data.ArtNo,
 			}
 			InventoryObject.CId = userDto.CId
@@ -711,6 +714,7 @@ func (e CompanyInventory) WarehousingCreate(c *gin.Context) {
 
 			InventoryObject.ArtNo = data.ArtNo
 			InventoryObject.Code = data.Code
+			InventoryObject.SerialNumber = data.SerialNumber
 			InventoryObject.Stock += data.ActionNumber
 			InventoryObject.OriginalPrice = data.CostPrice
 			if saveErr:=e.Orm.Save(&InventoryObject).Error;saveErr!=nil{

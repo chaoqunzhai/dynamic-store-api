@@ -98,21 +98,25 @@ type GoodsInsertReq struct {
 	       }
 */
 type Specs struct {
-	Id        int                    `json:"id" form:"id" `
-	Key       interface{}            `json:"key" form:"key"`
-	Name      string                 `json:"name" form:"name" comment:"规格名称"`
+	Id     int         `json:"id" form:"id" `
+	Key    interface{} `json:"key" form:"key"`
+	Name   string      `json:"name" form:"name" comment:"规格名称"`
 	Market interface{} `form:"market"  json:"market" comment:"市场价"`
-	Price     interface{}            `json:"price" form:"price" comment:"销售价"`
-	Layer     int                    `json:"layer" form:"layer"`
-	Enable    bool                   `json:"enable" form:"enable"`
-	Code      string                 `json:"code" form:"code"`
+	Price  interface{} `json:"price" form:"price" comment:"销售价"`
+	Layer  int         `json:"layer" form:"layer"`
+	Enable bool        `json:"enable" form:"enable"`
+	Code   string      `json:"code" form:"code"`
+
+	VirtuallySale int `json:"virtually_sale" form:"virtually_sale"`
+
+	SerialNumber    string                 `json:"serial_number" form:"number"`
 	Image     string                 `json:"image" form:"image"`
-	Type string `json:"type"`
+	Type      string                 `json:"type"`
 	Original  interface{}            `json:"original" form:"original" comment:"原价"`
 	Inventory interface{}            `json:"inventory" form:"inventory" comment:"库存"`
-	UnitId interface{}  `json:"unit_id" form:"unit_id" comment:"单位"`
+	UnitId    interface{}            `json:"unit_id" form:"unit_id" comment:"单位"`
 	Limit     interface{}            `json:"limit" form:"limit" comment:"起售量"`
-	Max interface{}            `json:"max" form:"limit" comment:"起售量"`
+	Max       interface{}            `json:"max" form:"limit" comment:"起售量"`
 	Vip       map[string]interface{} `json:"vip" form:"vip" comment:"vip价格设置"`
 }
 

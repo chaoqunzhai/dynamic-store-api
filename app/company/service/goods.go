@@ -143,6 +143,8 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int,specDbMap map[in
 				Layer:   row.Layer,
 				GoodsId: data.Id,
 				Code:    row.Code,
+				VirtuallySale: row.VirtuallySale,
+				SerialNumber: row.SerialNumber,
 				Image:   row.Image,
 				Price:   price,
 				Market: utils.RoundDecimalFlot64(row.Market),
@@ -241,7 +243,8 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 	}
 	//商品库存值
 	inventory := 0
-
+	//销售量 虚拟销量 + 实际销量
+	saleAll :=0
 	specsList := make([]dto.Specs, 0)
 	marshErr := json.Unmarshal([]byte(c.Specs), &specsList)
 	moneyList := make([]float64, 0)
@@ -267,13 +270,15 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 		//这个是专门用来记录, 文件的位置
 		fileIndex:=0
 		for index, row := range specsList {
+
 			var specsRow models.GoodsSpecs
 			//获取库存量
 			stock := utils.StringToInt(row.Inventory)
 			price := utils.RoundDecimalFlot64(row.Price)
 			moneyList = append(moneyList, price)
 			inventory += stock
-
+			//虚拟销量的叠加
+			saleAll +=row.VirtuallySale
 
 			if row.Type !="append" {
 				//就是一个规格资源的更新
@@ -281,7 +286,12 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 				if specsRow.Id == 0 {
 					continue
 				}
+				//原来的销量也叠加上去
+				saleAll += specsRow.Sale
+
+				specsRow.VirtuallySale = row.VirtuallySale
 				specsRow.Code = row.Code
+				specsRow.SerialNumber = row.SerialNumber
 				specsRow.Name = row.Name
 				specsRow.Enable = row.Enable
 				specsRow.Layer = row.Layer
@@ -304,7 +314,9 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 					Enable:  row.Enable,
 					Layer:   row.Layer,
 					GoodsId: c.Id,
+					VirtuallySale: row.VirtuallySale,
 					Code:    row.Code,
+					SerialNumber: row.SerialNumber,
 					Price:   price,
 					Original:utils.RoundDecimalFlot64(row.Original),
 					Inventory: stock,
@@ -404,7 +416,7 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 	}()
 
 	data.Inventory = inventory
-
+	data.Sale = saleAll
 	//fmt.Println("新的库存是，",inventory)
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {

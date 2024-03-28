@@ -52,6 +52,8 @@ type GoodsSpecs struct {
 	Max int  `gorm:"comment:最大购买量"`
 	ArtNo string `gorm:"size:20;comment:商品货号"`
 	Code      string  `gorm:"size:30;comment:条形码"`
+	SerialNumber string `json:"serial_number" gorm:"size:20;comment:编号"`
+	VirtuallySale int `json:"virtually_sale" gorm:"comment:虚拟库存"`
 	Image     string  `gorm:"size:15;comment:商品图片路径"`
 }
 
