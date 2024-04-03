@@ -524,7 +524,7 @@ func (e Goods) Get(c *gin.Context) {
 		}(),
 	}
 	var specsList []models.GoodsSpecs
-	e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id = ? and c_id = ?", req.Id, userDto.CId).Find(&specsList)
+	e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id = ? and c_id = ?", req.Id, userDto.CId).Order(global.OrderLayerKey).Find(&specsList)
 	specData := make([]interface{}, 0)
 	specVipData := make([]interface{}, 0)
 
