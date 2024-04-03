@@ -114,6 +114,7 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int,specDbMap map[in
 
 	if c.Content != ""{
 		e.Orm.Create(&models.GoodsDesc{
+			CId: data.CId,
 			GoodsId: data.Id,
 			Desc: c.Content,
 		})
@@ -319,6 +320,7 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 					SerialNumber: row.SerialNumber,
 					Price:   price,
 					Original:utils.RoundDecimalFlot64(row.Original),
+					Market: utils.RoundDecimalFlot64(row.Market),
 					Inventory: stock,
 					UnitId:     utils.StringToInt(row.UnitId),
 					Limit: utils.StringToInt(row.Limit),
@@ -429,12 +431,14 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 		e.Orm.Model(&GoodsDesc).Where("goods_id = ?",data.Id).Count(&count)
 		if count == 0 {
 			e.Orm.Create(&models.GoodsDesc{
+				CId: data.CId,
 				GoodsId: data.Id,
 				Desc: c.Content,
 			})
 		}else {
 			e.Orm.Model(&GoodsDesc).Where("goods_id = ?",data.Id).Updates(map[string]interface{}{
 				"desc":c.Content,
+				"c_id":data.CId,
 			})
 		}
 	}
@@ -488,12 +492,12 @@ func (e *Goods) Remove(d *dto.GoodsDeleteReq,cid int, p *actions.DataPermission)
 		//可以删除的时候 才会保留删除ID
 		removeIds = append(removeIds, fmt.Sprintf("%v", goodsId))
 
-
+		//商品的主图
 		removeFileList = append(removeFileList, strings.Split(goods.Image,",")...)
 		//删除规格图片
 		GoodsSpecsList:=make([]models.GoodsSpecs,0)
 
-		e.Orm.Model(&models.GoodsSpecs{}).Select("image").Where("goods_id = ?",goodsId).Limit(1).Find(&GoodsSpecsList)
+		e.Orm.Model(&models.GoodsSpecs{}).Select("image").Where("goods_id = ?",goodsId).Find(&GoodsSpecsList)
 
 		for _,spec:=range GoodsSpecsList{
 			if spec.Image !="" {

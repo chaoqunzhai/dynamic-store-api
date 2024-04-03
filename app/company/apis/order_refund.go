@@ -522,7 +522,7 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 				CreateBy:userDto.Username,
 				OrderId: orderSpecsObject.OrderId,
 				Action: global.InventoryRefundIn, //入库
-				Source: 1, //客户发起的
+				Source: global.RecordSourceShop, //客户发起的
 				Image: imageVal,
 				GoodsId: thisObj.GoodsId,
 				GoodsName: goodsObject.Name,

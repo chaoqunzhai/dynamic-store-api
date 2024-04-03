@@ -197,7 +197,7 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 				GoodsId: dat.GoodsId,
 				GoodsName: goodsObject.Name,
 				GoodsSpecName: goodsSpecs.Name,
-				Source: 2,//大B发起的
+				Source: global.RecordSourceCompany,//大B发起的
 				SpecId: dat.Specs.SpecId,
 				SourceNumber:SourceNumber, //原库存
 				ActionNumber:dat.Specs.Number, //操作的库存

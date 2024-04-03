@@ -588,10 +588,10 @@ func (e CompanyInventory) OrderList(c *gin.Context) {
 	}
 	switch req.Action {
 	case "in":
-		whereSql += fmt.Sprintf(fmt.Sprintf(" and action = %v",1))
+		whereSql += fmt.Sprintf(fmt.Sprintf(" and (action = %v or action = %v ) ",global.InventoryIn,global.InventoryEdit))
 	case "out":
 
-		whereSql += fmt.Sprintf(fmt.Sprintf(" and action = %v",2))
+		whereSql += fmt.Sprintf(fmt.Sprintf(" and action = %v",global.InventoryOut))
 	}
 	var list []models2.InventoryOrder
 	e.Orm.Model(&models2.InventoryOrder{}).Where(whereSql).Scopes(

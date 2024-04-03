@@ -214,13 +214,16 @@ const (
 	InventoryApproveIn = 8 //审批驳回入库
 
 	InventoryHelpOut = 9 //代客下单出库
-
+	InventoryEdit = 10 //库存编辑
 	PayEnBalance = "balance"
 	PayEnWeChat = "we_chat"
 	PayEnCredit = "credit"
 	PayEnCashOn = "cash_on"
 	PayEnOffline = "offline"
 	PayEnAli = "ali"
+	RecordSourceShop = 1 //客户发起退货
+	RecordSourceCompany = 2 //大B在PC端发起的
+	RecordSourceMbm =  3 //手机移动端操作
 )
 
 func GetInventoryInAll() []int  {
@@ -256,6 +259,8 @@ func GetInventoryActionCn(v int) (bol,val string) {
 		return "+","审批驳回入库"
 	case InventoryHelpOut:
 		return "-","到店开单出库"
+	case InventoryEdit:
+		return "","库存编辑"
 	}
 	return "",""
 

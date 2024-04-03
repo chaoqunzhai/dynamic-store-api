@@ -44,6 +44,7 @@ func (e *Goods) GetId() interface{} {
 
 type GoodsDesc struct {
 	models.Model
+	CId int `gorm:"index;comment:大BID"`
 	GoodsId int
 	Desc      string //描述内容
 }

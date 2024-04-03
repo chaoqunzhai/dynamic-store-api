@@ -977,7 +977,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 					CreateBy:userDto.Username,
 					OrderId: orderRow.OrderId,
 					Action: global.InventoryHelpOut,
-					Source: 2, //大B发起
+					Source: global.RecordSourceCompany, //大B发起
 					GoodsId: GoodsId,
 					GoodsName: goodsObject.Name,
 					GoodsSpecName: goodsSpecs.Name,
