@@ -16,3 +16,14 @@ type GlobalArticle struct {
 func (GlobalArticle) TableName() string {
 		return "global_article"
 }
+type CompanyRegister struct {
+	Model
+	ModelTime
+	UserName string `json:"user_name" gorm:"size:20;comment:名称"`
+	Phone string `json:"phone" gorm:"size:11;comment:手机号"`
+	Desc string `json:"desc" gorm:"size:100;comment:描述"`
+
+}
+func (CompanyRegister) TableName() string {
+	return "company_register"
+}
