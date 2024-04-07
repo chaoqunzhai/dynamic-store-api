@@ -370,7 +370,16 @@ func IntersectInt(slice1, slice2 []int) []int {
 	}
 	return nn
 }
+func CheckStringSize(str string) bool {
+	sizeInBytes := len(str)
+	maxSizeInBytes := 3 * 1024 * 1024 // 3MB in bytes
 
+	if sizeInBytes > maxSizeInBytes {
+		fmt.Println("Error: String size exceeds 3MB.")
+		return false
+	}
+	return true
+}
 // 求交集
 func Intersect(slice1, slice2 []string) []string {
 	m := make(map[string]int)

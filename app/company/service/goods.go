@@ -113,11 +113,13 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int,specDbMap map[in
 	err = e.Orm.Create(&data).Error
 
 	if c.Content != ""{
-		e.Orm.Create(&models.GoodsDesc{
-			CId: data.CId,
-			GoodsId: data.Id,
-			Desc: c.Content,
-		})
+		if utils.CheckStringSize(c.Content){
+			e.Orm.Create(&models.GoodsDesc{
+				CId: data.CId,
+				GoodsId: data.Id,
+				Desc: c.Content,
+			})
+		}
 	}
 
 	specsList := make([]dto.Specs, 0)
@@ -426,21 +428,24 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 		return nil, err
 	}
 	if c.Content != ""{
-		var GoodsDesc models.GoodsDesc
-		var count int64
-		e.Orm.Model(&GoodsDesc).Where("goods_id = ?",data.Id).Count(&count)
-		if count == 0 {
-			e.Orm.Create(&models.GoodsDesc{
-				CId: data.CId,
-				GoodsId: data.Id,
-				Desc: c.Content,
-			})
-		}else {
-			e.Orm.Model(&GoodsDesc).Where("goods_id = ?",data.Id).Updates(map[string]interface{}{
-				"desc":c.Content,
-				"c_id":data.CId,
-			})
+		if utils.CheckStringSize(c.Content){
+			var GoodsDesc models.GoodsDesc
+			var count int64
+			e.Orm.Model(&GoodsDesc).Where("goods_id = ?",data.Id).Count(&count)
+			if count == 0 {
+				e.Orm.Create(&models.GoodsDesc{
+					CId: data.CId,
+					GoodsId: data.Id,
+					Desc: c.Content,
+				})
+			}else {
+				e.Orm.Model(&GoodsDesc).Where("goods_id = ?",data.Id).Updates(map[string]interface{}{
+					"desc":c.Content,
+					"c_id":data.CId,
+				})
+			}
 		}
+
 	}
 	return NewSpecImageMap, err
 }
