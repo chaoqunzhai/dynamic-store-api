@@ -31,6 +31,7 @@ type Company struct {
 	api.Api
 }
 
+
 func (e Company) MonitorData(c *gin.Context) {
 	s := service.Company{}
 	err := e.MakeContext(c).

@@ -108,6 +108,7 @@ func (e *PayWechat) CreateWechatAppPay(c *gin.Context) {
 		PayCnf.KeyText = strings.TrimSpace(req.KeyText)
 		PayCnf.AppId = strings.TrimSpace(req.AppId)
 		PayCnf.AppSecret = strings.TrimSpace(req.AppSecret)
+		PayCnf.Enable = req.Enable
 		e.Orm.Save(&PayCnf)
 	}else {
 		trade:=models.WeChatAppPay{
@@ -122,7 +123,7 @@ func (e *PayWechat) CreateWechatAppPay(c *gin.Context) {
 		}
 		trade.CreateBy = userDto.UserId
 		trade.CId = userDto.CId
-		trade.Enable = true
+		trade.Enable = req.Enable
 		trade.Refund = req.Refund
 		trade.Layer = 0
 		e.Orm.Create(&trade)
@@ -191,6 +192,7 @@ func (e *PayWechat) Create(c *gin.Context) {
 		PayCnf.KeyText = strings.TrimSpace(req.KeyText)
 		PayCnf.OfficialAppId = strings.TrimSpace(req.OfficialAppId)
 		PayCnf.OfficialAppSecret = strings.TrimSpace(req.OfficialAppSecret)
+		PayCnf.Enable = req.Enable
 		e.Orm.Save(&PayCnf)
 	}else {
 		trade:=models.WeChatOfficialPay{
@@ -205,7 +207,7 @@ func (e *PayWechat) Create(c *gin.Context) {
 		}
 		trade.CreateBy = userDto.UserId
 		trade.CId = userDto.CId
-		trade.Enable = true
+		trade.Enable = req.Enable
 		trade.Refund = req.Refund
 		trade.Layer = 0
 		e.Orm.Create(&trade)
