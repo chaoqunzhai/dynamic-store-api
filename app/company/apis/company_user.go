@@ -149,7 +149,7 @@ func (e Company) MiniList(c *gin.Context) {
 		orm = orm.Where("c_id = ? and enable = ? ",
 			userDto.CId, true)
 	}
-	orm.Scopes(dto.MakeCondition(req.GetNeedSearch())).Find(&datalist)
+	orm.Scopes(dto.MakeCondition(req.GetNeedSearch())).Order(global.OrderUserLayerKey).Find(&datalist)
 	result := make([]map[string]interface{}, 0)
 	for _, row := range datalist {
 		result = append(result, map[string]interface{}{

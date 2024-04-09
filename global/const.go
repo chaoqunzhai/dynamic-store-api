@@ -67,7 +67,7 @@ const (
 	CompanyMaxBrand = 200 //商品品牌
 
 	OrderLayerKey    = " layer desc,id desc "
-	OrderUserLayerKey    = "layer,user_id desc"
+	OrderUserLayerKey    = "layer desc,user_id desc"
 	OrderTimeKey     = "created_at desc"
 	UserNumberAdd    = "add"    //增加
 	UserNumberReduce = "reduce" //减少

@@ -292,13 +292,14 @@ func (e *Shop) Update(c *dto.ShopUpdateReq, p *actions.DataPermission) error {
 		address.FullAddress = FullAddress
 		e.Orm.Create(&address)
 	}else {
-		e.Orm.Model(&models2.DynamicUserAddress{}).Where("user_id = ? and source = 1 and c_id = ?",shopUserId,data.CId).Updates(map[string]interface{}{
-			"name":data.Name,
-			"address":data.Address,
-			"mobile":data.Phone,
-			"china_id":ChinaId,
-			"full_address":FullAddress,
-		})
+		//不做小B的默认地址信息更新
+		//e.Orm.Model(&models2.DynamicUserAddress{}).Where("user_id = ? and source = 1 and c_id = ?",shopUserId,data.CId).Updates(map[string]interface{}{
+		//	"name":data.Name,
+		//	"address":data.Address,
+		//	"mobile":data.Phone,
+		//	"china_id":ChinaId,
+		//	"full_address":FullAddress,
+		//})
 	}
 
 	e.Orm.Model(&models.Shop{}).Where("id = ?",data.Id).Updates(map[string]interface{}{

@@ -286,7 +286,7 @@ func (e Shop) Insert(c *gin.Context) {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return
 	}
-	var phone string
+	var userPhone string
 	if req.ApproveId > 0 {
 
 		var data models.CompanyRegisterUserVerify
@@ -300,7 +300,7 @@ func (e Shop) Insert(c *gin.Context) {
 			e.Error(500, errors.New("未审批通过"), "未审批通过")
 			return
 		}
-		phone = data.Phone
+		userPhone = data.Phone
 	}else {
 		if req.Phone != ""{
 			var userCount int64
@@ -319,15 +319,19 @@ func (e Shop) Insert(c *gin.Context) {
 				return
 			}
 		}
+		userPhone = req.Phone
 	}
 
 
-	var userShopCount int64
-	e.Orm.Model(&models.Shop{}).Where("phone = ? ",phone).Count(&userShopCount)
-	if userShopCount > 0 {
-		e.Error(500, errors.New("店铺手机号已经存在"), "店铺手机号已经存在")
-		return
+	if userPhone !=""{
+		var userShopCount int64
+		e.Orm.Model(&models.Shop{}).Where("phone = ? ",userPhone).Count(&userShopCount)
+		if userShopCount > 0 {
+			e.Error(500, errors.New("店铺手机号已经存在"), "店铺手机号已经存在")
+			return
+		}
 	}
+
 
 	err = s.Insert(userDto,&req)
 	if err != nil {
