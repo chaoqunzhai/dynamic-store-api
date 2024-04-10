@@ -152,6 +152,7 @@ func (e ShopRegisterList) Update(c *gin.Context) {
 		e.Error(500, nil,"门店已经创建,不可进行审批操作")
 		return
 	}
+	//更新描述和状态
 	data.Status  = req.Status
 	data.Info = req.Info
 
