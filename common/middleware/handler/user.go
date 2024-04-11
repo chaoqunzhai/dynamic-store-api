@@ -21,6 +21,7 @@ type SysUser struct {
 	Remark   string `json:"remark" gorm:"size:255;comment:备注"`
 	Status   string `json:"status" gorm:"size:4;comment:状态"`
 	CId int `json:"c_id"`
+	LoginTime models.XTime      `json:"login_time" gorm:"type:datetime(3);comment:登录时间"`
 	//Dept     *SysDept `json:"dept"`
 	models.ControlBy
 	models.ModelTime

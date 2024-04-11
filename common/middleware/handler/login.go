@@ -50,8 +50,9 @@ func LoginValidUserCompany(userId int,tx *gorm.DB) error {
 }
 
 func (u *Login) GetUserPhone(tx *gorm.DB) (user SysUser, role SysRole, err error) {
-	err = tx.Table("sys_user").Where("phone = ?  and status = ? and enable = ?",
-		u.Phone, global.SysUserSuccess, true).Limit(1).First(&user).Error
+	orm := tx.Table("sys_user").Where("phone = ?  and status = ? and enable = ?",
+		u.Phone, global.SysUserSuccess, true)
+	err =orm.Limit(1).First(&user).Error
 	if err != nil {
 		err = errors.New("手机号不存在")
 		return
@@ -63,12 +64,16 @@ func (u *Login) GetUserPhone(tx *gorm.DB) (user SysUser, role SysRole, err error
 		return
 	}
 
+	orm.Updates(map[string]interface{}{
+		"login_time":time.Now(),
+	})
 	//if user.RoleId == global.RoleSaleMan
 	err =LoginValidCompany(user.CId,tx)
 	return
 }
 func (u *Login) GetUser(tx *gorm.DB) (user SysUser, role SysRole, err error) {
-	err = tx.Table("sys_user").Where("username = ?  and status = '2' and enable = ? ", u.UserName,true).First(&user).Error
+	orm := tx.Table("sys_user").Where("username = ?  and status = '2' and enable = ? ", u.UserName,true)
+	err = orm.First(&user).Error
 	if err != nil {
 		err = errors.New("用户不存在")
 		return
@@ -78,6 +83,9 @@ func (u *Login) GetUser(tx *gorm.DB) (user SysUser, role SysRole, err error) {
 		err = errors.New("用户名或密码错误")
 		return
 	}
+	orm.Updates(map[string]interface{}{
+		"login_time":time.Now(),
+	})
 
 	return
 }
