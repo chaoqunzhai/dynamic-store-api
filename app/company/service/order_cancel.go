@@ -263,7 +263,7 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 			Type: global.ScanAdmin,
 		}
 		e.Orm.Create(&row)
-	default:
+	case global.PayTypeBalance,global.PayTypeOnlineWechat,global.PayTypeOnlineAli:
 		//其他支付都默认退回余额
 		updateMoneyMap["balance"] = shopRow.Balance + returnOrderMoney
 		row:=models2.ShopBalanceLog{

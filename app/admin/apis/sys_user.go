@@ -95,7 +95,7 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 	}
 
 	var object models2.Company
-	e.Orm.Model(&models2.Company{}).Where("enable = 1 and leader_id = ? ",userID).First(&object)
+	e.Orm.Model(&models2.Company{}).Where("enable = 1 and id = ? ",sysUser.CId).First(&object)
 
 	var logoImage string
 	if object.Image != ""{
