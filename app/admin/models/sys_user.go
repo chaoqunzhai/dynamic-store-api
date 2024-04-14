@@ -2,7 +2,6 @@ package models
 
 import (
 	"go-admin/common/models"
-	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -48,20 +47,21 @@ func (e *SysUser) GetId() interface{} {
 
 // 加密
 func (e *SysUser) Encrypt() (err error) {
-	if e.Password == "" {
-		return
-	}
-
-	var hash []byte
-
-	//同时生成他的邀请码
-	//e.InvitationCode = utils.GenValidateCode(6)
-	if hash, err = bcrypt.GenerateFromPassword([]byte(e.Password), bcrypt.DefaultCost); err != nil {
-		return
-	} else {
-		e.Password = string(hash)
-		return
-	}
+	return nil
+	//if e.Password == "" {
+	//	return
+	//}
+	//
+	//var hash []byte
+	//
+	////同时生成他的邀请码
+	////e.InvitationCode = utils.GenValidateCode(6)
+	//if hash, err = bcrypt.GenerateFromPassword([]byte(e.Password), bcrypt.DefaultCost); err != nil {
+	//	return
+	//} else {
+	//	e.Password = string(hash)
+	//	return
+	//}
 }
 
 func (e *SysUser) BeforeCreate(_ *gorm.DB) error {

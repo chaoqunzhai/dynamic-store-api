@@ -31,10 +31,10 @@ func sysBaseRouter(r *gin.RouterGroup) {
 func sysCheckRoleRouterInit(r *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddleware) {
 
 	v1 := r.Group("/api/v1")
-	{
-		v1.POST("/login", authMiddleware.LoginHandler)
-
-	}
+	//{
+	//	v1.POST("/login", authMiddleware.LoginHandler)
+	//
+	//}
 	registerBaseRouter(v1, authMiddleware)
 }
 

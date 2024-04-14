@@ -3,6 +3,7 @@
 * @Date: 2023/12/19 17:44
 */
 package models
+
 //全局生效配置
 
 type GlobalArticle struct {
@@ -26,4 +27,16 @@ type CompanyRegister struct {
 }
 func (CompanyRegister) TableName() string {
 	return "company_register"
+}
+//大B和小B关联的表
+
+type CompanyBindShopUser struct {
+	Model
+	ModelTime
+	CId int  `json:"c_id" gorm:"index;comment:关联的大B"`
+	ShopUserId int `json:"shop_user_id" gorm:"index;comment:关联的小B"`
+	Enable bool `json:"enable" gorm:"default:true;comment:是否有效关联"`
+}
+func (CompanyBindShopUser) TableName() string {
+	return "company_all_bsu"
 }

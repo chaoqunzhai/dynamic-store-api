@@ -281,7 +281,7 @@ func (e Shop) Insert(c *gin.Context) {
 
 
 	var count int64
-	e.Orm.Model(&models.Shop{}).Scopes(actions.PermissionSysUser(object.TableName(), userDto)).Where("name = ? ",  req.Name).Count(&count)
+	e.Orm.Model(&models.Shop{}).Where("c_id = ?  and name = ? ",userDto.CId,req.Name).Count(&count)
 	if count > 0 {
 		e.Error(500, errors.New("名称已经存在"), "名称已经存在")
 		return
@@ -304,7 +304,7 @@ func (e Shop) Insert(c *gin.Context) {
 	}else {
 		if req.Phone != ""{
 			var userCount int64
-			e.Orm.Model(&sys.SysShopUser{}).Where("phone = ? ",req.Phone).Count(&userCount)
+			e.Orm.Model(&sys.SysShopUser{}).Where("c_id = ? and phone = ? ",userDto.CId,req.Phone).Count(&userCount)
 			if userCount > 0 {
 				e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
 				return
@@ -312,8 +312,7 @@ func (e Shop) Insert(c *gin.Context) {
 		}
 		if req.UserName != "" {
 			var userNameCount int64
-			var SysShopUserObject sys.SysShopUser
-			e.Orm.Model(&sys.SysShopUser{}).Scopes(actions.PermissionSysUser(SysShopUserObject.TableName(), userDto)).Where("username = ? ",req.UserName).Count(&userNameCount)
+			e.Orm.Model(&sys.SysShopUser{}).Where("c_id = ? and username = ? ",userDto.CId,req.UserName).Count(&userNameCount)
 			if userNameCount > 0 {
 				e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
 				return
@@ -325,7 +324,7 @@ func (e Shop) Insert(c *gin.Context) {
 
 	if userPhone !=""{
 		var userShopCount int64
-		e.Orm.Model(&models.Shop{}).Where("phone = ? ",userPhone).Count(&userShopCount)
+		e.Orm.Model(&models.Shop{}).Where("c_id = ? and phone = ? ",userDto.CId,userPhone).Count(&userShopCount)
 		if userShopCount > 0 {
 			e.Error(500, errors.New("店铺手机号已经存在"), "店铺手机号已经存在")
 			return

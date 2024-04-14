@@ -11,7 +11,7 @@ import (
 )
 
 type Login struct {
-	Phone    string `form:"phone" json:"phone" `
+	//Phone    string `form:"phone" json:"phone" `
 	UserName string `form:"username" json:"username"`
 	Password string `form:"password" json:"password" binding:"required"`
 	Code     string `form:"Code" json:"code" binding:"required"`
@@ -51,12 +51,13 @@ func LoginValidUserCompany(userId int,tx *gorm.DB) error {
 
 func (u *Login) GetUserPhone(tx *gorm.DB) (user SysUser, role SysRole, err error) {
 	orm := tx.Table("sys_user").Where("phone = ?  and status = ? and enable = ?",
-		u.Phone, global.SysUserSuccess, true)
+		u.UserName, global.SysUserSuccess, true)
 	err =orm.Limit(1).First(&user).Error
 	if err != nil {
 		err = errors.New("手机号不存在")
 		return
 	}
+
 	_, loginErr := pkg.CompareHashAndPassword(user.Password, u.Password)
 	if loginErr != nil {
 		log.Errorf("user login error, %s", loginErr.Error())

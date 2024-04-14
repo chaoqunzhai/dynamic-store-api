@@ -10,6 +10,7 @@ import (
 	"go-admin/global"
 	"go.uber.org/zap"
 	"net/http"
+	"regexp"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -55,20 +56,7 @@ func IdentityHandler(c *gin.Context) interface{} {
 	}
 }
 
-// Authenticator 获取token
-// @Summary 登陆
-// @Description 获取token
-// @Description LoginHandler can be used by clients to get a jwt token.
-// @Description Payload needs to be json in the form of {"username": "USERNAME", "password": "PASSWORD"}.
-// @Description Reply will be of the form {"token": "TOKEN"}.
-// @Description dev mode：It should be noted that all fields cannot be empty, and a value of 0 can be passed in addition to the account password
-// @Description 注意：开发模式：需要注意全部字段不能为空，账号密码外可以传入0值
-// @Tags 登陆
-// @Accept  application/json
-// @Product application/json
-// @Param account body Login  true "account"
-// @Success 200 {string} string "{"code": 200, "expire": "2019-08-07T12:45:48+08:00", "token": ".eyJleHAiOjE1NjUxNTMxNDgsImlkIjoiYWRtaW4iLCJvcmlnX2lhdCI6MTU2NTE0OTU0OH0.-zvzHvbg0A" }"
-// @Router /api/v1/login [post]
+// 登录函数
 func Authenticator(c *gin.Context) (interface{}, error) {
 	log := api.GetRequestLogger(c)
 	db, err := pkg.GetOrm(c)
@@ -88,11 +76,29 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 
 		return nil, ErrInvalidVerification
 	}
-	if loginVals.Phone != "" { //手机号登录
+
+	//查询
+	regexPhone:= regexp.MustCompile(`^1[3-9]\d{9}$`)
+
+	//因为大B可能是在多个站点下都有，可能是一个站点管理员，或者是多个站点的员工等等
+
+
+
+
+	if regexPhone.MatchString(loginVals.UserName) {
+		//是手机号
+
+		var userList []SysUser
+		db.Model(&SysUser{}).Select("user_id,phone,c_id").Where("phone = ? and status = ?",loginVals.UserName,global.SysUserSuccess).Find(&userList)
+
+		if len(userList) > 0 {
+
+			return map[string]interface{}{"user_phone": loginVals.UserName, "select": true}, nil
+		}
 		userRow, role, e := loginVals.GetUserPhone(db)
 		messageData:=map[string]interface{}{
 			"ipaddr":common.GetClientIP(c),
-			"user":loginVals.Phone,
+			"user":loginVals.UserName,
 			"login_time":time.Now(),
 			"source":"PC",
 			"client":global.LogIngPC,
@@ -115,15 +121,12 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 		} else {
 			return nil, e
 		}
-	} else {//用户名或者手机号登录
-		//先查询下用户名
+
+
+	}else {
+
+
 		userRow, role, userErr := loginVals.GetUser(db)
-		var lastErr error
-		if userErr !=nil{//如果查询用户名没有,继续查询手机号
-			//然后查询下手机号
-			loginVals.Phone = loginVals.UserName
-			userRow, role, lastErr = loginVals.GetUserPhone(db)
-		}
 
 		messageData:=map[string]interface{}{
 			"ipaddr":common.GetClientIP(c),
@@ -134,7 +137,7 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 			"client":global.LogIngPC,
 			"user_type":global.LogIngUserType,
 		}
-		if lastErr == nil {
+		if userErr == nil {
 			messageData["c_id"] = userRow.CId
 			messageData["user_id"] = userRow.UserId
 			systemChan.SendMessage(&systemChan.Message{
@@ -148,9 +151,10 @@ func Authenticator(c *gin.Context) (interface{}, error) {
 			}()
 			return map[string]interface{}{"user": userRow, "role": role}, nil
 		} else {
-			return nil, lastErr
+			return nil, userErr
 		}
 	}
+
 
 }
 
@@ -179,7 +183,7 @@ func Authorizator(data interface{}, c *gin.Context) bool {
 		//r, _ := v["role"].(models.SysRole)
 		//c.Set("role", r.RoleName)
 		//c.Set("roleIds", r.RoleId)
-		//c.Set("dataScope", r.DataScope)
+		c.Set("cId", u.CId)
 		c.Set("userId", u.UserId)
 		c.Set("userName", u.Username)
 

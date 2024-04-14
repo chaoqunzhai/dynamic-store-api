@@ -483,13 +483,15 @@ func (e Company) CreateUser(c *gin.Context) {
 
 	//大B下的用户名是唯一的
 	var count int64
-	e.Orm.Model(&sys.SysUser{}).Where("username = ? and c_id = ? and enable = ?", req.UserName, userDto.CId, true).Count(&count)
+	//用户名必须是全站唯一的,因为用户名不同于手机号，
+	e.Orm.Model(&sys.SysUser{}).Where("username = ?  and enable = ?", req.UserName,true).Count(&count)
 	if count > 0 {
 		e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
 		return
 	}
 	var phoneCount int64
-	e.Orm.Model(&sys.SysUser{}).Where("phone = ? and enable = ?", req.Phone,true).Count(&phoneCount)
+	//todo: 手机号是可以在多个站点同时存在的
+	e.Orm.Model(&sys.SysUser{}).Where("phone = ? and c_id = ? and enable = ?", req.Phone,userDto.CId,true).Count(&phoneCount)
 	if phoneCount > 0 {
 		e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
 		return
@@ -543,10 +545,7 @@ func (e Company) Offline(c *gin.Context) {
 		if user.UserId == 0 {
 			continue
 		}
-		e.Orm.Model(&sys.SysUser{}).Where("c_id = ? and user_id = ?", userDto.CId, row).Updates(map[string]interface{}{
-			"enable": false,
-			"status": global.SysUserDisable,
-		})
+		e.Orm.Model(&sys.SysUser{}).Where("c_id = ? and user_id = ?", userDto.CId, row).Delete(&user)
 		//删除角色和用户的关联
 		runSql := fmt.Sprintf("delete from company_role_user where user_id = %v", row)
 		e.Orm.Exec(runSql)

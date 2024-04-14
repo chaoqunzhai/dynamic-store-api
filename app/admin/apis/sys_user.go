@@ -86,6 +86,7 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 
 	var mp = make(map[string]interface{})
 	sysUser := models.SysUser{}
+
 	userID := user.GetUserId(c)
 	req.Id = userID
 	err = s.Get(&req, p, &sysUser)

@@ -165,6 +165,7 @@ func PermissionCompanyRole() gin.HandlerFunc {
 
 		msgID := pkg.GenerateMsgIDFromContext(c)
 		var p = new(DataPermission)
+
 		if userId := user.GetUserIdStr(c); userId != "" {
 			p, err = newDataPermission(db, userId)
 			if err != nil {
@@ -174,7 +175,7 @@ func PermissionCompanyRole() gin.HandlerFunc {
 				return
 			}
 		}
-		//fmt.Printf("pp:%v\n",p)
+
 		if !p.Enable {
 			response.Error(c, 401, errors.New("您账户已被停用！"), "您账户已被停用！")
 			c.Abort()

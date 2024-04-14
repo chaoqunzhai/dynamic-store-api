@@ -161,18 +161,18 @@ func (e ShopRegisterList) Update(c *gin.Context) {
 		data.AdoptTime = models3.XTime{
 			Time:time.Now(),
 		}
-
-		//检测用户名是否已经存在
-		var userCount int64
-		e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("c_id = ? and username = ? ",data.CId,data.Value).Count(&userCount)
-		if userCount > 0 {
-			e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
-			return
-		}
+		//因为从H5注册上来的都是手机号 只需要检测手机号即可
+		////检测用户名是否已经存在
+		//var userCount int64
+		//e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("c_id = ? and username = ? ",data.CId,data.Value).Count(&userCount)
+		//if userCount > 0 {
+		//	e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
+		//	return
+		//}
 
 		//检测手机号是否已经存在
 		var phoneCount int64
-		e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("phone = ? ",data.Phone).Count(&phoneCount)
+		e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("c_id = ? and phone = ? ",data.CId,data.Phone).Count(&phoneCount)
 		if phoneCount > 0 {
 			e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
 			return
@@ -194,6 +194,12 @@ func (e ShopRegisterList) Update(c *gin.Context) {
 		e.Orm.Create(&shopUserDto)
 		//创建的ID保存进去
 		data.ShopUserId = shopUserDto.UserId
+
+		CompanyBindUser:=business.CompanyBindUser{
+			SiteId: data.CId,
+			Orm:e.Orm,
+		}
+		CompanyBindUser.AddBind(userDto.UserId)
 
 	}else {
 		//搜索这个手机号是否是有门店的

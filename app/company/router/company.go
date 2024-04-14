@@ -84,7 +84,7 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.PUT("/user/:id", api.UpdateUser)
 		//密码修改
 		r.POST("/user/uppass",api.UpPass)
-		//对用户进行下线,大B看不到了,但是超管还是可以看到的,更新用户的enable
+		//对用户进行下线(大B操作的是删除用户)
 		r.POST("/user/offline", api.Offline)
 		//增加系统用户,防止恶意注册 必须是role =
 		r.POST("/user/add", api.CreateUser)
