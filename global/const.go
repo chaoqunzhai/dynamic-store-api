@@ -17,6 +17,7 @@ const (
 	LogIngPC = "company-pc"
 	LogIngUserType = "用户名登录"
 	LogIngPhoneType = "手机号登录"
+	LogIngPhoneTypeCheckSite = "手机号站点切换登录"
 	ExpressSelf     = 1 //门店自提 门店地址
 	ExpressSameCity    = 2 //周期配送 客户地址
 	ExpressEms = 3 //物流配送 客户地址

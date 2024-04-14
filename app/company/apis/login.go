@@ -32,10 +32,15 @@ type LoginReq struct {
 	UUID     string `form:"UUID" json:"uuid" binding:"required"`
 	Role string `form:"role" json:"role"`
 }
+type CheckedCompanyReq struct {
+	Token string `form:"token" json:"token" binding:"required"`
+	SiteId int `form:"site_id" json:"site_id" binding:"required"`
+}
 var (
 	ErrMissingLoginValues   = errors.New("请输入手机号或者密码以及验证码")
 	ErrFailedAuthentication = errors.New("手机号或者密码错误")
 	ErrInvalidVerification  = errors.New("验证码错误")
+	ErrFailedAuthenticationChecked = errors.New("请先登录")
 )
 
 func LoginValidCompany(companyId int,tx *gorm.DB) error {
@@ -120,12 +125,18 @@ func (e Login)UserLogin(c *gin.Context)  {
 					if company.Id == 0 {
 						continue
 					}
+					var subtitle string
+					if len(company.Enterprise) > 12 {
+						subtitle = company.Enterprise[:12]
+					}
 					dat :=map[string]interface{}{
 						"user_id":row.UserId,
-						"c_id":row.CId,
+						"id":row.CId,
 						"company_name":company.Name,
-						"log":company.Image,
+						"logo":company.Image,
+						"subtitle":subtitle,
 					}
+
 					if company.Image != ""{
 						dat["log"] = business.GetGoodsPathFirst(company.Id,company.Image,global.AvatarPath)
 					}
@@ -276,5 +287,71 @@ func (e *Login) GetUserPhone(phone,password string,tx *gorm.DB) (user sys.SysUse
 	})
 
 	err =LoginValidCompany(user.CId,tx)
+	return
+}
+func (e Login)CompanyChecked(c *gin.Context)  {
+	req:=CheckedCompanyReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		Errors
+	if err != nil {
+		e.Error(400,ErrFailedAuthenticationChecked,ErrFailedAuthenticationChecked.Error())
+		return
+	}
+
+	//解析token 是否合法
+	Claims,tokenErr:=service.ParseToken(req.Token)
+	if tokenErr!=nil{
+
+		e.Error(400,nil,"token不合法")
+		return
+	}
+	fmt.Printf("获取到用户的ID:%v 手机号:%v 切换到站点:%v",Claims.UserId,Claims.Phone,req.SiteId)
+
+
+	//查询站点ID + 手机号获取到的用户做一个token,这个token
+	var userObject sys.SysUser
+	e.Orm.Model(&userObject).Where("c_id = ? and phone= ? and status = ?",
+		req.SiteId,Claims.Phone,global.SysUserSuccess).Limit(1).Find(&userObject)
+
+	if userObject.UserId == 0 {
+		e.Error(400,nil,"切换失败,在此商户下无用户配置")
+		return
+	}
+	messageData:=map[string]interface{}{
+		"ipaddr":common.GetClientIP(c),
+		"user":userObject.Username,
+		"login_time":time.Now(),
+		"source":"PC",
+		"client":global.LogIngPC,
+		"user_type":global.LogIngPhoneTypeCheckSite,
+		"role":global.LoginRoleCompany,
+	}
+
+	token, expire, tokenErr := service.BuildToken(userObject.UserId, userObject.Username,userObject.Phone)
+	if tokenErr != nil {
+		fmt.Println("Mobile build Token Error:", tokenErr.Error())
+		e.Error(400,nil,"内部错误")
+		return
+	}
+	messageData["c_id"] = userObject.CId
+	messageData["user_id"] = userObject.UserId
+	systemChan.SendMessage(&systemChan.Message{
+		Table: "sys_login_log",
+		Data: messageData,
+		Orm: e.Orm,
+	})
+	go func() {
+		zap.S().Infof("大B:%v切换站点登录,获取移动端配置数据",userObject.CId)
+		web_app.SearchAndLoadData(userObject.CId,e.Orm)
+	}()
+	res:=map[string]interface{}{
+		"token":  token,
+		"siteId":userObject.CId,
+		"expire": expire,
+		"role":userObject.RoleId,
+	}
+	e.OK(res, "登录成功")
 	return
 }

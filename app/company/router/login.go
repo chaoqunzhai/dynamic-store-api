@@ -16,6 +16,8 @@ func registerNoLoginRouter(v1 *gin.RouterGroup) {
 		//大B登录
 		l.POST("", api.UserLogin)
 
+		//选择大B进入
+		l.POST("/checked",api.CompanyChecked)
 
 	}
 }
