@@ -195,11 +195,7 @@ func (e ShopRegisterList) Update(c *gin.Context) {
 		//创建的ID保存进去
 		data.ShopUserId = shopUserDto.UserId
 
-		CompanyBindUser:=business.CompanyBindUser{
-			SiteId: data.CId,
-			Orm:e.Orm,
-		}
-		CompanyBindUser.AddBind(userDto.UserId)
+
 
 	}else {
 		//搜索这个手机号是否是有门店的
