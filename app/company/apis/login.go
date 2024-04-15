@@ -138,7 +138,7 @@ func (e Login)UserLogin(c *gin.Context)  {
 					}
 
 					if company.Image != ""{
-						dat["log"] = business.GetGoodsPathFirst(company.Id,company.Image,global.AvatarPath)
+						dat["logo"] = business.GetGoodsPathFirst(company.Id,company.Image,global.AvatarPath)
 					}
 					siteList = append(siteList,dat)
 				}
