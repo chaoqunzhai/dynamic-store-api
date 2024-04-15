@@ -280,6 +280,7 @@ func (e Company) UpdateUser(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+
 	var userObject sys.SysUser
 	//必须只能更新 大B下的用户,防止随意根据用户ID更改信息
 	e.Orm.Model(&sys.SysUser{}).Where("c_id = ? and user_id = ? ", userDto.CId, req.Id).Limit(1).Find(&userObject)
@@ -288,17 +289,22 @@ func (e Company) UpdateUser(c *gin.Context) {
 		return
 	}
 	var validUser sys.SysUser
-	e.Orm.Model(&sys.SysUser{}).Where("username = ? and c_id = ? and enable = ?",
-		req.UserName, userDto.CId, true).Limit(1).Find(&validUser)
-	if validUser.UserId != req.Id {
-		e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
-		return
+	e.Orm.Model(&sys.SysUser{}).Where("username = ?  and enable = ?",
+		req.UserName,true).Limit(1).Find(&validUser)
+	if validUser.UserId > 0 {
+		if validUser.UserId != req.Id {
+			e.Error(500, errors.New("用户名已被占用"), "用户名已被占用")
+			return
+		}
 	}
+	var phoneUser sys.SysUser
 	e.Orm.Model(&sys.SysUser{}).Where("phone = ? and c_id = ? and enable = ?",
-		req.Phone, userDto.CId, true).Limit(1).Find(&validUser)
-	if validUser.UserId != req.Id {
-		e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
-		return
+		req.Phone, userDto.CId, true).Limit(1).Find(&phoneUser)
+	if phoneUser.UserId > 0 {
+		if phoneUser.UserId != req.Id {
+			e.Error(500, errors.New("手机号已被占用"), "手机号已被占用")
+			return
+		}
 	}
 
 	updateMap := map[string]interface{}{
@@ -357,7 +363,7 @@ func (e Company) UpPass(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	//更新的是小B的用户
+
 	var sysDto sys.SysUser
 	e.Orm.Model(&sys.SysUser{}).Scopes(actions.PermissionSysUser(sysDto.TableName(), userDto)).Where("user_id = ? ",req.Id).Limit(1).Find(&sysDto)
 
@@ -428,15 +434,15 @@ func (e Company) CreateSalesManUser(c *gin.Context) {
 	}
 	//大B下的用户名是唯一的
 	var count int64
-	e.Orm.Model(&sys.SysUser{}).Where("username = ? and c_id = ? and enable = ?", req.UserName, userDto.CId, true).Count(&count)
+	e.Orm.Model(&sys.SysUser{}).Where("username = ? and enable = ?", req.UserName,true).Count(&count)
 	if count > 0 {
-		e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
+		e.Error(500, errors.New("用户名已被占用"), "用户名已被占用")
 		return
 	}
 	var phoneCount int64
 	e.Orm.Model(&sys.SysUser{}).Where("phone = ? and c_id = ? and enable = ?", req.Phone, userDto.CId, true).Count(&phoneCount)
 	if phoneCount > 0 {
-		e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
+		e.Error(500, errors.New("手机号已被占用"), "手机号已被占用")
 		return
 	}
 	userObject := sys.SysUser{
@@ -486,14 +492,14 @@ func (e Company) CreateUser(c *gin.Context) {
 	//用户名必须是全站唯一的,因为用户名不同于手机号，
 	e.Orm.Model(&sys.SysUser{}).Where("username = ?  and enable = ?", req.UserName,true).Count(&count)
 	if count > 0 {
-		e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
+		e.Error(500, errors.New("用户名已被占用"), "用户名已被占用")
 		return
 	}
 	var phoneCount int64
 	//todo: 手机号是可以在多个站点同时存在的
 	e.Orm.Model(&sys.SysUser{}).Where("phone = ? and c_id = ? and enable = ?", req.Phone,userDto.CId,true).Count(&phoneCount)
 	if phoneCount > 0 {
-		e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
+		e.Error(500, errors.New("手机号已被占用"), "手机号已被占用")
 		return
 	}
 	userObject := sys.SysUser{
