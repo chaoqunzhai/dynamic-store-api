@@ -9,8 +9,7 @@ import (
 
 type CycleTimeConf struct {
 	BigBRichGlobal
-	Uid       string `json:"uid" gorm:"type:varchar(4);index;comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
-	Show      bool   `json:"show" gorm:"default:true;comment:是否客户端展示"`
+	Uid       string `json:"uid" gorm:"type:varchar(30);index;comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
 	Type      int    `json:"type" gorm:"type:tinyint(1);default:1;comment:类型,每天,每周"`
 	StartWeek int    `json:"start_week" gorm:"type:tinyint(1);default:0;comment:类型为周,每周开始天"`
 	EndWeek   int    `json:"end_week" gorm:"type:tinyint(1);default:0;comment:类型为周,每周结束天"`
@@ -25,6 +24,26 @@ func (CycleTimeConf) TableName() string {
 	return "cycle_time_conf"
 }
 
+//配送周期修改记录
+type CycleCnfEditLog struct {
+	Model
+	CreatedAt models.XTime `json:"createdAt" gorm:"comment:创建时间"`
+	CId       int       `gorm:"index;comment:大BID"`
+	CreateBy int `json:"createBy" gorm:"index;comment:修改人"`
+	Uid       string `json:"uid" gorm:"type:varchar(30);index;comment:周期名称都是天,防止一天可能多个不同周期的配置,加个标识区分周期"`
+	Type      int    `json:"type" gorm:"type:tinyint(1);default:1;comment:类型,每天,每周"`
+	StartWeek int    `json:"start_week" gorm:"type:tinyint(1);default:0;comment:类型为周,每周开始天"`
+	EndWeek   int    `json:"end_week" gorm:"type:tinyint(1);default:0;comment:类型为周,每周结束天"`
+	StartTime string `json:"start_time" gorm:"size:5;comment:开始下单时间"`
+	EndTime   string `json:"end_time" gorm:"size:5;comment:结束时间"`
+	GiveDay   int    `json:"give_day" gorm:"type:tinyint(1);default:0;comment:跨天值为0是当天,大于0就是当天+天数"`
+	GiveTime  string `json:"give_time" gorm:"size:14;comment:配送时间,例如：15点至19点"`
+	Desc      string `json:"desc" gorm:"size:30;comment:描述信息"` //描述
+
+}
+func (CycleCnfEditLog) TableName() string {
+	return "cycle_edit_log"
+}
 // todo:订单,因为订单是一个记录,所有大部分可变的数据都是静态资源,不做关联查询
 type Orders struct {
 	Model

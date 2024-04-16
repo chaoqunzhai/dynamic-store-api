@@ -169,6 +169,7 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 			Unit: row.Unit,
 			InNumber: row.Number,
 			SourceNumber: row.Source,
+
 		}
 		if !ok{
 			sortKey = append(sortKey,row.ReturnId)
@@ -187,7 +188,7 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 				SDesc: row.SDesc,
 				CDesc: row.CDesc,
 				CreatedAt: row.CreatedAt.Format("2006-01-02 15:04:05"),
-
+				AuditBy: row.CreateBy,
 			}
 			lineObj,lineOk:=lineMap[row.LineId]
 			if lineOk {
@@ -383,9 +384,10 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 	}
 
 
+
 	updateShopMap:=make(map[string]interface{},0)
 	switch req.RefundMoneyType {
-	case global.RefundMoneyBalance:		//退余额
+	case global.RefundMoneyBalance:		//退余额 和其他都是退到余额中
 		updateShopMap["balance"] = utils.RoundDecimalFlot64(shop.Balance + refundMoney)
 
 
@@ -395,6 +397,8 @@ func (e OrdersRefund)Audit(c *gin.Context)  {
 	case global.RefundMoneyOffline: // 线下退款
 		//线下退款就是暂无了
 	}
+	fmt.Printf("请求的数据:%v\n",req)
+	fmt.Println("退款配置",req.RefundMoneyType,"updateShopMap",updateShopMap,"退款金额",req.RefundMoney)
 
 	if len(updateShopMap) > 0 {
 		shopRes :=e.Orm.Model(&models.Shop{}).Where("c_id = ? and id = ?",userDto.CId,refundFirstObject.ShopId).Updates(&updateShopMap)

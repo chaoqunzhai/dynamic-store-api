@@ -8,7 +8,6 @@ type CycleTimeConf struct {
 	models.Model
 	Layer     int    `json:"layer" gorm:"type:tinyint;comment:排序"`
 	Enable    bool   `json:"enable" gorm:"type:tinyint(1);comment:开关"`
-	Show      bool   `json:"show" gorm:"type:tinyint(1);comment:是否客户端展示"`
 	Desc      string `json:"desc" gorm:"type:varchar(35);comment:描述信息"`
 	CId       int    `json:"-" gorm:"type:bigint;comment:大BID"`
 	Type      int    `json:"type" gorm:";comment:类型,每天,每周"`

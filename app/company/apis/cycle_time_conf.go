@@ -10,6 +10,7 @@ import (
 	"go-admin/app/company/models"
 	"go-admin/app/company/service"
 	"go-admin/app/company/service/dto"
+	models2 "go-admin/cmd/migrate/migration/models"
 	"go-admin/common/actions"
 	customUser "go-admin/common/jwt/user"
 	"go-admin/common/utils"
@@ -444,6 +445,25 @@ func (e CycleTimeConf) Update(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("修改CycleTimeConf失败，\r\n失败信息 %s", err.Error()))
 		return
 	}
+	//记录
+	var newData  models.CycleTimeConf
+	e.Orm.Model(&newData).Where("c_id = ? and id =?",userDto.CId,req.Id).Limit(1).Find(&newData)
+	if newData.Enable{
+		e.Orm.Create(&models2.CycleCnfEditLog{
+			CId: userDto.CId,
+			CreateBy: userDto.UserId,
+			StartTime: newData.StartTime,
+			EndTime: newData.EndTime,
+			StartWeek: newData.StartWeek,
+			EndWeek: newData.EndWeek,
+			Desc: newData.Desc,
+			GiveDay: newData.GiveDay,
+			GiveTime: newData.GiveTime,
+			Type: newData.Type,
+			Uid: newData.Uid,
+		})
+	}
+
 	e.OK(req.GetId(), "修改成功")
 }
 

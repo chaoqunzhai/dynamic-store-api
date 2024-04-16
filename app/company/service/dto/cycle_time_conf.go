@@ -61,7 +61,7 @@ func (s *CycleTimeConfInsertReq) Generate(model *models.CycleTimeConf) {
 	}
 	model.CreateBy = s.CreateBy // 添加这而，需要记录是被谁创建的
 	model.Layer = s.Layer
-	model.Show = s.Show
+
 	model.Desc = s.Desc
 	model.Enable = s.Enable
 	model.Type = s.Type
@@ -102,7 +102,7 @@ func (s *CycleTimeConfUpdateReq) Generate(model *models.CycleTimeConf) {
 	}
 	model.UpdateBy = s.UpdateBy // 添加这而，需要记录是被谁更新的
 	model.Layer = s.Layer
-	model.Show = s.Show
+
 	model.Desc = s.Desc
 	model.Enable = s.Enable
 	model.Type = s.Type
