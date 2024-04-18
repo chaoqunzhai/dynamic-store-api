@@ -23,6 +23,7 @@ type CycleTimeConf struct {
 }
 
 type ValidCycle struct {
+	Uid string `json:"uid"` //唯一标识
 	IsTime bool `json:"is_time"` //是否在这个时间区间
 	DeliveryMsg string `json:"delivery_msg"` //送达时间
 	DeliveryId int `json:"delivery_id"` //配送ID
@@ -207,10 +208,13 @@ func GetOrderCreateStr(row models.CycleTimeConf) string {
 
 }
 
-//用当前时间 + 大BID + 周期配送的随机ID 这个ID也就是订单的周期ID
-func GetThisDayCycleUid(cid int,uid string) string {
-	nowTime:=time.Now().Format("060102")
-	return fmt.Sprintf("%v_%v_%v",nowTime,cid,uid)
+//应该是计算出配送的时间 如果配送时间发生了变化,那这个计算的时间就是变化后的时间
+//配送时间 +  大BID + 周期配送的随机ID 这个ID也就是订单的周期ID
+func GetThisDayCycleUid(cid int,uid string,DeliveryTime models2.XTime) string {
+	//应该是计算出配送的时间 如果配送时间发生了变化,那这个计算的时间就是变化后的时间
+	//nowTime:=time.Now().Format("060102")
+	cycleTime:=DeliveryTime.Format("060102")
+	return fmt.Sprintf("%v_%v_%v",cycleTime,cid,uid)
 }
 
 //只有支付成功的时候才会调用这个方法
@@ -220,6 +224,8 @@ func GetThisDayCycleUid(cid int,uid string) string {
 //只需要返回这个上层的UID
 func CheckOrderCyCleCnfIsDb(cid int,table string,DeliveryObject models.CycleTimeConf,orm *gorm.DB) (cycleUid,deliveryMsg string)  {
 
+
+
 	//计算出配送的周期
 	deliveryTime,deliveryMsg:=GetOrderCyClyCnf(DeliveryObject)
 
@@ -227,25 +233,27 @@ func CheckOrderCyCleCnfIsDb(cid int,table string,DeliveryObject models.CycleTime
 	var cycleCnf models.OrderCycleCnf
 
 	//计算出当天+选择的周期配送UID
-	cycleUid =GetThisDayCycleUid(cid,DeliveryObject.Uid)
+	cycleUid =GetThisDayCycleUid(cid,DeliveryObject.Uid,deliveryTime)
 
 	orm.Table(table).Model(&models.OrderCycleCnf{}).Where("c_id = ? and uid = ?",cid,cycleUid).Find(&cycleCnf)
-	if cycleCnf.Id == 0 {
-		//把生成的配送信息录入到DB中,做一个订单统筹
 
-		nowTime:=time.Now()
-		noYearMonth:=nowTime.Format("2006-01-02")
-		if DeliveryObject.StartTime != "" && DeliveryObject.EndTime != ""{
+	//把生成的配送信息录入到DB中,做一个订单统筹
 
-			startStr:=fmt.Sprintf("%v %v",noYearMonth,DeliveryObject.StartTime)
-			endStr:=fmt.Sprintf("%v %v",noYearMonth,DeliveryObject.EndTime)
-			sTime, _:=time.ParseInLocation("2006-01-02 15:04", startStr, Loc)
+	nowTime:=time.Now()
+	noYearMonth:=nowTime.Format("2006-01-02")
+	if DeliveryObject.StartTime != "" && DeliveryObject.EndTime != ""{
 
-			eTime,_:=time.ParseInLocation("2006-01-02 15:04", endStr, Loc)
+		startStr:=fmt.Sprintf("%v %v",noYearMonth,DeliveryObject.StartTime)
+		endStr:=fmt.Sprintf("%v %v",noYearMonth,DeliveryObject.EndTime)
+		sTime, _:=time.ParseInLocation("2006-01-02 15:04", startStr, Loc)
 
-			//获取到配送的文案和天数
-			CreateStr:=GetOrderCreateStr(DeliveryObject)
+		eTime,_:=time.ParseInLocation("2006-01-02 15:04", endStr, Loc)
 
+		//获取到配送的文案和天数
+		CreateStr:=GetOrderCreateStr(DeliveryObject)
+
+
+		if cycleCnf.Id == 0 {
 			orm.Table(table).Create(&models.OrderCycleCnf{
 				CId:cid,
 				Uid: cycleUid,
@@ -255,10 +263,20 @@ func CheckOrderCyCleCnfIsDb(cid int,table string,DeliveryObject models.CycleTime
 				DeliveryTime: deliveryTime,
 				DeliveryStr: deliveryMsg,
 			})
+		}else {
+			orm.Table(table).Model(&models.OrderCycleCnf{}).Where(
+				"c_id = ? and uid = ?",cid,cycleUid).Updates(map[string]interface{}{
+				"delivery_str":deliveryMsg,
+				"delivery_time":deliveryTime,
+				"create_str":CreateStr,
+				"start_time":sTime,
+				"end_time":eTime,
+			})
 		}
-
-
 	}
+
+
+
 	return cycleUid,deliveryMsg
 
 }
