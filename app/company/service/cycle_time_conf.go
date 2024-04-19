@@ -107,6 +107,9 @@ func (e *CycleTimeConf) Update(c *dto.CycleTimeConfUpdateReq, p *actions.DataPer
 	if c.StartTime != data.StartTime || c.EndTime != data.EndTime {
 		uidTag = true
 	}
+	if c.GiveDay != data.GiveDay || c.GiveTime != data.GiveTime {
+		uidTag = true
+	}
 	switch c.Type {
 	case global.CyCleTimeWeek:
 		if c.StartWeek != data.StartWeek || c.EndWeek != data.EndWeek {

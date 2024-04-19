@@ -22,12 +22,13 @@ func (e *GoodsClass) GetPage(c *dto.GoodsClassGetPageReq, p *actions.DataPermiss
 	var err error
 	var data models.GoodsClass
 	//fmt.Println("查询商品分类的名称", c.Name)
+	//只获取父类
 	err = e.Orm.Model(&data).
 		Scopes(
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
-		).Order(global.OrderLayerKey).
+		).Where("parent_id = 0").Order(global.OrderLayerKey).
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {

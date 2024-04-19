@@ -439,6 +439,8 @@ func (e CycleTimeConf) Update(c *gin.Context) {
 		e.Error(500, nil, "时间不可重复")
 		return
 	}
+
+
 	err = s.Update(&req, p)
 	if err != nil {
 		e.Error(500, err, fmt.Sprintf("修改CycleTimeConf失败，\r\n失败信息 %s", err.Error()))

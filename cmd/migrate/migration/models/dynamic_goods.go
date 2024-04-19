@@ -91,8 +91,8 @@ func (GoodsSales) TableName() string {
 type GoodsClass struct {
 	BigBRichGlobal
 	Recommend bool `json:"recommend" gorm:"default:false;comment:是否推荐"`
-	Name  string `gorm:"index;size:8;comment:商品分类名称"`
-	Image string `gorm:"size:60;comment:商品分类图片路径"`
+	Name  string `json:"name" gorm:"index;size:8;comment:商品分类名称"`
+	Image string `json:"image" gorm:"size:60;comment:商品分类图片路径"`
 }
 
 func (GoodsClass) TableName() string {
