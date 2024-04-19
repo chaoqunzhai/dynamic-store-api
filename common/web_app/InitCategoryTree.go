@@ -36,7 +36,7 @@ func (m *MakeWeAppGoodsTree) SearchRun() []map[string]interface{} {
 	for _,row:=range goodsClass {
 		//查询分类
 		childList:=make([]models.GoodsClass,0)
-		m.Orm.Model(&models.GoodsClass{}).Where("c_id = ? and parent_id = ?",m.CId,row.Id).Find(&childList)
+		m.Orm.Model(&models.GoodsClass{}).Where("c_id = ? and parent_id = ?",m.CId,row.Id).Order("layer desc").Find(&childList)
 		category:=map[string]interface{}{
 			"category_id":row.Id,
 			"category_name":row.Name,

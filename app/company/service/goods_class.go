@@ -65,6 +65,7 @@ func (e *GoodsClass) Insert(cId int, c *dto.GoodsClassInsertReq) error {
 	var data models.GoodsClass
 	c.Generate(&data)
 	data.CId = cId
+	data.Recommend = true
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("分类创建失败,", err)
@@ -81,7 +82,7 @@ func (e *GoodsClass) Update(c *dto.GoodsClassUpdateReq, p *actions.DataPermissio
 		actions.Permission(data.TableName(), p),
 	).First(&data, c.GetId())
 	c.Generate(&data)
-
+	data.Recommend = true
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("分类更新失败,%s", err)

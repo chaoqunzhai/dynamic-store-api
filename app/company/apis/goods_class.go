@@ -73,7 +73,7 @@ func (e GoodsClass) GetPage(c *gin.Context) {
 			row.GoodsCount = bindCount
 		}
 		var childList []models.GoodsClass
-		e.Orm.Model(&models.GoodsClass{}).Where("c_id = ? and parent_id = ?",userDto.CId,row.Id).Find(&childList)
+		e.Orm.Model(&models.GoodsClass{}).Where("c_id = ? and parent_id = ?",userDto.CId,row.Id).Order("layer desc").Find(&childList)
 		if len(childList) > 0 {
 			row.Children = childList
 		}
