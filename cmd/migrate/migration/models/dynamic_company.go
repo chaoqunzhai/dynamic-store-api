@@ -90,11 +90,11 @@ func (CompanyExpress) TableName() string {
 // 门店
 type CompanyExpressStore struct {
 	BigBRichGlobal
-	Name    string `gorm:"size:20;comment:门店名称"`
+	Name    string `gorm:"size:30;comment:门店名称"`
 	Phone string `json:"phone" gorm:"size:11;comment:电话"`
 	Address string `json:"address" gorm:"size:120;comment:大B门店地址位置"`
-	Start   string `gorm:"size:12;comment:营业开始时间"`
-	End     string `gorm:"size:12;comment:营业结束时间"`
+	Start   string `gorm:"size:20;comment:营业开始时间"`
+	End     string `gorm:"size:20;comment:营业结束时间"`
 }
 
 func (CompanyExpressStore) TableName() string {

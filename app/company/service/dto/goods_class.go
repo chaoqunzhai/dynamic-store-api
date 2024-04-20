@@ -43,6 +43,7 @@ type GoodsClassInsertReq struct {
 	Desc   string `json:"desc" comment:"描述信息"`
 	Name   string `json:"name" comment:"商品分类名称" binding:"required"`
 	Image string `json:"image" comment:"商品分类图片路径"`
+	ParentId  int    `json:"parent_id" `
 	Recommend bool `json:"recommend"`
 	common.ControlBy
 }
@@ -56,6 +57,7 @@ func (s *GoodsClassInsertReq) Generate(model *models.GoodsClass) {
 	model.Enable = s.Enable
 	model.Desc = s.Desc
 	model.Name = s.Name
+	model.ParentId = s.ParentId
 	model.Image = s.Image
 	model.Recommend = s.Recommend
 }
@@ -72,6 +74,7 @@ type GoodsClassUpdateReq struct {
 	Name   string `json:"name" comment:"商品分类名称" binding:"required"`
 	Recommend bool `json:"recommend"`
 	Image string `json:"image" comment:"商品分类图片路径"`
+	ParentId  int    `json:"parent_id" `
 	common.ControlBy
 }
 
@@ -86,6 +89,7 @@ func (s *GoodsClassUpdateReq) Generate(model *models.GoodsClass) {
 	model.Name = s.Name
 	model.Recommend = s.Recommend
 	model.Image = s.Image
+	model.ParentId = s.ParentId
 }
 
 func (s *GoodsClassUpdateReq) GetId() interface{} {

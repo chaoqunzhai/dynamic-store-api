@@ -126,6 +126,7 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int,specDbMap map[in
 	marshErr := json.Unmarshal([]byte(c.Specs), &specsList)
 	//商品库存值,所以得规格相加
 	inventory := 0
+	saleAll:=0
 	//规格 + vip价格设置存在
 	moneyList := make([]float64, 0)
 	if len(specsList) > 0 && marshErr == nil {
@@ -138,7 +139,7 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int,specDbMap map[in
 			moneyList = append(moneyList, price)
 
 			inventory += stock
-
+			saleAll +=row.VirtuallySale
 			specsModels := models.GoodsSpecs{
 				Name:    row.Name,
 				CId:     cid,
@@ -190,6 +191,7 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int,specDbMap map[in
 	}
 	e.Orm.Model(&data).Where("id = ?", data.Id).Updates(map[string]interface{}{
 		"inventory": inventory,
+		"sale":saleAll,
 		"money": func() string {
 			if len(moneyList) > 0 {
 				if len(moneyList) == 1 {

@@ -338,6 +338,14 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser,req dto.DetailRe
 		"hasApprove":hasApprove,
 		"ems_id":object.EmsId,
 		"coupon_id":object.CouponId,
+		"line_id":object.LineId,
+	}
+	if object.LineId > 0 {
+		var lineObj models.Line
+		e.Orm.Model(&models.Line{}).Select("name,driver_id,id").Where("id = ? and enable = ? ", object.LineId, true).Limit(1).Find(&lineObj)
+		if lineObj.Id > 0 {
+			result["line_name"] = lineObj.Name
+		}
 	}
 	if object.CouponId > 0 {
 		var couponObj models3.Coupon

@@ -48,6 +48,11 @@ func (e GoodsClass) GetPage(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
 
 	p := actions.GetPermissionFromContext(c)
 	list := make([]models.GoodsClass, 0)
@@ -67,6 +72,12 @@ func (e GoodsClass) GetPage(c *gin.Context) {
 			e.Orm.Raw(whereSql).Scan(&bindCount)
 			row.GoodsCount = bindCount
 		}
+		var childList []models.GoodsClass
+		e.Orm.Model(&models.GoodsClass{}).Where("c_id = ? and parent_id = ?",userDto.CId,row.Id).Order("layer desc").Find(&childList)
+		if len(childList) > 0 {
+			row.Children = childList
+		}
+
 		result = append(result, row)
 	}
 	e.PageOK(result, int(count), req.GetPageIndex(), req.GetPageSize(), "查询成功")

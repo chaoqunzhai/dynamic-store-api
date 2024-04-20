@@ -397,12 +397,12 @@ func (e Goods) GetPage(c *gin.Context) {
 			"subtitle": row.Subtitle,
 			"enable":   row.Enable,
 			"layer":    row.Layer,
-			"class": func() []string {
+			"class": func() string {
 				cache := make([]string, 0)
 				for _, cl := range row.Class {
 					cache = append(cache, cl.Name)
 				}
-				return cache
+				return strings.Join(cache,"/")
 			}(),
 			"inventory": Inventory,
 			"image": func() string {

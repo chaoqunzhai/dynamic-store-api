@@ -88,13 +88,9 @@ func (e DetailCnf) Create(c *gin.Context) {
 	}
 
 
-	//购买权限开了
+	//等级购买权限开了
 	if !req.BuyingAuth {
 
-		//先设置为false
-		e.Orm.Model(&models.VipShowEnable{}).Where("c_id = ?  and `type` = ? ",userDto.CId,global.GoodsAuthVip).Updates(map[string]interface{}{
-			"enable":false,
-		})
 		for _,k:=range req.BuyingAuthList{
 			var showObject models.VipShowEnable
 
@@ -112,12 +108,14 @@ func (e DetailCnf) Create(c *gin.Context) {
 				e.Orm.Save(&showObject)
 			}
 		}
-	}
-	//预览权限开了
-	if !req.Preview {
-		e.Orm.Model(&models.VipShowEnable{}).Where("c_id = ?  and `type` = ? ",userDto.CId,global.GoodsPreview).Updates(map[string]interface{}{
+	}else{
+		//先设置为false
+		e.Orm.Model(&models.VipShowEnable{}).Where("c_id = ?  and `type` = ? ",userDto.CId,global.GoodsAuthVip).Updates(map[string]interface{}{
 			"enable":false,
 		})
+	}
+	//等级预览权限开了
+	if !req.Preview {
 		for _,k:=range req.PreviewVipList{
 			var showObject models.VipShowEnable
 
@@ -136,6 +134,10 @@ func (e DetailCnf) Create(c *gin.Context) {
 				e.Orm.Save(&showObject)
 			}
 		}
+	}else {
+		e.Orm.Model(&models.VipShowEnable{}).Where("c_id = ?  and `type` = ? ",userDto.CId,global.GoodsPreview).Updates(map[string]interface{}{
+			"enable":false,
+		})
 	}
 
 	e.OK("","操作成功")
@@ -170,6 +172,11 @@ func (e DetailCnf) Detail(c *gin.Context) {
 	buyingAuthList :=make([]int,0)
 	previewVipList :=make([]int,0)
 	for _,row:=range vipCnfList{
+		var gradeVip models.GradeVip
+		e.Orm.Model(&gradeVip).Select("id,name").Where("c_id = ? and id = ? and enable = ?",userDto.CId,row.VipId,true).Limit(1).Find(&gradeVip)
+		if gradeVip.Id == 0 {
+			continue
+		}
 		if row.Type == global.GoodsPreview{
 			previewVipList = append(previewVipList,row.VipId)
 		}

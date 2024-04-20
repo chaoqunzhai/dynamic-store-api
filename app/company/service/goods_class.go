@@ -22,12 +22,13 @@ func (e *GoodsClass) GetPage(c *dto.GoodsClassGetPageReq, p *actions.DataPermiss
 	var err error
 	var data models.GoodsClass
 	//fmt.Println("查询商品分类的名称", c.Name)
+	//只获取父类
 	err = e.Orm.Model(&data).
 		Scopes(
 			cDto.MakeCondition(c.GetNeedSearch()),
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
-		).Order(global.OrderLayerKey).
+		).Where("parent_id = 0").Order(global.OrderLayerKey).
 		Find(list).Limit(-1).Offset(-1).
 		Count(count).Error
 	if err != nil {
@@ -64,6 +65,7 @@ func (e *GoodsClass) Insert(cId int, c *dto.GoodsClassInsertReq) error {
 	var data models.GoodsClass
 	c.Generate(&data)
 	data.CId = cId
+	data.Recommend = true
 	err = e.Orm.Create(&data).Error
 	if err != nil {
 		e.Log.Errorf("分类创建失败,", err)
@@ -80,7 +82,7 @@ func (e *GoodsClass) Update(c *dto.GoodsClassUpdateReq, p *actions.DataPermissio
 		actions.Permission(data.TableName(), p),
 	).First(&data, c.GetId())
 	c.Generate(&data)
-
+	data.Recommend = true
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {
 		e.Log.Errorf("分类更新失败,%s", err)

@@ -59,7 +59,7 @@ func registerCompanyRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		//获取指定配送方式的信息
 		r.GET("/express", api.ExpressList)
 		//大B的配送
-		//同城配置
+		//周期配置
 		r.POST("/express/cnf/local", api.ExpressCnfLocal)
 		//自提配置
 		r.POST("/express/cnf/store", api.ExpressCnfStore)

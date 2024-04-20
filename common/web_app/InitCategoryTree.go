@@ -30,16 +30,18 @@ func (m *MakeWeAppGoodsTree) SearchRun() []map[string]interface{} {
 
 	//查询大B下所有的分类
 	goodsClass :=make([]models.GoodsClass,0)
-	m.Orm.Model(&models.GoodsClass{}).Select("id,name").Where("c_id = ? and enable = ? ",m.CId,true).Order("layer desc").Find(&goodsClass)
+	m.Orm.Model(&models.GoodsClass{}).Select("id,name").Where("c_id = ? and enable = ? and parent_id = 0",m.CId,true).Order("layer desc").Find(&goodsClass)
 
 	dat :=make([]map[string]interface{},0)
 	for _,row:=range goodsClass {
 		//查询分类
+		childList:=make([]models.GoodsClass,0)
+		m.Orm.Model(&models.GoodsClass{}).Where("c_id = ? and parent_id = ?",m.CId,row.Id).Order("layer desc").Find(&childList)
 		category:=map[string]interface{}{
 			"category_id":row.Id,
 			"category_name":row.Name,
 			"image":row.Image,
-			"child_list":make([]string,0), //分类下的细分种类,根据业务扩展
+			"child_list":childList, //分类下的细分种类,根据业务扩展
 		}
 		dat = append(dat,category)
 	}
