@@ -16,7 +16,7 @@ type GoodsClass struct {
 	Image string `gorm:"size:20;comment:商品分类图片路径"`
 	//只是做数据组装
 	GoodsCount int64 `json:"goods_count" gorm:"-"`
-	Children []GoodsClass `json:"children" gorm:"-"`
+	Children []interface{} `json:"children" gorm:"-"`
 	models.ModelTime
 	models.ControlBy
 }

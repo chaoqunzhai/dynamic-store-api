@@ -63,7 +63,26 @@ func (e GoodsClass) GetPage(c *gin.Context) {
 		e.Error(500, err, fmt.Sprintf("获取GoodsClass失败，\r\n失败信息 %s", err.Error()))
 		return
 	}
+	clsList:=make([]int,0)
+	for _,cls:=range list{
+		clsList = append(clsList,cls.Id)
+	}
+	var childListAll []models.GoodsClass
+	e.Orm.Model(&models.GoodsClass{}).Where("c_id = ? and parent_id in ?",userDto.CId,clsList).Order("layer desc").Find(&childListAll)
 
+	childBindMapList:=make(map[int][]models.GoodsClass,0)
+
+	for _,childRow:=range childListAll{
+		cacheList,ok:=childBindMapList[childRow.ParentId]
+		if !ok{
+
+			cacheList = append(cacheList,childRow)
+		}
+		cacheList = append(cacheList,childRow)
+
+		childBindMapList[childRow.ParentId] = cacheList
+
+	}
 	result := make([]interface{}, 0)
 	for _, row := range list {
 		if req.IsCount {
@@ -72,10 +91,20 @@ func (e GoodsClass) GetPage(c *gin.Context) {
 			e.Orm.Raw(whereSql).Scan(&bindCount)
 			row.GoodsCount = bindCount
 		}
-		var childList []models.GoodsClass
-		e.Orm.Model(&models.GoodsClass{}).Where("c_id = ? and parent_id = ?",userDto.CId,row.Id).Order("layer desc").Find(&childList)
-		if len(childList) > 0 {
-			row.Children = childList
+		childBindList,ok:=childBindMapList[row.Id]
+		if ok {
+			cacheList:=make([]interface{},0)
+			for _,chd:=range childBindList{
+				if req.IsCount {
+					var chdBindCount int64
+					whereSql := fmt.Sprintf("SELECT COUNT(*) as count from goods_mark_class where class_id = %v", chd.Id)
+					e.Orm.Raw(whereSql).Scan(&chdBindCount)
+					chd.GoodsCount = chdBindCount
+				}
+				cacheList = append(cacheList,chd)
+
+			}
+			row.Children = cacheList
 		}
 
 		result = append(result, row)
