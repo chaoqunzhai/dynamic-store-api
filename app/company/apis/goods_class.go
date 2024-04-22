@@ -75,8 +75,7 @@ func (e GoodsClass) GetPage(c *gin.Context) {
 	for _,childRow:=range childListAll{
 		cacheList,ok:=childBindMapList[childRow.ParentId]
 		if !ok{
-
-			cacheList = append(cacheList,childRow)
+			cacheList = make([]models.GoodsClass,0)
 		}
 		cacheList = append(cacheList,childRow)
 
