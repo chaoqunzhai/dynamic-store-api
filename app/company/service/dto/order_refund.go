@@ -23,7 +23,7 @@ type RefundDto struct {
 	RefundMoney string `json:"refund_money"`
 	AuditBy    int    `json:"audit_by" gorm:"column:audit_by"`
 	Price    int    `json:"price" gorm:"column:price"`
-	CouponMoney    float64    `json:"coupon_money" gorm:"column:coupon_money"`
+	//CouponMoney    float64    `json:"coupon_money" gorm:"column:coupon_money"`
 	PayType    int    `json:"pay_type" gorm:"column:pay_type"`
 	RefundDeliveryMoney    string    `json:"refund_delivery_money" gorm:"column:refund_delivery_money"`
 	ShopID    int    `json:"ShopId" gorm:"column:ShopId"`

@@ -96,13 +96,13 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 
 	userIds = utils.RemoveRepeatInt(userIds)
 	//订单
-	var orderList []models.Orders
-	e.Orm.Table(splitTableRes.OrderTable).Select("order_id,coupon_money").Where("order_id in ? and c_id = ?",orderIds,userDto.CId).Find(&orderList)
-
-	ordersMap:=make(map[string]models.Orders,0)
-	for _,order:=range orderList{
-		ordersMap[order.OrderId] = order
-	}
+	//var orderList []models.Orders
+	//e.Orm.Table(splitTableRes.OrderTable).Select("order_id,coupon_money").Where("order_id in ? and c_id = ?",orderIds,userDto.CId).Find(&orderList)
+	//
+	//ordersMap:=make(map[string]models.Orders,0)
+	//for _,order:=range orderList{
+	//	ordersMap[order.OrderId] = order
+	//}
 	//地址
 	var addressList []models.DynamicUserAddress
 	e.Orm.Model(&models.DynamicUserAddress{}).Where("id in ? and c_id = ?",addressIds,userDto.CId).Find(&addressList)
@@ -206,11 +206,11 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 					RefundRow.AuditName = userObj.Username
 				}
 			}
-			ordersObj,orderOk:=ordersMap[row.OrderId]
-			if orderOk {
-				RefundRow.CouponMoney = ordersObj.CouponMoney
-
-			}
+			//ordersObj,orderOk:=ordersMap[row.OrderId]
+			//if orderOk {
+			//	RefundRow.CouponMoney = ordersObj.CouponMoney
+			//
+			//}
 			addressObj,addressOk:=addressMap[row.AddressId]
 
 			if addressOk{//有地址时才会设置
