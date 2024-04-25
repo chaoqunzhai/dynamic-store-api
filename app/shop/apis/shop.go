@@ -132,13 +132,7 @@ func (e Shop) GetPage(c *gin.Context) {
 		cache.Tags = cacheTag
 		cache.TagName = cacheTagName
 
-		//获取下用户默认地址
-		var defaultAddress models2.DynamicUserAddress
-		e.Orm.Model(&defaultAddress).Select("id,address,full_address").Where("c_id = ? and is_default = 1 and user_id = ?",row.CId,row.UserId).Limit(1).Find(&defaultAddress)
-
-		if defaultAddress.Id > 0 {
-			cache.DefaultAddress = defaultAddress.AddressAll()
-		}
+		cache.DefaultAddress = row.GetFullAddress()
 		//统计欠款数据
 		var ShopArrears service.ShopArrears
 		e.Orm.Table(splitTableRes.OrderTable).Select("SUM(accept_money) as money").Where("c_id = ? and shop_id = ? and pay_type = ? and status = ?",

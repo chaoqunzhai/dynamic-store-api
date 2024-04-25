@@ -326,6 +326,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser,req dto.DetailRe
 		"all_money_cn":utils.ConvertNumToCny(object.GoodsMoney),
 		"order_money_cn":utils.ConvertNumToCny(object.OrderMoney),
 		"run_time":"",
+		"source_type_int":object.SourceType,
 		"accept_msg":object.AcceptMsg,
 		"balance":map[string]interface{}{
 			"credit":shopRow.Credit,
@@ -400,11 +401,13 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser,req dto.DetailRe
 	switch object.DeliveryType {
 	case global.ExpressSameCity,global.ExpressEms: //同城和物流都是读取客户的地址
 		var userAddress models3.DynamicUserAddress
-		e.Orm.Model(&models3.DynamicUserAddress{}).Scopes(actions.PermissionSysUser(userAddress.TableName(),userDto)).Select("id,address,full_address").Where(" id = ?",
+		e.Orm.Model(&models3.DynamicUserAddress{}).Scopes(actions.PermissionSysUser(userAddress.TableName(),userDto)).Where(" id = ?",
 			object.AddressId).Limit(1).Find(&userAddress)
 		if userAddress.Id > 0{
 			result["address"] = map[string]interface{}{
 				"address":userAddress.AddressAll(),
+				"name":userAddress.Name,
+				"phone":userAddress.Mobile,
 			}
 		}
 

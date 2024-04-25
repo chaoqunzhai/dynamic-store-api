@@ -227,6 +227,22 @@ const (
 	RecordSourceMbm =  3 //手机移动端操作
 )
 
+func GetAfterStatus(v int) string  {
+	//-2:撤回 -1:驳回
+	msg :=""
+	switch v {
+	case 1:
+		msg = "售后处理中"
+	case 2:
+		msg = "售后已处理"
+	case -1:
+		msg = "售后已驳回"
+	case 3:
+		msg = "操作退回"
+
+	}
+	return msg
+}
 func GetInventoryInAll() []int  {
 
 	return  []int{InventoryIn,InventoryRefundIn,InventoryEditIn,InventoryCancelIn,InventoryApproveIn}
@@ -291,14 +307,14 @@ func GetRefundStatus(v int) string {
 	switch v {
 	case RefundDefault:
 		return "处理中"
-	case RefundOk: //也就是审核通过
-		return "处理完毕"
+	case RefundOk: //审批同意
+		return "已处理"
 	case RefundOkOverReject:
-		return "驳回"
+		return "已驳回"
 	case RefundOkCancel:
-		return "撤销"
+		return "已撤销"
 	}
-	return "处理中"
+	return ""
 }
 
 func GetActionStr(v string) string  {

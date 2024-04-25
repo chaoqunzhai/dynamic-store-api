@@ -3,6 +3,7 @@ package models
 import (
     "go-admin/common/models"
     "gorm.io/gorm"
+    "strings"
 )
 
 type Shop struct {
@@ -66,6 +67,16 @@ func (e *Shop) GetId() interface{} {
     return e.Id
 }
 
+func (e *Shop)GetFullAddress() string {
+    addressList:=make([]string,0)
+    if e.FullAddress !="" {
+        addressList = append(addressList,e.FullAddress)
+    }
+    if e.Address !=""{
+        addressList = append(addressList,e.Address)
+    }
+    return strings.Join(addressList,",")
+}
 
 type CompanyRegisterUserVerify struct {
     models.Model

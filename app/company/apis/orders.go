@@ -82,6 +82,7 @@ func (e Orders) OrderActionList(c *gin.Context) {
 			"money":row.Money,
 			"desc":row.Desc,
 			"spec_name":row.SpecsName,
+			"spec_id":row.SpecId,
 		}
 		if row.Action == 0 {
 			data["action"] = "减少"
@@ -300,6 +301,7 @@ func (e Orders) OrderAction(c *gin.Context) {
 	updateMap:=map[string]interface{}{
 		"status":req.Action,
 		"ems_id":req.EmsId,
+		"desc":req.Msg,
 	}
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
@@ -309,7 +311,7 @@ func (e Orders) OrderAction(c *gin.Context) {
 
 	case global.OrderWaitConfirm:
 		actionCN = "配送中"
-
+		updateMap["delivery_run_at"] = time.Now()
 		e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id in ?",userDto.CId,req.OrderList).Updates(updateMap)
 	case global.OrderStatusOver:
 		actionCN = "收货完成"
@@ -324,6 +326,7 @@ func (e Orders) OrderAction(c *gin.Context) {
 					updateMap["status"] = global.OrderPayStatusOfflineWait
 				}
 			}
+			updateMap["over_run_at"] = time.Now()
 			e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id = ?",userDto.CId,row.OrderId).Updates(updateMap)
 
 		}
@@ -455,28 +458,32 @@ func (e Orders) GetPage(c *gin.Context) {
 
 
 	cacheAddressMap := make(map[int]map[string]interface{}, 0)
+	//fmt.Println("cacheAddressId",cacheAddressId)
 	if len(cacheAddressId) > 0 {
 		cacheAddressObject := make([]models2.DynamicUserAddress, 0)
-		e.Orm.Model(&models2.DynamicUserAddress{}).Select("id,address,full_address").Where("c_id = ? and id in ?",
+		e.Orm.Model(&models2.DynamicUserAddress{}).Where("c_id = ? and id in ?",
 			userDto.CId, cacheAddressId).Find(&cacheAddressObject)
 		//保存为map
 		//应该是获取的用户下单的地址
 		for _, k := range cacheAddressObject {
 			cacheAddressMap[k.Id] = map[string]interface{}{
-				"value":k.AddressAll(),
+				"address":k.AddressAll(),
+				"name":k.Name,
+				"phone":k.Mobile,
 			}
 		}
 	}
 	cacheStoreAddressMap:=make(map[int]map[string]interface{}, 0)
 	if len(cacheStoreAddressId) > 0 {
 		storeAddressObject := make([]models2.CompanyExpressStore, 0)
-		e.Orm.Model(&models2.CompanyExpressStore{}).Select("id,address").Where("c_id = ? and id in ?",
+		e.Orm.Model(&models2.CompanyExpressStore{}).Select("id,address,name").Where("c_id = ? and id in ?",
 			userDto.CId, cacheStoreAddressId).Find(&storeAddressObject)
 		//保存为map
 		//应该是获取的用户下单的地址
 		for _, k := range storeAddressObject {
 			cacheStoreAddressMap[k.Id] = map[string]interface{}{
-				"value":k.Address,
+				"address":k.Address,
+				"name":k.Name,
 			}
 		}
 	}
@@ -520,14 +527,18 @@ func (e Orders) GetPage(c *gin.Context) {
 			"delivery_type":global.GetExpressCn(row.DeliveryType), //配送类型
 			"pay_type":global.GetPayType(row.PayType),//支付类型
 			"pay_int":row.PayType,
+			"source_type_int":row.SourceType,
 			"source_type":global.GetOrderSource(row.SourceType),//订单来源
 			"status_int":row.Status,
 			"status":         global.OrderStatus(row.Status), //成为DB的订单都是支付成功的订单
 			"pay_status":     global.GetOrderPayStatus(row.PayStatus),
 			"created_at":     row.CreatedAt,
 			"delivery":row.DeliveryType,
+			"after_status":row.AfterStatus,
+			"after_status_msg":global.GetRefundStatus(row.AfterStatus),
 			"approve_status":row.ApproveStatus,
 		}
+
 		if row.AcceptOk { //已经结清 就是0
 			r["accept_money"] = 0
 		}else {
@@ -782,9 +793,9 @@ func (e Orders) ValetOrder(c *gin.Context) {
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
 
-	fmt.Println("周期配送！！",req.Cycle,"req.DeliveryType",req.DeliveryType)
-	if req.DeliveryType == global.ExpressSameCity{ //周期配送
-
+	//fmt.Println("周期配送！！",req.Cycle,"req.DeliveryType",req.DeliveryType)
+	switch req.DeliveryType {
+	case global.ExpressSameCity:
 		//如果是到店自提/快递物流是不检测 商家是否有路线和司机的
 
 		if shopObject.LineId == 0 {
@@ -829,16 +840,25 @@ func (e Orders) ValetOrder(c *gin.Context) {
 		e.Orm.Model(&defaultAddress).Scopes(actions.PermissionSysUser(defaultAddress.TableName(),userDto)).Select("id").Where(" is_default = 1 and user_id = ?",shopObject.UserId).Limit(1).Find(&defaultAddress)
 		//用户是一定有一个默认地址的
 		orderRow.AddressId = defaultAddress.Id
-
-
-	}else { //自提或者物流
+	case  global.ExpressSelf:
 		orderRow.Status = global.OrderWaitConfirm //其他就是 配送中
 		orderRow.DeliveryRunAt = models3.XTime{
 			Time:time.Now(),
 		}
 		orderRow.AddressId = req.StoreAddressId
 		orderRow.DeliveryStr = req.DeliveryStr
+	case global.ExpressEms:
+		//快递就是发默认地址
+		orderRow.Status = global.OrderStatusWaitSend
+		var defaultAddress models2.DynamicUserAddress
+		e.Orm.Model(&defaultAddress).Scopes(actions.PermissionSysUser(defaultAddress.TableName(),userDto)).Select("id").Where(" is_default = 1 and user_id = ?",shopObject.UserId).Limit(1).Find(&defaultAddress)
+		//用户是一定有一个默认地址的
+		orderRow.AddressId = defaultAddress.Id
+	default:
+		orderRow.Status = global.OrderStatusWaitSend
 	}
+
+
 
 	//保存商品和规格的一些映射
 	goodsCacheList:=make(map[int]service.ValetOrderGoodsRow,0)
@@ -1438,12 +1458,13 @@ func (e Orders) EditOrder(c *gin.Context) {
 
 	sourceOrderNumber := orderObject.Number
 	sourceOrderMoney := orderObject.OrderMoney //订单金额进行操作
-
+	sourceOrderGoodsMoney:=orderObject.GoodsMoney
 	//fmt.Printf("原订单 数量:%v 金额:%v\n",sourceOrderNumber,sourceOrderMoney)
 
 	//增加映射map
 	editGoodsMap:=make(map[string]int,0)
 	RecordOrderMap:=make(map[string]string,0)
+	//循环下编辑的商品信息列表
 	for _,order:=range req.EditList{
 
 		var orderSpecs models2.OrderSpecs
@@ -1462,6 +1483,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 			SpecsName: orderSpecs.SpecsName,
 			SourerMoney: orderSpecs.AllMoney,
 			SourerNumber: orderSpecs.Number,
+			SpecId: orderSpecs.SpecId,
 			Number: order.NewAllNumber,
 			Money: order.NewAllMoney,
 			Desc: req.Desc,
@@ -1485,6 +1507,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 		//总的大订单Order也是需要进行重新计价
 		//总价只需要记录多余 还是少于即可,因为总价里面有 优惠卷各种抵扣
 		//新数据 - 原数据
+
 		sourceOrderNumber +=  order.NewAllNumber -  orderSpecs.Number //订单商品 进行修改
 
 		mapKey :=fmt.Sprintf("%v_%v",orderSpecs.GoodsId,orderSpecs.SpecId)
@@ -1492,6 +1515,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 		RecordOrderMap[mapKey] = orderSpecs.OrderId
 		sourceOrderMoney  +=  order.NewAllMoney - orderSpecs.AllMoney
 
+		sourceOrderGoodsMoney += order.NewAllMoney - orderSpecs.AllMoney
 		//fmt.Printf("新的订单 数量:%v 金额:%v\n",sourceOrderNumber,sourceOrderMoney)
 		if sourceOrderNumber < 0 {
 			sourceOrderNumber = 0
@@ -1500,8 +1524,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 			sourceOrderMoney = 0
 		}
 	}
-	//把优惠卷的价格也加上, 因为原来的价格是 抛去优惠卷算回来的
-	sourceOrderMoney +=orderObject.CouponMoney
+
 
 	var ActionMode string
 	var Scene string
@@ -1554,6 +1577,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 	//fmt.Println("小Bid",shopRow.Id,"订单ID",orderObject.Id,"价格",sourceOrderMoney,sourceOrderNumber)
 	e.Orm.Table(splitTableRes.OrderTable).Where("id = ?",orderObject.Id).Updates(map[string]interface{}{
 		"order_money":sourceOrderMoney,
+		"goods_money":sourceOrderGoodsMoney,
 		"number":sourceOrderNumber,
 		"edit":true,
 		"edit_action":EditAction,

@@ -56,6 +56,18 @@ func (e *Orders)CancelOrder(RecordAction int,reqAll bool,reqOrderId string,reqOr
 	if orderObject.Status == global.OrderStatusOver {
 		return errors.New("订单已验收")
 	}
+	if orderObject.Status == global.OrderStatusWaitPay{ //待支付
+		updateCacheMap :=map[string]interface{}{
+			"after_status":global.RefundCompanyCancelCType,
+			"status":global.OrderStatusCancel,
+			"edit_action":reqDesc,
+			"edit":true,
+		}
+		//更新主订单的信息
+		e.Orm.Table(splitTableRes.OrderTable).Where("c_id = ? and order_id = ?",userDto.CId,reqOrderId).Updates(updateMasterMap) //更新主订单
+		e.Orm.Table(splitTableRes.OrderSpecs).Where("c_id = ? and order_id = ?",userDto.CId,reqOrderId).Updates(updateCacheMap) //更新子订单
+		return nil
+	}
 	var shopRow models2.Shop
 	e.Orm.Model(&models2.Shop{}).Where("c_id = ? and id = ? ",userDto.CId,orderObject.ShopId).Limit(1).Find(&shopRow)
 

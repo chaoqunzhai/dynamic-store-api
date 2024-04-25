@@ -16,9 +16,11 @@ type Orders struct {
 	PayType        int          `json:"pay_type" gorm:"type:tinyint(1);default:1;comment:支付方式"`
 	Phone          string       `gorm:"size:11;index;comment:用户联系手机号"`
 	CreatedAt      models.XTime `json:"createdAt" gorm:"comment:创建时间"`
-	DeliveryRunAt  models.XTime `json:"delivery_run_at" gorm:"column:delivery_run_at; null; comment:开始配送时间"`
+	DeliveryRunAt  models.XTime `json:"delivery_run_at" gorm:"column:delivery_run_at; null; comment:开始配送时间,也可以是发货时间"`
+	OverRunAt  models.XTime `json:"over_run_at" gorm:"column:over_run_at; null; comment:收货时间"`
 	OrderId        string       `json:"order_id" gorm:"index;size:20;comment:订单ID"`
-	EmsId string `json:"ems_id"  gorm:"index;size:20;comment:快递单号"`
+	EmsName string `json:"ems_name" gorm:"size:10;comment:物流公司英文首字母"`
+	EmsId string `json:"ems_id"  gorm:"size:20;comment:快递单号"`
 	OutTradeNo string `json:"out_trade_no" gorm:"size:20;comment:预支付流水号"`
 	CId            int          `gorm:"index;comment:大BID"`
 	Enable         bool         `gorm:"comment:开关"`

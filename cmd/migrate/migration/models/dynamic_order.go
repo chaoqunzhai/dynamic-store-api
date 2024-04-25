@@ -47,6 +47,8 @@ func (CycleCnfEditLog) TableName() string {
 // todo:订单,因为订单是一个记录,所有大部分可变的数据都是静态资源,不做关联查询
 type Orders struct {
 	Model
+	DeliveryRunAt  models.XTime `json:"delivery_run_at" gorm:"column:delivery_run_at; null; comment:开始配送时间,也可以是发货时间"`
+	OverRunAt  models.XTime `json:"over_run_at" gorm:"column:over_run_at; null; comment:收货时间"`
 	Uid            string       `json:"uid" gorm:"size:8;index;comment:关联的配送周期统一UID"`
 	CreateBy       int          `json:"createBy" gorm:"index;comment:创建者"`
 	SourceType     int          `json:"source_type" gorm:"type:tinyint(1);default:1;index;comment:订单来源"`
@@ -239,6 +241,7 @@ type OrderEdit struct {
 	CreateBy     string          `json:"createBy" gorm:"size:20;comment:修改人"`
 	CreatedAt    models.XTime `json:"createdAt" gorm:"comment:修改日期"`
 	OrderId      string       `json:"order_id" gorm:"index;size:20;comment:订单ID"`
+	SpecId int `json:"spec_id" gorm:"index;comment:规格ID"`
 	SpecsName string       `gorm:"size:30;comment:规格名称"`
 	SourerNumber int          `json:"sourer_number" gorm:"comment:原数量"`
 	SourerMoney  float64      `json:"sourer_money" gorm:"comment:原价格"`
