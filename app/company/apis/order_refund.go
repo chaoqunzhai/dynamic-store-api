@@ -118,6 +118,8 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 	for _,shop:=range shopList{
 		shopMap[shop.Id] = shop
 	}
+	//申请人信息
+
 
 	//路线信息
 	var lineList []models.Line
