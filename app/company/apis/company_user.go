@@ -388,7 +388,7 @@ func (e Company)IsOpenSalesUser(cid int) bool{
 	var companyObject models.Company
 	e.Orm.Model(&models.Company{}).Where("id = ? and enable = ?", cid, true).First(&companyObject)
 
-	return companyObject.InventoryModule
+	return companyObject.SaleUserModule
 }
 func (e Company) CreateSalesManUser(c *gin.Context) {
 	req := UpdateReq{}

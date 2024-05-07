@@ -219,7 +219,7 @@ func (e Orders) Accept(c *gin.Context) {
 				CId: userDto.CId,
 				ShopId: shopObject.Id,
 				Money: orderMoney,
-				Scene:fmt.Sprintf("管理员[%v] 收账抵扣:%v",userDto.Username,orderMoney),
+				Scene:fmt.Sprintf("管理员[%v]收账抵扣:%v",userDto.Username,orderMoney),
 				Action: global.UserNumberReduce, //抵扣
 				Type: global.ScanShopUse,
 			}
@@ -244,7 +244,7 @@ func (e Orders) Accept(c *gin.Context) {
 				CId: userDto.CId,
 				ShopId: shopObject.Id,
 				Number: orderMoney,
-				Scene:fmt.Sprintf("管理员[%v] 收账抵扣:%v",userDto.Username,orderMoney),
+				Scene:fmt.Sprintf("管理员[%v]收账抵扣:%v",userDto.Username,orderMoney),
 				Action: global.UserNumberReduce, //抵扣
 				Type: global.ScanShopUse,
 			}
@@ -1018,7 +1018,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 				"inventory": goodsSpecs.Inventory - selectSpec.Number,
 				"sale":	goodsSpecs.Sale + selectSpec.Number,
 			})
-			fmt.Println("更新库存",)
+			//fmt.Println("更新库存",)
 		}
 
 		goodsNumber += selectSpec.Number
@@ -1076,7 +1076,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			CId: userDto.CId,
 			ShopId: shopObject.Id,
 			Money: PayOkMoney,
-			Scene:fmt.Sprintf("管理员[%v] 到店开单,抵扣:%v",userDto.Username,PayOkMoney),
+			Scene:fmt.Sprintf("管理员[%v]到店开单,抵扣:%v",userDto.Username,PayOkMoney),
 			Action: global.UserNumberReduce, //抵扣
 			Type: global.ScanShopUse,
 		}
@@ -1095,7 +1095,7 @@ func (e Orders) ValetOrder(c *gin.Context) {
 			CId: userDto.CId,
 			ShopId: shopObject.Id,
 			Number: PayOkMoney,
-			Scene:fmt.Sprintf("管理员[%v] 到店开单,抵扣:%v",userDto.Username,PayOkMoney),
+			Scene:fmt.Sprintf("管理员[%v]到店开单,抵扣:%v",userDto.Username,PayOkMoney),
 			Action: global.UserNumberReduce, //抵扣
 			Type: global.ScanShopUse,
 		}
@@ -1552,7 +1552,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 			ShopId: shopRow.Id,
 			Desc: req.Desc,
 			Money: math.Abs(req.Money),
-			Scene:fmt.Sprintf("管理员[%v] %v",userDto.Username,Scene),
+			Scene:fmt.Sprintf("管理员[%v]%v",userDto.Username,Scene),
 			Action: ActionMode,
 			Type: global.ScanAdmin,
 		}
@@ -1567,7 +1567,7 @@ func (e Orders) EditOrder(c *gin.Context) {
 			ShopId: shopRow.Id,
 			Desc: req.Desc,
 			Number: math.Abs(req.Money),
-			Scene:fmt.Sprintf("管理员[%v] %v",userDto.Username,Scene),
+			Scene:fmt.Sprintf("管理员[%v]%v",userDto.Username,Scene),
 			Action: ActionMode,
 			Type: global.ScanAdmin,
 		}

@@ -652,7 +652,7 @@ func (e Shop)Amount(c *gin.Context)  {
 		ShopId: req.ShopId,
 		Desc: req.Desc,
 		Money: req.Value,
-		Scene:fmt.Sprintf("管理员[%v] %v",userDto.Username,Scene),
+		Scene:fmt.Sprintf("管理员[%v]%v",userDto.Username,Scene),
 		Action: req.Mode,
 		Type: global.ScanAdmin,
 	}
@@ -716,7 +716,7 @@ func (e Shop)Integral(c *gin.Context)  {
 		ShopId: req.ShopId,
 		Desc: req.Desc,
 		Number: req.Value,
-		Scene:fmt.Sprintf("管理员[%v] %v",userDto.Username,Scene),
+		Scene:fmt.Sprintf("管理员[%v]%v",userDto.Username,Scene),
 		Action: req.Mode,
 		Type: global.ScanAdmin,
 	}
