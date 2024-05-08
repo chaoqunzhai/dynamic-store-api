@@ -408,7 +408,7 @@ func (e Company) CreateSalesManUser(c *gin.Context) {
 		return
 	}
 	//检测是否开启了业务员功能
-	if e.IsOpenSalesUser(userDto.CId){
+	if e.IsOpenSalesUser(userDto.CId) == false{
 		e.Error(500, errors.New("暂未开启业务员功能"), "暂未开启业务员功能")
 		return
 	}

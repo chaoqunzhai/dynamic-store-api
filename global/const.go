@@ -48,7 +48,7 @@ const (
 	CompanyVip           = 10   //大B最多可以设置
 	CompanyLine          = 1   //默认路线就是1条,也就是基础版的条数
 	CompanyOrderRange = 18 //默认订单查询时间范围 单位为月
-	CompanyMaxRole       = 10  //大B最多可以设置个角色
+	CompanyMaxRole       = 20  //大B最多可以设置个角色
 	CompanyMaxGoods      = 500 //大B最多可以创建个商品
 	CompanyMaxShop       = 10000  //大B最多可以创建个小B客户
 	CompanyMaxGoodsClass = 50  //大B最多可以设置分类个数

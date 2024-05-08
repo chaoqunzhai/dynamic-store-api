@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"github.com/go-admin-team/go-admin-core/sdk/service"
 	sys "go-admin/app/admin/models"
 	"go-admin/app/company/models"
@@ -27,6 +28,8 @@ func (e *CompanyRole) GetPage(c *dto.CompanyRoleGetPageReq, p *actions.DataPermi
 			cDto.Paginate(c.GetPageSize(), c.GetPageIndex()),
 			actions.Permission(data.TableName(), p),
 		).Order(global.OrderLayerKey).Preload("SysMenu", func(tx *gorm.DB) *gorm.DB {
+		return tx.Select("id")
+	}).Preload("SysMbmMenu", func(tx *gorm.DB) *gorm.DB {
 		return tx.Select("id")
 	}).Preload("SysUser", func(tx *gorm.DB) *gorm.DB {
 		return tx.Select("user_id")
@@ -60,6 +63,17 @@ func (e *CompanyRole) Get(d *dto.CompanyRoleGetReq, p *actions.DataPermission, m
 	}
 	return nil
 }
+func (e *CompanyRole) getMbmMenuModels(ids []int) (menuList []models.DyMbmMenu) {
+	for _, id := range ids {
+		var menu models.DyMbmMenu
+		e.Orm.Model(&models.DyMbmMenu{}).Where("id = ?", id).First(&menu)
+		if menu.Id == 0 {
+			continue
+		}
+		menuList = append(menuList, menu)
+	}
+	return menuList
+}
 func (e *CompanyRole) getMenuModels(ids []int) (menuList []models.DyNamicMenu) {
 	for _, id := range ids {
 		var menu models.DyNamicMenu
@@ -83,7 +97,6 @@ func (e *CompanyRole) getUserModels(ids []int) (list []sys.SysUser) {
 	return list
 }
 
-// Insert 创建CompanyRole对象
 func (e *CompanyRole) Insert(cId int, c *dto.CompanyRoleInsertReq) error {
 	var err error
 	var data models.CompanyRole
@@ -91,6 +104,10 @@ func (e *CompanyRole) Insert(cId int, c *dto.CompanyRoleInsertReq) error {
 	data.CId = cId
 	if len(c.Menus) > 0 {
 		data.SysMenu = e.getMenuModels(c.Menus)
+	}
+
+	if len(c.MbmMenus) > 0 {
+		data.SysMbmMenu = e.getMbmMenuModels(c.MbmMenus)
 	}
 	//关闭用户的这个直接关联，在管理员中关联
 	//if len(c.User) > 0 {
@@ -114,8 +131,12 @@ func (e *CompanyRole) Update(c *dto.CompanyRoleUpdateReq, p *actions.DataPermiss
 	).First(&data, c.GetId())
 	c.Generate(&data)
 	e.Orm.Model(&data).Association("SysMenu").Clear()
+	e.Orm.Model(&data).Association("SysMbmMenu").Clear()
 	if len(c.Menus) > 0 {
 		data.SysMenu = e.getMenuModels(c.Menus)
+	}
+	if len(c.MbmMenus) > 0 {
+		data.SysMbmMenu = e.getMbmMenuModels(c.MbmMenus)
 	}
 	//e.Orm.Model(&data).Association("SysUser").Clear()
 	//if len(c.User) > 0 {
@@ -138,9 +159,12 @@ func (e *CompanyRole) Remove(d *dto.CompanyRoleDeleteReq, p *actions.DataPermiss
 
 	db := e.Orm.Model(&data).Where("id in ?", d.GetId()).Find(&data)
 	for _, row := range d.Ids {
-		_ = e.Orm.Model(&data).Where("role_id = ?", row).Association("SysMenu").Clear()
-		_ = e.Orm.Model(&data).Where("role_id = ?", row).Association("SysUser").Clear()
+
 		e.Orm.Model(&data).Where("id = ?", row).Delete(&models.CompanyRole{})
+
+		e.Orm.Exec(fmt.Sprintf("DELETE FROM `company_role_user` WHERE `company_role_user`.`role_id` = %v", row))
+		e.Orm.Exec(fmt.Sprintf("DELETE FROM `company_role_menu` WHERE `company_role_menu`.`role_id` = %v", row))
+		e.Orm.Exec(fmt.Sprintf("DELETE FROM `company_role_mbm_menu` WHERE `company_role_mbm_menu`.`role_id` = %v", row))
 	}
 	if err := db.Error; err != nil {
 		e.Log.Errorf("Service RemoveCompanyRole error:%s \r\n", err)

@@ -63,6 +63,10 @@ func (e CompanyRole) GetPage(c *gin.Context) {
 		for _, bindMenu := range row.SysMenu {
 			menuIds = append(menuIds, bindMenu.Id)
 		}
+		mbmIds := make([]int, 0)
+		for _, mbmMenu := range row.SysMbmMenu {
+			mbmIds = append(mbmIds, mbmMenu.Id)
+		}
 		r := map[string]interface{}{
 			"name":       row.Name,
 			"id":         row.Id,
@@ -71,6 +75,7 @@ func (e CompanyRole) GetPage(c *gin.Context) {
 			"created_at": row.CreatedAt,
 			"user_count": len(row.SysUser),
 			"menuIds":    menuIds,
+			"mbmIds":mbmIds,
 			"enable":     row.Enable,
 		}
 		result = append(result, r)
@@ -111,16 +116,6 @@ func (e CompanyRole) Get(c *gin.Context) {
 	e.OK(object, "查询成功")
 }
 
-// Insert 创建CompanyRole
-// @Summary 创建CompanyRole
-// @Description 创建CompanyRole
-// @Tags CompanyRole
-// @Accept application/json
-// @Product application/json
-// @Param data body dto.CompanyRoleInsertReq true "data"
-// @Success 200 {object} response.Response	"{"code": 200, "message": "添加成功"}"
-// @Router /api/v1/company-role [post]
-// @Security Bearer
 func (e CompanyRole) Insert(c *gin.Context) {
 	req := dto.CompanyRoleInsertReq{}
 	s := service.CompanyRole{}

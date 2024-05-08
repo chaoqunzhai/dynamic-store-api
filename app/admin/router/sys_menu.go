@@ -20,6 +20,8 @@ func registerSysMenuRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddle
 		r.GET("", api.GetPage)
 		//获取自定义大B的菜单列表
 		r.GET("/list", api.GetMenuRole)
+		//获取mbm管理端的权限列表
+		r.GET("/mbm/list",api.MbmList)
 		r.GET("/:id", api.Get)
 		r.POST("", api.Insert)
 		r.PUT("/:id", api.Update)

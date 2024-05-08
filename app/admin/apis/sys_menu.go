@@ -260,6 +260,86 @@ func GetChildrenAll(row MenuRow,allMenuList *[]MenuRow) MenuRow  {
 
 	return row
 }
+
+
+func (e SysMenu) MbmList(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	userDto, err := JwtUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	var CompanyModel models2.Company
+	e.Orm.Model(&models2.Company{}).Where("enable = 1 and id = ? ",userDto.CId).First(&CompanyModel)
+
+	var menu = make([]models2.DyMbmMenu, 0)
+	e.Orm.Model(&models2.DyMbmMenu{}).Where("enable = ?",true).Order("layer desc").Find(&menu)
+	cacheMap := make(map[int]MenuRow, 0)
+
+	result := make([]MenuRow, 0)
+	allMenuList:=make([]MenuRow,0)
+	for _, row := range menu {
+
+		r := MenuRow{
+			Id:        row.Id,
+			Name:      row.Name,
+			ParentId:  row.ParentId,
+			MetaTitle: row.MetaTitle,
+			Children:  make([]MenuRow, 0),
+			Layer: row.Layer,
+		}
+		allMenuList = append(allMenuList,r)
+		if row.ParentId == 0 {
+			//一级菜单 那就直接放进去
+			cacheMap[row.Id] = r
+		}
+	}
+	for _, row := range allMenuList {
+		if row.ParentId == 0 {
+			continue
+		}
+		//只查子元素
+		data,ok:=cacheMap[row.ParentId]
+
+		if ok {
+			data.Children = append(data.Children,row)
+
+			cacheMap[row.ParentId] = data
+		}else {
+			//下面的层级
+			cacheMap = getParentAll(row.ParentId, row, cacheMap)
+		}
+	}
+
+	layerList :=make([]int,0)
+	for _,row :=range cacheMap{
+		layerList = append(layerList,row.Layer)
+	}
+	layerList = utils.RemoveRepeatInt(layerList)
+	sort.Slice(layerList, func(i, j int) bool {
+		return layerList[i] < layerList[j]
+	})
+	for _,k:=range layerList{
+		for _, row := range cacheMap {
+			if row.Layer == k{
+				result = append(result, row)
+			}
+		}
+	}
+
+	e.OK(result, "")
+}
+
+
+
 func (e SysMenu) GetMenuRole(c *gin.Context) {
 	err := e.MakeContext(c).
 		MakeOrm().

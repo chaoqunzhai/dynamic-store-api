@@ -42,6 +42,7 @@ type CompanyRoleInsertReq struct {
 	Desc   string `json:"desc" comment:""`
 	Admin  bool   `json:"admin" comment:""`
 	Menus  []int  `json:"menus"`
+	MbmMenus  []int  `json:"mbm_menus"`
 	User   []int  `json:"user"`
 	common.ControlBy
 }
@@ -70,6 +71,7 @@ type CompanyRoleUpdateReq struct {
 	Desc   string `json:"desc" comment:""`
 	Admin  bool   `json:"admin" comment:""`
 	Menus  []int  `json:"menus"`
+	MbmMenus  []int  `json:"mbm_menus"`
 	User   []int  `json:"user"`
 	common.ControlBy
 }

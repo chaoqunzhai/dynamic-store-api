@@ -13,7 +13,19 @@ type OrderTrade struct {
 func (OrderTrade) TableName() string {
 	return "company_order_trade"
 }
+type DyMbmMenu struct {
+	Model
+	ModelTime
+	Layer     int    `gorm:"index;comment:排序"` //排序
+	Enable    bool   `gorm:"comment:开关"`
+	Name      string `gorm:"size:30;comment:英文名称"`
+	MetaTitle string `gorm:"size:30;comment:标题"`
+	ParentId  int    `json:"parentId" gorm:"index;size:11;comment:父ID"`
+}
 
+func (DyMbmMenu) TableName() string {
+	return "dynamic_mbm_menu"
+}
 type DyNamicMenu struct {
 	Model
 	ModelTime

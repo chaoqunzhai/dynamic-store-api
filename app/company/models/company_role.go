@@ -16,6 +16,7 @@ type CompanyRole struct {
 	Desc    string        `json:"desc" gorm:"size:50;"` //备注
 	Admin   bool          `json:"admin" gorm:"size:4;"`
 	SysMenu []DyNamicMenu `json:"sys_menu" gorm:"many2many:company_role_menu;foreignKey:id;joinForeignKey:role_id;references:id;joinReferences:menu_id;"`
+	SysMbmMenu []DyMbmMenu `json:"sys_mbm_menu" gorm:"many2many:company_role_mbm_menu;foreignKey:id;joinForeignKey:role_id;references:id;joinReferences:mbm_id;"`
 	SysUser []sys.SysUser `json:"sys_user" gorm:"many2many:company_role_user;foreignKey:id;joinForeignKey:role_id;references:user_id;joinReferences:user_id;"`
 	models.ModelTime
 	models.ControlBy
