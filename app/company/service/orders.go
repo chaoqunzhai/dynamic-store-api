@@ -319,6 +319,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser,req dto.DetailRe
 		"day":nowTimeObj.Format("2006-01-02"),
 		"now":nowTimeObj.Format("2006-01-02 15:04:05"),
 		"this_user":userDto.Username,
+		"phone":userDto.Phone,
 		//https://weapp.dongchuangyun.com/d1#/'
 		"url":fmt.Sprintf("%v?siteId=%v",config.ExtConfig.H5Url,userDto.CId),
 		"desc":object.Desc,
