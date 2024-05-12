@@ -33,5 +33,12 @@ func registerGoodsRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewa
 		r.POST("/image",api.CosSaveImage)
 		//商品图片的删除
 		r.DELETE("/image",api.CosRemoveImage)
+
+		//商品数据导出
+		r.GET("/export",api.Export)
+
 	}
+
+
+
 }

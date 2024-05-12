@@ -20,6 +20,7 @@ import (
 	customUser "go-admin/common/jwt/user"
 	"go-admin/common/qiniu"
 	utils2 "go-admin/common/utils"
+	"go-admin/common/xlsx_export"
 	"go-admin/global"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -263,20 +264,6 @@ func (e Goods) MiniApi(c *gin.Context) {
 	return
 }
 
-// GetPage 获取Goods列表
-// @Summary 获取Goods列表
-// @Description 获取Goods列表
-// @Tags Goods
-// @Param layer query string false "排序"
-// @Param enable query string false "开关"
-// @Param cId query string false "大BID"
-// @Param name query string false "商品名称"
-// @Param vipSale query string false "会员价"
-// @Param pageSize query int false "页条数"
-// @Param pageIndex query int false "页码"
-// @Success 200 {object} response.Response{data=response.Page{list=[]models.Goods}} "{"code": 200, "data": [...]}"
-// @Router /api/v1/goods [get]
-// @Security Bearer
 func (e Goods) GetPage(c *gin.Context) {
 	req := dto.GoodsGetPageReq{}
 	s := service.Goods{}
@@ -437,14 +424,128 @@ func (e Goods) GetPage(c *gin.Context) {
 	return
 }
 
-// Get 获取Goods
-// @Summary 获取Goods
-// @Description 获取Goods
-// @Tags Goods
-// @Param id path int false "id"
-// @Success 200 {object} response.Response{data=models.Goods} "{"code": 200, "data": [...]}"
-// @Router /api/v1/goods/{id} [get]
-// @Security Bearer
+
+func (e Goods) Export(c *gin.Context) {
+	req := dto.GoodsGetPageReq{}
+	s := service.Goods{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	listType := c.Query("listType")
+	var stockEmpty bool
+	switch listType {
+	case "on_sale":
+		//在售中
+		req.Enable = "1"
+	case "off_sale":
+		//下架的
+		req.Enable = "0"
+	case "sale_out":
+		//售罄 ?
+		stockEmpty=true
+	}
+
+	list := make([]models.Goods, 0)
+	var count int64
+	req.CId = userDto.CId
+
+
+	var goods models.Goods
+	query := e.Orm.Model(&goods).
+		Scopes(
+			actions.PermissionSysUser(goods.TableName(),userDto),
+			cDto.MakeCondition(req.GetNeedSearch()),
+		).Select("id,name,enable,c_id").Where("c_id = ?",userDto.CId)
+	if req.Class != "" {
+		query = query.Joins("LEFT JOIN goods_mark_class ON goods.id = goods_mark_class.goods_id").Where("goods_mark_class.class_id in ?",
+			strings.Split(req.Class, ","))
+	}
+	if req.Brand != "" {
+		query = query.Joins("LEFT JOIN goods_mark_brand ON goods.id = goods_mark_brand.goods_id").Where("goods_mark_brand.brand_id in ?",
+			strings.Split(req.Brand, ","))
+	}
+
+	openInventory := service.IsOpenInventory(userDto.CId,e.Orm)
+
+	if !openInventory &&  stockEmpty{//没有开启库存 + 并且是过滤库存为0 那就查商品本身数据即可
+		query = query.Where("inventory = 0")
+	}
+
+	err = query.Find(&list).Limit(-1).Offset(-1).
+		Count(&count).Error
+	if err != nil {
+		e.Error(500, err, fmt.Sprintf("获取Goods失败,信息 %s", err.Error()))
+		return
+	}
+
+	goodsId:=make([]int,0)
+
+	//需要展示客户的VIP价格,那就展示低价的即可
+	for _, row := range list {
+		goodsId = append(goodsId,row.Id)
+	}
+	goodsId = utils2.RemoveRepeatInt(goodsId)
+
+	//导出的是规格 那应该是把查询到的规格数据列出来
+
+	xlsxList:=make([]xlsx_export.GoodsExport,0)
+	for _, goodsObject := range list {
+
+
+		var specialist []models.GoodsSpecs
+		e.Orm.Model(&models.GoodsSpecs{}).Where("c_id = ? and goods_id = ? and enable = ?",goodsObject.CId,goodsObject.Id,true).Find(&specialist)
+
+
+		for _,specs:=range specialist {
+
+			var inventory int
+			_,getInventory:=s.GetSpecInventory(goodsObject.CId,fmt.Sprintf("(goods_id = %v and spec_id = %v)",goodsObject.Id,specs.Id))
+
+			if openInventory{
+				inventory = getInventory
+			}else {
+				inventory = specs.Inventory
+			}
+			exportRow:=xlsx_export.GoodsExport{
+				GoodsName: goodsObject.Name,
+				SpecName: specs.Name,
+				Original:specs.Original,
+				Price: specs.Price,
+				Stock: inventory,
+				SerialNumber:specs.SerialNumber,
+			}
+			if goodsObject.Enable {
+				exportRow.State = "上架"
+			}else {
+				exportRow.State = "下架"
+			}
+			xlsxList = append(xlsxList,exportRow)
+		}
+	}
+	export :=xlsx_export.XlsxBaseExport{}
+	xlsxFilePath:=export.GoodsExport(userDto.CId,xlsxList)
+
+
+	//reportUrl:=path.Join(config.ExtConfig.DomainUrl,fmt.Sprintf("company/api/v1/report/%v",xlsxFilePath ))
+	reportUrl:=fmt.Sprintf("/company/api/v1/report/%v",xlsxFilePath)
+	e.OK(reportUrl,"")
+	return
+}
+
+
 func (e Goods) Get(c *gin.Context) {
 	req := dto.GoodsGetReq{}
 	s := service.Goods{}

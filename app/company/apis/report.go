@@ -735,6 +735,38 @@ func (e Orders)DetailShopGoods(c *gin.Context)  {
 }
 
 
+func (e Orders) ExportDownload(c *gin.Context) {
+	err := e.MakeContext(c).
+		MakeOrm().
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	pathValue:=c.Param("path")
+	fileName:= c.Param("xlsx")
+
+	pathFile:=path.Join(pathValue,fileName)
+
+	file, fileErr := os.Open(pathFile)
+	if fileErr != nil {
+		e.OK("文件不存在","文件不存在")
+		return
+	}
+	defer file.Close()
+
+	fileNames := url.QueryEscape(fileName) // 防止中文乱码
+
+	_, err = io.Copy(c.Writer, file)
+	c.Header("Content-Description", "File Transfer")
+	c.Header("Content-Transfer-Encoding", "binary")
+	c.Header("Content-Type", "application/octet-stream")
+	c.Header("Content-Disposition", "attachment; filename*=utf-8''"+fileNames)
+	os.Remove(pathFile)
+	fmt.Println("删除文件",pathFile)
+	return
+}
 func (e Orders)LineSummary(c *gin.Context)  {
 	err := e.MakeContext(c).
 		Errors
