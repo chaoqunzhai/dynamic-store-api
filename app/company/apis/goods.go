@@ -115,7 +115,7 @@ func (e Goods) ClassSpecs(c *gin.Context) {
 		var unitObject models.GoodsUnit
 		unitName:=""
 		if specsObject.UnitId > 0 {
-			e.Orm.Model(&unitObject).Where("id = ? and c_id = ?",specsObject.UnitId,userDto.CId).Limit(1).Find(&unitObject)
+			e.Orm.Model(&unitObject).Select("id,name").Where("id = ? and c_id = ?",specsObject.UnitId,userDto.CId).Limit(1).Find(&unitObject)
 			if unitObject.Id > 0 {
 				unitName = unitObject.Name
 			}
@@ -468,7 +468,11 @@ func (e Goods) Export(c *gin.Context) {
 		Scopes(
 			actions.PermissionSysUser(goods.TableName(),userDto),
 			cDto.MakeCondition(req.GetNeedSearch()),
-		).Select("id,name,enable,c_id").Where("c_id = ?",userDto.CId)
+		).Select("id,name,enable,c_id").Where("c_id = ?",userDto.CId).Preload("Class", func(tx *gorm.DB) *gorm.DB {
+		return tx.Select("id,name")
+	}).Preload("Brand", func(tx *gorm.DB) *gorm.DB {
+		return tx.Select("id,name")
+	})
 	if req.Class != "" {
 		query = query.Joins("LEFT JOIN goods_mark_class ON goods.id = goods_mark_class.goods_id").Where("goods_mark_class.class_id in ?",
 			strings.Split(req.Class, ","))
@@ -519,6 +523,7 @@ func (e Goods) Export(c *gin.Context) {
 			}else {
 				inventory = specs.Inventory
 			}
+
 			exportRow:=xlsx_export.GoodsExport{
 				GoodsName: goodsObject.Name,
 				SpecName: specs.Name,
@@ -526,7 +531,30 @@ func (e Goods) Export(c *gin.Context) {
 				Price: specs.Price,
 				Stock: inventory,
 				SerialNumber:specs.SerialNumber,
+				Class: func() string {
+					cache := make([]string, 0)
+					for _, cl := range goodsObject.Class {
+						cache = append(cache, cl.Name)
+					}
+					return strings.Join(cache,"/")
+				}(),
+				Brand: func() string {
+					cache := make([]string, 0)
+					for _, cl := range goodsObject.Brand {
+						cache = append(cache, cl.Name)
+					}
+					return strings.Join(cache,"/")
+				}(),
 			}
+			var unitObject models.GoodsUnit
+			unitName:=""
+			if specs.UnitId > 0 {
+				e.Orm.Model(&unitObject).Select("id,name").Where("id = ? and c_id = ?",specs.UnitId,userDto.CId).Limit(1).Find(&unitObject)
+				if unitObject.Id > 0 {
+					unitName = unitObject.Name
+				}
+			}
+			exportRow.Unit = unitName
 			if goodsObject.Enable {
 				exportRow.State = "上架"
 			}else {

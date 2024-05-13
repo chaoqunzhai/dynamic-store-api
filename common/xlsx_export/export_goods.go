@@ -21,6 +21,9 @@ type GoodsExport struct {
 	Stock int `json:"stock"`
 	State string `json:"state"`
 	SerialNumber string `json:"serial_number"`
+
+	Class string `json:"class"`
+	Brand string `json:"brand"`
 }
 func (x *XlsxBaseExport)GoodsExport(cid int,table []GoodsExport) string{
 	//导出
@@ -52,15 +55,18 @@ func (x *XlsxBaseExport)GoodsExport(cid int,table []GoodsExport) string{
 	}
 	x.XlsxRowIndex = 1
 	x.File.SetRowHeight(SheetName,x.XlsxRowIndex,22.95)
-	x.File.SetCellValue(SheetName,fmt.Sprintf("A%v",x.XlsxRowIndex),"商品名称")
-	x.File.SetCellValue(SheetName,fmt.Sprintf("B%v",x.XlsxRowIndex),"商品规格")
-	x.File.SetCellValue(SheetName,fmt.Sprintf("C%v",x.XlsxRowIndex),"商品库存")
-	x.File.SetCellValue(SheetName,fmt.Sprintf("D%v",x.XlsxRowIndex),"商品原价")
-	x.File.SetCellValue(SheetName,fmt.Sprintf("E%v",x.XlsxRowIndex),"商品售价")
-	x.File.SetCellValue(SheetName,fmt.Sprintf("F%v",x.XlsxRowIndex),"商品状态")
-	x.File.SetCellValue(SheetName,fmt.Sprintf("G%v",x.XlsxRowIndex),"商品编号")
+	x.File.SetCellValue(SheetName,fmt.Sprintf("A%v",x.XlsxRowIndex),"名称")
+	x.File.SetCellValue(SheetName,fmt.Sprintf("B%v",x.XlsxRowIndex),"规格")
+	x.File.SetCellValue(SheetName,fmt.Sprintf("C%v",x.XlsxRowIndex),"单位")
+	x.File.SetCellValue(SheetName,fmt.Sprintf("D%v",x.XlsxRowIndex),"分类")
+	x.File.SetCellValue(SheetName,fmt.Sprintf("E%v",x.XlsxRowIndex),"品牌")
+	x.File.SetCellValue(SheetName,fmt.Sprintf("F%v",x.XlsxRowIndex),"库存")
+	x.File.SetCellValue(SheetName,fmt.Sprintf("G%v",x.XlsxRowIndex),"原价")
+	x.File.SetCellValue(SheetName,fmt.Sprintf("H%v",x.XlsxRowIndex),"售价")
+	x.File.SetCellValue(SheetName,fmt.Sprintf("I%v",x.XlsxRowIndex),"状态")
+	x.File.SetCellValue(SheetName,fmt.Sprintf("J%v",x.XlsxRowIndex),"编号")
 
-	x.File.SetCellStyle(SheetName,"A1","G1",x.StyleRowSubtitleId)
+	x.File.SetCellStyle(SheetName,"A1","J1",x.StyleRowSubtitleId)
 	for index,datRow:=range table{
 
 		//因为上面有4个是标题
@@ -68,7 +74,7 @@ func (x *XlsxBaseExport)GoodsExport(cid int,table []GoodsExport) string{
 
 
 		sliceList :=[]interface{}{
-			datRow.GoodsName,datRow.SpecName,datRow.Stock,
+			datRow.GoodsName,datRow.SpecName,datRow.Unit,datRow.Class,datRow.Brand,datRow.Stock,
 			datRow.Original,datRow.Price,datRow.State,datRow.SerialNumber,
 		}
 		for cellIndex,tableValue:=range sliceList{

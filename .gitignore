@@ -21,6 +21,7 @@ cmd/migrate/migration/version-local/*
 image
 # go sum
 go.sum
+cache_export
 config/settings.deva.yml
 dynamic-store
 goods
