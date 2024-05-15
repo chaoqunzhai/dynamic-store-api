@@ -47,6 +47,7 @@ type UpdateReq struct {
 	Phone    string `json:"phone" comment:"手机号"`
 	PassWord string `json:"password" comment:"密码" binding:"required"`
 	AuthExamine bool `json:"auth_examine"`
+	AuthLoginMbm bool `json:"auth_login_mbm"`
 }
 type RenewPass struct {
 	PasswordConfirm    string    `json:"password_confirm" gorm:"column:password_confirm"`
@@ -248,6 +249,7 @@ func (e Company) List(c *gin.Context) {
 			"layer":           row.Layer,
 			"created_at":      row.CreatedAt,
 			"auth_examine":row.AuthExamine,
+			"auth_login_mbm":row.AuthLoginMbm,
 			"disable": func() bool {
 				if row.UserId == userDto.UserId {
 					return true
@@ -315,6 +317,7 @@ func (e Company) UpdateUser(c *gin.Context) {
 		"enable":true,
 		"role_id":req.ThisRole,
 		"auth_examine": req.AuthExamine,
+		"auth_login_mbm":req.AuthLoginMbm,
 	}
 
 	//先情况
@@ -455,9 +458,16 @@ func (e Company) CreateSalesManUser(c *gin.Context) {
 		RoleId:   global.RoleSaleMan,
 		Layer:    req.Layer,
 		AuthExamine: req.AuthExamine,
+		AuthLoginMbm: req.AuthLoginMbm,
 	}
 	userObject.CreateBy = userDto.UserId
 	e.Orm.Create(&userObject)
+	if len(req.Roles) > 0 {
+		for _,roleId:=range req.Roles{
+			runSql := fmt.Sprintf("INSERT INTO  company_role_user VALUES (%v,%v)", roleId, userObject.UserId)
+			e.Orm.Exec(runSql)
+		}
+	}
 	e.OK("操作成功", "创建成功")
 	return
 }
@@ -512,6 +522,7 @@ func (e Company) CreateUser(c *gin.Context) {
 		RoleId:   global.RoleCompanyUser,
 		Layer:    req.Layer,
 		AuthExamine: req.AuthExamine,
+		AuthLoginMbm: req.AuthLoginMbm,
 	}
 	userObject.CreateBy = userDto.UserId
 	e.Orm.Create(&userObject)

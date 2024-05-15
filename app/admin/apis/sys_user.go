@@ -104,6 +104,8 @@ func (e SysUser) GetUserInfo(c *gin.Context) {
 	}
 
 	userInfo := map[string]interface{}{
+		"company_shop_name":object.ShopName,
+		"company_name":object.Name,
 		"store_user_id": sysUser.UserId,
 		"user_name":     sysUser.Username,
 		"real_name":     sysUser.NickName,

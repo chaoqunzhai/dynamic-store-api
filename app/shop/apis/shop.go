@@ -561,7 +561,7 @@ func (e Shop)Credit(c *gin.Context)  {
 		//增加时 是给授信额度 增加
 		//同时在授信额度增加
 		object.Credit += float64(req.Value)
-		Scene = fmt.Sprintf("手动增加%v授信额度,授信余额",req.Value)
+		Scene = fmt.Sprintf("手动增加%v授信额度和余额",req.Value)
 		object.CreditQuota += float64(req.Value)
 		updateMap["credit_quota"] = utils.RoundDecimalFlot64(object.CreditQuota)
 		updateMap["credit"] = utils.RoundDecimalFlot64(object.Credit)
@@ -571,8 +571,10 @@ func (e Shop)Credit(c *gin.Context)  {
 			e.Error(500, errors.New("授信余额不足"), "授信余额不足")
 			return
 		}
+		object.CreditQuota -=float64(req.Value)
 		object.Credit -=float64(req.Value)
-		Scene = fmt.Sprintf("手动减少%v授信余额",req.Value)
+		Scene = fmt.Sprintf("手动减少%v授信额度和余额",req.Value)
+		updateMap["credit_quota"] = utils.RoundDecimalFlot64(object.CreditQuota)
 		updateMap["credit"] = utils.RoundDecimalFlot64(object.Credit)
 	//case global.UserNumberSet:
 	//	object.Credit = float64(req.Value)

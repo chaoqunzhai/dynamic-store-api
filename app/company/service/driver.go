@@ -88,6 +88,7 @@ func (e *Driver) Insert(cid int,c *dto.DriverInsertReq) error {
 				RoleId:   global.RoleDriver,
 				Layer:    1,
 				AuthExamine: false,
+				AuthLoginMbm: false,
 			}
 			userObject.CreateBy = c.CreateBy
 			e.Orm.Create(&userObject)
@@ -125,6 +126,7 @@ func (e *Driver) Update(cid int,c *dto.DriverUpdateReq, p *actions.DataPermissio
 			RoleId:   global.RoleDriver,
 			Layer:    1,
 			AuthExamine: false,
+			AuthLoginMbm: false,
 		}
 		userObject.CreateBy = c.CreateBy
 		e.Orm.Create(&userObject)
