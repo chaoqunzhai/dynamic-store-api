@@ -396,6 +396,7 @@ func (e Goods) GetPage(c *gin.Context) {
 				if row.Image == "" {
 					return ""
 				}
+
 				return business.GetGoodsPathFirst(row.CId,row.Image,global.GoodsPath)
 			}(),
 			"sale":       row.Sale,
