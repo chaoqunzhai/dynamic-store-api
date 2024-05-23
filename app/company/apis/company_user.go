@@ -330,8 +330,10 @@ func (e Company) UpdateUser(c *gin.Context) {
 
 	}
 
+
 	//密码更新
 	if req.PassWord != userObject.Password {
+		fmt.Println("更新密码")
 		var hash []byte
 		var hasErr error
 		if hash, hasErr = bcrypt.GenerateFromPassword([]byte(req.PassWord), bcrypt.DefaultCost); hasErr != nil {
