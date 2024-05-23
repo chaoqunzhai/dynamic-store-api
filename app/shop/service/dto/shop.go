@@ -13,6 +13,7 @@ type ShopGetPageReq struct {
 	Layer          string `form:"layer"  search:"type:exact;column:layer;table:shop" comment:"排序"`
 	GradeId        string `form:"grade_id"  search:"type:exact;column:grade_id;table:shop" comment:"vip等级"`
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:shop" comment:"开关"`
+	Salesman            string `form:"salesman"  search:"type:exact;column:salesman;table:shop" comment:"业务员ID"`
 	CId            string `form:"cId"  search:"type:exact;column:c_id;table:shop" comment:"大BID"`
 	UserId         string `form:"userId"  search:"type:exact;column:user_id;table:shop" comment:"管理员ID"`
 	Name           string `form:"name"  search:"type:contains;column:name;table:shop" comment:"小B名称"`

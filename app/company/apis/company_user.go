@@ -462,6 +462,12 @@ func (e Company) CreateSalesManUser(c *gin.Context) {
 		AuthExamine: req.AuthExamine,
 		AuthLoginMbm: req.AuthLoginMbm,
 	}
+
+	//密码加密
+	hash, _ := bcrypt.GenerateFromPassword([]byte(req.PassWord), bcrypt.DefaultCost)
+
+	userObject.Password = string(hash)
+
 	userObject.CreateBy = userDto.UserId
 	e.Orm.Create(&userObject)
 	if len(req.Roles) > 0 {
@@ -526,6 +532,9 @@ func (e Company) CreateUser(c *gin.Context) {
 		AuthExamine: req.AuthExamine,
 		AuthLoginMbm: req.AuthLoginMbm,
 	}
+	hash, _ := bcrypt.GenerateFromPassword([]byte(req.PassWord), bcrypt.DefaultCost)
+
+	userObject.Password = string(hash)
 	userObject.CreateBy = userDto.UserId
 	e.Orm.Create(&userObject)
 	if len(req.Roles) > 0 {
