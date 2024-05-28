@@ -20,7 +20,7 @@ func registerShopRegisterUserRouter(v1 *gin.RouterGroup, authMiddleware *jwt.Gin
 	{
 		r.GET("", api.GetPage)
 		r.GET("/:id", api.Detail)
-		//审核通过,自动创建用户
+		//只有驳回了
 		r.PUT("/:id", api.Update)
 		r.DELETE("", api.Delete)
 	}
