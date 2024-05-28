@@ -8,6 +8,7 @@ import (
 type CompanyRole struct {
 	models.Model
 
+	Type int `json:"type" gorm:"index;default:1;comment:角色类型,1:员工 2:业务员"`
 	CId     int           `json:"-" gorm:"index;comment:大BID"`
 	Id      int           `json:"id" gorm:"primaryKey;autoIncrement"` // 角色编码
 	Name    string        `json:"name" gorm:"size:30;"`               // 角色名称

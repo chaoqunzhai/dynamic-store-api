@@ -8,6 +8,7 @@ import (
 
 type CompanyRoleGetPageReq struct {
 	dto.Pagination `search:"-"`
+	Type           int `form:"type"  search:"type:exact;column:type;table:company_role" comment:""`
 	Name           string `form:"name"  search:"type:contains;column:name;table:company_role" comment:""`
 	Enable         string `form:"enable"  search:"type:exact;column:enable;table:company_role" comment:""`
 	Layer          string `form:"layer"  search:"type:exact;column:layer;table:company_role" comment:""`
@@ -36,6 +37,7 @@ func (m *CompanyRoleGetPageReq) GetNeedSearch() interface{} {
 
 type CompanyRoleInsertReq struct {
 	Id     int    `json:"-" comment:""` //
+	Type int `json:"type"`
 	Name   string `json:"name" comment:""  binding:"required"`
 	Enable bool   `json:"enable" comment:""`
 	Layer  int    `json:"layer" comment:""`
@@ -51,6 +53,7 @@ func (s *CompanyRoleInsertReq) Generate(model *models.CompanyRole) {
 	if s.Id == 0 {
 		model.Model = common.Model{Id: s.Id}
 	}
+	model.Type = s.Type
 	model.Name = s.Name
 	model.Enable = s.Enable
 	model.Layer = s.Layer
