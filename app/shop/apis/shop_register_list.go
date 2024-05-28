@@ -230,7 +230,7 @@ func (e ShopRegisterList) Delete(c *gin.Context) {
 	var data models.CompanyRegisterUserVerify
 	e.Orm.Model(&data).Scopes(
 		actions.Permission(data.TableName(), p),
-	).Delete(&data,req.Ids)
+	).Unscoped().Delete(&data,req.Ids)
 
 	e.OK("", "删除成功")
 }
