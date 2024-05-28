@@ -287,14 +287,19 @@ func (e Shop) Insert(c *gin.Context) {
 		e.Orm.Model(&models.CompanyRegisterUserVerify{}).Where("c_id = ? and id = ?",userDto.CId, req.ApproveId).Limit(1).Find(&data)
 
 		if data.Id == 0 {
-			e.Error(500, errors.New("无此用户"), "无此用户")
+			e.Error(500, errors.New("无此申请记录"), "无此申请记录")
 			return
 		}
-		if data.Status != 1 {
-			e.Error(500, errors.New("未审批通过"), "未审批通过")
+		if data.Status == -1 {
+			e.OK(business.Response{Code:-1,Msg: "已驳回"},"")
+			return
+		}
+		if data.Status == 2 {
+			e.OK(business.Response{Code:-1,Msg: "门店已创建"},"")
 			return
 		}
 		userPhone = data.Phone
+
 	}else {
 		if req.Phone != ""{
 			var userCount int64

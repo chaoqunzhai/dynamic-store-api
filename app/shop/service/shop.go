@@ -11,9 +11,11 @@ import (
 	"go-admin/common"
 	"go-admin/common/actions"
 	cDto "go-admin/common/dto"
+	models3 "go-admin/common/models"
 	"go-admin/global"
 	"gorm.io/gorm"
 	"strings"
+	"time"
 )
 
 type Shop struct {
@@ -104,18 +106,41 @@ func (e *Shop) Insert(userDto *sys.SysUser, c *dto.ShopInsertReq) error {
 			data.IsCashOn = true
 		}
 	}
-	//后面根据选择进行重新赋值
-	//到这里一定是检测通过的
-	if c.ApproveId > 0 {
+
+	if c.ApproveId > 0 {//这是从客户申请页面+创建门店 创建的门店
 		var RegisterUser models.CompanyRegisterUserVerify
 		e.Orm.Model(&RegisterUser).Where("c_id = ? and id = ?",userDto.CId, c.ApproveId).Limit(1).Find(&RegisterUser)
 
+		RegisterUser.AdoptUser = userDto.Username
+		RegisterUser.AdoptTime = models3.XTime{
+			Time:time.Now(),
+		}
+
 		data.Phone = RegisterUser.Phone
 		data.UserName = RegisterUser.Value
+
+		shopUserDto:=sys.SysShopUser{
+			Username: RegisterUser.Value,
+			NickName:RegisterUser.Value,
+			Phone: RegisterUser.Phone,
+			Password:RegisterUser.Password,
+			Enable: true,
+			CId: RegisterUser.CId,
+			Status:global.SysUserSuccess,
+			RoleId:global.RoleShop,
+		}
+		//设置创建用户为大B的名字
+		shopUserDto.CreateBy = userDto.UserId
+
+		e.Orm.Create(&shopUserDto)
+		//创建的ID保存进去
+		RegisterUser.ShopUserId = shopUserDto.UserId
+
 		//创建的用户ID赋值给大B
 		userId = RegisterUser.ShopUserId
+
 	}else {
-		//创建小B用户
+		//这里是直接添加的客户
 		shopUserDto:=sys.SysShopUser{
 			Username: c.UserName,
 			NickName: c.UserName,

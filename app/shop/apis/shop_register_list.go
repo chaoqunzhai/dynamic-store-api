@@ -1,7 +1,7 @@
 package apis
 
 import (
-	"errors"
+
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
 	_ "github.com/go-admin-team/go-admin-core/sdk/pkg/response"
@@ -11,9 +11,9 @@ import (
 	"go-admin/common/business"
 	cDto "go-admin/common/dto"
 	customUser "go-admin/common/jwt/user"
-	models3 "go-admin/common/models"
+
 	"go-admin/global"
-	"time"
+
 )
 
 type ShopRegisterList struct {
@@ -115,8 +115,12 @@ func (e ShopRegisterList) Detail(c *gin.Context) {
 		return
 	}
 
-	if data.Status != 1{
-		e.OK(business.Response{Code:-1,Msg: "未审批通过"},"")
+	if data.Status == -1 {
+		e.OK(business.Response{Code:-1,Msg: "已驳回"},"")
+		return
+	}
+	if data.Status == 2 {
+		e.OK(business.Response{Code:-1,Msg: "门店已创建"},"")
 		return
 	}
 	e.OK(business.Response{Code:0,Data: data},"")
@@ -135,7 +139,7 @@ func (e ShopRegisterList) Update(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	userDto, err := customUser.GetUserDto(e.Orm, c)
+	_, err = customUser.GetUserDto(e.Orm, c)
 	if err != nil {
 		e.Error(500, err, err.Error())
 		return
@@ -149,7 +153,7 @@ func (e ShopRegisterList) Update(c *gin.Context) {
 
 	//必须是没有创建门店 才可以把状态扭转
 	if data.Status == 2  {
-		e.Error(500, nil,"门店已经创建,不可进行审批操作")
+		e.Error(500, nil,"门店已经创建")
 		return
 	}
 	//更新描述和状态
@@ -157,44 +161,35 @@ func (e ShopRegisterList) Update(c *gin.Context) {
 	data.Info = req.Info
 
 	if data.Status == 1 {
-		data.AdoptUser = userDto.Username
-		data.AdoptTime = models3.XTime{
-			Time:time.Now(),
-		}
-		//因为从H5注册上来的都是手机号 只需要检测手机号即可
-		////检测用户名是否已经存在
-		//var userCount int64
-		//e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("c_id = ? and username = ? ",data.CId,data.Value).Count(&userCount)
-		//if userCount > 0 {
-		//	e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
+		//data.AdoptUser = userDto.Username
+		//data.AdoptTime = models3.XTime{
+		//	Time:time.Now(),
+		//}
+		////检测手机号是否已经存在
+		//var phoneCount int64
+		//e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("c_id = ? and phone = ? ",data.CId,data.Phone).Count(&phoneCount)
+		//if phoneCount > 0 {
+		//	e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
 		//	return
 		//}
-
-		//检测手机号是否已经存在
-		var phoneCount int64
-		e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("c_id = ? and phone = ? ",data.CId,data.Phone).Count(&phoneCount)
-		if phoneCount > 0 {
-			e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
-			return
-		}
-		//创建用户
-		shopUserDto:=sys.SysShopUser{
-			Username: data.Value,
-			NickName:data.Value,
-			Phone: data.Phone,
-			Password:data.Password,
-			Enable: true,
-			CId: data.CId,
-			Status:global.SysUserSuccess,
-			RoleId:global.RoleShop,
-		}
-		//设置创建用户为大B的名字
-		shopUserDto.CreateBy = userDto.UserId
-
-		e.Orm.Create(&shopUserDto)
-		//创建的ID保存进去
-		data.ShopUserId = shopUserDto.UserId
-
+		////创建用户
+		//shopUserDto:=sys.SysShopUser{
+		//	Username: data.Value,
+		//	NickName:data.Value,
+		//	Phone: data.Phone,
+		//	Password:data.Password,
+		//	Enable: true,
+		//	CId: data.CId,
+		//	Status:global.SysUserSuccess,
+		//	RoleId:global.RoleShop,
+		//}
+		////设置创建用户为大B的名字
+		//shopUserDto.CreateBy = userDto.UserId
+		//
+		//e.Orm.Create(&shopUserDto)
+		////创建的ID保存进去
+		//data.ShopUserId = shopUserDto.UserId
+		//
 
 
 	}else {
