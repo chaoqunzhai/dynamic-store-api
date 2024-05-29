@@ -450,6 +450,7 @@ func (e Company) CreateSalesManUser(c *gin.Context) {
 		e.Error(500, errors.New("手机号已被占用"), "手机号已被占用")
 		return
 	}
+	//业务员角色
 	userObject := sys.SysUser{
 		Username: req.UserName,
 		Phone:    req.Phone,
