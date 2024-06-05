@@ -97,6 +97,52 @@ func (e Orders) OrderActionList(c *gin.Context) {
 }
 
 
+func (e Orders) UpdateOrderAddress(c *gin.Context) {
+	req := dto.UpdateAdd{}
+	s := service.Orders{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		MakeService(&s.Service).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+	//先获取分页
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+
+	switch req.Type {
+	case global.ExpressSelf://自提
+
+		e.Orm.Table(splitTableRes.OrderReturn).Where("order_id = ?",req.OrderId).Updates(map[string]interface{}{
+			"address_id":req.UpId,
+		})
+		e.OK("","变更成功")
+		return
+	case global.ExpressSameCity://周期
+
+	case global.ExpressEms://物流
+
+	default:
+		e.Error(500,nil,"不支持的订单类型")
+		return
+
+	}
+	e.Orm.Table(splitTableRes.OrderTable).Where("order_id = ? and delivery_type = ? ",req.OrderId,req.Type).Updates(map[string]interface{}{
+		"address_id":req.UpId,
+	})
+
+	e.OK("","变更成功")
+	return
+}
 func (e Orders) AcceptList(c *gin.Context) {
 	req := dto.AcceptReqPage{}
 	s := service.Orders{}
@@ -511,6 +557,8 @@ func (e Orders) GetPage(c *gin.Context) {
 		r := map[string]interface{}{
 			"order_id":   row.OrderId,
 			"order_no_id":row.OutTradeNo,
+			"user_id":row.CreateBy,
+			"is_address":row.AddressId,
 			"shop": cacheShopMap[row.ShopId],
 			"cycle_place": row.CreatedAt.Format("2006-01-02"), 			//下单周期
 			"delivery_time":     row.DeliveryTime.Format("2006-01-02"), 			//配送周期

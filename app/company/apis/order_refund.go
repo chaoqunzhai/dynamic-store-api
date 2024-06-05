@@ -112,7 +112,7 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 	}
 	//商家
 	var shopList []models.Shop
-	e.Orm.Model(&models.Shop{}).Select("id,name").Where("id in ? and c_id = ?",shopIds,userDto.CId).Find(&shopList)
+	e.Orm.Model(&models.Shop{}).Select("id,name,user_id").Where("id in ? and c_id = ?",shopIds,userDto.CId).Find(&shopList)
 	//fmt.Println("查询商家！！",shopIds,shopList)
 	shopMap:=make(map[int]models.Shop,0)
 	for _,shop:=range shopList{
@@ -151,10 +151,12 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 
 	for _,row:=range refundList{
 
+		var shopUserId  int
 		shopName:=""
 		shopObj,ok:=shopMap[row.ShopId]
 		if ok{
 			shopName = shopObj.Name
+			shopUserId = shopObj.UserId
 		}
 
 
@@ -180,6 +182,7 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 				ReturnID: row.ReturnId,
 				Reason: row.Reason,
 				ShopName: shopName,
+				ShopUserId:shopUserId,
 				DeliveryType: row.DeliveryType,
 				DeliveryTypeCn: global.GetExpressCn(row.DeliveryType),
 				RefundDeliveryMoney: utils.StringDecimal(row.RefundDeliveryMoney),
@@ -217,6 +220,7 @@ func (e OrdersRefund)GetPage(c *gin.Context) {
 
 			if addressOk{//有地址时才会设置
 				RefundRow.Address = dto.RefundAddress{
+					Id: addressObj.Id,
 					Name: addressObj.Name,
 					Address:addressObj.AddressAll(),
 					Mobile: addressObj.Mobile,

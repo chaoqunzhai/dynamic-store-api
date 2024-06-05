@@ -47,6 +47,11 @@ func (m *OrdersGetPageReq) GetNeedSearch() interface{} {
 	return *m
 }
 
+type UpdateAdd struct {
+	Type int `json:"type"`
+	OrderId string `json:"order_id"`
+	UpId int `json:"up_id"`
+}
 type AcceptReq struct {
 	Resource      string `json:"resource"`
 	OrderId       string `json:"order_id"`

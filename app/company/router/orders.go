@@ -44,6 +44,9 @@ func registerOrdersRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 
 		//获取订单的待付款的结算
 		r.GET("/accept",api.AcceptList)
+
+		//更改订单的收货地址
+		r.POST("/update_order_address",api.UpdateOrderAddress)
 	}
 
 	r2 := v1.Group("/orders").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole())

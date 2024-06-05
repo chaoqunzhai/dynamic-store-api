@@ -11,6 +11,7 @@ type RefundDto struct {
 	AuditName string `json:"audit_name"`
 	Reason    string    `json:"reason" gorm:"column:reason"`
 	ShopName   string   `json:"shop_name" gorm:"column:shop"`
+	ShopUserId int `json:"shop_user_id"`
 	StatusCn    string    `json:"status_cn" gorm:"column:status_cn"`
 	Line    string    `json:"line" gorm:"column:line"`
 	ReturnID    string    `json:"return_id" gorm:"column:return_id"`
@@ -54,6 +55,7 @@ type RefundTypeAction struct {
 	Value    int    `json:"value" gorm:"column:value"`
 }
 type RefundAddress struct {
+	Id  int `json:"id"`
 	Address    string    `json:"address" gorm:"column:address"`
 	Name    string    `json:"name" gorm:"column:name"`
 	Mobile    string    `json:"mobile" gorm:"column:mobile"`

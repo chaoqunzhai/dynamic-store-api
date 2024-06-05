@@ -55,6 +55,10 @@ func (e ShopAddress) GetPage(c *gin.Context) {
 		return
 	}
 
+	if req.UserId == 0 {
+		e.Error(500, nil,"请选择客户")
+		return
+	}
 
 	list :=make([]models.DynamicUserAddress,0)
 	var count int64
@@ -65,7 +69,7 @@ func (e ShopAddress) GetPage(c *gin.Context) {
 
 
 	if req.Filter != ""{
-		likeVal:=fmt.Sprintf("%%%v%%",req.Filter)
+		likeVal:=fmt.Sprintf("%%%v%%",strings.TrimSpace(req.Filter))
 
 		userlike := fmt.Sprintf("`name` like '%v'",likeVal)
 
