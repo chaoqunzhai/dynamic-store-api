@@ -36,6 +36,8 @@ type SheetRow struct {
 	OrderCreateTime string //订单创建时间
 	ShopAddress string //小B地址
 	ShopPhone string //联系电话
+	Buyer string //客户留言
+	Desc string //大B留言
 	ShopUserValue string //联系人信息
 	DeliveryMoney string //运费
 	AllNumber int `json:"all_number"`//总数
@@ -69,7 +71,7 @@ func (e *OrderExportObj)ReadOrderDetail() (dat map[int]*SheetRow,err error )  {
 
 	splitTableRes := business.GetTableName(e.Dat.CId, e.Orm)
 	e.Orm.Table(splitTableRes.OrderTable).Select(
-		"order_id,shop_id,created_at").Where("order_id in ?",e.Dat.Order).Find(&orderList)
+		"`order_id`,`shop_id`,`created_at`,`desc`,`buyer`").Where("order_id in ?",e.Dat.Order).Find(&orderList)
 
 
 	//基于订单做一次聚会查询
@@ -90,6 +92,8 @@ func (e *OrderExportObj)ReadOrderDetail() (dat map[int]*SheetRow,err error )  {
 				ShopPhone: shopRow.Phone,
 				ShopAddress: shopRow.Address,
 				ShopUserValue: shopRow.UserName,
+				Buyer: orderRow.Buyer,
+				Desc: orderRow.Desc,
 				OrderCreateTime: orderRow.CreatedAt.Format("2006-01-02 15:04"),
 			}
 		}

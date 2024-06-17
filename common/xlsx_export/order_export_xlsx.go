@@ -20,6 +20,7 @@ type XlsxBaseExport struct {
 	XlsxRowIndex int //行的索引 只要插入了新的数据 就增1
 	ExportUser string //操作人
 	ExportTime string //操作时间 也就是录入redis的时间
+	Buyer string
 	StyleTitleId int `json:"style_title_id"` //标题
 	StyleSubtitleId int `json:"style_subtitle_id"` //副标题
 	StyleRowSubtitleId int `json:"style_row_subtitle_id"` //行标头样式
@@ -181,6 +182,7 @@ func (x *XlsxBaseExport)SetXlsxRun(cid int,data map[int]*SheetRow) string  {
 			zap.S().Errorf("SetXlsxRun error %v",err)
 			continue
 		}
+		x.Buyer = row.Buyer
 
 		x.SetCell(row.SheetName)
 
@@ -308,7 +310,9 @@ func (x *XlsxBaseExport)SetTotal(freight bool,sheetRow *SheetRow)  {
 	x.XlsxRowIndex += 1
 
 
-	x.File.SetCellValue(sheetRow.SheetName,fmt.Sprintf("A%v",x.XlsxRowIndex),"备注:")
+	//合并列 给备注放更多信息
+	x.File.MergeCell(sheetRow.SheetName,fmt.Sprintf("A%v",x.XlsxRowIndex),fmt.Sprintf("C%v",x.XlsxRowIndex))
+	x.File.SetCellValue(sheetRow.SheetName,fmt.Sprintf("A%v",x.XlsxRowIndex),fmt.Sprintf("备注:%v",x.Buyer))
 	if freight {
 		x.File.SetCellValue(sheetRow.SheetName,fmt.Sprintf("G%v",x.XlsxRowIndex),"运费:")
 	}
