@@ -250,7 +250,7 @@ func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	var whereSql string
+	whereSql:=fmt.Sprintf("c_id = %v ",userDto.CId)
 	//进行商品名称的查询
 	if req.Name != "" {
 		likeVal:=fmt.Sprintf("%%%v%%",req.Name)
@@ -265,7 +265,7 @@ func (e CompanyInventory) ManageGetPage(c *gin.Context) {
 		goodsIds = utils.RemoveRepeatStr(goodsIds)
 
 		if len(goodsIds) > 0 {
-			whereSql =fmt.Sprintf("%v and goods_id in (%v) and ",whereSql,strings.Join(goodsIds,","))
+			whereSql +=fmt.Sprintf("and goods_id in (%v) and ",strings.Join(goodsIds,","))
 		}
 	}
 

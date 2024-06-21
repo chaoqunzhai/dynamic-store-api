@@ -450,6 +450,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser,req dto.DetailRe
 
 	isOpenInventory:=IsOpenInventory(userDto.CId,e.Orm)
 	for _, row := range orderSpecs {
+		if row.Number == 0 {continue}
 		var stock int
 		if isOpenInventory{ //去仓库中拿数据
 			var Inventory models3.Inventory
