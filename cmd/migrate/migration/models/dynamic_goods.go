@@ -5,7 +5,7 @@ import "time"
 // todo:商品信息
 type Goods struct {
 	BigBRichGlobal
-	Name      string       `gorm:"size:30;comment:商品名称"`
+	Name      string       `gorm:"size:90;comment:商品名称"`
 	Subtitle  string       `gorm:"size:8;comment:商品广告"`
 	Image     string       `gorm:"size:100;comment:商品图片路径"`
 	Quota     bool         `gorm:"comment:是否限购"`

@@ -105,7 +105,7 @@ func (Orders) TableName() string {
 // todo:订单规格
 type OrderSpecs struct {
 	Model
-	GoodsName string       `json:"goods_name" gorm:"size:30;comment:商品名称"`
+	GoodsName string       `json:"goods_name" gorm:"size:90;comment:商品名称"`
 	CId       int          `gorm:"index;comment:大BID"`
 	SpecId    int          `json:"spec_id" gorm:"index;comment:规格ID"`
 	CreatedAt models.XTime `json:"created_at" gorm:"comment:创建时间"`
@@ -208,7 +208,7 @@ type OrderReturn struct {
 	AddressId  int          `json:"user_address_id" gorm:"index;comment:用户的收货地址"`
 	GoodsId    int          `json:"goods_id" gorm:"comment:退货商品ID"`
 	SpecId     int          `gorm:"index;comment::退货商品规格ID"`
-	GoodsName string       `json:"goods_name" gorm:"size:30;comment:商品名称"`
+	GoodsName string       `json:"goods_name" gorm:"size:90;comment:商品名称"`
 	SpecsName  string       `json:"specs_name" gorm:"size:20;comment:规格名称"`
 	Unit       string       `json:"unit" gorm:"type:varchar(8);comment:单位"`
 	Number     int          `json:"number" gorm:"comment:退货商品数量"`
