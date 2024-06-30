@@ -604,6 +604,20 @@ func (e Goods) Get(c *gin.Context) {
 	}
 	var GoodsDesc models.GoodsDesc
 	e.Orm.Model(&GoodsDesc).Where("goods_id = ?",req.Id).Limit(1).Find(&GoodsDesc)
+
+	var GoodsClassList []models.GoodsClass
+	bindClassIds:=make([]int,0)
+	for _, r := range object.Class {
+		bindClassIds = append(bindClassIds, r.Id)
+	}
+	//分类需要从父到子,否则数据展示失败
+	e.Orm.Model(&models.GoodsClass{}).Select("id").Where("id in ?",
+		bindClassIds).Order("parent_id asc").Find(&GoodsClassList)
+	showClassId:=make([]int,0)
+	for _,classRow:=range GoodsClassList{
+		showClassId = append(showClassId,classRow.Id)
+	}
+
 	goodsMap := map[string]interface{}{
 		"name":     object.Name,
 		"subtitle": object.Subtitle,
@@ -615,13 +629,7 @@ func (e Goods) Get(c *gin.Context) {
 			}
 			return t
 		}(),
-		"class": func() []int {
-			t := make([]int, 0)
-			for _, r := range object.Class {
-				t = append(t, r.Id)
-			}
-			return t
-		}(),
+		"class": showClassId,
 		"brand": func() []int {
 			t := make([]int, 0)
 			for _, r := range object.Brand {
@@ -654,7 +662,8 @@ func (e Goods) Get(c *gin.Context) {
 		}(),
 	}
 	var specsList []models.GoodsSpecs
-	e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id = ? and c_id = ?", req.Id, userDto.CId).Order(global.OrderLayerKey).Find(&specsList)
+	e.Orm.Model(&models.GoodsSpecs{}).Where("goods_id = ? and c_id = ? and enable = ? ",
+		req.Id, userDto.CId,true).Order(global.OrderLayerKey).Find(&specsList)
 	specData := make([]interface{}, 0)
 	specVipData := make([]interface{}, 0)
 

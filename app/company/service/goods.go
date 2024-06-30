@@ -143,7 +143,7 @@ func (e *Goods) Insert(cid int, c *dto.GoodsInsertReq) (uid int,specDbMap map[in
 			specsModels := models.GoodsSpecs{
 				Name:    row.Name,
 				CId:     cid,
-				Enable:  row.Enable,
+				Enable:  true,
 				Layer:   row.Layer,
 				GoodsId: data.Id,
 				Code:    row.Code,
@@ -234,9 +234,11 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 	}
 	//分类
 	e.Orm.Model(&data).Association("Class").Clear()
+	//fmt.Println("商品的分类",c.Class)
 	if len(c.Class) > 0 {
 		class := strings.Split(c.Class, ",")
 		data.Class = e.getClassModels(class)
+		//fmt.Println("获取到的分类的列表",class)
 	}
 	//品牌
 	e.Orm.Model(&data).Association("Brand").Clear()
@@ -316,7 +318,7 @@ func (e *Goods) Update(cid int,buckClient qiniu.QinUi, c *dto.GoodsUpdateReq, p 
 				specsRow = models.GoodsSpecs{
 					Name:    row.Name,
 					CId:     cid,
-					Enable:  row.Enable,
+					Enable:  true,
 					Layer:   row.Layer,
 					GoodsId: c.Id,
 					VirtuallySale: row.VirtuallySale,
