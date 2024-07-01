@@ -13,6 +13,7 @@ type DetailCnf struct {
 }
 type DetailInsertReq struct {
 	SpecImageShow bool `json:"spec_image_show" gorm:"default:1"` //规格图片是否展示
+	TitleLine int `json:"title_line" gorm:"size:1;default:1;comment:首页标题显示行数"`
 	DetailAddName string `json:"detail_add_name" gorm:"size:5;comment:购物车名称"`
 	DetailAddCart string `json:"detail_add_cart" ` //详情页面中,加入购物车的文案
 	//DetailAddCartColor string `json:"detail_add_cart_color" ` //详情页面中,加入购物车的颜色
@@ -55,6 +56,7 @@ func (e DetailCnf) Create(c *gin.Context) {
 	var WeAppExtendCnf models.WeAppExtendCnf
 	e.Orm.Model(&models.WeAppExtendCnf{}).Where("c_id = ?",userDto.CId).Limit(1).Find(&WeAppExtendCnf)
 
+	WeAppExtendCnf.TitleLine = req.TitleLine
 	WeAppExtendCnf.DetailAddName = req.DetailAddName
 	WeAppExtendCnf.DetailAddCart = req.DetailAddCart
 

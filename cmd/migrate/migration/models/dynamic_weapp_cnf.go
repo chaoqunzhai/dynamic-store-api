@@ -109,6 +109,7 @@ func (CompanyMemberIndex) TableName() string {
 //TODO:配置一些扩展的客户端一些样式配置
 type WeAppExtendCnf struct {
 	BigBRichGlobal
+	TitleLine int `json:"title_line" gorm:"size:1;default:1;comment:首页标题显示行数"`
 	DetailAddName string `json:"detail_add_name" gorm:"size:5;comment:购物车名称"`
 	DetailAddCart string `json:"detail_add_cart" gorm:"size:10;comment:加入购物车按钮的重命名"` //详情页面中,加入购物车的文案
 	DetailAddCartShow bool `json:"detail_add_cart_show" ` //是否展示加入购物车
