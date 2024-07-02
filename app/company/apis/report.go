@@ -618,7 +618,7 @@ func (e Orders) Detail(c *gin.Context) {
 			"name":row.Name,
 			"count":detailItem.Count,
 			"shop_id":row.Id,
-			"all_money":fmt.Sprintf("%v%v",global.SymBol,detailItem.Money),
+			"all_money":fmt.Sprintf("%v%v",global.SymBol,utils.RoundDecimalFlot64(detailItem.Money)),
 		}
 		result = append(result,item)
 	}
