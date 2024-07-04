@@ -262,7 +262,7 @@ func (e ShopAddress) Delete(c *gin.Context) {
 	var data models.DynamicUserAddress
 	e.Orm.Model(&data).Where("c_id = ?",userDto.CId).Delete(&data, req.GetId())
 
-	e.OK("","删除成功s")
+	e.OK("","删除成功")
 	return
 }
 

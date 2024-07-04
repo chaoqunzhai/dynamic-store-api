@@ -136,7 +136,7 @@ func (e Orders) UpdateOrderAddress(c *gin.Context) {
 		return
 
 	}
-	e.Orm.Table(splitTableRes.OrderTable).Where("order_id = ? and delivery_type = ? ",req.OrderId,req.Type).Updates(map[string]interface{}{
+	e.Orm.Table(splitTableRes.OrderTable).Where("order_id = ? ",req.OrderId).Updates(map[string]interface{}{
 		"address_id":req.UpId,
 	})
 
