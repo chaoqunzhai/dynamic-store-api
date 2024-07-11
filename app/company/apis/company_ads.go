@@ -144,7 +144,7 @@ func (e CompanyAds) Insert(c *gin.Context) {
 		if saveFileErr := c.SaveUploadedFile(fileObj, goodsImagePath); saveFileErr == nil {
 
 			//1.上传到cos中
-			fileName,cosErr :=buckClient.PostImageFile(goodsImagePath)
+			fileName,cosErr :=buckClient.PostImageFile(goodsImagePath,true)
 			if cosErr !=nil{
 				zap.S().Errorf("用户:%v,CID:%v 广告图片上传失败:%v",userDto.UserId,userDto.CId,cosErr)
 				e.OK("", "创建成功")
@@ -238,7 +238,7 @@ func (e CompanyAds) Update(c *gin.Context) {
 			if saveFileErr := c.SaveUploadedFile(fileObj, goodsImagePath); saveFileErr == nil {
 
 				//1.上传到cos中
-				fileName,cosErr :=buckClient.PostImageFile(goodsImagePath)
+				fileName,cosErr :=buckClient.PostImageFile(goodsImagePath,true)
 				if cosErr !=nil{
 					zap.S().Errorf("用户:%v,CID:%v 广告图片上传失败:%v",userDto.UserId,userDto.CId,cosErr)
 					e.OK("", "创建成功")

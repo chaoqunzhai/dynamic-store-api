@@ -147,6 +147,15 @@ func getFileName(fileName string) string {
 
 	return  guid[0] + utils.GetExt(fileName)
 }
+func GetCosGoodsImagePath(imageConst,fileName string,CId interface{})  (filePath,goodsImagePath string) {
+
+	//增加一层 cache_image 目录,防止因为大量的客户 产生大量的客户目录文件 堆放在程序目录同层级中
+	//上传的时候 需要把cache_image 去除掉
+	goodsImagePath = path.Join(global.CacheImage,business.GetSiteCosPath(CId,imageConst,fileName))
+
+	return
+}
+
 func GetCosImagePath(imageConst,fileName string,CId interface{})  (filePath,goodsImagePath string) {
 
 	//增加一层 cache_image 目录,防止因为大量的客户 产生大量的客户目录文件 堆放在程序目录同层级中
@@ -184,7 +193,7 @@ func (e Goods) CosSaveImage(c *gin.Context) {
 		//2.上传到cos中
 		cos :=qiniu.QinUi{CId: userDto.CId}
 		cos.InitClient()
-		fileName,cosErr:=cos.PostImageFile(goodsImagePath)
+		fileName,cosErr:=cos.PostImageFile(goodsImagePath,true)
 		fmt.Println("七牛保存的返回",fileName,cosErr)
 		if cosErr !=nil{
 			zap.S().Errorf("商品图片上传COS失败:%v",cosErr.Error())
@@ -826,11 +835,11 @@ func (e Goods) Insert(c *gin.Context) {
 	//商品信息创建成功,才会保存客户的商品照片
 	for _, file := range files {
 		// 逐个存
-		_,goodsImagePath  :=GetCosImagePath(global.GoodsPath,file.Filename,userDto.CId)
+		_,goodsImagePath  :=GetCosGoodsImagePath(global.GoodsPath,file.Filename,userDto.CId)
 		if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 
-			//1.上传到cos中
-			fileName,cosErr :=buckClient.PostImageFile(goodsImagePath)
+			//1.上传到cos中 保留原文件名
+			fileName,cosErr :=buckClient.PostImageFile(goodsImagePath,false)
 			if cosErr !=nil{
 				zap.S().Errorf("用户:%v,CID:%v 商品规格保存失败:%v",userDto.UserId,userDto.CId,cosErr)
 				continue
@@ -860,7 +869,7 @@ func (e Goods) Insert(c *gin.Context) {
 		if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 
 			//1.上传到cos中
-			fileName,cosErr :=buckClient.PostImageFile(goodsImagePath)
+			fileName,cosErr :=buckClient.PostImageFile(goodsImagePath,true)
 			if cosErr !=nil{
 				zap.S().Errorf("用户:%v,商品规格保存失败:%v",userDto.UserId,cosErr)
 			}
@@ -875,17 +884,7 @@ func (e Goods) Insert(c *gin.Context) {
 	e.OK(req.GetId(), "创建成功")
 }
 
-// Update 修改Goods
-// @Summary 修改Goods
-// @Description 修改Goods
-// @Tags Goods
-// @Accept application/json
-// @Product application/json
-// @Param id path int true "id"
-// @Param data body dto.GoodsUpdateReq true "body"
-// @Success 200 {object} response.Response	"{"code": 200, "message": "修改成功"}"
-// @Router /api/v1/goods/{id} [put]
-// @Security Bearer
+
 func (e Goods) Update(c *gin.Context) {
 	req := dto.GoodsUpdateReq{}
 	s := service.Goods{}
@@ -979,6 +978,7 @@ func (e Goods) Update(c *gin.Context) {
 		//商品信息创建成功,才会保存客户的商品照片
 		// 遍历所有图片
 		fileList := make([]string, 0)
+		fmt.Println("前段传递的baseFile",req.BaseFiles)
 		files := fileForm.File["files"]
 		//处理下路径
 		if req.BaseFiles != "" {
@@ -987,33 +987,39 @@ func (e Goods) Update(c *gin.Context) {
 				fileList = append(fileList, ll[len(ll)-1])
 			}
 		}
-		//前段更新了,进行文件内容的比对 baseFileList 和 fileList 比对，如果不一样是需要进行删除的
-		diffList := utils2.Difference(baseFileList, fileList)
-
-		for _, image := range diffList {
-
-			buckClient.RemoveFile(business.GetSiteCosPath(userDto.CId,global.GoodsPath,image))
-		}
+		fmt.Println("处理后的fileList",req.BaseFiles)
 		for _, file := range files {
 			// 逐个存
 			//index
 
-			_,goodsImagePath  :=GetCosImagePath(global.GoodsPath,file.Filename,userDto.CId)
+			_,goodsImagePath  :=GetCosGoodsImagePath(global.GoodsPath,file.Filename,userDto.CId)
 
 			if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 				//只保留文件名称,防止透露服务器地址
-				fileName,cosErr:=buckClient.PostImageFile(goodsImagePath)
+				fileName,cosErr:=buckClient.PostImageFile(goodsImagePath,false)
 				if cosErr !=nil{
 					continue
 				}
+
 				fileList = append(fileList, fileName)
 			}
 			os.Remove(goodsImagePath)
 		}
+
+		//fileList 可能有重复的 去重
+		fileList = utils2.RemoveRepeatStr(fileList)
+		//前段更新了,进行文件内容的比对 baseFileList 和 fileList 比对，如果不一样是需要进行删除的
+		diffList := utils2.Difference(baseFileList, fileList)
+
+
+		for _, image := range diffList {
+			buckClient.RemoveFile(business.GetSiteCosPath(userDto.CId,global.GoodsPath,image))
+		}
 		e.Orm.Model(&models.Goods{}).Where("id = ? and c_id = ?", req.Id, userDto.CId).Updates(map[string]interface{}{
 			"image": strings.Join(fileList, ","),
 		})
-
+		//fmt.Println("更新到DB的数据",fileList)
+		//fmt.Println("前端传递过来的数据",baseFileList)
 	}
 	//规格图片的处理
 	if req.SpecFileClear == 1{
@@ -1041,7 +1047,8 @@ func (e Goods) Update(c *gin.Context) {
 
 			if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 				//只保留文件名称,防止透露服务器地址
-				fileName,cosErr:=buckClient.PostImageFile(goodsImagePath)
+				//规格图片的话 就重命名即可
+				fileName,cosErr:=buckClient.PostImageFile(goodsImagePath,true)
 				if cosErr !=nil{
 					continue
 				}

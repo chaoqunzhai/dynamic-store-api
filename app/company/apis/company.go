@@ -569,7 +569,7 @@ func (e Company) Information(c *gin.Context) {
 			if saveErr := c.SaveUploadedFile(file, goodsImagePath); saveErr == nil {
 
 				//1.上传到cos中
-				fileName, cosErr := buckClient.PostImageFile(goodsImagePath)
+				fileName, cosErr := buckClient.PostImageFile(goodsImagePath,true)
 				if cosErr == nil {
 					//上传成功了 那就是新的名字
 					imageUrl = fileName

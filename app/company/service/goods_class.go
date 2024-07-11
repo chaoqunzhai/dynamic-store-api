@@ -82,6 +82,10 @@ func (e *GoodsClass) Update(c *dto.GoodsClassUpdateReq, p *actions.DataPermissio
 		actions.Permission(data.TableName(), p),
 	).First(&data, c.GetId())
 	c.Generate(&data)
+	//如何父ID和自己ID一样 那就设置为0
+	if data.Id == data.ParentId{
+		data.ParentId = 0
+	}
 	data.Recommend = true
 	db := e.Orm.Save(&data)
 	if err = db.Error; err != nil {

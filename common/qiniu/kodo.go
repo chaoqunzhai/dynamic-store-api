@@ -82,7 +82,7 @@ func newName(name string, size int) string {
 	_, file := filepath.Split(name)
 	return fmt.Sprintf("%d%s", size, file)
 }
-func SizeFile(filePath string,resizeHeight int) string {
+func SizeFile(rename bool,filePath string,resizeHeight int) string {
 	// 打开要压缩的图片文件
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -112,14 +112,14 @@ func SizeFile(filePath string,resizeHeight int) string {
 	resizedImg := resize.Resize(h, uint(resizeHeight), img, resize.Lanczos3)
 	// 创建输出文件
 	//文件名
-	uuidName:=strings.Split(uuid.New().String(), "-")[0]
-
 	var newFileName string
-	if resizeHeight > 400 {
+	if rename {
+		uuidName :=strings.Split(uuid.New().String(), "-")[0]
 		newFileName =  fmt.Sprintf("%v.%v",uuidName,format)
 	}else {
-		newFileName =  fmt.Sprintf("%v.%v",uuidName,format)
+		newFileName = file.Name()
 	}
+
 
 	newFilePath	:=path.Join(fileDir,newFileName)
 
@@ -202,12 +202,12 @@ func (q *QinUi)ClearCacheImageName(filepath string) string  {
 //上传文件
 //不同的大B做不同的桶,
 //不设置过期时间
-func (q *QinUi)PostImageFile(filePath  string) (name string,err  error)  {
+func (q *QinUi)PostImageFile(filePath  string,rename bool) (name string,err  error)  {
 	//filePath := "/Users/zhaichaoqun/workespace/goProjects/src/test/70e3f85b.jpg"
 
 	//压缩下文件
 	//细致压缩失败,那就用第二种
-	sizeFilePath :=SizeFile(filePath,700)
+	sizeFilePath :=SizeFile(rename,filePath,700)
 	//fmt.Println("sizeFilePath",sizeFilePath)
 	//sizeFilePath:是压缩后的文件
 	_,fileName := path.Split(sizeFilePath)

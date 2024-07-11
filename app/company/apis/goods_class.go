@@ -91,8 +91,8 @@ func (e GoodsClass) GetPage(c *gin.Context) {
 			row.GoodsCount = bindCount
 		}
 		childBindList,ok:=childBindMapList[row.Id]
+		cacheList:=make([]interface{},0)
 		if ok {
-			cacheList:=make([]interface{},0)
 			for _,chd:=range childBindList{
 				if req.IsCount {
 					var chdBindCount int64
@@ -101,10 +101,9 @@ func (e GoodsClass) GetPage(c *gin.Context) {
 					chd.GoodsCount = chdBindCount
 				}
 				cacheList = append(cacheList,chd)
-
 			}
-			row.Children = cacheList
 		}
+		row.Children = cacheList
 
 		result = append(result, row)
 	}
