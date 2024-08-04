@@ -14,23 +14,22 @@ import (
 
 
 
-func (e *Goods)GetSpecInventory(cid int,key string) (openInventory bool, stock int ) {
+func (e *Goods)GetSpecInventory(cid int,key string) (openInventory bool, Inventory  models2.Inventory) {
 	openInventory = IsOpenInventory(cid,e.Orm)
 	if !openInventory{
 		return
 	}
 
-	var Inventory models2.Inventory
 
 	//inventoryKey = append(inventoryKey,fmt.Sprintf("(goods_id = %v and spec_id = %v)",row.GoodsId,row.Id))
 
 	whereSql:=fmt.Sprintf("c_id = %v and %v",cid,key)
-	e.Orm.Model(&models2.Inventory{}).Select("id,stock").Where(whereSql).Limit(1).Find(&Inventory)
+	e.Orm.Model(&models2.Inventory{}).Select("id,stock,original_price").Where(whereSql).Limit(1).Find(&Inventory)
 	if Inventory.Id == 0 {
 		return
 	}
 
-	stock = Inventory.Stock
+	//stock = Inventory.Stock
 	return
 
 }

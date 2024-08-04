@@ -8,7 +8,7 @@ type Goods struct {
 	models.Model
 	Layer     int          `json:"layer" gorm:"type:tinyint(4);comment:排序"`
 	Enable    bool         `json:"enable" gorm:"type:tinyint(1);comment:开关"`
-	CId       int          `json:"cId" gorm:"type:bigint(20);comment:大BID"`
+	CId       int          `json:"-" gorm:"type:bigint(20);comment:大BID"`
 	Name      string       `json:"name" gorm:"type:varchar(35);comment:商品名称"`
 	SpecName  string       `gorm:"size:8;comment:规格命名,例如是:颜色,重量,系列"`
 	Subtitle  string       `json:"subtitle" gorm:"type:varchar(8);comment:宣发文案"`

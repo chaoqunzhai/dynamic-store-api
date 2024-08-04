@@ -525,21 +525,13 @@ func (e Goods) Export(c *gin.Context) {
 
 		for _,specs:=range specialist {
 
-			var inventory int
 			_,getInventory:=s.GetSpecInventory(goodsObject.CId,fmt.Sprintf("(goods_id = %v and spec_id = %v)",goodsObject.Id,specs.Id))
 
-			if openInventory{
-				inventory = getInventory
-			}else {
-				inventory = specs.Inventory
-			}
 
 			exportRow:=xlsx_export.GoodsExport{
 				GoodsName: goodsObject.Name,
 				SpecName: specs.Name,
-				Original:specs.Original,
 				Price: specs.Price,
-				Stock: inventory,
 				SerialNumber:specs.SerialNumber,
 				Class: func() string {
 					cache := make([]string, 0)
@@ -555,6 +547,14 @@ func (e Goods) Export(c *gin.Context) {
 					}
 					return strings.Join(cache,"/")
 				}(),
+			}
+			if openInventory{
+				exportRow.Stock = getInventory.Stock
+				exportRow.Original = getInventory.OriginalPrice
+			}else {
+				exportRow.Stock = specs.Inventory
+				exportRow.Original = specs.Original
+
 			}
 			var unitObject models.GoodsUnit
 			unitName:=""
@@ -680,14 +680,9 @@ func (e Goods) Get(c *gin.Context) {
 
 	for _, specs := range specsList {
 		now := utils.GetUUID()
-		var inventory int
+
 		openInventory,getInventory:=s.GetSpecInventory(object.CId,fmt.Sprintf("(goods_id = %v and spec_id = %v)",specs.GoodsId,specs.Id))
 
-		if openInventory{
-			inventory = getInventory
-		}else {
-			inventory = specs.Inventory
-		}
 		specRow := map[string]interface{}{
 			"id":        specs.Id,
 			"key":       now,
@@ -698,13 +693,21 @@ func (e Goods) Get(c *gin.Context) {
 			"price":     specs.Price,
 			"market":specs.Market,
 			"original":  specs.Original,
-			"inventory": inventory,
+			"inventory": 0,
 			"limit":     specs.Limit,
 			"max":specs.Max,
 			"enable":    specs.Enable,
 			"layer":     specs.Layer,
 			"unit_id":      specs.UnitId,
 			"image":business.GetDomainCosEncodePathName(global.GoodsPath,object.CId,specs.Image,false),
+		}
+		if openInventory{
+			specRow["inventory"] = getInventory.Stock
+			specRow["original"] = getInventory.OriginalPrice
+
+		}else {
+			specRow["original"] = specs.Original
+			specRow["inventory"] = specs.Inventory
 		}
 		specData = append(specData, specRow)
 		vipMap := map[string]interface{}{

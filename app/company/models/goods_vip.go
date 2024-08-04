@@ -11,7 +11,7 @@ type GoodsVip struct {
 
 	Layer       int `json:"layer" gorm:"type:tinyint(4);comment:排序"`
 	Enable      bool `json:"enable" gorm:"type:tinyint(1);comment:开关"`
-	CId         int `json:"c_id" gorm:"type:bigint(20);comment:大BID"`
+	CId         int `json:"-" gorm:"type:bigint(20);comment:大BID"`
 	GoodsId     int `json:"goods_id" gorm:"type:bigint(20);comment:商品ID"`
 	SpecsId     int `json:"specs_id" gorm:"type:bigint(20);comment:规格ID"`
 	GradeId     int `json:"grade_id" gorm:"type:bigint(20);comment:VipId"`
