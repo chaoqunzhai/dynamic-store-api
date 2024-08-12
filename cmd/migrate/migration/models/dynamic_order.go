@@ -214,8 +214,8 @@ type OrderReturn struct {
 	Number     int          `json:"number" gorm:"comment:退货商品数量"`
 	Price      float64      `json:"price" gorm:"comment:商品单价"`
 	Image      string       `json:"image" gorm:"size:15;comment:商品图片"`
-	RefundDeliveryMoney    float64   `json:"refund_delivery_money" gorm:"comment:支付运费"` //支付运费
-	RefundApplyMoney float64 `json:"refund_apply_money" gorm:"comment:退款金额"`
+	RefundDeliveryMoney    float64   `json:"refund_delivery_money" gorm:"comment:记录需要支付的运费"` //支付运费
+	RefundApplyMoney float64 `json:"refund_apply_money" gorm:"comment:真正退款的金额"`
 	RefundMoneyType int `json:"refund_money_type" gorm:"type:tinyint(1);default:0;index;comment:退款路径 默认处理中"`
 	RefundTime models.XTime `json:"refund_time" gorm:"comment:处理时间"`
 	SDesc      string       `json:"s_desc" gorm:"size:24;comment:退货原因"`

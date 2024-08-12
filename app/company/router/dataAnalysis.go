@@ -21,9 +21,16 @@ func registerDataRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewar
 	api := apis.DataAnalysis{}
 	r := v1.Group("/data-analysis").Use(authMiddleware.MiddlewareFunc()).Use(middleware.AuthCheckRole()).Use(actions.PermissionCompanyRole())
 	{
-		r.GET("count", api.Count)
+		r.GET("/goodsCount", api.GoodsCount)
+		r.GET("/goodsList", api.GoodsList)
 
-		r.GET("gross", api.Gross)
+		r.GET("/goodsClass", api.GoodsClassList)
+
+		r.GET("/goodsBrand", api.GoodsBrandList)
+		r.GET("/grossCount", api.GrossCount)
+		r.GET("/grossList", api.Grosslist)
+
+
 	}
 
 

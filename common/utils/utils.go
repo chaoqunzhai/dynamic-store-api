@@ -6,6 +6,8 @@
 package utils
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/shopspring/decimal"
@@ -480,4 +482,8 @@ func IsTimeOverlap(start1, end1, start2, end2 time.Time) bool {
 	}
 	// 否则，两个时间范围有重叠。
 	return true
+}
+func Md5(raw string) string {
+	h := md5.Sum([]byte(raw))
+	return hex.EncodeToString(h[:])
 }
