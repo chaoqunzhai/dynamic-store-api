@@ -30,6 +30,7 @@ type GoodsAnalysisTableRow struct {
 	Unit string `json:"unit"`
 	RefundCount int64 `json:"refund_number"`
 	RefundMoney float64 `json:"refund_money"`
+	Income float64 `json:"income"`
 }
 type AnalysisQuery struct {
 	OrderType    int    `form:"orderType" `
@@ -263,6 +264,7 @@ func (e DataAnalysis) GoodsList(c *gin.Context) {
 			refundAllMoney +=utils.RoundDecimalFlot64(cacheRefundRow.AllMoney)
 		}
 
+		cacheRow.Income = utils.RoundDecimalFlot64(cacheRow.AllMoney - cacheRow.RefundMoney)
 		queryAllCount +=int64(row.Number)
 
 		queryAllMoney +=utils.RoundDecimalFlot64(row.AllMoney)
