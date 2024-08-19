@@ -16,7 +16,7 @@ type GoodsSpecs struct {
 	Name      string         `json:"name" gorm:"type:varchar(20);comment:规格名称"`
 	Price     float64        `json:"price" gorm:"type:float;comment:售价"`
 	Market float64        `json:"market" gorm:"type:float;comment:市场价"`
-	Original  float64        `json:"original" gorm:"type:float;comment:原价"`
+	Original  float64        `json:"original" gorm:"type:float;comment:成本价"`
 	Inventory int            `json:"inventory" gorm:"type:bigint(20);comment:库存"`
 	Sale int   `gorm:"comment:销售量"`
 	UnitId      int         `json:"unit_id" gorm:"type:varchar(8);comment:单位"`
