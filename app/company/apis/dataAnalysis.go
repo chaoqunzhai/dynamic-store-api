@@ -144,16 +144,21 @@ func (e DataAnalysis) GoodsList(c *gin.Context) {
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
 
 	//默认查询15天的时间
-	startTime:=nowTime.AddDate(0,0,-15).Format(time.DateTime)
-	endTime:=nowTime.Format(time.DateTime)
-
 	//限制最多查询60天的数据
 	//开始时间
+	var startTime string
+	var endTime string
 	if req.BeginTime!=""{
 		startTime = req.BeginTime
+	}else {
+		startTime = nowTime.AddDate(0,0,-15).Format(time.DateTime)
+
 	}
 	if req.EndTime != "" {
 		endTime = req.EndTime
+	}else {
+		endTime =nowTime.Format(time.DateTime)
+
 	}
 
 
@@ -384,14 +389,17 @@ func (e DataAnalysis) GoodsClassList(c *gin.Context) {
 	var endTime string
 
 	nowTime:=time.Now()
-	//默认查询15天的时间
-	startTime =nowTime.AddDate(0,0,-15).Format(time.DateTime)
-	endTime =nowTime.Format(time.DateTime)
 	if req.BeginTime!=""{
 		startTime = req.BeginTime
+	}else {
+		startTime = nowTime.AddDate(0,0,-15).Format(time.DateTime)
+
 	}
 	if req.EndTime != "" {
 		endTime = req.EndTime
+	}else {
+		endTime =nowTime.Format(time.DateTime)
+
 	}
 	whereRangeTime:=fmt.Sprintf("c_id = %v and created_at >= '%v' and created_at <= '%v' ",
 		userDto.CId,startTime,endTime)
@@ -674,14 +682,17 @@ func (e DataAnalysis) GoodsBrandList(c *gin.Context) {
 	var endTime string
 
 	nowTime:=time.Now()
-	//默认查询15天的时间
-	startTime =nowTime.AddDate(0,0,-15).Format(time.DateTime)
-	endTime =nowTime.Format(time.DateTime)
 	if req.BeginTime!=""{
 		startTime = req.BeginTime
+	}else {
+		startTime = nowTime.AddDate(0,0,-15).Format(time.DateTime)
+
 	}
 	if req.EndTime != "" {
 		endTime = req.EndTime
+	}else {
+		endTime =nowTime.Format(time.DateTime)
+
 	}
 	whereRangeTime:=fmt.Sprintf("c_id = %v and created_at >= '%v' and created_at <= '%v' ",
 		userDto.CId,startTime,endTime)
@@ -948,7 +959,6 @@ func (e DataAnalysis) Grosslist(c *gin.Context) {
 		e.Error(500, err, err.Error())
 		return
 	}
-	nowTime:=time.Now()
 
 	//查询的总订单数
 	var queryAllCount int64
@@ -960,18 +970,20 @@ func (e DataAnalysis) Grosslist(c *gin.Context) {
 	var refundAllMoney float64
 	//获取客户的分表
 	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
-
-	//默认查询15天的时间
-	startTime:=nowTime.AddDate(0,0,-15).Format(time.DateTime)
-	endTime:=nowTime.Format(time.DateTime)
-
-	//限制最多查询60天的数据
-	//开始时间
+	var startTime string
+	var endTime string
+	nowTime:=time.Now()
 	if req.BeginTime!=""{
 		startTime = req.BeginTime
+	}else {
+		startTime = nowTime.AddDate(0,0,-15).Format(time.DateTime)
+
 	}
 	if req.EndTime != "" {
 		endTime = req.EndTime
+	}else {
+		endTime =nowTime.Format(time.DateTime)
+
 	}
 
 
