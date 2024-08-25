@@ -136,7 +136,7 @@ func main() {
 
 		////第三行 联系信息
 		file.MergeCell(row,"B3","C3")
-		file.MergeCell(row,"D3","H3")
+		file.MergeCell(row,"A3","H3")
 
 
 		//第四行 设置标题
@@ -180,10 +180,8 @@ func main() {
 		file.SetCellValue(row,"A2","DH.20231223.006")
 
 		file.SetCellValue(row,"B2","下单日期：2023-12-23 16:26")
-		file.SetCellValue(row,"D2","客户名称：韩测试")
-		file.SetCellValue(row,"A3","联系人：韩先生")
-		file.SetCellValue(row,"B3","联系电话：18710876788")
-		file.SetCellValue(row,"D3","收货地址：陕西省西安市新城区西部大道")
+		file.SetCellValue(row,"D2","客户信息：韩测试  韩先生/18710876788")
+		file.SetCellValue(row,"A3","收货地址：陕西省西安市新城区西部大道")
 		if err = file.SetCellStyle(row,"A2","D3",styleId2);err!=nil{
 			fmt.Println("set error",err)
 		}

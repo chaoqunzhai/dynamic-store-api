@@ -51,6 +51,10 @@ func (m *GoodsGetPageReq) GetNeedSearch() interface{} {
 	return *m
 }
 
+type UpdateIndex struct {
+	Layer int `json:"layer"`
+	Id int `json:"id"`
+}
 type GoodsStateReq struct {
 	Goods  []int `json:"goods" comment:"主键编码"` // 主键编码
 	Enable bool  `json:"enable"  comment:"开关"`

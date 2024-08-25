@@ -39,7 +39,7 @@ func (x *XlsxBaseExport)ReplaceAllString(originalString string) string  {
 func (x *XlsxBaseExport)SetRowBackGroundCellValue(index int,row string)  {
 	var err error
 	//设置:长度
-	if err =x.File.SetColWidth(row,"A","A",10.2);err!=nil{
+	if err =x.File.SetColWidth(row,"A","A",18.2);err!=nil{
 		fmt.Println("err1",err)
 	}
 	if err =x.File.SetColWidth(row,"B","B",40.23);err!=nil{
@@ -220,15 +220,12 @@ func (x *XlsxBaseExport)SetCell(row string)  {
 	x.File.MergeCell(row,"A1","H1")
 
 
-	//第二行 订货信息
-
-
+	//第二行 订货信息 收件人
 	x.File.MergeCell(row,"B2","C2")
 	x.File.MergeCell(row,"D2","H2")
 
-	//第三行 合并联系信息
-	x.File.MergeCell(row,"B3","C3")
-	x.File.MergeCell(row,"D3","H3")
+	//第三行 合并收货地址
+	x.File.MergeCell(row,"A3","H3")
 
 
 	//设置副标题
@@ -250,10 +247,9 @@ func (x *XlsxBaseExport)SetSubtitleValue(sheetRow *SheetRow)  {
 		x.File.SetCellValue(sheetRow.SheetName,"B2",fmt.Sprintf("配送司机：%v",x.DriverVal))
 	}
 
-	x.File.SetCellValue(sheetRow.SheetName,"D2",fmt.Sprintf("客户名称：%v",sheetRow.SheetName))
-	x.File.SetCellValue(sheetRow.SheetName,"A3",fmt.Sprintf("联系人：%v",sheetRow.ShopUserValue))
-	x.File.SetCellValue(sheetRow.SheetName,"B3",fmt.Sprintf("联系电话：%v",sheetRow.ShopPhone))
-	x.File.SetCellValue(sheetRow.SheetName,"D3",fmt.Sprintf("收货地址：%v",sheetRow.ShopAddress))
+	userInfo :=fmt.Sprintf("客户信息: %v  %v / %v",sheetRow.SheetName,sheetRow.ShopUserValue,sheetRow.ShopPhone)
+	x.File.SetCellValue(sheetRow.SheetName,"D2",userInfo)
+	x.File.SetCellValue(sheetRow.SheetName,"A3",fmt.Sprintf("收货地址：%v",sheetRow.ShopAddress))
 
 	x.File.SetCellStyle(sheetRow.SheetName,"A2","D3",x.StyleSubtitleId)
 }
@@ -311,7 +307,7 @@ func (x *XlsxBaseExport)SetTotal(freight bool,sheetRow *SheetRow)  {
 
 
 	//合并列 给备注放更多信息
-	x.File.MergeCell(sheetRow.SheetName,fmt.Sprintf("A%v",x.XlsxRowIndex),fmt.Sprintf("C%v",x.XlsxRowIndex))
+	x.File.MergeCell(sheetRow.SheetName,fmt.Sprintf("B%v",x.XlsxRowIndex),fmt.Sprintf("F%v",x.XlsxRowIndex))
 	x.File.SetCellValue(sheetRow.SheetName,fmt.Sprintf("A%v",x.XlsxRowIndex),fmt.Sprintf("备注:%v",x.Buyer))
 	if freight {
 		x.File.SetCellValue(sheetRow.SheetName,fmt.Sprintf("G%v",x.XlsxRowIndex),"运费:")

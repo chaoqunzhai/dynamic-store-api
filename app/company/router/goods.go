@@ -37,6 +37,9 @@ func registerGoodsRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlewa
 		//商品数据导出
 		r.GET("/export",api.Export)
 
+		//更新所有
+		r.POST("/updateIndex",api.UpdateIndex)
+
 	}
 
 

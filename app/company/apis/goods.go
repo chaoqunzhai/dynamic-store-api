@@ -165,6 +165,31 @@ func GetCosImagePath(imageConst,fileName string,CId interface{})  (filePath,good
 	return
 }
 
+
+func (e Goods) UpdateIndex(c *gin.Context) {
+	req := dto.UpdateIndex{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req, binding.JSON, nil).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := customUser.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	e.Orm.Model(&models.Goods{}).Where("c_id = ? and id = ?",userDto.CId,req.Id).Updates(map[string]interface{}{
+		"layer":req.Layer,
+	})
+	e.OK("","successful")
+	return
+
+}
 //todo:存储商品详情中上传的图片
 func (e Goods) CosSaveImage(c *gin.Context) {
 	err := e.MakeContext(c).
