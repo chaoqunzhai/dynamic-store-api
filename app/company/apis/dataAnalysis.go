@@ -965,6 +965,11 @@ func (e DataAnalysis) Grosslist(c *gin.Context) {
 	//查询的总金额
 	var queryAllMoney float64
 
+	//查询的成本
+	var queryActualSalesCost float64
+
+	//计算出来的实际销售收入
+	var queryActualAllMoney float64
 	//退货总数量
 	var refundAllCount int64
 	var refundAllMoney float64
@@ -1186,6 +1191,8 @@ func (e DataAnalysis) Grosslist(c *gin.Context) {
 		if originalPrice > 0 { //只有成本价才值得计算
 			//销售成本  = 销售数量 * 成本
 			SalesCost :=utils.RoundDecimalFlot64(float64(cacheRow.AllNumber) * originalPrice)
+
+			//fmt.Println("成本叠加",SalesCost,queryActualSalesCost,"商品",row.GoodsName)
 			cacheRow.Cost =  utils.StringDecimal(SalesCost)
 
 
@@ -1194,11 +1201,14 @@ func (e DataAnalysis) Grosslist(c *gin.Context) {
 			cacheRow.SalesGross  = utils.StringDecimal(SalesGross)
 			//销售毛利率=销售毛利/实际销售收入
 			cacheRow.SalesGrossProfit  = fmt.Sprintf("%.2f%%",(SalesGross / cacheRow.AllMoneyValue)  * 100)
-			// 退回成本=货物单价×退回的货物数量
 
+			// 退回成本=货物单价×退回的货物数量
 			RefundCost:= utils.RoundDecimalFlot64(originalPrice * float64(cacheRow.RefundCount))
 			cacheRow.RefundCost = utils.StringDecimal(RefundCost)
 
+
+			//实际销售成本 =   销售成本 - 退货成本
+			queryActualSalesCost += SalesCost - RefundCost
 			//整个毛利计算
 
 			//毛利=[(实际销售金-实际退货金额)-(销售成本-退货成本)]
@@ -1212,8 +1222,12 @@ func (e DataAnalysis) Grosslist(c *gin.Context) {
 		}
 
 
+		Income:= cacheRow.AllMoneyValue - cacheRow.RefundMoneyValue
+		cacheRow.Income =  utils.StringDecimal(Income)
 
-		cacheRow.Income = utils.StringDecimal(cacheRow.AllMoneyValue - cacheRow.RefundMoneyValue)
+		queryActualAllMoney +=Income
+
+
 		queryAllCount +=int64(row.Number)
 
 		queryAllMoney +=utils.RoundDecimalFlot64(row.AllMoney)
@@ -1226,14 +1240,16 @@ func (e DataAnalysis) Grosslist(c *gin.Context) {
 	}
 
 	sort.Sort(ByResultAnalysisMoney(resultList))
+
+	gross := queryActualAllMoney - queryActualSalesCost
+	salesGrossComputer:= gross / queryActualAllMoney
+
+	salesGross := fmt.Sprintf("%v(%.2f%%)",utils.StringDecimal(gross),salesGrossComputer)
 	queryResult:=map[string]interface{}{
 		"calculationCount":map[string]interface{}{
-			"queryAllCount":queryAllCount,
-			"queryAllMoney":utils.StringDecimal(queryAllMoney),
-			"refundAllCount":refundAllCount,
-			"refundAllMoney":utils.StringDecimal(refundAllMoney),
-			"totalCouponMoney":utils.StringDecimal(totalCouponMoney),
-
+			"actualSales":utils.StringDecimal(queryActualAllMoney), //实际销售收入
+			"actualSalesCost": utils.StringDecimal(queryActualSalesCost),// 实际销售成本
+			"salesGross":salesGross ,//销售毛利
 		},
 		"list":resultList,
 		"total":len(resultList),
