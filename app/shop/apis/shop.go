@@ -417,7 +417,7 @@ func (e Shop) Update(c *gin.Context) {
 		//检测手机号是否已经存在
 		var validUser sys.SysShopUser
 		//查询大B下 + 新手机号
-		e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("phone = ? ",req.Phone).Limit(1).Find(&validUser)
+		e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("c_id = ? and phone = ? ",userDto.CId,req.Phone).Limit(1).Find(&validUser)
 
 		if validUser.UserId > 0 {
 			if validUser.UserId != parentShopRow.UserId {
@@ -427,7 +427,7 @@ func (e Shop) Update(c *gin.Context) {
 		}
 		//商城的手机号也要保持唯一
 		var userShop models.Shop
-		e.Orm.Model(&userShop).Select("user_id").Where("phone = ? ",req.Phone).Limit(1).Find(&userShop)
+		e.Orm.Model(&userShop).Select("user_id").Where("c_id = ? and phone = ? ",userDto.CId,req.Phone).Limit(1).Find(&userShop)
 		if userShop.UserId > 0 {
 			if userShop.UserId != parentShopRow.UserId {
 				e.Error(500, errors.New("手机号已经存在"), "手机号已经存在")
@@ -441,7 +441,7 @@ func (e Shop) Update(c *gin.Context) {
 
 		var validUser sys.SysShopUser
 
-		e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("username = ? ",req.UserName).Limit(1).Find(&validUser)
+		e.Orm.Model(&sys.SysShopUser{}).Select("user_id").Where("c_id = ?  and username = ? ",userDto.CId,req.UserName).Limit(1).Find(&validUser)
 		if validUser.UserId > 0 {
 			if validUser.UserId != parentShopRow.UserId {
 				e.Error(500, errors.New("用户名已经存在"), "用户名已经存在")
@@ -451,7 +451,7 @@ func (e Shop) Update(c *gin.Context) {
 	}
 
 	var userSymanObject sys.SysUser
-	e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("phone = ? and enable = ?",req.SalesmanPhone,true).Limit(1).Find(&userSymanObject)
+	e.Orm.Model(&sys.SysUser{}).Select("user_id").Where("c_id = ?  and phone = ? and enable = ?",userDto.CId,req.SalesmanPhone,true).Limit(1).Find(&userSymanObject)
 	if userSymanObject.UserId > 0 {
 		req.Salesman = userSymanObject.UserId
 	}
