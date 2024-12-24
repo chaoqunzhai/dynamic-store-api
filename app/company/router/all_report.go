@@ -44,7 +44,7 @@ func registerNoAuthReportOrdersRouter(v1 *gin.RouterGroup) {
 	r := v1.Group("/report")
 
 	{
-		r.GET("/line_summary/:path/:xlsx",api.LineSummary)
+		r.GET("/file/:path/:xlsx",api.LineSummary)
 
 		r.GET("/:path/:xlsx",api.ExportDownload)
 	}

@@ -21,6 +21,20 @@ import (
 	"time"
 )
 
+
+// RemoveDuplicates 保持数组顺序去重
+func RemoveDuplicates(arr []string) []string {
+	seen := make(map[string]bool)
+	result := []string{}
+	for _, v := range arr {
+		if !seen[v] {
+			seen[v] = true
+			result = append(result, v)
+		}
+	}
+	return result
+}
+
 func DirNotCreate(dir string) {
 
 	if _, err := os.Stat(dir); os.IsNotExist(err) {

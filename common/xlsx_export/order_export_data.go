@@ -49,14 +49,43 @@ type SheetRow struct {
 type XlsxTableRow struct {
 	Id int `json:"id"`
 	Key string `json:"key"` //=商品ID_规格ID
+	GoodsId int `json:"goods_id"`
 	GoodsName string `json:"goods_name"`
+	GoodsLayer int `json:"goods_layer"`
 	GoodsSpecs string `json:"goods_specs"`
 	Unit string `json:"unit"`
 	Number int `json:"number"`
 	Price float64 `json:"price"`
 	TotalMoney float64  `json:"total_money"`
 }
+type XlsxTableRowOrderList []*XlsxTableRow
 
+func (a XlsxTableRowOrderList)Len() int   {
+
+	return len(a)
+}
+func (a XlsxTableRowOrderList)Swap(i,j int)  {
+	a[i],a[j] = a[j],a[i]
+}
+
+func (a XlsxTableRowOrderList)Less(i,j int) bool  {
+
+	return a[i].GoodsLayer > a[j].GoodsLayer
+}
+type XlsxTableGoodsRowOrderList []GoodsExport
+
+func (a XlsxTableGoodsRowOrderList)Len() int   {
+
+	return len(a)
+}
+func (a XlsxTableGoodsRowOrderList)Swap(i,j int)  {
+	a[i],a[j] = a[j],a[i]
+}
+
+func (a XlsxTableGoodsRowOrderList)Less(i,j int) bool  {
+
+	return a[i].GoodsLayer > a[j].GoodsLayer
+}
 //开始执行数据导出
 //多个订单save为一个excel文件
 //多个订单 同一个小B放到一个sheet中
@@ -108,6 +137,7 @@ func (e *OrderExportObj)ReadOrderDetail() (dat map[int]*SheetRow,err error )  {
 		for _, row := range orderSpecs {
 			xlsx :=&XlsxTableRow{
 				GoodsName: row.GoodsName,
+				GoodsId: row.GoodsId,
 				GoodsSpecs: row.SpecsName,
 				Unit: row.Unit,
 				Number: row.Number,

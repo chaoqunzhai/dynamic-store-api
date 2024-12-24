@@ -555,6 +555,7 @@ func (e Goods) Export(c *gin.Context) {
 
 			exportRow:=xlsx_export.GoodsExport{
 				GoodsName: goodsObject.Name,
+				GoodsId: goodsObject.Id,
 				SpecName: specs.Name,
 				Price: specs.Price,
 				SerialNumber:specs.SerialNumber,

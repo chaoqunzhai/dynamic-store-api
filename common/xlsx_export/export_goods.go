@@ -14,6 +14,8 @@ import (
 
 type GoodsExport struct {
 	GoodsName string `json:"goods_name"`
+	GoodsId int `json:"goods_id"`
+	GoodsLayer int `json:"goods_layer"`
 	SpecName string `json:"spec_name"`
 	Unit string `json:"unit"`
 	Original float64 `json:"original"`
@@ -67,7 +69,9 @@ func (x *XlsxBaseExport)GoodsExport(cid int,table []GoodsExport) string{
 	x.File.SetCellValue(SheetName,fmt.Sprintf("J%v",x.XlsxRowIndex),"编号")
 
 	x.File.SetCellStyle(SheetName,"A1","J1",x.StyleRowSubtitleId)
-	for index,datRow:=range table{
+
+	newTable:=x.SortGoodsLayer(table)
+	for index,datRow:=range newTable{
 
 		//因为上面有4个是标题
 		x.XlsxRowIndex = index + 2
@@ -100,3 +104,4 @@ func (x *XlsxBaseExport)GoodsExport(cid int,table []GoodsExport) string{
 	return xlsxName
 
 }
+

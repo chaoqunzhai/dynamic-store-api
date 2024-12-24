@@ -92,6 +92,7 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 			xlsx :=&XlsxTableRow{
 				Key: fmt.Sprintf("%v_%v",row.GoodsId,row.SpecId),
 				GoodsName: row.GoodsName,
+				GoodsId: row.GoodsId,
 				GoodsSpecs: row.SpecsName,
 				Unit: row.Unit,
 				Number: row.Number,
@@ -153,7 +154,7 @@ func (e *ReportLineObj)ReadLineDetail() (ResultData map[int]*LineMapping,err err
 			newTable = append(newTable,mergeXlsx)
 
 			SheetRowVal.AllNumber +=mergeXlsx.Number
-			SheetRowVal.AllMoney = utils.RoundDecimalFlot64(SheetRowVal.AllMoney) + mergeXlsx.TotalMoney
+			SheetRowVal.AllMoney = utils.RoundDecimalFlot64(SheetRowVal.AllMoney  + mergeXlsx.TotalMoney )
 		}
 		SheetRowVal.Table = newTable
 		SheetRowVal.MoneyCn = utils.ConvertNumToCny(SheetRowVal.AllMoney)

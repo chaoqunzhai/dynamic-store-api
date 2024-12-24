@@ -6,8 +6,12 @@ package xlsx_export
 
 import (
 	"fmt"
+	"github.com/go-admin-team/go-admin-core/sdk"
 	"github.com/xuri/excelize/v2"
+	"go-admin/app/company/models"
+	"go-admin/global"
 	"go.uber.org/zap"
+	"sort"
 
 	"strings"
 )
@@ -260,7 +264,9 @@ func (x *XlsxBaseExport)SetCellRow(row string,table []*XlsxTableRow)  {
 	x.File.SetCellValue(row,"A1",fmt.Sprintf("%v 订货单",row))
 
 	x.File.SetCellStyle(row,"A1","H1",x.StyleTitleId)
-	for index,datRow:=range table{
+
+	sortTable :=x.SortLayer(table)
+	for index,datRow:=range sortTable{
 
 		//因为上面有4个是标题
 		x.XlsxRowIndex = index + 5
@@ -269,7 +275,7 @@ func (x *XlsxBaseExport)SetCellRow(row string,table []*XlsxTableRow)  {
 
 		//datRow 转数组
 		sliceList :=[]interface{}{
-			datRow.Id,datRow.GoodsName,datRow.GoodsSpecs,datRow.Unit,datRow.Number,datRow.Price,datRow.TotalMoney,
+			index + 1,datRow.GoodsName,datRow.GoodsSpecs,datRow.Unit,datRow.Number,datRow.Price,datRow.TotalMoney,
 		}
 		for cellIndex,tableValue:=range sliceList{
 
@@ -322,4 +328,58 @@ func (x *XlsxBaseExport)SetTotal(freight bool,sheetRow *SheetRow)  {
 	end:=x.XlsxRowIndex
 	x.File.SetCellStyle(sheetRow.SheetName,fmt.Sprintf("A%v",start),
 		fmt.Sprintf("H%v",end),x.StyleRowInfoId)
+}
+
+func (x *XlsxBaseExport)SortLayer( Table []*XlsxTableRow) []*XlsxTableRow  {
+
+	Orm := sdk.Runtime.GetDbByKey("*")
+
+	if Orm == nil{
+		return  Table
+	}
+	var goodsId []int
+	for _,datRow:=range Table{
+		goodsId = append(goodsId,datRow.GoodsId)
+	}
+	var goodsList []models.Goods
+	Orm.Model(&models.Goods{}).Select("id,layer").Where("id in ?",goodsId).Order(global.OrderLayerKey).Find(&goodsList)
+
+	layerMap:=make(map[int]int,0)
+	for _,row:=range goodsList{
+		layerMap[row.Id] = row.Layer
+	}
+	for _,datRow :=range Table{
+		layerNum := layerMap[datRow.GoodsId]
+		datRow.GoodsLayer = layerNum
+	}
+	sort.Sort(XlsxTableRowOrderList(Table))
+
+	return  Table
+}
+
+func (x *XlsxBaseExport)SortGoodsLayer( Table []GoodsExport) []GoodsExport  {
+
+	Orm := sdk.Runtime.GetDbByKey("*")
+
+	if Orm == nil{
+		return  Table
+	}
+	var goodsId []int
+	for _,datRow:=range Table{
+		goodsId = append(goodsId,datRow.GoodsId)
+	}
+	var goodsList []models.Goods
+	Orm.Model(&models.Goods{}).Select("id,layer").Where("id in ?",goodsId).Order(global.OrderLayerKey).Find(&goodsList)
+
+	layerMap:=make(map[int]int,0)
+	for _,row:=range goodsList{
+		layerMap[row.Id] = row.Layer
+	}
+	for _,datRow :=range Table{
+		layerNum := layerMap[datRow.GoodsId]
+		datRow.GoodsLayer = layerNum
+	}
+	sort.Sort(XlsxTableGoodsRowOrderList(Table))
+
+	return  Table
 }

@@ -39,6 +39,8 @@ func registerReportRouter(v1 *gin.RouterGroup, authMiddleware *jwt.GinJWTMiddlew
 
 		r.POST("/export/line_summary",api.LineSummary)
 
+		//客户和所有商品的
+		r.POST("/export/customer_bind_user",api.CustomerBindUser)
 	}
 
 

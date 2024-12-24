@@ -12,6 +12,7 @@ import (
 	"go-admin/config"
 	"go-admin/global"
 	"path"
+	"strings"
 	"time"
 
 	models2 "go-admin/cmd/migrate/migration/models"
@@ -46,6 +47,13 @@ type GetPageReq struct {
 	BeginTime      string `form:"beginTime" search:"type:gte;column:created_at;table:company_tasks" comment:"创建时间"`
 	EndTime        string `form:"endTime" search:"type:lte;column:created_at;table:company_tasks" comment:"创建时间"`
 
+}
+type OrderMapCnf struct {
+	ShopId int `json:"shop_id"`
+	ShopName string `json:"shop_name"`
+	AllNumber int `json:"all_number"`
+	GoodsName string `json:"goods_name"`
+	SpecsName string `json:"specs_name"`
 }
 func (m *GetPageReq) GetNeedSearch() interface{} {
 	return *m
@@ -138,6 +146,122 @@ func (e *Worker)Download(c *gin.Context)  {
 }
 
 
+func (e *Worker)CustomerBindUser(c *gin.Context) {
+	req := WorkerExportLineSummaryReq{}
+	err := e.MakeContext(c).
+		MakeOrm().
+		Bind(&req).
+		Errors
+	if err != nil {
+		e.Logger.Error(err)
+		e.Error(500, err, err.Error())
+		return
+	}
+	userDto, err := user.GetUserDto(e.Orm, c)
+	if err != nil {
+		e.Error(500, err, err.Error())
+		return
+	}
+
+	//获取选择周期的 所以客户和商品的对应表
+	splitTableRes := business.GetTableName(userDto.CId, e.Orm)
+	//先查询配送数据
+	//在查询配送周期下的订单 + 路线
+	var CycleCnfObj models.OrderCycleCnf
+	e.Orm.Table(splitTableRes.OrderCycle).Model(
+		&models.OrderCycleCnf{}).Where("id = ?",req.Cycle).Limit(1).Find(&CycleCnfObj)
+	if CycleCnfObj.Id == 0 {
+
+		e.Error(500, nil, "暂无周期")
+		return
+	}
+	CycleUid  := CycleCnfObj.Uid
+
+	var list []models2.Orders
+	e.Orm.Table(splitTableRes.OrderTable).Select("shop_id,number,id,order_id").Where(
+		"c_id = ?  and uid = ? and status in ? ",
+		userDto.CId, CycleUid,global.OrderEffEct(),
+	).Find(&list)
+
+
+
+	var CustomerList []models2.Shop
+	shopMap:=make(map[int]string,0)
+	e.Orm.Model(&models2.Shop{}).Where("c_id = ?",userDto.CId).Select("name,id").Find(&CustomerList).Order("layer desc")
+
+	for _,row:=range CustomerList{
+		shopMap[row.Id] = row.Name
+	}
+
+	//orderGoodsMap:=make(map[int]int,0)
+	orderLists:=make([]string,0)
+	orderMapCnf :=make(map[string]OrderMapCnf,0)
+	for _,orders:=range list{
+		orderLists = append(orderLists,orders.OrderId)
+		orderMapCnf[orders.OrderId] = OrderMapCnf{
+			ShopId: orders.ShopId,
+			AllNumber: 0,
+			ShopName: shopMap[orders.ShopId],
+		}
+	}
+
+	var orderSpecs []models.OrderSpecs
+	e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id in ? and c_id = ?",orderLists,userDto.CId).Find(&orderSpecs)
+
+	//是每一个客户 和商品的对等关系
+	allGoodsMap := make(map[string]OrderMapCnf,0)
+
+	//商品和数量的map
+	for _,orders:=range orderSpecs{
+
+
+		orderShopMapCnf,ok :=orderMapCnf[orders.OrderId] //orderMapCnf 是这个商品的客户信息 还有数量
+		if !ok{continue} //必须是在大的父ID 订单中
+
+	//订单关联 用商品的规则ID做一个唯一的
+		goodsKey:=fmt.Sprintf("%v/%vSRE+%v",orders.GoodsName,orders.SpecsName,orderShopMapCnf.ShopId)
+
+		cacheDat,cacheOk:=allGoodsMap[goodsKey]
+		if !cacheOk{
+			cacheDat = OrderMapCnf{
+				ShopId: orderShopMapCnf.ShopId,
+				ShopName: orderShopMapCnf.ShopName,
+				GoodsName: orders.GoodsName,
+				SpecsName: orders.SpecsName,
+			}
+		}
+		cacheDat.AllNumber += orders.Number
+		allGoodsMap[goodsKey] = cacheDat
+
+	}
+	newMap:=make(map[string][]string,0)
+	for _,shop :=range CustomerList{
+		mathKey:=fmt.Sprintf("SRE+%v",shop.Id)
+		cacheDat := make([]string,0)
+		for or,orDat:=range allGoodsMap {
+			var val string
+			if strings.HasSuffix(or,mathKey){
+				val =fmt.Sprintf("%vDEVOPS%v",orDat.ShopName,orDat.AllNumber)
+			}else {
+				val =fmt.Sprintf("%vDEVOPS%v",orDat.ShopName,0)
+			}
+		}
+
+	}
+	//
+	//fmt.Println("allGoodsMap",allGoodsMap)
+	//export :=xlsx_export.XlsxBaseExport{}
+	////查询 所有商品 + 所有客户
+	//DeliveryTime:=CycleCnfObj.DeliveryTime.Format(time.DateOnly)
+	//xlsxPath,_ := export.CustomerBindUser(userDto.CId,DeliveryTime,allGoodsMap)
+	//
+	//downloadUrl :=path.Join("/company/api/v1/report/file",xlsxPath)
+	//e.OK(downloadUrl,"")
+	e.OK("","")
+	return
+
+}
+
 func (e *Worker)LineSummary(c *gin.Context) {
 	req := WorkerExportLineSummaryReq{}
 	err := e.MakeContext(c).
@@ -159,7 +283,7 @@ func (e *Worker)LineSummary(c *gin.Context) {
 	//先查询配送数据
 	//在查询配送周期下的订单 + 路线
 	var CycleCnfObj models.OrderCycleCnf
-	e.Orm.Table(splitTableRes.OrderCycle).Select("uid,id").Model(
+	e.Orm.Table(splitTableRes.OrderCycle).Model(
 		&models.OrderCycleCnf{}).Where("id = ?",req.Cycle).Limit(1).Find(&CycleCnfObj)
 	if CycleCnfObj.Id == 0 {
 
@@ -206,8 +330,7 @@ func (e *Worker)LineSummary(c *gin.Context) {
 	export :=xlsx_export.XlsxBaseExport{}
 	xlsxPath,_ := export.ExportLineSummary(userDto.CId,lineObject.Name,cacheShopMap)
 
-	//downloadUrl :=path.Join(config.ExtConfig.DomainUrl,"/company/api/v1/report/line_summary",xlsxPath)
-	downloadUrl :=path.Join("/company/api/v1/report/line_summary",xlsxPath)
+	downloadUrl :=path.Join("/company/api/v1/report/file",xlsxPath)
 	e.OK(downloadUrl,"")
 	return
 

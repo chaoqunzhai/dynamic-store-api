@@ -67,6 +67,7 @@ func (e *SummaryExportObj)ReadSummaryDetail() (dat *SheetRow,err error )  {
 		xlsx :=&XlsxTableRow{
 			Key: key,
 			GoodsName: row.GoodsName,
+			GoodsId: row.GoodsId,
 			GoodsSpecs: row.SpecsName,
 			Unit: row.Unit,
 			Number: row.Number,

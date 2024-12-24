@@ -42,7 +42,8 @@ func (x *XlsxBaseExport)SetLineXlsxRun(cid int,lineName string,data map[int]*She
 		x.SetRowBackGroundCellValue(3,row.SheetName)
 
 		//第四行开始: 进行商品保存
-		for index,datRow:=range row.Table{
+		sortTable :=x.SortLayer(row.Table)
+		for index,datRow:=range sortTable{
 
 			x.XlsxRowIndex = index + 4
 			start:=fmt.Sprintf("A%v",x.XlsxRowIndex)
@@ -50,7 +51,7 @@ func (x *XlsxBaseExport)SetLineXlsxRun(cid int,lineName string,data map[int]*She
 
 			//datRow 转数组
 			sliceList :=[]interface{}{
-				datRow.Id,datRow.GoodsName,datRow.GoodsSpecs,datRow.Unit,datRow.Number,datRow.Price,datRow.TotalMoney,
+				index+1,datRow.GoodsName,datRow.GoodsSpecs,datRow.Unit,datRow.Number,datRow.Price,datRow.TotalMoney,
 			}
 			for cellIndex,tableValue:=range sliceList{
 

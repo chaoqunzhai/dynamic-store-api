@@ -111,6 +111,7 @@ func (e ReportDeliveryLineObj)ReadLineDeliveryDetail() (ResultData map[int]*Line
 			xlsx :=&XlsxTableRow{
 				Key: fmt.Sprintf("%v_%v",row.GoodsId,row.SpecId),
 				GoodsName: row.GoodsName,
+				GoodsId: row.GoodsId,
 				GoodsSpecs: row.SpecsName,
 				Unit: row.Unit,
 				Number: row.Number,

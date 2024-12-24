@@ -26,8 +26,8 @@ func (x *XlsxBaseExport)SetSummaryXlsxRun(cid int,data *SheetRow) string {
 
 
 	//第三行 数据开始
-
-	for index,datRow:=range data.Table{
+	sortTable :=x.SortLayer(data.Table)
+	for index,datRow:=range sortTable{
 
 		//因为上面有只有2个属性配置也就需要 从第三行开始
 		x.XlsxRowIndex = index + 3
@@ -36,7 +36,7 @@ func (x *XlsxBaseExport)SetSummaryXlsxRun(cid int,data *SheetRow) string {
 
 		//datRow 转数组
 		sliceList :=[]interface{}{
-			datRow.Id,datRow.GoodsName,datRow.GoodsSpecs,datRow.Unit,datRow.Number,datRow.Price,datRow.TotalMoney,
+			index + 1,datRow.GoodsName,datRow.GoodsSpecs,datRow.Unit,datRow.Number,datRow.Price,datRow.TotalMoney,
 		}
 		for cellIndex,tableValue:=range sliceList{
 
