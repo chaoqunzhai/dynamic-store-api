@@ -1,12 +1,11 @@
 package xlsx_export
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/xuri/excelize/v2"
 	"go-admin/common/utils"
 	"go.uber.org/zap"
-	"io/ioutil"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -40,25 +39,40 @@ func (x *XlsxBaseExport)CustomerBindUser(Cid int,deliveryTime string,allGoodsMap
 	x.File.SetCellValue(SheetName,"A1","行号")
 	x.File.SetCellValue(SheetName,"B1","客户名称")
 
-	goodsIndex:=1 //商品x轴的位置
+	goodsIndex:=2 //商品x轴的位置
 
-	vv,_:=json.Marshal(allGoodsMap)
-	ioutil.WriteFile("example.txt", vv, 0644)
-
-
-	x.File.SetRowHeight(SheetName,1,40.95)
 	xlsxName =fmt.Sprintf("%v-%v-客户明细单.xlsx",deliveryTime,time.Now().Format("2006-01-02 15-04-05"))
 
 
+
+	sortKey:= make([]string,0)
+	for goodsNameKey :=range allGoodsMap{
+		sortKey = append(sortKey,goodsNameKey)
+	}
+
+	sort.Strings(sortKey)
 	var lastRow string
 	var userIndex int
-	for goodsName,userList:=range allGoodsMap{
+
+
+	for _,goodsVal:=range sortKey{
 		goodsIndex+=1
-		xValue := string(rune('A' + goodsIndex))
-		goodsRow:=fmt.Sprintf("%v1",xValue)
-		x.File.SetCellValue(SheetName,goodsRow,goodsName)
+		//cell是x轴的字母
+		cell,_:=excelize.ColumnNumberToName(goodsIndex)
+
+		xValue := fmt.Sprintf("%v1",cell)
+
+
+		goodsKeyList := strings.Split(goodsVal,"DEVOPS")
+		goodsName :=goodsKeyList[1]
+
+
+		x.File.SetCellValue(SheetName,xValue,goodsName)
+
+		lastRow = cell //设置最后的一个元素
+		userList:=allGoodsMap[goodsVal]
 		userIndex=1 //客户x轴
-		lastRow = xValue //设置最后的一个元素
+
 		//设置行号
 		for i:=0;i<len(userList);i++{
 			indexRow:=fmt.Sprintf("A%v",i + 2)
@@ -66,16 +80,15 @@ func (x *XlsxBaseExport)CustomerBindUser(Cid int,deliveryTime string,allGoodsMap
 		}
 		for _,userValue:=range userList{
 			userNameDat :=strings.Split(userValue,"DEVOPS")
-			if len(userNameDat) != 2{continue}
 
+			if len(userNameDat) != 2{continue}
+			userIndex +=1
 			userName :=userNameDat[0]
 			userNumber :=userNameDat[1]
-			userIndex +=1
 			userRow:=fmt.Sprintf("B%v",userIndex)
 			x.File.SetCellValue(SheetName,userRow,userName)
-
-			yValue:=fmt.Sprintf("%v%v",xValue,userIndex)
-
+			//设置Y轴的数字
+			yValue:=fmt.Sprintf("%v%v",cell,userIndex)
 			if userNumber == "0" {
 				x.File.SetCellValue(SheetName,yValue,"")
 			}else {
@@ -83,6 +96,7 @@ func (x *XlsxBaseExport)CustomerBindUser(Cid int,deliveryTime string,allGoodsMap
 				x.File.SetCellValue(SheetName,yValue,userNumberInt)
 			}
 		}
+
 	}
 
 

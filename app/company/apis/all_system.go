@@ -12,7 +12,6 @@ import (
 	"go-admin/config"
 	"go-admin/global"
 	"path"
-	"strings"
 	"time"
 
 	models2 "go-admin/cmd/migrate/migration/models"
@@ -54,6 +53,11 @@ type OrderMapCnf struct {
 	AllNumber int `json:"all_number"`
 	GoodsName string `json:"goods_name"`
 	SpecsName string `json:"specs_name"`
+}
+
+type GoodsRowCnf struct {
+	Layer int `json:"layer"`
+	Name string `json:"name"`
 }
 func (m *GetPageReq) GetNeedSearch() interface{} {
 	return *m
@@ -183,6 +187,23 @@ func (e *Worker)CustomerBindUser(c *gin.Context) {
 		userDto.CId, CycleUid,global.OrderEffEct(),
 	).Find(&list)
 
+	var goodsSpecsList []models.GoodsSpecs
+	e.Orm.Model(&models.GoodsSpecs{}).Where("c_id = ?",userDto.CId).Select("name,id,goods_id").Find(&goodsSpecsList).Order("layer desc")
+
+	goodsLis:=make([]int,0)
+	for _,specs :=range goodsSpecsList{
+		goodsLis = append(goodsLis,specs.GoodsId)
+	}
+
+	var goodsList []models.Goods
+	goodsMap:=make(map[int]GoodsRowCnf,0)
+	e.Orm.Model(&models.Goods{}).Where("c_id = ?",userDto.CId).Select("name,id,layer").Find(&goodsList)
+	for _,row:=range goodsList{
+		goodsMap[row.Id] =GoodsRowCnf{
+			Layer: row.Layer,
+			Name: row.Name,
+		}
+	}
 
 
 	var CustomerList []models2.Shop
@@ -209,55 +230,66 @@ func (e *Worker)CustomerBindUser(c *gin.Context) {
 	e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id in ? and c_id = ?",orderLists,userDto.CId).Find(&orderSpecs)
 
 	//是每一个客户 和商品的对等关系
-	allGoodsMap := make(map[string]OrderMapCnf,0)
+	allOrderGoodsMap := make(map[string]OrderMapCnf,0)
 
 	//商品和数量的map
 	for _,orders:=range orderSpecs{
 
-
 		orderShopMapCnf,ok :=orderMapCnf[orders.OrderId] //orderMapCnf 是这个商品的客户信息 还有数量
 		if !ok{continue} //必须是在大的父ID 订单中
+		keys:=fmt.Sprintf("%v_%v_%v",orders.GoodsId,orders.SpecId,orderShopMapCnf.ShopId)
+		cacheDat,ok :=allOrderGoodsMap[keys]
 
-	//订单关联 用商品的规则ID做一个唯一的
-		goodsKey:=fmt.Sprintf("%v/%vSRE+%v",orders.GoodsName,orders.SpecsName,orderShopMapCnf.ShopId)
-
-		cacheDat,cacheOk:=allGoodsMap[goodsKey]
-		if !cacheOk{
+		if !ok{
 			cacheDat = OrderMapCnf{
 				ShopId: orderShopMapCnf.ShopId,
-				ShopName: orderShopMapCnf.ShopName,
 				GoodsName: orders.GoodsName,
 				SpecsName: orders.SpecsName,
 			}
 		}
 		cacheDat.AllNumber += orders.Number
-		allGoodsMap[goodsKey] = cacheDat
 
+		allOrderGoodsMap[keys] = cacheDat
 	}
-	newMap:=make(map[string][]string,0)
-	for _,shop :=range CustomerList{
-		mathKey:=fmt.Sprintf("SRE+%v",shop.Id)
-		cacheDat := make([]string,0)
-		for or,orDat:=range allGoodsMap {
-			var val string
-			if strings.HasSuffix(or,mathKey){
-				val =fmt.Sprintf("%vDEVOPS%v",orDat.ShopName,orDat.AllNumber)
-			}else {
-				val =fmt.Sprintf("%vDEVOPS%v",orDat.ShopName,0)
+
+	buildMapDat:=make(map[string][]string,0)
+	for _,shop:=range CustomerList{
+		//这个是排序好的客户
+
+		//也应该获取下所有的商品,也是排好的商品
+		demoIndex:=0
+		for _,specs:=range goodsSpecsList {
+			demoIndex+=1
+			keys:=fmt.Sprintf("%v_%v_%v",specs.GoodsId,specs.Id,shop.Id)
+			GoodsRowCnfDat:=goodsMap[specs.GoodsId]
+
+
+			cacheDat,ok := allOrderGoodsMap[keys]
+			number:=0
+			goodsKey := fmt.Sprintf("%vDEVOPS%v-%v",GoodsRowCnfDat.Layer,GoodsRowCnfDat.Name,specs.Name)
+			if ok{
+				number = cacheDat.AllNumber
 			}
-		}
 
+			mapList,mapOk :=buildMapDat[goodsKey]
+			if !mapOk {
+				mapList = make([]string,0)
+			}
+
+			val :=fmt.Sprintf("%vDEVOPS%v",shop.Name,number)
+			mapList = append(mapList,val)
+
+			buildMapDat[goodsKey] = mapList
+		}
 	}
-	//
-	//fmt.Println("allGoodsMap",allGoodsMap)
-	//export :=xlsx_export.XlsxBaseExport{}
-	////查询 所有商品 + 所有客户
-	//DeliveryTime:=CycleCnfObj.DeliveryTime.Format(time.DateOnly)
-	//xlsxPath,_ := export.CustomerBindUser(userDto.CId,DeliveryTime,allGoodsMap)
-	//
-	//downloadUrl :=path.Join("/company/api/v1/report/file",xlsxPath)
-	//e.OK(downloadUrl,"")
-	e.OK("","")
+
+
+	export :=xlsx_export.XlsxBaseExport{}
+	DeliveryTime:=CycleCnfObj.DeliveryTime.Format(time.DateOnly)
+	xlsxPath,_ := export.CustomerBindUser(userDto.CId,DeliveryTime,buildMapDat)
+
+	downloadUrl:=path.Join("/company/api/v1/report/file",xlsxPath)
+	e.OK(downloadUrl,"")
 	return
 
 }
@@ -296,7 +328,7 @@ func (e *Worker)LineSummary(c *gin.Context) {
 	e.Orm.Table(splitTableRes.OrderTable).Select("shop_id,number,order_money").Where(
 		"c_id = ? and line_id = ? and uid = ? and status in ? ",
 		userDto.CId, req.LineId,CycleUid,global.OrderEffEct(),
-		).Find(&list)
+	).Find(&list)
 
 	var lineObject models2.Line
 	e.Orm.Model(&lineObject).Where("c_id = ? and id = ?",userDto.CId,req.LineId).Limit(1).Find(&lineObject)
@@ -324,8 +356,8 @@ func (e *Worker)LineSummary(c *gin.Context) {
 	}
 	fmt.Println("cacheShopMap",cacheShopMap)
 	//sort.Slice(cacheShopMap, func(i, j int) bool {
-	//	fmt.Println("cacheShopMap[i]",cacheShopMap[i])
-	//	return cacheShopMap[i].Layer > cacheShopMap[j].Layer
+	//      fmt.Println("cacheShopMap[i]",cacheShopMap[i])
+	//      return cacheShopMap[i].Layer > cacheShopMap[j].Layer
 	//})
 	export :=xlsx_export.XlsxBaseExport{}
 	xlsxPath,_ := export.ExportLineSummary(userDto.CId,lineObject.Name,cacheShopMap)
