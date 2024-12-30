@@ -1,7 +1,6 @@
 package dto
 
 import (
-	"fmt"
 	modSearch "github.com/go-admin-team/go-admin-core/tools/search"
 	"go-admin/common/global"
 	"go-admin/common/search"
@@ -122,7 +121,7 @@ func Paginate(pageSize, pageIndex int) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
 		//不进行分页,返回所有数据
 		if pageIndex == -1 {
-			fmt.Println("返回所有数据")
+
 			return db
 		}
 		offset := (pageIndex - 1) * pageSize

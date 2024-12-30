@@ -162,7 +162,7 @@ func (e Line) LineBindShopList(c *gin.Context) {
 	s := service.Line{}
 	err := e.MakeContext(c).
 		MakeOrm().
-		Bind(&req, binding.JSON, nil).
+		Bind(&req).
 		MakeService(&s.Service).
 		Errors
 	if err != nil {
@@ -187,13 +187,13 @@ func (e Line) LineBindShopList(c *gin.Context) {
 	result := make([]interface{}, 0)
 	var list []models2.Shop
 	var count int64
-	p := actions.GetPermissionFromContext(c)
+
 	var shopObject models2.Shop
-	e.Orm.Model(&shopObject).Scopes(
+	orm := e.Orm.Model(&shopObject).Where("enable = ?  and line_id = ? and c_id =? ", true, lineIdNumber,userDto.CId)
+	orm.Scopes(
 			cDto.MakeCondition(req.GetNeedSearch()),
 			cDto.Paginate(req.GetPageSize(), req.GetPageIndex()),
-			actions.Permission(shopObject.Name, p),
-		).Where("enable = ?  and line_id = ?", true, lineIdNumber).Order(global.OrderLayerKey).Find(&list).Limit(-1).Offset(-1).
+		).Order(global.OrderLayerKey).Find(&list).Limit(-1).Offset(-1).
 		Count(&count)
 	for _, row := range list {
 		cc := map[string]interface{}{

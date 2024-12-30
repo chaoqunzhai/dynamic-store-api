@@ -1,6 +1,7 @@
 package apis
 
 import (
+
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-admin-team/go-admin-core/sdk/api"
@@ -11,6 +12,7 @@ import (
 	"go-admin/common/xlsx_export"
 	"go-admin/config"
 	"go-admin/global"
+
 	"path"
 	"time"
 
@@ -208,7 +210,7 @@ func (e *Worker)CustomerBindUser(c *gin.Context) {
 
 	var CustomerList []models2.Shop
 	shopMap:=make(map[int]string,0)
-	e.Orm.Model(&models2.Shop{}).Where("c_id = ?",userDto.CId).Select("name,id").Find(&CustomerList).Order("layer desc")
+	e.Orm.Model(&models2.Shop{}).Where("c_id = ?",userDto.CId).Select("name,id").Order(global.OrderLayerKey).Find(&CustomerList)
 
 	for _,row:=range CustomerList{
 		shopMap[row.Id] = row.Name
@@ -284,6 +286,9 @@ func (e *Worker)CustomerBindUser(c *gin.Context) {
 	}
 
 
+	//
+	//vv,_:=json.Marshal(buildMapDat)
+	//ioutil.WriteFile("example.txt", vv, 0644)
 	export :=xlsx_export.XlsxBaseExport{}
 	DeliveryTime:=CycleCnfObj.DeliveryTime.Format(time.DateOnly)
 	xlsxPath,_ := export.CustomerBindUser(userDto.CId,DeliveryTime,buildMapDat)
