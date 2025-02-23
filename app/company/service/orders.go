@@ -438,11 +438,7 @@ func (e *Orders)DetailOrder(orderId string,userDto *sys.SysUser,req dto.DetailRe
 	var orderSpecs []models.OrderSpecs
 
 
-	if req.Action == "print"{
-		e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ? and status in ?", orderId,global.OrderEffEct()).Find(&orderSpecs)
-	}else {
-		e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ?", orderId).Find(&orderSpecs)
-	}
+	e.Orm.Table(splitTableRes.OrderSpecs).Where("order_id = ?", orderId).Find(&orderSpecs)
 
 
 	specsList := make([]map[string]interface{}, 0)
